@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube MP4 Downloader - Web</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
+            color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 18px;
+            padding: 24px 26px 22px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+            width: 420px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            backdrop-filter: blur(16px);
+        }
+        h1 {
+            margin: 0 0 4px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h1 span.emoji {
+            font-size: 24px;
+        }
+        p.subtitle {
+            margin: 0 0 18px;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #cbd5f5;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 9px 11px;
+            border-radius: 10px;
+            border: 1px solid #1f2937;
+            background: #020617;
+            color: #e5e7eb;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.6);
+        }
+        select {
+            width: 100%;
+            padding: 9px 11px;
+            border-radius: 10px;
+            border: 1px solid #1f2937;
+            background: #020617;
+            color: #e5e7eb;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        button {
+            margin-top: 14px;
+            width: 100%;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+        .status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #9ca3af;
+            min-height: 18px;
+        }
+        .status.ok {
+            color: #4ade80;
+        }
+        .status.err {
+            color: #f97373;
+        }
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .download-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1><span class="emoji">🎬</span> YouTube MP4 Downloader</h1>
+        <p class="subtitle">Cole a URL do vídeo do YouTube e ele será baixado em MP4.</p>
+
+        <form id="download-form">
+            <label for="url">URL do vídeo</label>
+            <input type="text" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required>
+            
+            <label for="quality" style="margin-top: 12px;">Qualidade</label>
+            <select id="quality" name="quality">
+                <option value="best">🔥 Melhor qualidade disponível</option>
+                <option value="1080p">📺 1080p (Full HD)</option>
+                <option value="720p">📱 720p (HD)</option>
+                <option value="480p">💻 480p (SD)</option>
+                <option value="360p">📞 360p (Baixa)</option>
+            </select>
+
+            <button type="submit" id="download-button">
+                <span class="btn-text">⬇️ Baixar MP4</span>
+                <span class="spinner" id="btn-spinner"></span>
+            </button>
+        </form>
+
+        <div class="status" id="status">Pronto para baixar.</div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

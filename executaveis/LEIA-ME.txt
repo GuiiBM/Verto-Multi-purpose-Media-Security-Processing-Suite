@@ -1,0 +1,30 @@
+========================================
+    YouTube MP4 Downloader v1.0
+========================================
+
+COMO USAR:
+
+1. INSTALAR_DEPENDENCIAS.bat
+   (Instala TUDO automaticamente - Flask, yt-dlp e FFmpeg)
+
+2. INICIAR.bat  
+   (Execute para abrir a aplicacao)
+
+3. Acesse: http://localhost:5000
+
+4. ATUALIZAR_YT-DLP.bat
+   (Se der erro 403, execute este)
+
+========================================
+
+RECURSOS:
+- Instalacao automatica completa
+- Alta qualidade (1080p, 720p) com FFmpeg
+- Deteccao automatica de qualidade
+- Interface web moderna
+
+PROBLEMAS?
+- Leia: docs/PASSO_A_PASSO.md
+- Certifique-se que Python esta no PATH
+
+========================================
