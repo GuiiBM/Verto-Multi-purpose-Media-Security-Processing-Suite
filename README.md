@@ -2,6 +2,17 @@
 
 Aplicação web para baixar vídeos do YouTube com seleção de qualidade.
 
+## ✨ Novidade: Cálculo Automático de Tamanho
+
+**Agora você vê o tamanho estimado de cada arquivo em tempo real!**
+
+- 📊 Tamanho exibido para cada resolução (MP4)
+- 🎵 Tamanho para cada bitrate (MP3)
+- 🖼️ Tamanho das thumbnails (PNG/JPG)
+- ⚡ Atualização automática ao colar URL
+
+*Disponível apenas na versão local*
+
 ## 🌐 Versão Web (Netlify)
 
 **🚀 Deploy Instantâneo:** [Guia Completo](deploy-netlify.md)

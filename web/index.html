@@ -24,9 +24,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 60px 20px;
+            padding: 40px 15px;
             position: relative;
             overflow-x: hidden;
+            max-width: 100vw;
+        }
+        .main-container {
+            display: flex;
+            gap: 20px;
+            width: 95vw;
+            max-width: 1200px;
+            align-items: stretch;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 0 auto;
         }
         body::before {
             content: '';
@@ -88,12 +99,15 @@
                 0 0 0 1px rgba(148, 163, 184, 0.1),
                 0 20px 60px rgba(0, 0, 0, 0.6),
                 0 0 80px rgba(34, 197, 94, 0.05);
-            width: 90vw;
+            width: 100%;
             max-width: 520px;
             border: 1px solid rgba(148, 163, 184, 0.08);
             backdrop-filter: blur(40px) saturate(180%);
             position: relative;
             z-index: 1;
+            box-sizing: border-box;
+            flex: 1 1 520px;
+            min-width: 320px;
         }
         .card::before {
             content: '';
@@ -252,13 +266,51 @@
             font-size: 12px;
         }
         .preview {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            width: 100%;
+        }
+        .preview-loading {
+            text-align: center;
+            padding: 20px;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+        #preview-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between;
+        }
+        .preview-info {
             margin-top: 20px;
-            padding: 16px;
-            background: rgba(30, 41, 59, 0.3);
-            border-radius: 16px;
-            border: 1px solid rgba(148, 163, 184, 0.1);
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .preview-card {
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: 
+                0 0 0 1px rgba(148, 163, 184, 0.1),
+                0 20px 60px rgba(0, 0, 0, 0.6),
+                0 0 80px rgba(34, 197, 94, 0.05);
+            width: 100%;
+            max-width: 520px;
+            border: 1px solid rgba(148, 163, 184, 0.08);
+            backdrop-filter: blur(40px) saturate(180%);
+            position: relative;
+            z-index: 1;
+            box-sizing: border-box;
+            flex: 1 1 520px;
+            min-width: 320px;
             display: none;
-            backdrop-filter: blur(20px);
+            flex-direction: column;
+        }
+        .preview-card.show {
+            display: flex !important;
         }
         .preview.show {
             display: block;
@@ -266,9 +318,9 @@
         .preview img {
             width: 100%;
             border-radius: 8px;
-            margin-bottom: 8px;
             cursor: pointer;
             transition: opacity 0.2s;
+            flex-shrink: 0;
         }
         .preview img:hover {
             opacity: 0.8;
@@ -282,10 +334,11 @@
         }
         .preview iframe {
             width: 100%;
-            height: 220px;
-            border-radius: 8px;
-            margin-bottom: 8px;
+            aspect-ratio: 16 / 9;
+            height: auto;
+            border-radius: 12px;
             border: none;
+            flex-shrink: 0;
         }
         .preview h3 {
             margin: 0 0 6px;
@@ -311,6 +364,7 @@
             flex-wrap: wrap;
             position: relative;
             z-index: 1;
+            max-width: 95vw;
         }
         .format-btn {
             padding: 14px 28px;
@@ -378,33 +432,40 @@
             border-radius: 8px;
         }
         @media (max-width: 640px) {
-            body { padding: 30px 15px; }
+            body { padding: 30px 10px; }
             .logo { font-size: 48px; letter-spacing: 12px; }
             .tagline { font-size: 13px; margin-bottom: 32px; }
-            .format-selector { gap: 8px; margin-bottom: 32px; }
+            .format-selector { gap: 8px; margin-bottom: 32px; max-width: 98vw; }
             .format-btn { padding: 12px 20px; font-size: 13px; }
-            .card { padding: 28px 20px; border-radius: 20px; width: 95vw; }
+            .card { padding: 24px 16px; border-radius: 20px; width: 100%; }
+            .preview-card { padding: 16px; width: 100%; }
             h1 { font-size: 24px; }
             p.subtitle { font-size: 13px; margin-bottom: 24px; }
+            .preview iframe { height: 180px; }
+            .main-container { flex-direction: column; align-items: center; }
         }
         @media (min-width: 641px) and (max-width: 1024px) {
-            .card { width: 85vw; max-width: 600px; }
+            .main-container { flex-direction: column; }
         }
         @media (min-width: 1025px) {
-            .card { width: 80vw; max-width: 700px; padding: 48px; }
             .logo { font-size: 80px; letter-spacing: 20px; }
+            .main-container { flex-direction: row; }
         }
         @media (max-width: 480px) {
+            body { padding: 20px 8px; }
             .logo { font-size: 40px; letter-spacing: 8px; }
-            .format-btn { padding: 10px 16px; font-size: 12px; }
-            .card { padding: 24px 16px; width: 96vw; }
+            .format-btn { padding: 10px 14px; font-size: 12px; }
+            .card { padding: 20px 12px; width: 100%; }
+            .preview-card { padding: 12px; width: 100%; }
             h1 { font-size: 22px; }
             input[type="text"], select { padding: 12px 14px; font-size: 13px; }
             button { padding: 14px; font-size: 14px; }
+            .preview iframe { height: 160px; }
         }
         @media (min-width: 768px) and (max-width: 1024px) {
             .logo { font-size: 64px; letter-spacing: 16px; }
             .card { padding: 36px; }
+            .preview-card { padding: 20px; }
         }
     </style>
 </head>
@@ -421,40 +482,46 @@
         <div class="format-btn" data-format="jpg"><span>🖼️ JPG</span></div>
     </div>
 
-    <div class="card">
-        <h1>Convert Media</h1>
-        <p class="subtitle">Paste YouTube URL and select your preferred format</p>
+    <div class="main-container">
+        <div class="card">
+            <h1>Convert Media</h1>
+            <p class="subtitle">Paste YouTube URL and select your preferred format</p>
 
-        <form id="download-form">
-            <label for="url">Video URL</label>
-            <input type="text" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required>
-            
-            <label for="quality" style="margin-top: 16px;" id="quality-label">Quality</label>
-            <select id="quality" name="quality">
-                <option value="best">🔥 Melhor qualidade disponível</option>
-                <option value="1080p">📺 1080p (Full HD)</option>
-                <option value="720p">📱 720p (HD)</option>
-                <option value="480p">💻 480p (SD)</option>
-                <option value="360p">📞 360p (Baixa)</option>
-            </select>
+            <form id="download-form">
+                <label for="url">Video URL</label>
+                <input type="text" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required>
+                
+                <label for="quality" style="margin-top: 16px;" id="quality-label">Quality</label>
+                <select id="quality" name="quality">
+                    <option value="best">🔥 Melhor qualidade disponível</option>
+                    <option value="1080p">📺 1080p (Full HD)</option>
+                    <option value="720p">📱 720p (HD)</option>
+                    <option value="480p">💻 480p (SD)</option>
+                    <option value="360p">📞 360p (Baixa)</option>
+                </select>
 
-            <button type="submit" id="download-button">
-                <span class="btn-text">⬇️ Download</span>
-                <span class="spinner" id="btn-spinner"></span>
-            </button>
-        </form>
+                <button type="submit" id="download-button">
+                    <span class="btn-text">⬇️ Download</span>
+                    <span class="spinner" id="btn-spinner"></span>
+                </button>
+            </form>
 
-        <div class="preview" id="preview">
-            <div class="preview-loading" id="preview-loading">Carregando preview...</div>
-            <div id="preview-content" style="display: none;">
-                <img id="preview-thumb" src="" alt="Thumbnail" onclick="playVideo()">
-                <div id="preview-player" style="display: none;"></div>
-                <h3 id="preview-title"></h3>
-                <p id="preview-duration"></p>
-            </div>
+            <div class="status" id="status">Ready to convert</div>
         </div>
 
-        <div class="status" id="status">Ready to convert</div>
+        <div class="preview-card" id="preview-card">
+            <div class="preview" id="preview">
+                <div class="preview-loading" id="preview-loading">Carregando preview...</div>
+                <div id="preview-content" style="display: none;">
+                    <img id="preview-thumb" src="" alt="Thumbnail" onclick="playVideo()">
+                    <div id="preview-player" style="display: none;"></div>
+                    <div class="preview-info">
+                        <h3 id="preview-title"></h3>
+                        <p id="preview-duration"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="image-modal" id="image-modal" onclick="closeImageModal()">

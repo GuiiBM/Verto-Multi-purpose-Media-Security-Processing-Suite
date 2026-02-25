@@ -2,6 +2,10 @@ from flask import Flask, request, render_template_string, jsonify
 import yt_dlp
 import os
 from pathlib import Path
+try:
+    from PIL import Image
+except:
+    pass
 
 app = Flask(__name__)
 
@@ -31,9 +35,20 @@ HTML = """
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 60px 20px;
+      padding: 40px 15px;
       position: relative;
       overflow-x: hidden;
+      max-width: 100vw;
+    }
+    .main-container {
+      display: flex;
+      gap: 20px;
+      width: 95vw;
+      max-width: 1200px;
+      align-items: stretch;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 0 auto;
     }
     body::before {
       content: '';
@@ -64,7 +79,7 @@ HTML = """
     .logo {
       font-size: 72px;
       font-weight: 900;
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #3b82f6 100%);
+      background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -95,12 +110,15 @@ HTML = """
         0 0 0 1px rgba(148, 163, 184, 0.1),
         0 20px 60px rgba(0, 0, 0, 0.6),
         0 0 80px rgba(34, 197, 94, 0.05);
-      width: 90vw;
+      width: 100%;
       max-width: 520px;
       border: 1px solid rgba(148, 163, 184, 0.08);
       backdrop-filter: blur(40px) saturate(180%);
       position: relative;
       z-index: 1;
+      box-sizing: border-box;
+      flex: 1 1 520px;
+      min-width: 320px;
     }
     .card::before {
       content: '';
@@ -196,12 +214,55 @@ HTML = """
       }
     }
     .preview {
-      margin-top: 16px;
-      padding: 12px;
-      background: rgba(30, 41, 59, 0.6);
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      width: 100%;
+    }
+    .preview-loading {
+      text-align: center;
+      padding: 20px;
+      color: #9ca3af;
+      font-size: 12px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #preview-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+    }
+    .preview-info {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .preview-card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: 
+        0 0 0 1px rgba(148, 163, 184, 0.1),
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        0 0 80px rgba(34, 197, 94, 0.05);
+      width: 100%;
+      max-width: 520px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px) saturate(180%);
+      position: relative;
+      z-index: 1;
+      box-sizing: border-box;
+      flex: 1 1 520px;
+      min-width: 320px;
       display: none;
+      flex-direction: column;
+    }
+    .preview-card.show {
+      display: flex !important;
     }
     .preview.show {
       display: block;
@@ -209,9 +270,9 @@ HTML = """
     .preview img {
       width: 100%;
       border-radius: 8px;
-      margin-bottom: 8px;
       cursor: pointer;
       transition: opacity 0.2s;
+      flex-shrink: 0;
     }
     .preview img:hover {
       opacity: 0.8;
@@ -225,10 +286,11 @@ HTML = """
     }
     .preview iframe {
       width: 100%;
-      height: 220px;
-      border-radius: 8px;
-      margin-bottom: 8px;
+      aspect-ratio: 16 / 9;
+      height: auto;
+      border-radius: 12px;
       border: none;
+      flex-shrink: 0;
     }
     .preview h3 {
       margin: 0 0 6px;
@@ -254,6 +316,7 @@ HTML = """
       flex-wrap: wrap;
       position: relative;
       z-index: 1;
+      max-width: 95vw;
     }
     .format-btn {
       padding: 14px 28px;
@@ -321,33 +384,40 @@ HTML = """
       border-radius: 8px;
     }
     @media (max-width: 640px) {
-      body { padding: 30px 15px; }
+      body { padding: 30px 10px; }
       .logo { font-size: 48px; letter-spacing: 12px; }
       .tagline { font-size: 13px; margin-bottom: 32px; }
-      .format-selector { gap: 8px; margin-bottom: 32px; }
+      .format-selector { gap: 8px; margin-bottom: 32px; max-width: 98vw; }
       .format-btn { padding: 12px 20px; font-size: 13px; }
-      .card { padding: 28px 20px; border-radius: 20px; width: 95vw; }
+      .card { padding: 24px 16px; border-radius: 20px; width: 100%; }
+      .preview-card { padding: 16px; width: 100%; }
       h1 { font-size: 24px; }
       p.subtitle { font-size: 13px; margin-bottom: 24px; }
+      .preview iframe { height: 180px; }
+      .main-container { flex-direction: column; align-items: center; }
     }
     @media (min-width: 641px) and (max-width: 1024px) {
-      .card { width: 85vw; max-width: 600px; }
+      .main-container { flex-direction: column; }
     }
     @media (min-width: 1025px) {
-      .card { width: 80vw; max-width: 700px; padding: 48px; }
       .logo { font-size: 80px; letter-spacing: 20px; }
+      .main-container { flex-direction: row; }
     }
     @media (max-width: 480px) {
+      body { padding: 20px 8px; }
       .logo { font-size: 40px; letter-spacing: 8px; }
-      .format-btn { padding: 10px 16px; font-size: 12px; }
-      .card { padding: 24px 16px; width: 96vw; }
+      .format-btn { padding: 10px 14px; font-size: 12px; }
+      .card { padding: 20px 12px; width: 100%; }
+      .preview-card { padding: 12px; width: 100%; }
       h1 { font-size: 22px; }
       input[type="text"], select { padding: 12px 14px; font-size: 13px; }
       button { padding: 14px; font-size: 14px; }
+      .preview iframe { height: 160px; }
     }
     @media (min-width: 768px) and (max-width: 1024px) {
       .logo { font-size: 64px; letter-spacing: 16px; }
       .card { padding: 36px; }
+      .preview-card { padding: 20px; }
     }
   </style>
 </head>
@@ -364,52 +434,58 @@ HTML = """
     <div class="format-btn" data-format="jpg"><span>🖼️ JPG</span></div>
   </div>
 
-  <div class="card">
-    <h1>Convert Media</h1>
-    <p class="subtitle">Paste YouTube URL and select your preferred format</p>
+  <div class="main-container">
+    <div class="card">
+      <h1>Conversor de Mídia</h1>
+      <p class="subtitle">Cole seu URL do Youtube e selecione sua preferência</p>
 
-    <form method="POST" id="download-form">
-      <label for="url">URL do vídeo</label>
-      <input type="text" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required>
-      
-      <input type="hidden" id="format" name="format" value="mp4">
-      
-      <label for="quality" id="quality-label" style="margin-top: 12px;">Qualidade</label>
-      <select id="quality" name="quality" style="width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid #1f2937; background: #020617; color: #e5e7eb; font-size: 13px; outline: none; box-sizing: border-box;">
-        <option value="best">🔥 Melhor qualidade disponível</option>
-        <option value="8k">🌟 8K (7680p) - Ultra HD</option>
-        <option value="4k">💎 4K (2160p) - Ultra HD</option>
-        <option value="2k">🎯 2K (1440p) - Quad HD</option>
-        <option value="1080p">📺 1080p (Full HD)</option>
-        <option value="720p">📱 720p (HD)</option>
-        <option value="480p">💻 480p (SD)</option>
-        <option value="360p">📞 360p (Baixa)</option>
-        <option value="worst">⚡ Menor arquivo (pior qualidade)</option>
-      </select>
+      <form method="POST" id="download-form">
+        <label for="url">URL do vídeo</label>
+        <input type="text" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required>
+        
+        <input type="hidden" id="format" name="format" value="mp4">
+        
+        <label for="quality" id="quality-label" style="margin-top: 12px;">Qualidade</label>
+        <select id="quality" name="quality" style="width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid #1f2937; background: #020617; color: #e5e7eb; font-size: 13px; outline: none; box-sizing: border-box;">
+          <option value="best">🔥 Melhor qualidade disponível</option>
+          <option value="8k">🌟 8K (7680p) - Ultra HD</option>
+          <option value="4k">💎 4K (2160p) - Ultra HD</option>
+          <option value="2k">🎯 2K (1440p) - Quad HD</option>
+          <option value="1080p">📺 1080p (Full HD)</option>
+          <option value="720p">📱 720p (HD)</option>
+          <option value="480p">💻 480p (SD)</option>
+          <option value="360p">📞 360p (Baixa)</option>
+          <option value="worst">⚡ Menor arquivo (pior qualidade)</option>
+        </select>
 
-      <button type="submit" id="download-button">
-        <span class="btn-text">⬇️ Baixar</span>
-        <span class="spinner" id="btn-spinner"></span>
-      </button>
-    </form>
+        <button type="submit" id="download-button">
+          <span class="btn-text">⬇️ Baixar</span>
+          <span class="spinner" id="btn-spinner"></span>
+        </button>
+      </form>
 
-    <div class="preview" id="preview">
-      <div class="preview-loading" id="preview-loading">Carregando preview...</div>
-      <div id="preview-content" style="display: none;">
-        <img id="preview-thumb" src="" alt="Thumbnail" onclick="playVideo()">
-        <div id="preview-player" style="display: none;"></div>
-        <h3 id="preview-title"></h3>
-        <p id="preview-duration"></p>
-      </div>
+      {% if status %}
+        <div class="status ok">{{ status }}</div>
+      {% elif error %}
+        <div class="status err">{{ error }}</div>
+      {% else %}
+        <div class="status">Pronto para baixar.</div>
+      {% endif %}
     </div>
 
-    {% if status %}
-      <div class="status ok">{{ status }}</div>
-    {% elif error %}
-      <div class="status err">{{ error }}</div>
-    {% else %}
-      <div class="status">Pronto para baixar.</div>
-    {% endif %}
+    <div class="preview-card" id="preview-card">
+      <div class="preview" id="preview">
+        <div class="preview-loading" id="preview-loading">Carregando preview...</div>
+        <div id="preview-content" style="display: none;">
+          <img id="preview-thumb" src="" alt="Thumbnail" onclick="playVideo()">
+          <div id="preview-player" style="display: none;"></div>
+          <div class="preview-info">
+            <h3 id="preview-title"></h3>
+            <p id="preview-duration"></p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="image-modal" id="image-modal" onclick="closeImageModal()">
@@ -446,19 +522,45 @@ HTML = """
         currentFormat = btn.dataset.format;
         formatInput.value = currentFormat;
         updateQualityOptions();
+        resetPreviewToThumb();
       });
     });
+
+    function resetPreviewToThumb() {
+      if (previewPlayer && previewThumb) {
+        previewPlayer.style.display = 'none';
+        previewPlayer.innerHTML = '';
+        previewThumb.style.display = 'block';
+        if (currentFormat === 'thumbnail' || currentFormat === 'jpg') {
+          previewThumb.className = 'image-format';
+        } else {
+          previewThumb.className = '';
+        }
+      }
+    }
 
     function updateQualityOptions() {
       let options;
       if (currentFormat === 'mp3') {
         options = mp3Options;
-      } else if (currentFormat === 'thumbnail' || currentFormat === 'jpg') {
+      } else if (currentFormat === 'thumbnail') {
         options = thumbnailOptions;
+      } else if (currentFormat === 'jpg') {
+        options = thumbnailOptions.map(opt => ({
+          value: opt.value,
+          text: opt.text
+        }));
       } else {
         options = mp4Options;
       }
-      qualitySelect.innerHTML = options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
+      qualitySelect.innerHTML = options.map(opt => {
+        let sizeKey = opt.value;
+        if (currentFormat === 'jpg') {
+          sizeKey = opt.value + '_jpg';
+        }
+        const size = formatSizes[sizeKey] || '';
+        return `<option value="${opt.value}">${opt.text}${size}</option>`;
+      }).join('');
     }
 
     const mp4Options = [
@@ -489,6 +591,16 @@ HTML = """
       { value: 'default', text: '📞 Padrão' }
     ];
 
+    let formatSizes = {};
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return ' - ' + parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
     function playVideo() {
       if (currentFormat === 'thumbnail' || currentFormat === 'jpg') {
         const modal = document.getElementById('image-modal');
@@ -509,9 +621,10 @@ HTML = """
     urlInput.addEventListener('input', (e) => {
       clearTimeout(debounceTimer);
       const url = e.target.value.trim();
+      const previewCard = document.getElementById('preview-card');
       
       if (!url || !isYouTubeUrl(url)) {
-        preview.classList.remove('show');
+        previewCard.classList.remove('show');
         return;
       }
       
@@ -523,7 +636,8 @@ HTML = """
     }
 
     async function loadPreview(url) {
-      preview.classList.add('show');
+      const previewCard = document.getElementById('preview-card');
+      previewCard.classList.add('show');
       previewLoading.style.display = 'block';
       previewContent.style.display = 'none';
       
@@ -551,11 +665,36 @@ HTML = """
           previewDuration.textContent = `Duração: ${result.duration}`;
           previewLoading.style.display = 'none';
           previewContent.style.display = 'block';
+          
+          // Buscar tamanhos dos formatos
+          loadFormatSizes(url);
         } else {
-          preview.classList.remove('show');
+          previewCard.classList.remove('show');
         }
       } catch (error) {
-        preview.classList.remove('show');
+        previewCard.classList.remove('show');
+      }
+    }
+
+    async function loadFormatSizes(url) {
+      try {
+        const response = await fetch('/formats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.sizes) {
+          formatSizes = {};
+          Object.keys(result.sizes).forEach(key => {
+            formatSizes[key] = formatBytes(result.sizes[key]);
+          });
+          updateQualityOptions();
+        }
+      } catch (error) {
+        console.log('Erro ao carregar tamanhos');
       }
     }
 
@@ -595,6 +734,113 @@ def preview():
     except:
         return jsonify({"success": False})
 
+@app.route("/formats", methods=["POST"])
+def get_formats():
+    data = request.get_json()
+    url = data.get("url", "").strip()
+    
+    if not url:
+        return jsonify({"success": False})
+    
+    try:
+        sizes = {}
+        duration = 0
+        
+        # Simular exatamente o que será baixado para cada qualidade
+        format_map = {
+            "best": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best[ext=mp4]/best",
+            "8k": "bestvideo[height<=7680][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=7680]+bestaudio/best[height<=7680][ext=mp4]/best[height<=7680]",
+            "4k": "bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160][ext=mp4]/best[height<=2160]",
+            "2k": "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440][ext=mp4]/best[height<=1440]",
+            "1080p": "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080][ext=mp4]/best[height<=1080]",
+            "720p": "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720][ext=mp4]/best[height<=720]",
+            "480p": "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480][ext=mp4]/best[height<=480]",
+            "360p": "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360][ext=mp4]/best[height<=360]",
+            "worst": "worst[ext=mp4]/worst"
+        }
+        
+        for quality, format_str in format_map.items():
+            try:
+                ydl_opts = {
+                    "quiet": True,
+                    "no_warnings": True,
+                    "format": format_str,
+                    "skip_download": True
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    duration = info.get('duration', 0)
+                    
+                    # Pegar tamanho do formato selecionado
+                    if 'requested_formats' in info:
+                        # Vídeo + Áudio separados
+                        total = sum(f.get('filesize') or f.get('filesize_approx', 0) for f in info['requested_formats'])
+                        if total > 0:
+                            sizes[quality] = total
+                    elif 'filesize' in info or 'filesize_approx' in info:
+                        # Formato único
+                        size = info.get('filesize') or info.get('filesize_approx', 0)
+                        if size > 0:
+                            sizes[quality] = size
+            except:
+                pass
+        
+        # MP3
+        if duration:
+            sizes['320'] = int(duration * 320 * 1000 / 8)
+            sizes['256'] = int(duration * 256 * 1000 / 8)
+            sizes['192'] = int(duration * 192 * 1000 / 8)
+            sizes['128'] = int(duration * 128 * 1000 / 8)
+        
+        # Thumbnails - estimar baseado nas resoluções
+        try:
+            ydl_opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                thumbnails = info.get('thumbnails', [])
+                
+                # Mapear resoluções de thumbnail
+                thumb_sizes = {}
+                for thumb in thumbnails:
+                    if 'width' in thumb and 'height' in thumb:
+                        width = thumb.get('width', 0)
+                        height = thumb.get('height', 0)
+                        
+                        # Estimar tamanho baseado em resolução (aproximação)
+                        # PNG: ~3 bytes por pixel, JPG: ~0.5 bytes por pixel
+                        pixels = width * height
+                        
+                        if width >= 1920:  # maxres
+                            thumb_sizes['maxres_png'] = int(pixels * 3)
+                            thumb_sizes['maxres_jpg'] = int(pixels * 0.5)
+                        elif width >= 640:  # high
+                            thumb_sizes['high_png'] = int(pixels * 3)
+                            thumb_sizes['high_jpg'] = int(pixels * 0.5)
+                        elif width >= 320:  # medium
+                            thumb_sizes['medium_png'] = int(pixels * 3)
+                            thumb_sizes['medium_jpg'] = int(pixels * 0.5)
+                        else:  # default
+                            thumb_sizes['default_png'] = int(pixels * 3)
+                            thumb_sizes['default_jpg'] = int(pixels * 0.5)
+                
+                # Adicionar aos sizes
+                sizes['maxres'] = thumb_sizes.get('maxres_png', 0)
+                sizes['high'] = thumb_sizes.get('high_png', 0)
+                sizes['medium'] = thumb_sizes.get('medium_png', 0)
+                sizes['default'] = thumb_sizes.get('default_png', 0)
+                
+                # JPG
+                sizes['maxres_jpg'] = thumb_sizes.get('maxres_jpg', 0)
+                sizes['high_jpg'] = thumb_sizes.get('high_jpg', 0)
+                sizes['medium_jpg'] = thumb_sizes.get('medium_jpg', 0)
+                sizes['default_jpg'] = thumb_sizes.get('default_jpg', 0)
+        except:
+            pass
+        
+        return jsonify({"success": True, "sizes": sizes})
+    except:
+        return jsonify({"success": False})
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     status = None
@@ -610,6 +856,21 @@ def index():
             try:
                 downloads_dir = str(Path.home() / "Downloads")
                 os.makedirs(downloads_dir, exist_ok=True)
+                
+                # Função para gerar nome único
+                def get_unique_filename(base_path, title, ext):
+                    filename = f"{title}.{ext}"
+                    filepath = os.path.join(base_path, filename)
+                    if not os.path.exists(filepath):
+                        return filename
+                    
+                    counter = 1
+                    while True:
+                        filename = f"{title} - cópia {counter}.{ext}"
+                        filepath = os.path.join(base_path, filename)
+                        if not os.path.exists(filepath):
+                            return filename
+                        counter += 1
                 
                 if format_type == "mp3":
                     if quality in ['best', 'worst']:
@@ -630,23 +891,25 @@ def index():
                     ydl_opts = {
                         "skip_download": True,
                         "writethumbnail": True,
-                        "outtmpl": os.path.join(downloads_dir, "%(title)s.%(ext)s"),
+                        "outtmpl": os.path.join(downloads_dir, "%(title)s"),
                         "noplaylist": True,
                         "postprocessors": [{
                             "key": "FFmpegThumbnailsConvertor",
                             "format": "png"
-                        }]
+                        }],
+                        "prefer_ffmpeg": True
                     }
                 elif format_type == "jpg":
                     ydl_opts = {
                         "skip_download": True,
                         "writethumbnail": True,
-                        "outtmpl": os.path.join(downloads_dir, "%(title)s.%(ext)s"),
+                        "outtmpl": os.path.join(downloads_dir, "%(title)s"),
                         "noplaylist": True,
                         "postprocessors": [{
                             "key": "FFmpegThumbnailsConvertor",
                             "format": "jpg"
-                        }]
+                        }],
+                        "prefer_ffmpeg": True
                     }
                 else:
                     format_map = {
@@ -669,18 +932,70 @@ def index():
                         "format_sort": ["res", "ext:mp4", "codec:h264"],
                     }
                 
+                # Obter título e extensão
+                if format_type not in ["thumbnail", "jpg"]:
+                    with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
+                        info = ydl.extract_info(url, download=False)
+                        title = info.get('title', 'Video')
+                
+                # Determinar extensão final
+                if format_type == "mp3":
+                    ext = "mp3"
+                elif format_type == "thumbnail":
+                    ext = "png"
+                elif format_type == "jpg":
+                    ext = "jpg"
+                else:
+                    ext = "mp4"
+                
+                # Gerar nome único (se não for thumbnail, já foi gerado acima)
+                if format_type not in ["thumbnail", "jpg"]:
+                    unique_filename = get_unique_filename(downloads_dir, title, ext)
+                    ydl_opts["outtmpl"] = os.path.join(downloads_dir, unique_filename.replace(f".{ext}", "") + ".%(ext)s")
+                
+                # Baixar
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(url, download=False)
-                    title = info.get('title', 'Video')
                     ydl.download([url])
+                
+                # Para thumbnails, converter e renomear
+                if format_type in ["thumbnail", "jpg"]:
+                    with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
+                        info = ydl.extract_info(url, download=False)
+                        title = info.get('title', 'Video')
+                    
+                    # Procurar arquivo baixado
+                    for possible_ext in ['webp', 'png', 'jpg', 'jpeg']:
+                        temp_file = os.path.join(downloads_dir, f"{title}.{possible_ext}")
+                        if os.path.exists(temp_file):
+                            # Converter para formato correto
+                            try:
+                                from PIL import Image
+                                img = Image.open(temp_file)
+                                
+                                # Gerar nome único no formato correto
+                                unique_filename = get_unique_filename(downloads_dir, title, ext)
+                                final_file = os.path.join(downloads_dir, unique_filename)
+                                
+                                # Salvar no formato correto
+                                img.save(final_file, format='PNG' if ext == 'png' else 'JPEG')
+                                
+                                # Remover arquivo temporário
+                                os.remove(temp_file)
+                                break
+                            except:
+                                # Fallback: apenas renomear
+                                unique_filename = get_unique_filename(downloads_dir, title, ext)
+                                final_file = os.path.join(downloads_dir, unique_filename)
+                                os.rename(temp_file, final_file)
+                                break
                     
                 if format_type == "mp3":
                     quality_text = {'best': 'melhor qualidade', 'worst': 'menor arquivo'}.get(quality, f"{quality}kbps")
-                    status = f"✅ '{title}' baixado em MP3 {quality_text} na pasta Downloads!"
+                    status = f"✅ '{unique_filename}' baixado em MP3 {quality_text} na pasta Downloads!"
                 elif format_type == "thumbnail":
-                    status = f"✅ Thumbnail de '{title}' salva em PNG na pasta Downloads!"
+                    status = f"✅ Thumbnail '{unique_filename}' salva em PNG na pasta Downloads!"
                 elif format_type == "jpg":
-                    status = f"✅ Thumbnail de '{title}' salva em JPG na pasta Downloads!"
+                    status = f"✅ Thumbnail '{unique_filename}' salva em JPG na pasta Downloads!"
                 else:
                     quality_text = {
                         "best": "melhor qualidade",
@@ -693,7 +1008,7 @@ def index():
                         "360p": "360p",
                         "worst": "menor arquivo"
                     }.get(quality, quality)
-                    status = f"✅ '{title}' baixado em {quality_text} na pasta Downloads!"
+                    status = f"✅ '{unique_filename}' baixado em {quality_text} na pasta Downloads!"
                 
             except yt_dlp.DownloadError as e:
                 error = f"Erro no download: {str(e)}"

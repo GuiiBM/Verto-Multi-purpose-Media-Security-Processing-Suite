@@ -26,19 +26,45 @@ formatBtns.forEach(btn => {
         btn.classList.add('active');
         currentFormat = btn.dataset.format;
         updateQualityOptions();
+        resetPreviewToThumb();
     });
 });
+
+function resetPreviewToThumb() {
+    if (previewPlayer && previewThumb) {
+        previewPlayer.style.display = 'none';
+        previewPlayer.innerHTML = '';
+        previewThumb.style.display = 'block';
+        if (currentFormat === 'thumbnail' || currentFormat === 'jpg') {
+            previewThumb.className = 'image-format';
+        } else {
+            previewThumb.className = '';
+        }
+    }
+}
 
 function updateQualityOptions() {
     let options;
     if (currentFormat === 'mp3') {
         options = mp3Options;
-    } else if (currentFormat === 'thumbnail' || currentFormat === 'jpg') {
+    } else if (currentFormat === 'thumbnail') {
         options = thumbnailOptions;
+    } else if (currentFormat === 'jpg') {
+        options = thumbnailOptions.map(opt => ({
+            value: opt.value,
+            text: opt.text
+        }));
     } else {
         options = mp4Options;
     }
-    qualitySelect.innerHTML = options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
+    qualitySelect.innerHTML = options.map(opt => {
+        let sizeKey = opt.value;
+        if (currentFormat === 'jpg') {
+            sizeKey = opt.value + '_jpg';
+        }
+        const size = formatSizes[sizeKey] || '';
+        return `<option value="${opt.value}">${opt.text}${size}</option>`;
+    }).join('');
 }
 
 let debounceTimer;
@@ -69,6 +95,16 @@ const thumbnailOptions = [
     { value: 'default', text: '📞 Padrão' }
 ];
 
+let formatSizes = {};
+
+function formatBytes(bytes) {
+    if (bytes === 0) return '';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return ' - ' + parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 function playVideo() {
     if (currentFormat === 'thumbnail' || currentFormat === 'jpg') {
         const modal = document.getElementById('image-modal');
@@ -89,9 +125,10 @@ function closeImageModal() {
 urlInput.addEventListener('input', (e) => {
     clearTimeout(debounceTimer);
     const url = e.target.value.trim();
+    const previewCard = document.getElementById('preview-card');
     
     if (!url || !isYouTubeUrl(url)) {
-        preview.classList.remove('show');
+        previewCard.classList.remove('show');
         return;
     }
     
@@ -103,7 +140,8 @@ function isYouTubeUrl(url) {
 }
 
 async function loadPreview(url) {
-    preview.classList.add('show');
+    const previewCard = document.getElementById('preview-card');
+    previewCard.classList.add('show');
     previewLoading.style.display = 'block';
     previewContent.style.display = 'none';
     
@@ -131,11 +169,38 @@ async function loadPreview(url) {
             previewDuration.textContent = `Duração: ${result.duration}`;
             previewLoading.style.display = 'none';
             previewContent.style.display = 'block';
+            
+            // Buscar tamanhos dos formatos se houver endpoint
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                loadFormatSizes(url);
+            }
         } else {
-            preview.classList.remove('show');
+            previewCard.classList.remove('show');
         }
     } catch (error) {
-        preview.classList.remove('show');
+        previewCard.classList.remove('show');
+    }
+}
+
+async function loadFormatSizes(url) {
+    try {
+        const response = await fetch('/formats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.sizes) {
+            formatSizes = {};
+            Object.keys(result.sizes).forEach(key => {
+                formatSizes[key] = formatBytes(result.sizes[key]);
+            });
+            updateQualityOptions();
+        }
+    } catch (error) {
+        console.log('Erro ao carregar tamanhos');
     }
 }
 
