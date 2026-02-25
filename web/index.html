@@ -34,7 +34,7 @@
             gap: 20px;
             width: 95vw;
             max-width: 1200px;
-            align-items: stretch;
+            align-items: center;
             flex-wrap: wrap;
             justify-content: center;
             margin: 0 auto;
@@ -106,7 +106,7 @@
             position: relative;
             z-index: 1;
             box-sizing: border-box;
-            flex: 1 1 520px;
+            flex: 1 1 auto;
             min-width: 320px;
         }
         .card::before {
@@ -304,7 +304,7 @@
             position: relative;
             z-index: 1;
             box-sizing: border-box;
-            flex: 1 1 520px;
+            flex: 0 1 auto;
             min-width: 320px;
             display: none;
             flex-direction: column;
@@ -437,8 +437,8 @@
             .tagline { font-size: 13px; margin-bottom: 32px; }
             .format-selector { gap: 8px; margin-bottom: 32px; max-width: 98vw; }
             .format-btn { padding: 12px 20px; font-size: 13px; }
-            .card { padding: 24px 16px; border-radius: 20px; width: 100%; }
-            .preview-card { padding: 16px; width: 100%; }
+            .card { padding: 24px 16px; border-radius: 20px; width: auto; max-width: 95vw; flex: 0 1 auto; }
+            .preview-card { padding: 16px; width: auto; max-width: 95vw; flex: 0 1 auto; }
             h1 { font-size: 24px; }
             p.subtitle { font-size: 13px; margin-bottom: 24px; }
             .preview iframe { height: 180px; }
@@ -455,8 +455,8 @@
             body { padding: 20px 8px; }
             .logo { font-size: 40px; letter-spacing: 8px; }
             .format-btn { padding: 10px 14px; font-size: 12px; }
-            .card { padding: 20px 12px; width: 100%; }
-            .preview-card { padding: 12px; width: 100%; }
+            .card { padding: 20px 12px; width: auto; max-width: 95vw; }
+            .preview-card { padding: 12px; width: auto; max-width: 95vw; }
             h1 { font-size: 22px; }
             input[type="text"], select { padding: 12px 14px; font-size: 13px; }
             button { padding: 14px; font-size: 14px; }
