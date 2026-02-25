@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /opt/lampp/htdocs/baixar-video-youtube-python/venv
+set -gx VIRTUAL_ENV /opt/lampp/htdocs/Verto/venv
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

@@ -1,4 +1,4 @@
-#!/opt/lampp/htdocs/baixar-video-youtube-python/venv/bin/python
+#!/opt/lampp/htdocs/Verto/venv/bin/python
 import sys
 from yt_dlp import main
 if __name__ == '__main__':
