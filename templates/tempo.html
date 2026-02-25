@@ -118,7 +118,6 @@
     }
     .card.calendar {
       width: 400px;
-      height: 520px;
       display: flex;
       flex-direction: column;
     }
@@ -340,6 +339,79 @@
       border-color: #3b82f6;
       transform: scale(1.05);
     }
+    .holiday-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+      cursor: pointer;
+      user-select: none;
+    }
+    .holiday-toggle input[type="checkbox"] {
+      display: none;
+    }
+    .calendar-checkbox {
+      width: 40px;
+      height: 40px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 2px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .calendar-checkbox::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 4px 4px 0 0;
+    }
+    .calendar-checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 4px;
+    }
+    .calendar-checkbox-cell {
+      width: 6px;
+      height: 6px;
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 1px;
+      transition: all 0.3s;
+    }
+    input[type="checkbox"]:checked + .calendar-checkbox {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+    input[type="checkbox"]:checked + .calendar-checkbox::before {
+      background: #3b82f6;
+    }
+    input[type="checkbox"]:checked + .calendar-checkbox .calendar-checkbox-cell {
+      background: #60a5fa;
+    }
+    .holiday-toggle:hover .calendar-checkbox {
+      border-color: #60a5fa;
+    }
+    .holiday-toggle label.text-label {
+      font-size: 14px;
+      color: #94a3b8;
+      cursor: default;
+      margin: 0;
+      font-weight: 500;
+      pointer-events: none;
+    }
     .holidays h3 {
       font-size: 18px;
       color: #ef4444;
@@ -422,6 +494,20 @@
         <div class="nav-btn" onclick="navigate(1)">›</div>
       </div>
       <div class="calendar-grid" id="calendar-grid"></div>
+      <div class="holiday-toggle">
+        <input type="checkbox" id="holiday-checkbox" onchange="toggleHolidaysCard()">
+        <label for="holiday-checkbox" class="calendar-checkbox">
+          <div class="calendar-checkbox-grid">
+            <div class="calendar-checkbox-cell"></div>
+            <div class="calendar-checkbox-cell"></div>
+            <div class="calendar-checkbox-cell"></div>
+            <div class="calendar-checkbox-cell"></div>
+            <div class="calendar-checkbox-cell"></div>
+            <div class="calendar-checkbox-cell"></div>
+          </div>
+        </label>
+        <span class="text-label">Mostrar feriados</span>
+      </div>
     </div>
     
     <div class="card holidays" id="holidays-card">
@@ -606,12 +692,28 @@
       }
     }
     
+    function toggleHolidaysCard() {
+      const checkbox = document.getElementById('holiday-checkbox');
+      const card = document.getElementById('holidays-card');
+      if (checkbox.checked) {
+        card.classList.add('show');
+        if (viewMode === 'days') {
+          showHolidays();
+        } else if (viewMode === 'months') {
+          showYearHolidays();
+        }
+      } else {
+        card.classList.remove('show');
+      }
+    }
+    
     function showHolidays() {
       const holidaysList = holidays.getForMonth(currentMonth, currentYear);
       const card = document.getElementById('holidays-card');
       const list = document.getElementById('holidays-list');
+      const checkbox = document.getElementById('holiday-checkbox');
       
-      if (holidaysList.length === 0) {
+      if (holidaysList.length === 0 || !checkbox.checked) {
         card.classList.remove('show');
         return;
       }
@@ -637,6 +739,12 @@
       const holidaysList = holidays.getForYear(currentYear);
       const card = document.getElementById('holidays-card');
       const list = document.getElementById('holidays-list');
+      const checkbox = document.getElementById('holiday-checkbox');
+      
+      if (!checkbox.checked) {
+        card.classList.remove('show');
+        return;
+      }
       
       card.classList.add('show');
       list.innerHTML = '';
@@ -666,6 +774,7 @@
         currentYear += delta * 10;
       }
       renderCalendar();
+      checkHolidaysVisibility();
     }
     
     function toggleView() {
@@ -673,6 +782,17 @@
       else if (viewMode === 'months') viewMode = 'years';
       else viewMode = 'days';
       renderCalendar();
+      checkHolidaysVisibility();
+    }
+    
+    function checkHolidaysVisibility() {
+      const checkbox = document.getElementById('holiday-checkbox');
+      const card = document.getElementById('holidays-card');
+      if (checkbox.checked) {
+        card.classList.add('show');
+      } else {
+        card.classList.remove('show');
+      }
     }
     
     function renderCalendar() {
@@ -700,7 +820,7 @@
         div.className = 'calendar-day selectable';
         if (i === now.getMonth() && currentYear === now.getFullYear()) div.classList.add('today');
         div.textContent = month;
-        div.onclick = () => { currentMonth = i; viewMode = 'days'; renderCalendar(); };
+        div.onclick = () => { currentMonth = i; viewMode = 'days'; renderCalendar(); checkHolidaysVisibility(); };
         grid.appendChild(div);
       });
     }
@@ -719,7 +839,7 @@
         if (i === -1 || i === 10) div.classList.add('other-month');
         if (year === now.getFullYear()) div.classList.add('today');
         div.textContent = year;
-        div.onclick = () => { currentYear = year; viewMode = 'months'; renderCalendar(); };
+        div.onclick = () => { currentYear = year; viewMode = 'months'; renderCalendar(); checkHolidaysVisibility(); };
         grid.appendChild(div);
       }
     }

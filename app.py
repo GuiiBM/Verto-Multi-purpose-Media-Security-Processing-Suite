@@ -116,6 +116,7 @@ MENU_HTML = """
       gap: 12px;
       cursor: pointer;
       transition: transform 0.2s;
+      text-decoration: none;
     }
     .app:active { transform: scale(0.95); }
     .app-icon {
@@ -206,7 +207,7 @@ MENU_HTML = """
   <div class="time" id="time">12:00</div>
   <div class="tagline">Menu de Aplicativos</div>
   <div class="apps-grid">
-    <div class="app" onclick="location.href='/verto'">
+    <a href="/verto" class="app">
       <div class="app-icon">
         <div class="youtube-icon neon-icon-verto">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -224,16 +225,16 @@ MENU_HTML = """
         </div>
       </div>
       <div class="app-name">Verto</div>
-    </div>
-    <div class="app" onclick="location.href='/config'">
+    </a>
+    <a href="/config" class="app">
       <div class="app-icon">⚙️</div>
       <div class="app-name">Configurações</div>
-    </div>
-    <div class="app" onclick="location.href='/files'">
+    </a>
+    <a href="/files" class="app">
       <div class="app-icon">📁</div>
       <div class="app-name">Arquivos</div>
-    </div>
-    <div class="app" onclick="location.href='/purpleflix'">
+    </a>
+    <a href="/purpleflix" class="app">
       <div class="app-icon">
         <div class="youtube-icon neon-icon-purpleflix"">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -249,8 +250,8 @@ MENU_HTML = """
         </div>
       </div>
       <div class="app-name">PurpleFlix</div>
-    </div>
-    <div class="app" onclick="location.href='/tempo'">
+    </a>
+    <a href="/tempo" class="app">
       <div class="app-icon">
         <div class="youtube-icon neon-icon-tempo">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -267,7 +268,7 @@ MENU_HTML = """
         </div>
       </div>
       <div class="app-name">Tempo</div>
-    </div>
+    </a>
   </div>
   <script>
     function updateTime() {
@@ -1165,7 +1166,7 @@ def get_formats():
 def index():
     return render_template_string(MENU_HTML)
 
-@app.route("/verto", methods=["GET", "POST"])
+@app.route("/verto", methods=["GET", "POST"], strict_slashes=False)
 def verto():
     status = None
     error = None
@@ -1341,11 +1342,23 @@ def verto():
 
     return render_template_string(VERTO_HTML, status=status, error=error)
 
-@app.route("/config")
+@app.route("/config", strict_slashes=False)
 def config():
     return render_template_string(CONFIG_HTML)
 
-@app.route("/files", methods=["GET", "POST"])
+@app.route("/purpleflix", strict_slashes=False)
+def purpleflix():
+    return render_template_string(PURPLEFLIX_HTML)
+
+@app.route("/tempo", strict_slashes=False)
+def tempo():
+    try:
+        with open('templates/tempo.html', 'r', encoding='utf-8') as f:
+            return f.read()
+    except:
+        return render_template_string(TEMPO_HTML)
+
+@app.route("/files", methods=["GET", "POST"], strict_slashes=False)
 def files():
     status = None
     error = None
@@ -1531,18 +1544,6 @@ def estimate_size():
         return jsonify({"success": False, "message": "Formato não suportado"})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
-
-@app.route("/purpleflix")
-def purpleflix():
-    return render_template_string(PURPLEFLIX_HTML)
-
-@app.route("/tempo")
-def tempo():
-    try:
-        with open('templates/tempo.html', 'r', encoding='utf-8') as f:
-            return f.read()
-    except:
-        return render_template_string(TEMPO_HTML)
 
 CONFIG_HTML = """
 <!doctype html>
@@ -2863,7 +2864,6 @@ TEMPO_HTML = """
     }
     .card.calendar {
       width: 400px;
-      height: 520px;
       display: flex;
       flex-direction: column;
     }
@@ -3057,12 +3057,125 @@ TEMPO_HTML = """
       border-color: #3b82f6;
       transform: scale(1.05);
     }
+    .holiday-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+      cursor: pointer;
+      user-select: none;
+    }
+    .holiday-toggle input[type="checkbox"] {
+      display: none;
+    }
+    .calendar-checkbox {
+      width: 40px;
+      height: 40px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 2px solid rgba(59, 130, 246, 0.3);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .calendar-checkbox::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: rgba(59, 130, 246, 0.3);
+      border-radius: 4px 4px 0 0;
+    }
+    .calendar-checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 4px;
+    }
+    .calendar-checkbox-cell {
+      width: 6px;
+      height: 6px;
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 1px;
+      transition: all 0.3s;
+    }
+    input[type="checkbox"]:checked + .calendar-checkbox {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+    input[type="checkbox"]:checked + .calendar-checkbox::before {
+      background: #3b82f6;
+    }
+    input[type="checkbox"]:checked + .calendar-checkbox .calendar-checkbox-cell {
+      background: #60a5fa;
+    }
+    .holiday-toggle:hover .calendar-checkbox {
+      border-color: #60a5fa;
+      transform: scale(1.05);
+    }
+    .holiday-toggle label {
+      font-size: 14px;
+      color: #94a3b8;
+      cursor: pointer;
+      margin: 0;
+      font-weight: 500;
+    }
+    .holidays-card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 32px;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px) saturate(180%);
+      position: relative;
+      width: 344px;
+      display: none;
+      max-height: 520px;
+      overflow-y: auto;
+    }
+    .holidays-card.show {
+      display: block;
+    }
+    .holidays-card h3 {
+      font-size: 20px;
+      color: #3b82f6;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    .holiday-item {
+      padding: 12px;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    .holiday-date {
+      font-size: 12px;
+      color: #60a5fa;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .holiday-name {
+      font-size: 14px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
     @media (max-width: 768px) {
       .digital-clock { font-size: 48px; }
       .analog-clock { width: 220px; height: 220px; }
       .hour-hand { height: 55px; }
       .minute-hand { height: 80px; }
       .second-hand { height: 90px; }
+      .holidays-card { width: 100%; max-width: 344px; }
     }
   </style>
 </head>
@@ -3094,6 +3207,25 @@ TEMPO_HTML = """
         <div class="nav-btn" onclick="navigate(1)">›</div>
       </div>
       <div class="calendar-grid" id="calendar-grid"></div>
+      <div class="holiday-toggle" onclick="toggleHolidays()">
+        <input type="checkbox" id="holiday-checkbox">
+        <label for="holiday-checkbox" class="calendar-checkbox">
+          <div class="calendar-checkbox-grid">
+            <div class="calendar-checkbox-cell"></div>
+            <div class="calendar-checkbox-cell"></div>
+            <div class="calendar-checkbox-cell"></div>
+            <div class="calendar-checkbox-cell"></div>
+            <div class="calendar-checkbox-cell"></div>
+            <div class="calendar-checkbox-cell"></div>
+          </div>
+        </label>
+        <label for="holiday-checkbox">Mostrar feriados</label>
+      </div>
+    </div>
+    
+    <div class="holidays-card" id="holidays-card">
+      <h3>🎉 Feriados de <span id="holiday-year">2024</span></h3>
+      <div id="holidays-list"></div>
     </div>
   </div>
   
@@ -3101,6 +3233,79 @@ TEMPO_HTML = """
     let currentMonth = new Date().getMonth();
     let currentYear = new Date().getFullYear();
     let viewMode = 'days';
+    
+    const holidays = {
+      2024: [
+        { date: '01/01', name: 'Confraternização Universal' },
+        { date: '12/02', name: 'Carnaval' },
+        { date: '13/02', name: 'Carnaval' },
+        { date: '29/03', name: 'Sexta-feira Santa' },
+        { date: '21/04', name: 'Tiradentes' },
+        { date: '01/05', name: 'Dia do Trabalho' },
+        { date: '30/05', name: 'Corpus Christi' },
+        { date: '07/09', name: 'Independência do Brasil' },
+        { date: '12/10', name: 'Nossa Senhora Aparecida' },
+        { date: '02/11', name: 'Finados' },
+        { date: '15/11', name: 'Proclamação da República' },
+        { date: '20/11', name: 'Consciência Negra' },
+        { date: '25/12', name: 'Natal' }
+      ],
+      2025: [
+        { date: '01/01', name: 'Confraternização Universal' },
+        { date: '03/03', name: 'Carnaval' },
+        { date: '04/03', name: 'Carnaval' },
+        { date: '18/04', name: 'Sexta-feira Santa' },
+        { date: '21/04', name: 'Tiradentes' },
+        { date: '01/05', name: 'Dia do Trabalho' },
+        { date: '19/06', name: 'Corpus Christi' },
+        { date: '07/09', name: 'Independência do Brasil' },
+        { date: '12/10', name: 'Nossa Senhora Aparecida' },
+        { date: '02/11', name: 'Finados' },
+        { date: '15/11', name: 'Proclamação da República' },
+        { date: '20/11', name: 'Consciência Negra' },
+        { date: '25/12', name: 'Natal' }
+      ],
+      2026: [
+        { date: '01/01', name: 'Confraternização Universal' },
+        { date: '16/02', name: 'Carnaval' },
+        { date: '17/02', name: 'Carnaval' },
+        { date: '03/04', name: 'Sexta-feira Santa' },
+        { date: '21/04', name: 'Tiradentes' },
+        { date: '01/05', name: 'Dia do Trabalho' },
+        { date: '04/06', name: 'Corpus Christi' },
+        { date: '07/09', name: 'Independência do Brasil' },
+        { date: '12/10', name: 'Nossa Senhora Aparecida' },
+        { date: '02/11', name: 'Finados' },
+        { date: '15/11', name: 'Proclamação da República' },
+        { date: '20/11', name: 'Consciência Negra' },
+        { date: '25/12', name: 'Natal' }
+      ]
+    };
+    
+    function toggleHolidays() {
+      const checkbox = document.getElementById('holiday-checkbox');
+      const card = document.getElementById('holidays-card');
+      if (checkbox.checked) {
+        card.classList.add('show');
+        updateHolidaysList();
+      } else {
+        card.classList.remove('show');
+      }
+    }
+    
+    function updateHolidaysList() {
+      const list = document.getElementById('holidays-list');
+      const yearSpan = document.getElementById('holiday-year');
+      yearSpan.textContent = currentYear;
+      
+      const yearHolidays = holidays[currentYear] || [];
+      list.innerHTML = yearHolidays.map(h => `
+        <div class="holiday-item">
+          <div class="holiday-date">${h.date}/${currentYear}</div>
+          <div class="holiday-name">${h.name}</div>
+        </div>
+      `).join('');
+    }
     
     function updateClock() {
       const now = new Date();
@@ -3129,7 +3334,7 @@ TEMPO_HTML = """
     
     function addClockNumbers() {
       const clock = document.getElementById('analog-clock');
-      const radius = 116;
+      const radius = 120;
       for (let i = 1; i <= 12; i++) {
         const angle = (i * 30 - 90) * (Math.PI / 180);
         const x = 140 + radius * Math.cos(angle);
@@ -3212,6 +3417,9 @@ TEMPO_HTML = """
         currentYear += delta * 10;
       }
       renderCalendar();
+      if (document.getElementById('holiday-checkbox').checked) {
+        updateHolidaysList();
+      }
     }
     
     function toggleView() {
