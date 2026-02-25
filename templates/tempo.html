@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tempo - Relógio e Calendário</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0a0f1e;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(96, 165, 250, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(147, 197, 253, 0.05) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 15px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(148, 163, 184, 0.03) 2px,
+        rgba(148, 163, 184, 0.03) 4px
+      );
+      animation: grid-move 20s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes grid-move {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(50px); }
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px) saturate(180%);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+      color: #cbd5e1;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .back-button:hover {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(59, 130, 246, 0.4);
+      color: #3b82f6;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 64px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.7));
+      animation: glow-pulse-blue 3s ease-in-out infinite;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    @keyframes glow-pulse-blue {
+      0%, 100% { filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.7)); }
+      50% { filter: drop-shadow(0 0 35px rgba(59, 130, 246, 0.9)); }
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 40px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      position: relative;
+      z-index: 1;
+    }
+    .container {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 1200px;
+      position: relative;
+      z-index: 1;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 32px;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px) saturate(180%);
+      position: relative;
+      width: 344px;
+    }
+    .card.calendar {
+      width: 400px;
+      height: 520px;
+      display: flex;
+      flex-direction: column;
+    }
+    .card.holidays {
+      width: 400px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+    }
+    .card.holidays.show {
+      display: block;
+    }
+    .digital-clock {
+      font-size: 64px;
+      font-weight: 700;
+      color: #3b82f6;
+      text-align: center;
+      margin-bottom: 16px;
+      text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+    .date-display {
+      font-size: 18px;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .analog-clock {
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 4px solid rgba(59, 130, 246, 0.3);
+      position: relative;
+      box-shadow: 0 0 40px rgba(59, 130, 246, 0.2), inset 0 0 40px rgba(0, 0, 0, 0.3);
+      margin: 0 auto;
+    }
+    .clock-number {
+      position: absolute;
+      font-size: 18px;
+      font-weight: 700;
+      color: #3b82f6;
+      text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+    .clock-mark {
+      position: absolute;
+      background: rgba(59, 130, 246, 0.4);
+      transform-origin: bottom center;
+      left: 50%;
+      bottom: 50%;
+    }
+    .clock-mark.hour {
+      width: 3px;
+      height: 12px;
+      margin-left: -1.5px;
+      background: rgba(59, 130, 246, 0.6);
+    }
+    .clock-mark.minute {
+      width: 1px;
+      height: 8px;
+      margin-left: -0.5px;
+    }
+    .analog-clock::before {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #3b82f6;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+    }
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      border-radius: 10px;
+    }
+    .hour-hand {
+      width: 6px;
+      height: 70px;
+      background: linear-gradient(to top, #3b82f6, #60a5fa);
+      margin-left: -3px;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+    .minute-hand {
+      width: 4px;
+      height: 100px;
+      background: linear-gradient(to top, #60a5fa, #93c5fd);
+      margin-left: -2px;
+      box-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
+    }
+    .second-hand {
+      width: 2px;
+      height: 110px;
+      background: #ef4444;
+      margin-left: -1px;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+    }
+    .calendar {
+      width: 100%;
+      max-width: 400px;
+    }
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .calendar-header h2 {
+      font-size: 20px;
+      color: #3b82f6;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .calendar-header h2:hover {
+      color: #60a5fa;
+      transform: scale(1.05);
+    }
+    .nav-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #3b82f6;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      transition: all 0.3s;
+    }
+    .nav-btn:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+      transform: scale(1.1);
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      flex: 1;
+      align-content: start;
+    }
+    .calendar-grid.months {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      align-content: center;
+    }
+    .calendar-grid.years {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      align-content: center;
+    }
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      transition: all 0.3s;
+    }
+    .calendar-grid.months .calendar-day,
+    .calendar-grid.years .calendar-day {
+      aspect-ratio: auto;
+      height: 70px;
+      font-size: 14px;
+    }
+    .calendar-day.header {
+      background: transparent;
+      border: none;
+      color: #3b82f6;
+      font-weight: 700;
+    }
+    .calendar-day.today {
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      color: white;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+      border-color: #3b82f6;
+    }
+    .calendar-day.other-month {
+      opacity: 0.3;
+    }
+    .calendar-day.weekend {
+      color: #ef4444;
+    }
+    .calendar-day.holiday {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      font-weight: 700;
+    }
+    .calendar-day.selectable {
+      cursor: pointer;
+    }
+    .calendar-day.selectable:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+      transform: scale(1.05);
+    }
+    .holidays h3 {
+      font-size: 18px;
+      color: #ef4444;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+    .holiday-item {
+      padding: 12px;
+      margin-bottom: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      border-left: 4px solid #ef4444;
+    }
+    .holiday-item:last-child {
+      margin-bottom: 0;
+    }
+    .holiday-date {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ef4444;
+      margin-bottom: 4px;
+    }
+    .holiday-name {
+      font-size: 14px;
+      color: #cbd5e1;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .holiday-type {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+    }
+    @media (max-width: 768px) {
+      .digital-clock { font-size: 48px; }
+      .analog-clock { width: 220px; height: 220px; }
+      .hour-hand { height: 55px; }
+      .minute-hand { height: 80px; }
+      .second-hand { height: 90px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">TEMPO</div>
+  <div class="tagline">Relógio e Calendário</div>
+  
+  <div class="container">
+    <div class="card">
+      <div class="digital-clock" id="digital-clock">00:00:00</div>
+      <div class="date-display" id="date-display">Carregando...</div>
+      <div class="analog-clock" id="analog-clock">
+        <div class="hand hour-hand" id="hour-hand"></div>
+        <div class="hand minute-hand" id="minute-hand"></div>
+        <div class="hand second-hand" id="second-hand"></div>
+      </div>
+    </div>
+    
+    <div class="card calendar">
+      <div class="calendar-header">
+        <div class="nav-btn" onclick="navigate(-1)">‹</div>
+        <h2 id="calendar-month" onclick="toggleView()">Janeiro 2024</h2>
+        <div class="nav-btn" onclick="navigate(1)">›</div>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </div>
+    
+    <div class="card holidays" id="holidays-card">
+      <h3>🎉 Feriados e Datas Comemorativas</h3>
+      <div id="holidays-list"></div>
+    </div>
+  </div>
+  
+  <script>
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let viewMode = 'days';
+    
+    const holidays = {
+      fixed: [
+        {day: 1, month: 1, name: 'Confraternização Universal', type: 'Nacional'},
+        {day: 20, month: 1, name: 'São Sebastião', type: 'Municipal - São Sebastião'},
+        {day: 3, month: 2, name: 'Aniversário de Ubatuba', type: 'Municipal - Ubatuba'},
+        {day: 14, month: 2, name: 'Dia dos Namorados', type: 'Comemorativa'},
+        {day: 8, month: 3, name: 'Dia Internacional da Mulher', type: 'Comemorativa'},
+        {day: 21, month: 4, name: 'Tiradentes', type: 'Nacional'},
+        {day: 1, month: 5, name: 'Dia do Trabalho', type: 'Nacional'},
+        {day: 12, month: 5, name: 'Dia das Mães', type: 'Comemorativa'},
+        {day: 13, month: 6, name: 'Dia dos Namorados', type: 'Comemorativa'},
+        {day: 24, month: 6, name: 'São João', type: 'Comemorativa'},
+        {day: 9, month: 7, name: 'Revolução Constitucionalista', type: 'Estadual - SP'},
+        {day: 11, month: 8, name: 'Dia dos Pais', type: 'Comemorativa'},
+        {day: 7, month: 9, name: 'Independência do Brasil', type: 'Nacional'},
+        {day: 12, month: 10, name: 'Nossa Senhora Aparecida', type: 'Nacional'},
+        {day: 31, month: 10, name: 'Halloween', type: 'Comemorativa'},
+        {day: 2, month: 11, name: 'Finados', type: 'Nacional'},
+        {day: 15, month: 11, name: 'Proclamação da República', type: 'Nacional'},
+        {day: 20, month: 11, name: 'Consciência Negra', type: 'Nacional'},
+        {day: 25, month: 12, name: 'Natal', type: 'Nacional'},
+        {day: 31, month: 12, name: 'Réveillon', type: 'Comemorativa'}
+      ],
+      movable: function(year) {
+        const easter = this.getEaster(year);
+        return [
+          {date: new Date(easter.getTime() - 47 * 86400000), name: 'Carnaval', type: 'Nacional'},
+          {date: new Date(easter.getTime() - 2 * 86400000), name: 'Sexta-feira Santa', type: 'Nacional'},
+          {date: easter, name: 'Páscoa', type: 'Comemorativa'},
+          {date: new Date(easter.getTime() + 60 * 86400000), name: 'Corpus Christi', type: 'Nacional'}
+        ];
+      },
+      getEaster: function(year) {
+        const f = Math.floor, G = year % 19, C = f(year / 100),
+              H = (C - f(C / 4) - f((8 * C + 13) / 25) + 19 * G + 15) % 30,
+              I = H - f(H / 28) * (1 - f(29 / (H + 1)) * f((21 - G) / 11)),
+              J = (year + f(year / 4) + I + 2 - C + f(C / 4)) % 7,
+              L = I - J, month = 3 + f((L + 40) / 44),
+              day = L + 28 - 31 * f(month / 4);
+        return new Date(year, month - 1, day);
+      },
+      getForMonth: function(month, year) {
+        const result = [];
+        this.fixed.forEach(h => {
+          if (h.month - 1 === month) {
+            result.push({day: h.day, name: h.name, type: h.type});
+          }
+        });
+        this.movable(year).forEach(h => {
+          if (h.date.getMonth() === month && h.date.getFullYear() === year) {
+            result.push({day: h.date.getDate(), name: h.name, type: h.type});
+          }
+        });
+        return result.sort((a, b) => a.day - b.day);
+      },
+      getForYear: function(year) {
+        const result = [];
+        this.fixed.forEach(h => {
+          result.push({day: h.day, month: h.month, name: h.name, type: h.type});
+        });
+        this.movable(year).forEach(h => {
+          result.push({day: h.date.getDate(), month: h.date.getMonth() + 1, name: h.name, type: h.type});
+        });
+        return result.sort((a, b) => a.month === b.month ? a.day - b.day : a.month - b.month);
+      },
+      isHoliday: function(day, month, year) {
+        return this.getForMonth(month, year).some(h => h.day === day);
+      }
+    };
+    
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      document.getElementById('digital-clock').textContent = `${hours}:${minutes}:${seconds}`;
+      
+      const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+      const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      document.getElementById('date-display').textContent = `${days[now.getDay()]}, ${now.getDate()} de ${months[now.getMonth()]} de ${now.getFullYear()}`;
+      
+      const hourHand = document.getElementById('hour-hand');
+      const minuteHand = document.getElementById('minute-hand');
+      const secondHand = document.getElementById('second-hand');
+      
+      const hourDeg = (now.getHours() % 12) * 30 + now.getMinutes() * 0.5;
+      const minuteDeg = now.getMinutes() * 6 + now.getSeconds() * 0.1;
+      const secondDeg = now.getSeconds() * 6;
+      
+      hourHand.style.transform = `rotate(${hourDeg}deg)`;
+      minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+      secondHand.style.transform = `rotate(${secondDeg}deg)`;
+    }
+    
+    function addClockNumbers() {
+      const clock = document.getElementById('analog-clock');
+      const radius = 105;
+      for (let i = 1; i <= 12; i++) {
+        const angle = (i * 30 - 90) * (Math.PI / 180);
+        const x = 140 + radius * Math.cos(angle);
+        const y = 140 + radius * Math.sin(angle);
+        const num = document.createElement('div');
+        num.className = 'clock-number';
+        num.textContent = i;
+        num.style.left = `${x - 9}px`;
+        num.style.top = `${y - 12}px`;
+        clock.appendChild(num);
+      }
+      for (let i = 0; i < 60; i++) {
+        const mark = document.createElement('div');
+        mark.className = i % 5 === 0 ? 'clock-mark hour' : 'clock-mark minute';
+        mark.style.transform = `rotate(${i * 6}deg) translateY(-${i % 5 === 0 ? 128 : 132}px)`;
+        clock.appendChild(mark);
+      }
+    }
+    
+    function generateCalendar() {
+      const now = new Date();
+      const year = currentYear;
+      const month = currentMonth;
+      const today = (now.getMonth() === month && now.getFullYear() === year) ? now.getDate() : null;
+      
+      const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      document.getElementById('calendar-month').textContent = `${months[month]} ${year}`;
+      
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysInPrevMonth = new Date(year, month, 0).getDate();
+      
+      const grid = document.getElementById('calendar-grid');
+      grid.className = 'calendar-grid';
+      grid.innerHTML = '';
+      
+      const dayHeaders = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      dayHeaders.forEach(day => {
+        const header = document.createElement('div');
+        header.className = 'calendar-day header';
+        header.textContent = day;
+        grid.appendChild(header);
+      });
+      
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const day = document.createElement('div');
+        day.className = 'calendar-day other-month';
+        day.textContent = daysInPrevMonth - i;
+        grid.appendChild(day);
+      }
+      
+      for (let i = 1; i <= daysInMonth; i++) {
+        const day = document.createElement('div');
+        day.className = 'calendar-day';
+        const dayOfWeek = new Date(year, month, i).getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) day.classList.add('weekend');
+        if (holidays.isHoliday(i, month, year)) day.classList.add('holiday');
+        if (i === today) day.classList.add('today');
+        day.textContent = i;
+        grid.appendChild(day);
+      }
+      
+      const totalCells = firstDay + daysInMonth;
+      const remainingCells = 7 - (totalCells % 7);
+      if (remainingCells < 7) {
+        for (let i = 1; i <= remainingCells; i++) {
+          const day = document.createElement('div');
+          day.className = 'calendar-day other-month';
+          day.textContent = i;
+          grid.appendChild(day);
+        }
+      }
+    }
+    
+    function showHolidays() {
+      const holidaysList = holidays.getForMonth(currentMonth, currentYear);
+      const card = document.getElementById('holidays-card');
+      const list = document.getElementById('holidays-list');
+      
+      if (holidaysList.length === 0) {
+        card.classList.remove('show');
+        return;
+      }
+      
+      card.classList.add('show');
+      list.innerHTML = '';
+      
+      holidaysList.forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'holiday-item';
+        item.innerHTML = `
+          <div class="holiday-date">${h.day} de ${['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][currentMonth]}</div>
+          <div class="holiday-name">${h.name}</div>
+          <div class="holiday-type">${h.type}</div>
+        `;
+        list.appendChild(item);
+      });
+    }
+    
+    function showYearHolidays() {
+      const holidaysList = holidays.getForYear(currentYear);
+      const card = document.getElementById('holidays-card');
+      const list = document.getElementById('holidays-list');
+      
+      card.classList.add('show');
+      list.innerHTML = '';
+      
+      holidaysList.forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'holiday-item';
+        item.innerHTML = `
+          <div class="holiday-date">${h.day} de ${['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][h.month - 1]}</div>
+          <div class="holiday-name">${h.name}</div>
+          <div class="holiday-type">${h.type}</div>
+        `;
+        list.appendChild(item);
+      });
+    }
+    
+    function navigate(delta) {
+      if (viewMode === 'days') {
+        currentMonth += delta;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      } else if (viewMode === 'months') {
+        currentYear += delta;
+      } else if (viewMode === 'years') {
+        currentYear += delta * 10;
+      }
+      renderCalendar();
+    }
+    
+    function toggleView() {
+      if (viewMode === 'days') viewMode = 'months';
+      else if (viewMode === 'months') viewMode = 'years';
+      else viewMode = 'days';
+      renderCalendar();
+    }
+    
+    function renderCalendar() {
+      if (viewMode === 'days') {
+        generateCalendar();
+        showHolidays();
+      } else if (viewMode === 'months') {
+        generateMonthsView();
+        showYearHolidays();
+      } else {
+        generateYearsView();
+        document.getElementById('holidays-card').classList.remove('show');
+      }
+    }
+    
+    function generateMonthsView() {
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      document.getElementById('calendar-month').textContent = currentYear;
+      const grid = document.getElementById('calendar-grid');
+      grid.className = 'calendar-grid months';
+      grid.innerHTML = '';
+      const now = new Date();
+      months.forEach((month, i) => {
+        const div = document.createElement('div');
+        div.className = 'calendar-day selectable';
+        if (i === now.getMonth() && currentYear === now.getFullYear()) div.classList.add('today');
+        div.textContent = month;
+        div.onclick = () => { currentMonth = i; viewMode = 'days'; renderCalendar(); };
+        grid.appendChild(div);
+      });
+    }
+    
+    function generateYearsView() {
+      const startYear = Math.floor(currentYear / 10) * 10;
+      document.getElementById('calendar-month').textContent = `${startYear} - ${startYear + 9}`;
+      const grid = document.getElementById('calendar-grid');
+      grid.className = 'calendar-grid years';
+      grid.innerHTML = '';
+      const now = new Date();
+      for (let i = -1; i <= 10; i++) {
+        const year = startYear + i;
+        const div = document.createElement('div');
+        div.className = 'calendar-day selectable';
+        if (i === -1 || i === 10) div.classList.add('other-month');
+        if (year === now.getFullYear()) div.classList.add('today');
+        div.textContent = year;
+        div.onclick = () => { currentYear = year; viewMode = 'months'; renderCalendar(); };
+        grid.appendChild(div);
+      }
+    }
+    
+    addClockNumbers();
+    updateClock();
+    renderCalendar();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>
