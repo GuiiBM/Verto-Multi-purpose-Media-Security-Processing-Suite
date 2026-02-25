@@ -322,6 +322,16 @@
       color: #ef4444;
       font-weight: 700;
     }
+    .calendar-day.holiday-ubatuba {
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.1));
+      border-color: rgba(234, 179, 8, 0.4);
+      color: #eab308;
+    }
+    .calendar-day.holiday-saosebastiao {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(147, 51, 234, 0.1));
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #a855f7;
+    }
     .calendar-day.selectable {
       cursor: pointer;
     }
@@ -342,6 +352,18 @@
       background: rgba(15, 23, 42, 0.6);
       border-radius: 12px;
       border-left: 4px solid #ef4444;
+    }
+    .holiday-item.ubatuba {
+      border-left-color: #eab308;
+    }
+    .holiday-item.ubatuba .holiday-date {
+      color: #eab308;
+    }
+    .holiday-item.saosebastiao {
+      border-left-color: #a855f7;
+    }
+    .holiday-item.saosebastiao .holiday-date {
+      color: #a855f7;
     }
     .holiday-item:last-child {
       margin-bottom: 0;
@@ -418,30 +440,21 @@
         {day: 1, month: 1, name: 'Confraternização Universal', type: 'Nacional'},
         {day: 20, month: 1, name: 'São Sebastião', type: 'Municipal - São Sebastião'},
         {day: 3, month: 2, name: 'Aniversário de Ubatuba', type: 'Municipal - Ubatuba'},
-        {day: 14, month: 2, name: 'Dia dos Namorados', type: 'Comemorativa'},
-        {day: 8, month: 3, name: 'Dia Internacional da Mulher', type: 'Comemorativa'},
         {day: 21, month: 4, name: 'Tiradentes', type: 'Nacional'},
         {day: 1, month: 5, name: 'Dia do Trabalho', type: 'Nacional'},
-        {day: 12, month: 5, name: 'Dia das Mães', type: 'Comemorativa'},
-        {day: 13, month: 6, name: 'Dia dos Namorados', type: 'Comemorativa'},
-        {day: 24, month: 6, name: 'São João', type: 'Comemorativa'},
         {day: 9, month: 7, name: 'Revolução Constitucionalista', type: 'Estadual - SP'},
-        {day: 11, month: 8, name: 'Dia dos Pais', type: 'Comemorativa'},
         {day: 7, month: 9, name: 'Independência do Brasil', type: 'Nacional'},
         {day: 12, month: 10, name: 'Nossa Senhora Aparecida', type: 'Nacional'},
-        {day: 31, month: 10, name: 'Halloween', type: 'Comemorativa'},
         {day: 2, month: 11, name: 'Finados', type: 'Nacional'},
         {day: 15, month: 11, name: 'Proclamação da República', type: 'Nacional'},
         {day: 20, month: 11, name: 'Consciência Negra', type: 'Nacional'},
-        {day: 25, month: 12, name: 'Natal', type: 'Nacional'},
-        {day: 31, month: 12, name: 'Réveillon', type: 'Comemorativa'}
+        {day: 25, month: 12, name: 'Natal', type: 'Nacional'}
       ],
       movable: function(year) {
         const easter = this.getEaster(year);
         return [
           {date: new Date(easter.getTime() - 47 * 86400000), name: 'Carnaval', type: 'Nacional'},
           {date: new Date(easter.getTime() - 2 * 86400000), name: 'Sexta-feira Santa', type: 'Nacional'},
-          {date: easter, name: 'Páscoa', type: 'Comemorativa'},
           {date: new Date(easter.getTime() + 60 * 86400000), name: 'Corpus Christi', type: 'Nacional'}
         ];
       },
@@ -480,6 +493,9 @@
       },
       isHoliday: function(day, month, year) {
         return this.getForMonth(month, year).some(h => h.day === day);
+      },
+      getHolidayInfo: function(day, month, year) {
+        return this.getForMonth(month, year).find(h => h.day === day);
       }
     };
     
@@ -567,7 +583,12 @@
         day.className = 'calendar-day';
         const dayOfWeek = new Date(year, month, i).getDay();
         if (dayOfWeek === 0 || dayOfWeek === 6) day.classList.add('weekend');
-        if (holidays.isHoliday(i, month, year)) day.classList.add('holiday');
+        const holidayInfo = holidays.getHolidayInfo(i, month, year);
+        if (holidayInfo) {
+          if (holidayInfo.type === 'Municipal - Ubatuba') day.classList.add('holiday-ubatuba');
+          else if (holidayInfo.type === 'Municipal - São Sebastião') day.classList.add('holiday-saosebastiao');
+          else day.classList.add('holiday');
+        }
         if (i === today) day.classList.add('today');
         day.textContent = i;
         grid.appendChild(day);
@@ -601,6 +622,8 @@
       holidaysList.forEach(h => {
         const item = document.createElement('div');
         item.className = 'holiday-item';
+        if (h.type === 'Municipal - Ubatuba') item.classList.add('ubatuba');
+        else if (h.type === 'Municipal - São Sebastião') item.classList.add('saosebastiao');
         item.innerHTML = `
           <div class="holiday-date">${h.day} de ${['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][currentMonth]}</div>
           <div class="holiday-name">${h.name}</div>
@@ -621,6 +644,8 @@
       holidaysList.forEach(h => {
         const item = document.createElement('div');
         item.className = 'holiday-item';
+        if (h.type === 'Municipal - Ubatuba') item.classList.add('ubatuba');
+        else if (h.type === 'Municipal - São Sebastião') item.classList.add('saosebastiao');
         item.innerHTML = `
           <div class="holiday-date">${h.day} de ${['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][h.month - 1]}</div>
           <div class="holiday-name">${h.name}</div>
