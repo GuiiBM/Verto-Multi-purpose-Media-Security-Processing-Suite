@@ -45,7 +45,7 @@
 - Dia dos Pais (11 Ago)
 - Halloween (31 Out)
 - Páscoa (móvel)
-- Réveillon (31 Dez)
+- Réveillon (31 Dez)´
 
 ### 4. **Cálculo Automático de Feriados Móveis**
 - ✅ **Páscoa**: Calculada usando algoritmo de Computus

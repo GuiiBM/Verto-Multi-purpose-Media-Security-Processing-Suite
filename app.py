@@ -1,11 +1,14 @@
-from flask import Flask, request, render_template_string, jsonify
+from flask import Flask, request, render_template_string, jsonify, Response
 import yt_dlp
 import os
 from pathlib import Path
+import json
 try:
     from PIL import Image
 except:
     pass
+
+from pdfs_templates import PDFS_SPLIT_HTML, PDFS_CONVERT_HTML
 
 app = Flask(__name__)
 
@@ -185,6 +188,10 @@ MENU_HTML = """
       filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
     }
 
+    .neon-icon-pdf {
+      filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
+    }
+
     @media (max-width: 640px) {
       .logo { font-size: 48px; letter-spacing: 12px; }
       .time { font-size: 36px; }
@@ -198,6 +205,7 @@ MENU_HTML = """
       .time { font-size: 32px; }
       .date { font-size: 13px; }
       .app-icon { width: 70px; height: 70px; font-size: 32px; }
+      .apps-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -268,6 +276,25 @@ MENU_HTML = """
         </div>
       </div>
       <div class="app-name">Tempo</div>
+    </a>
+    <a href="/pdfs" class="app">
+      <div class="app-icon">
+        <div class="youtube-icon neon-icon-pdf">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="url(#gradient4)" stroke="url(#gradient4)" stroke-width="1.5"/>
+            <path d="M14 2v6h6" stroke="url(#gradient4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="12" y="17" font-size="6" font-weight="bold" fill="#fff" text-anchor="middle">PDF</text>
+            <defs>
+              <linearGradient id="gradient4" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#dc2626;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#b91c1c;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+      <div class="app-name">PDFs</div>
     </a>
   </div>
   <script>
@@ -1357,6 +1384,627 @@ def tempo():
             return f.read()
     except:
         return render_template_string(TEMPO_HTML)
+
+@app.route("/pdfs", strict_slashes=False)
+def pdfs():
+    return render_template_string(PDFS_HTML)
+
+@app.route("/pdfs/split", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_split():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        splits_config = request.form.get('splits_config', '')
+        
+        if not file or not file.filename.endswith('.pdf'):
+            error = "Selecione um arquivo PDF válido."
+        else:
+            try:
+                from PyPDF2 import PdfReader, PdfWriter
+                import json
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                reader = PdfReader(file.stream)
+                base_name = os.path.splitext(file.filename)[0]
+                
+                splits = json.loads(splits_config)
+                
+                for split in splits:
+                    writer = PdfWriter()
+                    for page_num in range(split['start'] - 1, split['end']):
+                        if page_num < len(reader.pages):
+                            writer.add_page(reader.pages[page_num])
+                    
+                    output_name = split['name'] if split['name'] else f"{base_name}_parte"
+                    if not output_name.endswith('.pdf'):
+                        output_name += '.pdf'
+                    
+                    output_path = os.path.join(downloads_dir, output_name)
+                    counter = 1
+                    while os.path.exists(output_path):
+                        output_name = f"{split['name']}_{counter}.pdf"
+                        output_path = os.path.join(downloads_dir, output_name)
+                        counter += 1
+                    
+                    with open(output_path, 'wb') as f:
+                        writer.write(f)
+                
+                status = f"✅ {len(splits)} arquivos criados na pasta Downloads!"
+            
+            except ImportError:
+                error = "PyPDF2 não está instalado. Execute: pip install PyPDF2"
+            except Exception as e:
+                error = f"Erro ao dividir PDF: {str(e)}"
+    
+    return render_template_string(PDFS_SPLIT_HTML, status=status, error=error)
+
+@app.route("/pdfs/convert", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_convert():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        output_format = request.form.get('format', 'docx')
+        
+        if not file:
+            error = "Selecione um arquivo."
+        else:
+            try:
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                base_name = os.path.splitext(file.filename)[0]
+                
+                if file.filename.endswith('.pdf') and output_format in ['jpg', 'png']:
+                    from PyPDF2 import PdfReader
+                    from PIL import Image
+                    import fitz
+                    
+                    doc = fitz.open(stream=file.read(), filetype="pdf")
+                    for i, page in enumerate(doc, 1):
+                        pix = page.get_pixmap(dpi=150)
+                        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                        output_path = os.path.join(downloads_dir, f"{base_name}_pagina_{i}.{output_format}")
+                        img.save(output_path)
+                    status = f"✅ {len(doc)} imagens criadas na pasta Downloads!"
+                
+                elif not file.filename.endswith('.pdf') and output_format == 'pdf':
+                    from PIL import Image
+                    
+                    img = Image.open(file.stream)
+                    if img.mode in ('RGBA', 'LA', 'P'):
+                        bg = Image.new('RGB', img.size, (255, 255, 255))
+                        if img.mode == 'P':
+                            img = img.convert('RGBA')
+                        bg.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                        img = bg
+                    output_path = os.path.join(downloads_dir, f"{base_name}.pdf")
+                    img.save(output_path, 'PDF')
+                    status = f"✅ '{base_name}.pdf' criado na pasta Downloads!"
+                
+                else:
+                    error = "Conversão não suportada. Use PDF→Imagem ou Imagem→PDF."
+            
+            except ImportError as e:
+                error = f"Biblioteca necessária não instalada: {str(e)}"
+            except Exception as e:
+                error = f"Erro ao converter: {str(e)}"
+    
+    return render_template_string(PDFS_CONVERT_HTML, status=status, error=error)
+
+@app.route("/pdfs/protect", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_protect():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        
+        if not file or not file.filename.endswith('.pdf'):
+            error = "Selecione um arquivo PDF válido."
+        elif password != confirm_password:
+            error = "As senhas não coincidem."
+        elif len(password) < 4:
+            error = "A senha deve ter pelo menos 4 caracteres."
+        else:
+            try:
+                from PyPDF2 import PdfReader, PdfWriter
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                reader = PdfReader(file.stream)
+                writer = PdfWriter()
+                
+                for page in reader.pages:
+                    writer.add_page(page)
+                
+                writer.encrypt(password)
+                
+                base_name = os.path.splitext(file.filename)[0]
+                output_filename = f"{base_name}_protegido.pdf"
+                output_path = os.path.join(downloads_dir, output_filename)
+                
+                counter = 1
+                while os.path.exists(output_path):
+                    output_filename = f"{base_name}_protegido_{counter}.pdf"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    counter += 1
+                
+                with open(output_path, 'wb') as f:
+                    writer.write(f)
+                
+                status = f"✅ '{output_filename}' protegido e salvo na pasta Downloads!"
+            
+            except ImportError:
+                error = "PyPDF2 não está instalado. Execute: pip install PyPDF2"
+            except Exception as e:
+                error = f"Erro ao proteger PDF: {str(e)}"
+    
+    try:
+        with open('/opt/lampp/htdocs/Verto/pdfs_protect.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error)
+    except:
+        return "<h1>Error loading template</h1>"
+
+@app.route("/pdfs/unlock/progress", methods=["POST"])
+def pdfs_unlock_progress():
+    def generate():
+        file = request.files.get('file')
+        password = request.form.get('password', '')
+        force_unlock = request.form.get('force_unlock', '')
+        
+        if not file or not file.filename.endswith('.pdf'):
+            yield f"data: {json.dumps({'error': 'Arquivo invalido'})}\n\n"
+            return
+        
+        try:
+            from PyPDF2 import PdfReader, PdfWriter
+            import time
+            import subprocess
+            
+            downloads_dir = str(Path.home() / "Downloads")
+            os.makedirs(downloads_dir, exist_ok=True)
+            
+            temp_path = os.path.join(downloads_dir, f"temp_{file.filename}")
+            file.save(temp_path)
+            
+            yield f"data: {json.dumps({'progress': 5, 'text': 'Analisando PDF...'})}\n\n"
+            
+            reader = PdfReader(temp_path)
+            unlocked = False
+            found_password = None
+            
+            if reader.is_encrypted:
+                if password:
+                    yield f"data: {json.dumps({'progress': 10, 'text': 'Testando senha fornecida...'})}\n\n"
+                    if reader.decrypt(password) != 0:
+                        unlocked = True
+                        found_password = password
+                
+                if not unlocked and force_unlock:
+                    common_passwords = [
+                        '', '123456', 'password', '12345678', '123456789', 'qwerty',
+                        '123', '1234', '12345', '111111', '1234567', 'sunshine',
+                        'password1', 'admin', 'welcome', 'monkey', 'login', 'abc123',
+                        'starwars', '123123', 'dragon', 'passw0rd', 'master', 'hello',
+                        'freedom', 'whatever', 'qazwsx', 'trustno1', 'jordan', 'password123',
+                        '0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999',
+                        '0123', '1234', '2345', '3456', '4567', '5678', '6789', '7890',
+                        'user', 'root', 'toor', 'pass', 'test', 'guest', 'info', 'adm',
+                        'mysql', 'oracle', 'ftp', 'ssh', 'http', 'https', 'www', 'web',
+                        'sql', 'qwerty123', 'zxcvbnm', 'asdfgh', 'qwertyuiop',
+                        'senha', 'senha123', 'admin123', 'root123', '123mudar'
+                    ]
+                    
+                    total_common = len(common_passwords)
+                    for idx, pwd in enumerate(common_passwords):
+                        try:
+                            test_reader = PdfReader(temp_path)
+                            if test_reader.decrypt(pwd) != 0:
+                                unlocked = True
+                                found_password = pwd
+                                reader = test_reader
+                                break
+                            progress = 15 + int((idx / total_common) * 20)
+                            if idx % 5 == 0:
+                                msg = f'Testando senhas comuns... ({idx}/{total_common})'
+                                yield f"data: {json.dumps({'progress': progress, 'text': msg})}\n\n"
+                            time.sleep(0.001)
+                        except:
+                            continue
+                    
+                    if not unlocked:
+                        yield f"data: {json.dumps({'progress': 35, 'text': 'Iniciando forca bruta numerica...'})}\n\n"
+                        batch_size = 100
+                        for i in range(0, 10000, batch_size):
+                            for j in range(batch_size):
+                                num = i + j
+                                if num >= 10000:
+                                    break
+                                pwd = str(num).zfill(4)
+                                try:
+                                    test_reader = PdfReader(temp_path)
+                                    if test_reader.decrypt(pwd) != 0:
+                                        unlocked = True
+                                        found_password = pwd
+                                        reader = test_reader
+                                        break
+                                except:
+                                    continue
+                            if unlocked:
+                                break
+                            progress = 35 + int((i / 10000) * 30)
+                            if i % 500 == 0:
+                                msg = f'Forca bruta... ({i}/10000)'
+                                yield f"data: {json.dumps({'progress': progress, 'text': msg})}\n\n"
+                            time.sleep(0.01)
+                    
+                    if not unlocked:
+                        yield f"data: {json.dumps({'progress': 65, 'text': 'Tentando pikepdf...'})}\n\n"
+                        try:
+                            import pikepdf
+                            pdf = pikepdf.open(temp_path, password='')
+                            unlocked = True
+                            found_password = 'pikepdf'
+                        except:
+                            pass
+                    
+                    if not unlocked:
+                        yield f"data: {json.dumps({'progress': 75, 'text': 'Tentando qpdf...'})}\n\n"
+                        try:
+                            result = subprocess.run(
+                                ['qpdf', '--decrypt', temp_path, temp_path + '.unlocked'],
+                                capture_output=True, timeout=30
+                            )
+                            if result.returncode == 0:
+                                os.remove(temp_path)
+                                temp_path = temp_path + '.unlocked'
+                                reader = PdfReader(temp_path)
+                                unlocked = True
+                                found_password = 'qpdf'
+                        except:
+                            pass
+                
+                if not unlocked:
+                    os.remove(temp_path)
+                    yield f"data: {json.dumps({'error': 'Nao foi possivel desbloquear'})}\n\n"
+                    return
+            
+            yield f"data: {json.dumps({'progress': 85, 'text': 'Salvando arquivo...'})}\n\n"
+            
+            writer = PdfWriter()
+            for page in reader.pages:
+                writer.add_page(page)
+            
+            base_name = os.path.splitext(file.filename)[0]
+            output_filename = f"{base_name}_desbloqueado.pdf"
+            output_path = os.path.join(downloads_dir, output_filename)
+            
+            counter = 1
+            while os.path.exists(output_path):
+                output_filename = f"{base_name}_desbloqueado_{counter}.pdf"
+                output_path = os.path.join(downloads_dir, output_filename)
+                counter += 1
+            
+            with open(output_path, 'wb') as f:
+                writer.write(f)
+            
+            os.remove(temp_path)
+            
+            result_data = {'progress': 100, 'text': 'Concluido!', 'success': True, 'filename': output_filename, 'password': found_password}
+            yield f"data: {json.dumps(result_data)}\n\n"
+        
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+    
+    return Response(generate(), mimetype='text/event-stream')
+
+@app.route("/pdfs/unlock", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_unlock():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        password = request.form.get('password', '')
+        force_unlock = request.form.get('force_unlock', '')
+        
+        if not file or not file.filename.endswith('.pdf'):
+            error = "Selecione um arquivo PDF válido."
+        else:
+            try:
+                from PyPDF2 import PdfReader, PdfWriter
+                import time
+                import subprocess
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                temp_path = os.path.join(downloads_dir, f"temp_{file.filename}")
+                file.save(temp_path)
+                
+                reader = PdfReader(temp_path)
+                unlocked = False
+                found_password = None
+                
+                if reader.is_encrypted:
+                    if password:
+                        if reader.decrypt(password) != 0:
+                            unlocked = True
+                            found_password = password
+                    
+                    if not unlocked and force_unlock:
+                        common_passwords = [
+                            '', '123456', 'password', '12345678', '123456789', 'qwerty',
+                            '123', '1234', '12345', '111111', '1234567', 'sunshine',
+                            'password1', 'admin', 'welcome', 'monkey', 'login', 'abc123',
+                            'starwars', '123123', 'dragon', 'passw0rd', 'master', 'hello',
+                            'freedom', 'whatever', 'qazwsx', 'trustno1', 'jordan', 'password123',
+                            '0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999',
+                            '0123', '1234', '2345', '3456', '4567', '5678', '6789', '7890',
+                            'user', 'root', 'toor', 'pass', 'test', 'guest', 'info', 'adm',
+                            'mysql', 'oracle', 'ftp', 'ssh', 'http', 'https', 'www', 'web',
+                            'sql', 'qwerty123', 'zxcvbnm', 'asdfgh', 'qwertyuiop',
+                            'senha', 'senha123', 'admin123', 'root123', '123mudar'
+                        ]
+                        
+                        for idx, pwd in enumerate(common_passwords):
+                            try:
+                                test_reader = PdfReader(temp_path)
+                                if test_reader.decrypt(pwd) != 0:
+                                    unlocked = True
+                                    found_password = pwd
+                                    reader = test_reader
+                                    break
+                                time.sleep(0.001)
+                            except:
+                                continue
+                        
+                        if not unlocked:
+                            batch_size = 100
+                            for i in range(0, 10000, batch_size):
+                                for j in range(batch_size):
+                                    num = i + j
+                                    if num >= 10000:
+                                        break
+                                    pwd = str(num).zfill(4)
+                                    try:
+                                        test_reader = PdfReader(temp_path)
+                                        if test_reader.decrypt(pwd) != 0:
+                                            unlocked = True
+                                            found_password = pwd
+                                            reader = test_reader
+                                            break
+                                    except:
+                                        continue
+                                if unlocked:
+                                    break
+                                time.sleep(0.01)
+                        
+                        if not unlocked:
+                            try:
+                                import pikepdf
+                                pdf = pikepdf.open(temp_path, password='')
+                                unlocked = True
+                                found_password = 'pikepdf'
+                            except:
+                                pass
+                        
+                        if not unlocked:
+                            try:
+                                result = subprocess.run(
+                                    ['qpdf', '--decrypt', temp_path, temp_path + '.unlocked'],
+                                    capture_output=True, timeout=30
+                                )
+                                if result.returncode == 0:
+                                    os.remove(temp_path)
+                                    temp_path = temp_path + '.unlocked'
+                                    reader = PdfReader(temp_path)
+                                    unlocked = True
+                                    found_password = 'qpdf'
+                            except:
+                                pass
+                    
+                    if not unlocked:
+                        os.remove(temp_path)
+                        error = "Não foi possível desbloquear. Senha muito forte ou criptografia avançada."
+                        return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_unlock.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                
+                writer = PdfWriter()
+                for page in reader.pages:
+                    writer.add_page(page)
+                
+                base_name = os.path.splitext(file.filename)[0]
+                output_filename = f"{base_name}_desbloqueado.pdf"
+                output_path = os.path.join(downloads_dir, output_filename)
+                
+                counter = 1
+                while os.path.exists(output_path):
+                    output_filename = f"{base_name}_desbloqueado_{counter}.pdf"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    counter += 1
+                
+                with open(output_path, 'wb') as f:
+                    writer.write(f)
+                
+                os.remove(temp_path)
+                
+                if found_password and found_password not in ['pikepdf', 'qpdf']:
+                    status = f"✅ '{output_filename}' desbloqueado! Senha encontrada: '{found_password}'"
+                else:
+                    status = f"✅ '{output_filename}' desbloqueado e salvo na pasta Downloads!"
+            
+            except ImportError as e:
+                error = f"Biblioteca necessária não instalada: {str(e)}"
+            except Exception as e:
+                error = f"Erro ao desbloquear PDF: {str(e)}"
+                if 'temp_path' in locals() and os.path.exists(temp_path):
+                    os.remove(temp_path)
+    
+    try:
+        with open('/opt/lampp/htdocs/Verto/pdfs_unlock.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error)
+    except:
+        return "<h1>Error loading template</h1>"
+
+@app.route("/pdfs/edit", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_edit():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        edited_text = request.form.get('edited_text', '')
+        filename = request.form.get('filename', 'documento.pdf')
+        
+        if not edited_text:
+            error = "Nenhum texto para salvar."
+        else:
+            try:
+                from weasyprint import HTML
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                base_name = os.path.splitext(filename)[0]
+                output_filename = f"{base_name}_editado.pdf"
+                output_path = os.path.join(downloads_dir, output_filename)
+                
+                counter = 1
+                while os.path.exists(output_path):
+                    output_filename = f"{base_name}_editado_{counter}.pdf"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    counter += 1
+                
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        @page {{
+                            size: A4;
+                            margin: 2cm;
+                        }}
+                        body {{
+                            font-family: 'Times New Roman', serif;
+                            font-size: 14px;
+                            line-height: 1.8;
+                            color: #1a1a1a;
+                        }}
+                        p {{ margin: 0 0 12px 0; }}
+                        b, strong {{ font-weight: bold; }}
+                        i, em {{ font-style: italic; }}
+                        u {{ text-decoration: underline; }}
+                        ul, ol {{ margin: 12px 0; padding-left: 40px; }}
+                        li {{ margin: 6px 0; }}
+                    </style>
+                </head>
+                <body>
+                    {edited_text}
+                </body>
+                </html>
+                """
+                
+                HTML(string=html_content).write_pdf(output_path)
+                status = f"✅ '{output_filename}' salvo na pasta Downloads!"
+            
+            except ImportError:
+                error = "WeasyPrint não está instalado. Execute: pip install weasyprint"
+            except Exception as e:
+                error = f"Erro ao salvar PDF: {str(e)}"
+    
+    try:
+        with open('/opt/lampp/htdocs/Verto/pdfs_edit.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error)
+    except:
+        return "<h1>Error loading template</h1>"
+
+@app.route("/pdfs/edit/extract", methods=["POST"], strict_slashes=False)
+def pdfs_edit_extract():
+    try:
+        from PyPDF2 import PdfReader
+        
+        file = request.files.get('file')
+        if not file:
+            return jsonify({"success": False, "error": "Nenhum arquivo enviado"})
+        
+        reader = PdfReader(file.stream)
+        text = ""
+        
+        for page in reader.pages:
+            text += page.extract_text() + "\n\n"
+        
+        return jsonify({"success": True, "text": text.strip()})
+    
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route("/pdfs/merge", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_merge():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        files = request.files.getlist('files')
+        pages_config = request.form.get('pages_config', '[]')
+        
+        if not files or len(files) < 2:
+            error = "Selecione pelo menos 2 arquivos PDF."
+        else:
+            try:
+                from PyPDF2 import PdfReader, PdfWriter
+                import json
+                
+                pages_list = json.loads(pages_config)
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                writer = PdfWriter()
+                
+                for idx, file in enumerate(files):
+                    if file.filename.endswith('.pdf'):
+                        reader = PdfReader(file.stream)
+                        pages_spec = pages_list[idx] if idx < len(pages_list) else ''
+                        
+                        if not pages_spec or pages_spec == 'all':
+                            for page in reader.pages:
+                                writer.add_page(page)
+                        else:
+                            page_numbers = [int(p.strip()) for p in pages_spec.split(',') if p.strip()]
+                            for page_num in page_numbers:
+                                if 1 <= page_num <= len(reader.pages):
+                                    writer.add_page(reader.pages[page_num - 1])
+                
+                output_filename = "PDF_Mesclado.pdf"
+                output_path = os.path.join(downloads_dir, output_filename)
+                
+                counter = 1
+                while os.path.exists(output_path):
+                    output_filename = f"PDF_Mesclado_{counter}.pdf"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    counter += 1
+                
+                with open(output_path, 'wb') as output_file:
+                    writer.write(output_file)
+                
+                status = f"✅ '{output_filename}' criado com sucesso na pasta Downloads!"
+            except ImportError:
+                error = "PyPDF2 não está instalado. Execute: pip install PyPDF2"
+            except Exception as e:
+                error = f"Erro ao mesclar PDFs: {str(e)}"
+    
+    return render_template_string(PDFS_MERGE_HTML, status=status, error=error)
 
 @app.route("/files", methods=["GET", "POST"], strict_slashes=False)
 def files():
@@ -3677,7 +4325,730 @@ PURPLEFLIX_HTML = """
 </html>
 """
 
+PDFS_HTML = """<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDFs - Editor e Conversor</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(220, 38, 38, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(185, 28, 28, 0.05) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+    }
+    .back-button:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 72px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 18px;
+      text-transform: uppercase;
+      filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.7));
+      animation: glow-pulse 3s ease-in-out infinite;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    @keyframes glow-pulse {
+      0%, 100% { filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.7)); }
+      50% { filter: drop-shadow(0 0 35px rgba(239, 68, 68, 0.9)); }
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 48px;
+      text-align: center;
+      font-weight: 500;
+    }
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .tool-card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 20px;
+      padding: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .tool-card:hover {
+      border-color: rgba(239, 68, 68, 0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(239, 68, 68, 0.2);
+    }
+    .tool-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .tool-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 8px;
+    }
+    .tool-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">PDFs</div>
+  <div class="tagline">Editor e Conversor de PDF Profissional</div>
+  
+  <div class="tools-grid">
+    <div class="tool-card" onclick="window.location.href='/pdfs/merge'">
+      <div class="tool-icon">🔗</div>
+      <div class="tool-title">Juntar PDFs</div>
+      <div class="tool-desc">Combine múltiplos arquivos PDF em um único documento</div>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdfs/split'">
+      <div class="tool-icon">✂️</div>
+      <div class="tool-title">Dividir PDF</div>
+      <div class="tool-desc">Separe um PDF em vários arquivos ou extraia páginas específicas</div>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdfs/convert'">
+      <div class="tool-icon">🔄</div>
+      <div class="tool-title">Converter PDF</div>
+      <div class="tool-desc">Converta PDF para Word, Excel, PowerPoint, imagens e mais</div>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdfs/edit'">
+      <div class="tool-icon">📝</div>
+      <div class="tool-title">Editar PDF</div>
+      <div class="tool-desc">Extraia e edite texto com formatação rica</div>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdfs/protect'">
+      <div class="tool-icon">🔒</div>
+      <div class="tool-title">Proteger PDF</div>
+      <div class="tool-desc">Adicione senha e criptografia ao seu documento PDF</div>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdfs/unlock'">
+      <div class="tool-icon">🔓</div>
+      <div class="tool-title">Desbloquear PDF</div>
+      <div class="tool-desc">Remova senha e restrições de PDFs protegidos</div>
+    </div>
+    
+    <div class="tool-card" onclick="alert('Em desenvolvimento')">
+      <div class="tool-icon">🗜️</div>
+      <div class="tool-title">Comprimir PDF</div>
+      <div class="tool-desc">Reduza o tamanho do arquivo PDF mantendo a qualidade</div>
+    </div>
+    
+    <div class="tool-card" onclick="alert('Em desenvolvimento')">
+      <div class="tool-icon">🔃</div>
+      <div class="tool-title">Girar PDF</div>
+      <div class="tool-desc">Rotacione páginas do PDF em 90, 180 ou 270 graus</div>
+    </div>
+    
+    <div class="tool-card" onclick="alert('Em desenvolvimento')">
+      <div class="tool-icon">📄</div>
+      <div class="tool-title">Organizar Páginas</div>
+      <div class="tool-desc">Reordene, delete ou adicione páginas ao seu PDF</div>
+    </div>
+    
+    <div class="tool-card" onclick="alert('Em desenvolvimento')">
+      <div class="tool-icon">💧</div>
+      <div class="tool-title">Marca d'água</div>
+      <div class="tool-desc">Adicione marca d'água de texto ou imagem ao PDF</div>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+PDFS_MERGE_HTML = """<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juntar PDFs</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(220, 38, 38, 0.06) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+    }
+    .back-button:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 28px;
+      color: #f8fafc;
+      margin-bottom: 10px;
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-upload-area {
+      width: 100%;
+      padding: 40px;
+      border-radius: 12px;
+      border: 2px dashed rgba(239, 68, 68, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .file-upload-area:hover {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(15, 23, 42, 0.8);
+    }
+    .file-upload-area.dragover {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .upload-text {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .upload-hint {
+      color: #64748b;
+      font-size: 12px;
+    }
+    .files-list {
+      margin-top: 20px;
+      display: none;
+    }
+    .files-list.show {
+      display: block;
+    }
+    .file-item {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .file-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+    .file-icon {
+      font-size: 24px;
+    }
+    .file-details {
+      flex: 1;
+    }
+    .file-name {
+      color: #cbd5e1;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .file-pages {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .toggle-preview {
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .toggle-preview:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+    }
+    .pages-preview {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .pages-preview.show {
+      display: grid;
+    }
+    .page-thumb {
+      position: relative;
+      aspect-ratio: 0.7;
+      background: rgba(15, 23, 42, 0.9);
+      border: 2px solid rgba(148, 163, 184, 0.2);
+      border-radius: 6px;
+      cursor: move;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .page-thumb:hover {
+      border-color: #ef4444;
+      transform: scale(1.05);
+    }
+    .page-thumb.dragging {
+      opacity: 0.5;
+    }
+    .page-number {
+      font-size: 11px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+    .page-delete {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ef4444;
+      color: white;
+      border: 2px solid #0a0f1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .page-thumb:hover .page-delete {
+      opacity: 1;
+    }
+    .merge-all-btn {
+      margin-top: 12px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      background: rgba(34, 197, 94, 0.1);
+      color: #4ade80;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-block;
+    }
+    .merge-all-btn:hover {
+      background: rgba(34, 197, 94, 0.2);
+      border-color: #22c55e;
+    }
+    .file-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-move {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    .btn-move:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+    }
+    .btn-remove {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+    .btn-remove:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+    }
+    .status {
+      margin-top: 16px;
+      font-size: 13px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .status.ok {
+      background: rgba(34, 197, 94, 0.1);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .status.err {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/pdfs'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">🔗 JUNTAR PDFs</div>
+  <div class="tagline">Combine múltiplos arquivos PDF em um</div>
+  
+  <div class="card">
+    <h1>Selecione os PDFs</h1>
+    <p class="subtitle">Escolha 2 ou mais arquivos PDF para mesclar</p>
+    
+    <form method="POST" enctype="multipart/form-data" id="merge-form">
+      <label>Arquivos PDF</label>
+      <div class="file-upload-area" id="upload-area" onclick="document.getElementById('files').click()">
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">Clique ou arraste arquivos aqui</div>
+        <div class="upload-hint">Suporta múltiplos arquivos PDF</div>
+      </div>
+      <input type="file" id="files" name="files" accept=".pdf" multiple>
+      
+      <div class="files-list" id="files-list"></div>
+      
+      <button type="button" class="merge-all-btn" id="merge-all-btn" style="display:none;" onclick="mergeAll()">✓ Juntar Tudo</button>
+      <button type="submit" id="submit-btn" style="display:none;">🔗 Juntar PDFs Selecionados</button>
+    </form>
+    
+    {% if status %}
+      <div class="status ok">{{ status }}</div>
+    {% elif error %}
+      <div class="status err">{{ error }}</div>
+    {% endif %}
+  </div>
+  
+  <script>
+    let filesArray = [];
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('files');
+    const filesList = document.getElementById('files-list');
+    const submitBtn = document.getElementById('submit-btn');
+    const mergeAllBtn = document.getElementById('merge-all-btn');
+    
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.pdf'));
+      addFiles(files);
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      addFiles(Array.from(e.target.files));
+    });
+    
+    function addFiles(files) {
+      files.forEach(file => {
+        if (!filesArray.find(f => f.name === file.name)) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const loadingTask = pdfjsLib.getDocument({data: e.target.result});
+            loadingTask.promise.then(pdf => {
+              const pages = [];
+              for (let i = 1; i <= pdf.numPages; i++) {
+                pages.push({num: i, deleted: false});
+              }
+              filesArray.push({file, pages, totalPages: pdf.numPages, showPreview: false});
+              renderFiles();
+            });
+          };
+          reader.readAsArrayBuffer(file);
+        }
+      });
+    }
+    
+    function renderFiles() {
+      if (filesArray.length === 0) {
+        filesList.classList.remove('show');
+        submitBtn.style.display = 'none';
+        mergeAllBtn.style.display = 'none';
+        return;
+      }
+      
+      filesList.classList.add('show');
+      submitBtn.style.display = 'block';
+      mergeAllBtn.style.display = 'inline-block';
+      
+      filesList.innerHTML = filesArray.map((item, fileIdx) => {
+        const activePages = item.pages.filter(p => !p.deleted).length;
+        return `
+        <div class="file-item">
+          <div class="file-header">
+            <div class="file-info">
+              <div class="file-icon">📄</div>
+              <div class="file-details">
+                <div class="file-name">${item.file.name}</div>
+                <div class="file-pages">${activePages}/${item.totalPages} páginas</div>
+              </div>
+            </div>
+            <div class="file-actions">
+              <button type="button" class="toggle-preview" onclick="togglePreview(${fileIdx})">
+                ${item.showPreview ? '▼ Ocultar' : '▶ Ver páginas'}
+              </button>
+              <button type="button" class="btn-move" onclick="moveFile(${fileIdx}, -1)" ${fileIdx === 0 ? 'disabled' : ''}>↑</button>
+              <button type="button" class="btn-move" onclick="moveFile(${fileIdx}, 1)" ${fileIdx === filesArray.length - 1 ? 'disabled' : ''}>↓</button>
+              <button type="button" class="btn-remove" onclick="removeFile(${fileIdx})">×</button>
+            </div>
+          </div>
+          <div class="pages-preview ${item.showPreview ? 'show' : ''}" id="preview-${fileIdx}">
+            ${item.pages.map((page, pageIdx) => !page.deleted ? `
+              <div class="page-thumb" draggable="true" 
+                ondragstart="dragStart(event, ${fileIdx}, ${pageIdx})" 
+                ondragover="dragOver(event)" 
+                ondrop="drop(event, ${fileIdx}, ${pageIdx})">
+                <div class="page-number">Pág ${page.num}</div>
+                <div class="page-delete" onclick="deletePage(${fileIdx}, ${pageIdx})">×</div>
+              </div>
+            ` : '').join('')}
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+    
+    let draggedItem = null;
+    
+    function dragStart(e, fileIdx, pageIdx) {
+      draggedItem = {fileIdx, pageIdx};
+      e.target.classList.add('dragging');
+    }
+    
+    function dragOver(e) {
+      e.preventDefault();
+    }
+    
+    function drop(e, targetFileIdx, targetPageIdx) {
+      e.preventDefault();
+      if (!draggedItem || draggedItem.fileIdx !== targetFileIdx) return;
+      
+      const file = filesArray[targetFileIdx];
+      const pages = file.pages.filter(p => !p.deleted);
+      const dragIdx = pages.findIndex(p => p.num === file.pages[draggedItem.pageIdx].num);
+      const dropIdx = pages.findIndex(p => p.num === file.pages[targetPageIdx].num);
+      
+      [pages[dragIdx], pages[dropIdx]] = [pages[dropIdx], pages[dragIdx]];
+      
+      file.pages = file.pages.map(p => {
+        if (p.deleted) return p;
+        return pages.shift();
+      });
+      
+      draggedItem = null;
+      renderFiles();
+    }
+    
+    function deletePage(fileIdx, pageIdx) {
+      filesArray[fileIdx].pages[pageIdx].deleted = true;
+      renderFiles();
+    }
+    
+    function togglePreview(fileIdx) {
+      filesArray[fileIdx].showPreview = !filesArray[fileIdx].showPreview;
+      renderFiles();
+    }
+    
+    function removeFile(index) {
+      filesArray.splice(index, 1);
+      renderFiles();
+    }
+    
+    function moveFile(index, direction) {
+      const newIndex = index + direction;
+      if (newIndex >= 0 && newIndex < filesArray.length) {
+        [filesArray[index], filesArray[newIndex]] = [filesArray[newIndex], filesArray[index]];
+        renderFiles();
+      }
+    }
+    
+    function mergeAll() {
+      filesArray.forEach(item => {
+        item.pages.forEach(page => page.deleted = false);
+      });
+      document.getElementById('merge-form').submit();
+    }
+    
+    document.getElementById('merge-form').addEventListener('submit', (e) => {
+      const dt = new DataTransfer();
+      filesArray.forEach(item => dt.items.add(item.file));
+      fileInput.files = dt.files;
+      
+      const pagesConfig = filesArray.map(item => {
+        const activePages = item.pages.filter(p => !p.deleted).map(p => p.num);
+        return activePages.join(',');
+      });
+      
+      const pagesInput = document.createElement('input');
+      pagesInput.type = 'hidden';
+      pagesInput.name = 'pages_config';
+      pagesInput.value = JSON.stringify(pagesConfig);
+      e.target.appendChild(pagesInput);
+    });
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+</body>
+</html>
+"""
 
 if __name__ == "__main__":
-    # host=0.0.0.0 se quiser abrir em outros devices da rede
     app.run(debug=True)

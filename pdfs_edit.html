@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar PDF</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+    }
+    .back-button:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 28px;
+      color: #f8fafc;
+      margin-bottom: 10px;
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-upload-area {
+      width: 100%;
+      padding: 40px;
+      border-radius: 12px;
+      border: 2px dashed rgba(239, 68, 68, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .file-upload-area:hover {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(15, 23, 42, 0.8);
+    }
+    .file-upload-area.dragover {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .upload-text {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .upload-hint {
+      color: #64748b;
+      font-size: 12px;
+    }
+    .editor-container {
+      display: none;
+      margin-top: 24px;
+    }
+    .editor-container.show {
+      display: block;
+    }
+    .editor-toolbar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .toolbar-group {
+      display: flex;
+      gap: 4px;
+      padding-right: 8px;
+      border-right: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .toolbar-group:last-child {
+      border-right: none;
+    }
+    .toolbar-btn {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .toolbar-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+    }
+    .toolbar-btn.active {
+      background: rgba(239, 68, 68, 0.3);
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    select.toolbar-select {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .editor-wrapper {
+      background: white;
+      border-radius: 12px;
+      padding: 60px 80px;
+      min-height: 600px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .editor-content {
+      min-height: 500px;
+      outline: none;
+      color: #1a1a1a;
+      font-size: 14px;
+      line-height: 1.8;
+      font-family: 'Times New Roman', serif;
+    }
+    .editor-content:empty:before {
+      content: 'Comece a editar o texto aqui...';
+      color: #999;
+    }
+    .save-btn {
+      margin-top: 16px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+    .status {
+      margin-top: 16px;
+      font-size: 13px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .status.ok {
+      background: rgba(34, 197, 94, 0.1);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .status.err {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/pdfs'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">📝 EDITAR PDF</div>
+  <div class="tagline">Extraia e edite o texto do seu PDF com formatação</div>
+  
+  <div class="card">
+    <h1>Selecione o PDF</h1>
+    <p class="subtitle">Carregue um PDF para extrair e editar o texto</p>
+    
+    <label>Arquivo PDF</label>
+    <div class="file-upload-area" id="upload-area" onclick="document.getElementById('file').click()">
+      <div class="upload-icon">📄</div>
+      <div class="upload-text">Clique ou arraste o arquivo aqui</div>
+      <div class="upload-hint">Suporta apenas arquivos PDF</div>
+    </div>
+    <input type="file" id="file" accept=".pdf">
+    
+    <div class="editor-container" id="editor-container">
+      <div class="editor-toolbar">
+        <div class="toolbar-group">
+          <button class="toolbar-btn" onclick="execCmd('undo')" title="Desfazer">↶</button>
+          <button class="toolbar-btn" onclick="execCmd('redo')" title="Refazer">↷</button>
+        </div>
+        <div class="toolbar-group">
+          <select class="toolbar-select" onchange="changeFontSize(this.value)">
+            <option value="12px">12</option>
+            <option value="14px" selected>14</option>
+            <option value="16px">16</option>
+            <option value="18px">18</option>
+            <option value="20px">20</option>
+            <option value="24px">24</option>
+            <option value="28px">28</option>
+            <option value="32px">32</option>
+          </select>
+          <select class="toolbar-select" onchange="changeFontFamily(this.value)">
+            <option value="Times New Roman">Times</option>
+            <option value="Arial">Arial</option>
+            <option value="Courier New">Courier</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Verdana">Verdana</option>
+          </select>
+        </div>
+        <div class="toolbar-group">
+          <button class="toolbar-btn" onclick="execCmd('bold')" title="Negrito"><b>N</b></button>
+          <button class="toolbar-btn" onclick="execCmd('italic')" title="Itálico"><i>I</i></button>
+          <button class="toolbar-btn" onclick="execCmd('underline')" title="Sublinhado"><u>S</u></button>
+        </div>
+        <div class="toolbar-group">
+          <button class="toolbar-btn" onclick="execCmd('justifyLeft')" title="Alinhar à esquerda">←</button>
+          <button class="toolbar-btn" onclick="execCmd('justifyCenter')" title="Centralizar">↔</button>
+          <button class="toolbar-btn" onclick="execCmd('justifyRight')" title="Alinhar à direita">→</button>
+          <button class="toolbar-btn" onclick="execCmd('justifyFull')" title="Justificar">↔↔</button>
+        </div>
+        <div class="toolbar-group">
+          <button class="toolbar-btn" onclick="execCmd('insertUnorderedList')" title="Lista">•</button>
+          <button class="toolbar-btn" onclick="execCmd('insertOrderedList')" title="Lista numerada">1.</button>
+        </div>
+        <div class="toolbar-group">
+          <button class="toolbar-btn" onclick="execCmd('removeFormat')" title="Limpar formatação">🗑️</button>
+        </div>
+      </div>
+      
+      <div class="editor-wrapper">
+        <div class="editor-content" id="editor" contenteditable="true"></div>
+      </div>
+      
+      <form method="POST" id="save-form">
+        <input type="hidden" name="edited_text" id="edited-text">
+        <input type="hidden" name="filename" id="filename">
+        <button type="submit" class="save-btn">💾 Salvar PDF Editado</button>
+      </form>
+    </div>
+    
+    {% if status %}
+      <div class="status ok">{{ status }}</div>
+    {% elif error %}
+      <div class="status err">{{ error }}</div>
+    {% endif %}
+  </div>
+  
+  <script>
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file');
+    const editorContainer = document.getElementById('editor-container');
+    const editor = document.getElementById('editor');
+    
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.pdf')) {
+        fileInput.files = e.dataTransfer.files;
+        loadPDF(file);
+      }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) loadPDF(file);
+    });
+    
+    async function loadPDF(file) {
+      uploadArea.innerHTML = '<div class="loading">⏳ Extraindo texto do PDF...</div>';
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      try {
+        const response = await fetch('/pdfs/edit/extract', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          editor.innerHTML = result.text.replace(/\n/g, '<br>');
+          document.getElementById('filename').value = file.name;
+          editorContainer.classList.add('show');
+          uploadArea.innerHTML = `
+            <div class="upload-icon">✅</div>
+            <div class="upload-text">PDF carregado: ${file.name}</div>
+            <div class="upload-hint">Edite o texto abaixo</div>
+          `;
+        } else {
+          uploadArea.innerHTML = `
+            <div class="upload-icon">❌</div>
+            <div class="upload-text">Erro ao extrair texto</div>
+            <div class="upload-hint">${result.error || 'Tente novamente'}</div>
+          `;
+        }
+      } catch (error) {
+        uploadArea.innerHTML = `
+          <div class="upload-icon">❌</div>
+          <div class="upload-text">Erro ao processar PDF</div>
+          <div class="upload-hint">Tente novamente</div>
+        `;
+      }
+    }
+    
+    function execCmd(command) {
+      document.execCommand(command, false, null);
+      editor.focus();
+    }
+    
+    function changeFontSize(size) {
+      document.execCommand('fontSize', false, '7');
+      const fontElements = editor.querySelectorAll('font[size="7"]');
+      fontElements.forEach(el => {
+        el.removeAttribute('size');
+        el.style.fontSize = size;
+      });
+      editor.focus();
+    }
+    
+    function changeFontFamily(font) {
+      document.execCommand('fontName', false, font);
+      editor.focus();
+    }
+    
+    document.getElementById('save-form').addEventListener('submit', (e) => {
+      document.getElementById('edited-text').value = editor.innerHTML;
+    });
+  </script>
+</body>
+</html>

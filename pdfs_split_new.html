@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dividir PDF</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+    }
+    .back-button:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 28px;
+      color: #f8fafc;
+      margin-bottom: 10px;
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-upload-area {
+      width: 100%;
+      padding: 40px;
+      border-radius: 12px;
+      border: 2px dashed rgba(239, 68, 68, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .file-upload-area:hover {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(15, 23, 42, 0.8);
+    }
+    .file-upload-area.dragover {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .upload-text {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .upload-hint {
+      color: #64748b;
+      font-size: 12px;
+    }
+    .pages-preview {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .pages-preview.show {
+      display: grid;
+    }
+    .page-thumb {
+      position: relative;
+      aspect-ratio: 0.7;
+      background: rgba(15, 23, 42, 0.9);
+      border: 2px solid rgba(148, 163, 184, 0.2);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #64748b;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .page-thumb:hover {
+      border-color: #ef4444;
+      transform: scale(1.05);
+    }
+    .page-thumb.marker {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.2);
+    }
+    .page-number {
+      font-size: 11px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+    .marker-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ef4444;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      border: 2px solid #0a0f1e;
+    }
+    .controls {
+      display: none;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .controls.show {
+      display: flex;
+    }
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-add {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .btn-add:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+    .btn-remove {
+      background: rgba(148, 163, 184, 0.1);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .btn-remove:hover {
+      background: rgba(148, 163, 184, 0.2);
+    }
+    .btn-split {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      margin-top: 20px;
+      width: 100%;
+      display: none;
+    }
+    .btn-split.show {
+      display: block;
+    }
+    .splits-list {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .splits-list.show {
+      display: block;
+    }
+    .split-item {
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .split-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .split-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+    .split-pages {
+      font-size: 11px;
+      color: #64748b;
+    }
+    .split-name-input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.9);
+      color: #cbd5e1;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .status {
+      margin-top: 16px;
+      font-size: 13px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .status.ok {
+      background: rgba(34, 197, 94, 0.1);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .status.err {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/pdfs'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">✂️ DIVIDIR PDF</div>
+  <div class="tagline">Separe páginas do seu PDF</div>
+  
+  <div class="card">
+    <h1>Selecione o PDF</h1>
+    <p class="subtitle">Clique nas páginas para marcar divisões</p>
+    
+    <form method="POST" enctype="multipart/form-data" id="split-form">
+      <label>Arquivo PDF</label>
+      <div class="file-upload-area" id="upload-area" onclick="document.getElementById('file').click()">
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">Clique ou arraste o arquivo aqui</div>
+        <div class="upload-hint">Suporta apenas 1 arquivo PDF</div>
+      </div>
+      <input type="file" id="file" name="file" accept=".pdf">
+      
+      <div class="pages-preview" id="pages-preview"></div>
+      
+      <div class="controls" id="controls">
+        <button type="button" class="btn btn-add" onclick="addMarker()">+ Adicionar Marcação</button>
+        <button type="button" class="btn btn-remove" onclick="removeMarker()">- Remover Última</button>
+      </div>
+      
+      <div class="splits-list" id="splits-list"></div>
+      
+      <input type="hidden" name="splits_config" id="splits-config">
+      <button type="submit" class="btn btn-split" id="btn-split">✂️ Dividir PDF</button>
+    </form>
+    
+    {% if status %}
+      <div class="status ok">{{ status }}</div>
+    {% elif error %}
+      <div class="status err">{{ error }}</div>
+    {% endif %}
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    
+    let pdfFile = null;
+    let totalPages = 0;
+    let markers = [];
+    
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file');
+    const pagesPreview = document.getElementById('pages-preview');
+    const controls = document.getElementById('controls');
+    const splitsList = document.getElementById('splits-list');
+    const btnSplit = document.getElementById('btn-split');
+    
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.pdf')) {
+        fileInput.files = e.dataTransfer.files;
+        loadPDF(file);
+      }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) loadPDF(file);
+    });
+    
+    function loadPDF(file) {
+      pdfFile = file;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const loadingTask = pdfjsLib.getDocument({data: e.target.result});
+        loadingTask.promise.then(pdf => {
+          totalPages = pdf.numPages;
+          renderPages();
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    }
+    
+    function renderPages() {
+      pagesPreview.innerHTML = '';
+      for (let i = 1; i <= totalPages; i++) {
+        const page = document.createElement('div');
+        page.className = 'page-thumb';
+        page.innerHTML = `<div class="page-number">Pág ${i}</div>`;
+        page.onclick = () => toggleMarker(i);
+        pagesPreview.appendChild(page);
+      }
+      pagesPreview.classList.add('show');
+      controls.classList.add('show');
+      updateMarkers();
+    }
+    
+    function toggleMarker(page) {
+      const idx = markers.indexOf(page);
+      if (idx > -1) {
+        markers.splice(idx, 1);
+      } else {
+        markers.push(page);
+        markers.sort((a, b) => a - b);
+      }
+      updateMarkers();
+    }
+    
+    function addMarker() {
+      const lastMarker = markers[markers.length - 1] || 0;
+      if (lastMarker < totalPages) {
+        markers.push(lastMarker + 1);
+        updateMarkers();
+      }
+    }
+    
+    function removeMarker() {
+      if (markers.length > 0) {
+        markers.pop();
+        updateMarkers();
+      }
+    }
+    
+    function updateMarkers() {
+      const pages = pagesPreview.querySelectorAll('.page-thumb');
+      pages.forEach((page, idx) => {
+        const pageNum = idx + 1;
+        const markerIdx = markers.indexOf(pageNum);
+        if (markerIdx > -1) {
+          page.classList.add('marker');
+          const badge = page.querySelector('.marker-badge') || document.createElement('div');
+          badge.className = 'marker-badge';
+          badge.textContent = markerIdx + 1;
+          if (!page.querySelector('.marker-badge')) page.appendChild(badge);
+        } else {
+          page.classList.remove('marker');
+          const badge = page.querySelector('.marker-badge');
+          if (badge) badge.remove();
+        }
+      });
+      
+      renderSplits();
+    }
+    
+    function renderSplits() {
+      if (markers.length === 0) {
+        splitsList.classList.remove('show');
+        btnSplit.classList.remove('show');
+        return;
+      }
+      
+      splitsList.classList.add('show');
+      btnSplit.classList.add('show');
+      
+      const splits = [];
+      let start = 1;
+      
+      markers.forEach((marker, idx) => {
+        splits.push({
+          start: start,
+          end: marker,
+          name: `parte_${idx + 1}`
+        });
+        start = marker + 1;
+      });
+      
+      if (start <= totalPages) {
+        splits.push({
+          start: start,
+          end: totalPages,
+          name: `parte_${splits.length + 1}`
+        });
+      }
+      
+      splitsList.innerHTML = splits.map((split, idx) => `
+        <div class="split-item">
+          <div class="split-header">
+            <div class="split-title">Arquivo ${idx + 1}</div>
+            <div class="split-pages">Páginas ${split.start}-${split.end}</div>
+          </div>
+          <input type="text" class="split-name-input" placeholder="Nome do arquivo" value="${split.name}" onchange="updateSplitName(${idx}, this.value)">
+        </div>
+      `).join('');
+      
+      window.currentSplits = splits;
+    }
+    
+    function updateSplitName(idx, name) {
+      if (window.currentSplits) {
+        window.currentSplits[idx].name = name;
+      }
+    }
+    
+    document.getElementById('split-form').addEventListener('submit', (e) => {
+      if (!window.currentSplits || window.currentSplits.length === 0) {
+        e.preventDefault();
+        alert('Adicione pelo menos uma marcação de divisão');
+        return;
+      }
+      
+      document.getElementById('splits-config').value = JSON.stringify(window.currentSplits);
+    });
+  </script>
+</body>
+</html>

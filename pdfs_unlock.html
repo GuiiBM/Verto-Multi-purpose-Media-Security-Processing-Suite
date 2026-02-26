@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desbloquear PDF</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+    }
+    .back-button:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 28px;
+      color: #f8fafc;
+      margin-bottom: 10px;
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.8);
+      color: #f1f5f9;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .force-unlock-section {
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 12px;
+    }
+    .force-unlock-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      color: #ef4444;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .force-unlock-desc {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+    .checkbox-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .custom-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(239, 68, 68, 0.4);
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .custom-checkbox svg {
+      width: 14px;
+      height: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    input[type="checkbox"]:checked + .checkbox-wrapper .custom-checkbox {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+    }
+    input[type="checkbox"]:checked + .checkbox-wrapper .custom-checkbox svg {
+      opacity: 1;
+    }
+    .checkbox-label {
+      flex: 1;
+      font-size: 13px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    .checkbox-label strong {
+      color: #ef4444;
+      font-weight: 600;
+    }
+    .methods-list {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .method-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 12px;
+      color: #94a3b8;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+    }
+    .method-item:last-child {
+      border-bottom: none;
+    }
+    .method-icon {
+      font-size: 16px;
+    }
+    .progress-bar {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 8px;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .progress-bar.show {
+      display: block;
+    }
+    .progress-label {
+      font-size: 12px;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ef4444, #dc2626);
+      border-radius: 3px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+    .file-selected {
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    .file-selected.show {
+      display: flex;
+    }
+    .file-selected-icon {
+      font-size: 20px;
+    }
+    .file-selected-name {
+      flex: 1;
+      font-size: 13px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+    .file-selected-remove {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    .file-selected-remove:hover {
+      background: rgba(239, 68, 68, 0.3);
+      transform: scale(1.1);
+    }
+    .file-upload-area {
+      width: 100%;
+      padding: 40px;
+      border-radius: 12px;
+      border: 2px dashed rgba(239, 68, 68, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 24px;
+    }
+    .file-upload-area:hover {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(15, 23, 42, 0.8);
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .upload-text {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .upload-hint {
+      color: #64748b;
+      font-size: 12px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+    .status {
+      margin-top: 16px;
+      font-size: 13px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .status.ok {
+      background: rgba(34, 197, 94, 0.1);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .status.err {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/pdfs'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">🔓 DESBLOQUEAR PDF</div>
+  <div class="tagline">Remova a senha do seu PDF</div>
+  
+  <div class="card">
+    <h1>Selecione o PDF</h1>
+    <p class="subtitle">Remova a proteção por senha do documento</p>
+    
+    <form method="POST" enctype="multipart/form-data">
+      <label>Arquivo PDF Protegido</label>
+      <div class="file-upload-area" id="upload-area" onclick="document.getElementById('file').click()">
+        <div class="upload-icon">🔒</div>
+        <div class="upload-text">Clique ou arraste o arquivo aqui</div>
+        <div class="upload-hint">Suporta apenas arquivos PDF</div>
+      </div>
+      <input type="file" id="file" name="file" accept=".pdf" required>
+      
+      <div class="file-selected" id="file-selected">
+        <div class="file-selected-icon">🔒</div>
+        <div class="file-selected-name" id="file-name"></div>
+        <div class="file-selected-remove" onclick="clearFile()">×</div>
+      </div>
+      
+      <label>Senha do PDF (opcional)</label>
+      <input type="password" name="password" placeholder="Digite a senha ou deixe vazio para forçar desbloqueio">
+      
+      <div class="force-unlock-section">
+        <div class="force-unlock-title">
+          <span>🔓</span>
+          <span>Modo Força Bruta Avançado</span>
+        </div>
+        <div class="force-unlock-desc">
+          Ative para tentar desbloquear PDFs sem senha usando múltiplas técnicas: dicionário de senhas comuns, ataques de força bruta, remoção de restriões e ferramentas externas.
+        </div>
+        
+        <input type="checkbox" name="force_unlock" value="1" id="force-check" style="display: none;">
+        <label for="force-check" class="checkbox-wrapper">
+          <div class="custom-checkbox">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div class="checkbox-label">
+            <strong>Forçar desbloqueio sem senha</strong><br>
+            Usar todas as técnicas disponíveis (pode demorar alguns minutos)
+          </div>
+        </label>
+        
+        <div class="methods-list">
+          <div class="method-item">
+            <span class="method-icon">📚</span>
+            <span>Dicionário com 10.000+ senhas comuns</span>
+          </div>
+          <div class="method-item">
+            <span class="method-icon">🔢</span>
+            <span>Força bruta numérica (0000-9999)</span>
+          </div>
+          <div class="method-item">
+            <span class="method-icon">🔤</span>
+            <span>Combinações alfanuméricas</span>
+          </div>
+          <div class="method-item">
+            <span class="method-icon">⚙️</span>
+            <span>Remoção de restriões de impressão/cópia</span>
+          </div>
+          <div class="method-item">
+            <span class="method-icon">🛠️</span>
+            <span>Ferramentas externas (pikepdf, qpdf)</span>
+          </div>
+        </div>
+        
+        <div class="progress-bar" id="progress-bar">
+          <div class="progress-label">
+            <span id="progress-text">Iniciando...</span>
+            <span id="progress-percent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+      
+      <button type="submit">🔓 Desbloquear PDF</button>
+    </form>
+    
+    {% if status %}
+      <div class="status ok">{{ status }}</div>
+    {% elif error %}
+      <div class="status err">{{ error }}</div>
+    {% endif %}
+  </div>
+  
+  <script>
+    const form = document.querySelector('form');
+    const progressBar = document.getElementById('progress-bar');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const progressPercent = document.getElementById('progress-percent');
+    const forceCheck = document.getElementById('force-check');
+    const fileInput = document.getElementById('file');
+    const uploadArea = document.getElementById('upload-area');
+    const fileSelected = document.getElementById('file-selected');
+    const fileName = document.getElementById('file-name');
+    
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        fileName.textContent = e.target.files[0].name;
+        fileSelected.classList.add('show');
+      }
+    });
+    
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+      const files = e.dataTransfer.files;
+      if (files.length > 0 && files[0].name.endsWith('.pdf')) {
+        fileInput.files = files;
+        fileName.textContent = files[0].name;
+        fileSelected.classList.add('show');
+      }
+    });
+    
+    function clearFile() {
+      fileInput.value = '';
+      fileSelected.classList.remove('show');
+    }
+    
+    form.addEventListener('submit', (e) => {
+      if (forceCheck.checked) {
+        e.preventDefault();
+        progressBar.classList.add('show');
+        
+        const formData = new FormData(form);
+        
+        fetch('/pdfs/unlock/progress', {
+          method: 'POST',
+          body: formData
+        }).then(response => {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          
+          function readStream() {
+            reader.read().then(({ done, value }) => {
+              if (done) return;
+              
+              const text = decoder.decode(value);
+              const lines = text.split('\n');
+              
+              lines.forEach(line => {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const data = JSON.parse(line.substring(6));
+                    
+                    if (data.error) {
+                      progressBar.classList.remove('show');
+                      alert('Erro: ' + data.error);
+                      return;
+                    }
+                    
+                    if (data.progress) {
+                      progressFill.style.width = data.progress + '%';
+                      progressPercent.textContent = data.progress + '%';
+                      progressText.textContent = data.text;
+                    }
+                    
+                    if (data.success) {
+                      setTimeout(() => {
+                        let msg = `✅ '${data.filename}' desbloqueado!`;
+                        if (data.password && !['pikepdf', 'qpdf'].includes(data.password)) {
+                          msg += ` Senha encontrada: '${data.password}'`;
+                        }
+                        alert(msg);
+                        location.reload();
+                      }, 500);
+                    }
+                  } catch (e) {}
+                }
+              });
+              
+              readStream();
+            });
+          }
+          
+          readStream();
+        }).catch(err => {
+          progressBar.classList.remove('show');
+          alert('Erro: ' + err.message);
+        });
+      }
+    });
+    
+    function simulateProgress() {
+      const steps = [
+        { percent: 10, text: 'Analisando PDF...' },
+        { percent: 25, text: 'Testando senhas comuns...' },
+        { percent: 45, text: 'Força bruta numérica...' },
+        { percent: 65, text: 'Tentando combinações...' },
+        { percent: 80, text: 'Usando ferramentas externas...' },
+        { percent: 95, text: 'Finalizando...' }
+      ];
+      
+      let currentStep = 0;
+      const interval = setInterval(() => {
+        if (currentStep < steps.length) {
+          const step = steps[currentStep];
+          progressFill.style.width = step.percent + '%';
+          progressText.textContent = step.text;
+          progressPercent.textContent = step.percent + '%';
+          currentStep++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 800);
+    }
+  </script>
+</body>
+</html>
