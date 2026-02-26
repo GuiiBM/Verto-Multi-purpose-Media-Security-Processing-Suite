@@ -297,28 +297,9 @@ MENU_HTML = """
       </div>
       <div class="app-name">PDFs</div>
     </a>
-    <a href="/musica" class="app">
-      <div class="app-icon">🎵</div>
-      <div class="app-name">Música</div>
-    </a>
-    <a href="/instagram" class="app">
-      <div class="app-icon">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#FED576;stop-opacity:1" />
-              <stop offset="25%" style="stop-color:#F47133;stop-opacity:1" />
-              <stop offset="50%" style="stop-color:#BC3081;stop-opacity:1" />
-              <stop offset="75%" style="stop-color:#8A3AB9;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#4C63D2;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <rect x="6" y="6" width="36" height="36" rx="8" stroke="url(#ig-gradient)" stroke-width="3" fill="none"/>
-          <circle cx="24" cy="24" r="7" stroke="url(#ig-gradient)" stroke-width="3" fill="none"/>
-          <circle cx="34" cy="14" r="2" fill="url(#ig-gradient)"/>
-        </svg>
-      </div>
-      <div class="app-name">Instagram</div>
+    <a href="/transparent" class="app">
+      <div class="app-icon">🎨</div>
+      <div class="app-name">Transparência</div>
     </a>
   </div>
   <script>
@@ -6362,5 +6343,569 @@ PDFS_MERGE_HTML = """<!doctype html>
 </html>
 """
 
+
+@app.route("/transparent", methods=["GET", "POST"], strict_slashes=False)
+def transparent():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        action = request.form.get('action', 'color')
+        color = request.form.get('color', '#FFFFFF')
+        
+        if file:
+            try:
+                from PIL import Image
+                import io
+                
+                img = Image.open(file.stream).convert('RGBA')
+                
+                if action == 'auto':
+                    try:
+                        from rembg import remove
+                        img_bytes = io.BytesIO()
+                        img.save(img_bytes, format='PNG')
+                        img_bytes.seek(0)
+                        output = remove(img_bytes.read())
+                        img = Image.open(io.BytesIO(output))
+                    except ImportError:
+                        return jsonify({'success': False, 'error': 'Instale: pip install "rembg[cpu]"'})
+                    except Exception as e:
+                        return jsonify({'success': False, 'error': f'Erro: {str(e)}. Instale: pip install "rembg[cpu]"'})
+                else:
+                    # Remoção por cor usando numpy
+                    import numpy as np
+                    
+                    # Converter hex para RGB
+                    target_r = int(color[1:3], 16)
+                    target_g = int(color[3:5], 16)
+                    target_b = int(color[5:7], 16)
+                    
+                    # Converter imagem para array numpy
+                    img_array = np.array(img)
+                    
+                    # Calcular diferença de cor para cada pixel
+                    diff_r = np.abs(img_array[:, :, 0].astype(int) - target_r)
+                    diff_g = np.abs(img_array[:, :, 1].astype(int) - target_g)
+                    diff_b = np.abs(img_array[:, :, 2].astype(int) - target_b)
+                    
+                    # Criar máscara: pixels similares à cor alvo (tolerância 30)
+                    mask = (diff_r < 30) & (diff_g < 30) & (diff_b < 30)
+                    
+                    # Tornar pixels similares transparentes
+                    img_array[:, :, 3] = np.where(mask, 0, 255)
+                    
+                    # Converter de volta para imagem PIL
+                    img = Image.fromarray(img_array, 'RGBA')
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                filename = f"transparent_{int(time.time())}.png"
+                filepath = os.path.join(downloads_dir, filename)
+                img.save(filepath, 'PNG')
+                
+                return jsonify({'success': True, 'filename': filename})
+            except Exception as e:
+                return jsonify({'success': False, 'error': str(e)})
+    
+    return render_template_string(TRANSPARENT_HTML, status=status, error=error)
+
+
+TRANSPARENT_HTML = """<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transparência - Remover Fundo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(147, 51, 234, 0.06) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 20px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 24px;
+    }
+    .back-button:hover {
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #a855f7;
+      transform: translateX(-6px);
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .logo {
+      text-align: center;
+      font-size: 56px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a855f7, #9333ea, #7e22ce);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+    @keyframes glow-pulse {
+      0%, 100% { filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.4)); }
+      50% { filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.6)); }
+    }
+    .tagline {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 16px;
+      margin-bottom: 48px;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(40px);
+      border-radius: 24px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .upload-area {
+      border: 2px dashed rgba(168, 85, 247, 0.3);
+      border-radius: 16px;
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 24px;
+    }
+    .upload-area:hover {
+      border-color: rgba(168, 85, 247, 0.6);
+      background: rgba(168, 85, 247, 0.05);
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .upload-text {
+      color: #cbd5e1;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    .upload-hint {
+      color: #64748b;
+      font-size: 14px;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .preview {
+      display: none;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .preview.show {
+      display: block;
+    }
+    .preview img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    .file-name {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .mode-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px solid rgba(168, 85, 247, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 16px;
+      text-align: center;
+    }
+    .mode-btn:hover {
+      border-color: rgba(168, 85, 247, 0.5);
+      background: rgba(168, 85, 247, 0.1);
+    }
+    .mode-btn.active {
+      border-color: #a855f7;
+      background: rgba(168, 85, 247, 0.2);
+      color: #a855f7;
+      font-weight: 600;
+    }
+    .color-picker {
+      display: none;
+      margin-bottom: 24px;
+    }
+    .color-picker.show {
+      display: block;
+    }
+    .color-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+    }
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .color-option {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .color-option:hover {
+      transform: scale(1.1);
+      border-color: #a855f7;
+    }
+    .color-option.active {
+      border-color: #a855f7;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    }
+    .color-option.active::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-weight: bold;
+      font-size: 18px;
+      text-shadow: 0 0 4px rgba(0,0,0,0.8);
+    }
+    .hex-input-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .hex-input {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 2px solid rgba(168, 85, 247, 0.3);
+      background: rgba(15, 23, 42, 0.8);
+      color: #cbd5e1;
+      font-size: 14px;
+      font-family: 'Courier New', monospace;
+      transition: all 0.3s;
+    }
+    .hex-input:focus {
+      outline: none;
+      border-color: #a855f7;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+    }
+    .color-preview {
+      width: 60px;
+      height: 48px;
+      border-radius: 8px;
+      border: 2px solid rgba(168, 85, 247, 0.3);
+      background-image: 
+        linear-gradient(45deg, #1e293b 25%, transparent 25%), 
+        linear-gradient(-45deg, #1e293b 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #1e293b 75%), 
+        linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+      background-size: 10px 10px;
+      background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+      position: relative;
+      overflow: hidden;
+    }
+    .color-preview-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 6px;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #a855f7, #9333ea);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+    }
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .status {
+      display: none;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 24px;
+      text-align: center;
+      font-weight: 500;
+    }
+    .status.show {
+      display: block;
+    }
+    .status.success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      color: #4ade80;
+    }
+    .status.error {
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      color: #f87171;
+    }
+    .status.processing {
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: #a855f7;
+    }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-button">←</a>
+  
+  <div class="container">
+    <div class="logo">TRANSPARÊNCIA</div>
+    <div class="tagline">Remova fundos de imagens com IA ou por cor</div>
+    
+    <div class="card">
+      <form id="transparent-form">
+        <div class="upload-area" id="upload-area">
+          <div class="upload-icon">📤</div>
+          <div class="upload-text">Clique ou arraste uma imagem</div>
+          <div class="upload-hint">PNG, JPG, JPEG, WEBP</div>
+          <input type="file" id="file-input" accept="image/*" required>
+        </div>
+        
+        <div class="preview" id="preview">
+          <img id="preview-img" src="" alt="Preview">
+          <div class="file-name" id="file-name"></div>
+        </div>
+        
+        <div class="mode-selector">
+          <div class="mode-btn active" data-mode="auto">🤖 IA Automática</div>
+          <div class="mode-btn" data-mode="color">🎨 Por Cor</div>
+        </div>
+        
+        <div class="color-picker" id="color-picker">
+          <label class="color-label">Selecione a cor para remover:</label>
+          <div class="color-grid">
+            <div class="color-option active" style="background: #FFFFFF;" data-color="#FFFFFF"></div>
+            <div class="color-option" style="background: #000000;" data-color="#000000"></div>
+            <div class="color-option" style="background: #FF0000;" data-color="#FF0000"></div>
+            <div class="color-option" style="background: #00FF00;" data-color="#00FF00"></div>
+            <div class="color-option" style="background: #0000FF;" data-color="#0000FF"></div>
+            <div class="color-option" style="background: #FFFF00;" data-color="#FFFF00"></div>
+            <div class="color-option" style="background: #FF00FF;" data-color="#FF00FF"></div>
+            <div class="color-option" style="background: #00FFFF;" data-color="#00FFFF"></div>
+            <div class="color-option" style="background: #F0F0F0;" data-color="#F0F0F0"></div>
+            <div class="color-option" style="background: #808080;" data-color="#808080"></div>
+            <div class="color-option" style="background: #800000;" data-color="#800000"></div>
+            <div class="color-option" style="background: #008000;" data-color="#008000"></div>
+            <div class="color-option" style="background: #000080;" data-color="#000080"></div>
+            <div class="color-option" style="background: #808000;" data-color="#808000"></div>
+            <div class="color-option" style="background: #800080;" data-color="#800080"></div>
+            <div class="color-option" style="background: #008080;" data-color="#008080"></div>
+          </div>
+          <div class="hex-input-group">
+            <input type="text" class="hex-input" id="hex-input" placeholder="#FFFFFF" value="#FFFFFF" maxlength="7">
+            <div class="color-preview">
+              <div class="color-preview-fill" id="color-preview-fill" style="background: #FFFFFF;"></div>
+            </div>
+          </div>
+          <input type="hidden" id="color-hidden" name="color" value="#FFFFFF">
+        </div>
+        
+        <button type="submit" class="submit-btn" id="submit-btn">✨ Remover Fundo</button>
+      </form>
+      
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentMode = 'auto';
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-input');
+    const preview = document.getElementById('preview');
+    const previewImg = document.getElementById('preview-img');
+    const fileName = document.getElementById('file-name');
+    const colorPicker = document.getElementById('color-picker');
+    const hexInput = document.getElementById('hex-input');
+    const colorPreviewFill = document.getElementById('color-preview-fill');
+    const colorHidden = document.getElementById('color-hidden');
+    const submitBtn = document.getElementById('submit-btn');
+    const status = document.getElementById('status');
+
+    // Upload area events
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = 'rgba(168, 85, 247, 0.7)';
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.style.borderColor = 'rgba(168, 85, 247, 0.3)';
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = 'rgba(168, 85, 247, 0.3)';
+      if (e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        showPreview(e.dataTransfer.files[0]);
+      }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        showPreview(e.target.files[0]);
+      }
+    });
+
+    function showPreview(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        fileName.textContent = file.name;
+        preview.classList.add('show');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Mode selector
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentMode = btn.dataset.mode;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        if (currentMode === 'color') {
+          colorPicker.classList.add('show');
+        } else {
+          colorPicker.classList.remove('show');
+        }
+      });
+    });
+
+    // Color picker
+    function selectColor(color) {
+      hexInput.value = color;
+      colorPreviewFill.style.backgroundColor = color;
+      colorHidden.value = color;
+      document.querySelectorAll('.color-option').forEach(opt => {
+        opt.classList.remove('active');
+        if (opt.dataset.color === color) opt.classList.add('active');
+      });
+    }
+
+    document.querySelectorAll('.color-option').forEach(opt => {
+      opt.addEventListener('click', () => selectColor(opt.dataset.color));
+    });
+
+    hexInput.addEventListener('input', (e) => {
+      let value = e.target.value.toUpperCase();
+      if (!value.startsWith('#')) value = '#' + value;
+      if (/^#[0-9A-F]{6}$/.test(value)) {
+        colorPreviewFill.style.backgroundColor = value;
+        colorHidden.value = value;
+        document.querySelectorAll('.color-option').forEach(opt => {
+          opt.classList.remove('active');
+          if (opt.dataset.color === value) opt.classList.add('active');
+        });
+      }
+    });
+
+    // Form submit
+    document.getElementById('transparent-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!fileInput.files[0]) {
+        showStatus('error', '❌ Selecione uma imagem primeiro!');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('action', currentMode);
+      if (currentMode === 'color') {
+        formData.append('color', colorHidden.value);
+      }
+
+      submitBtn.disabled = true;
+      showStatus('processing', '⏳ Processando imagem...');
+
+      try {
+        const response = await fetch('/transparent', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          showStatus('success', `✅ Salvo: ${result.filename} (pasta Downloads)`);
+        } else {
+          showStatus('error', `❌ ${result.error}`);
+        }
+      } catch (error) {
+        showStatus('error', `❌ Erro: ${error.message}`);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    function showStatus(type, message) {
+      status.className = `status show ${type}`;
+      status.textContent = message;
+    }
+  </script>
+</body>
+</html>
+"""
 if __name__ == "__main__":
     app.run(debug=True)
