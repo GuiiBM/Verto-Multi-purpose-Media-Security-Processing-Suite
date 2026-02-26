@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marca d'água em PDF</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(220, 38, 38, 0.06) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+    }
+    .back-button:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 32px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+      flex: 1;
+      min-width: 320px;
+      max-width: 500px;
+    }
+    .preview-card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 32px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+      flex: 1;
+      min-width: 320px;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    h1 {
+      font-size: 24px;
+      color: #f8fafc;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 24px;
+    }
+    .type-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .type-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6);
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .type-btn:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(15, 23, 42, 0.8);
+    }
+    .type-btn.active {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+    input[type="text"], input[type="number"], input[type="color"], select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.8);
+      color: #f1f5f9;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, select:focus {
+      border-color: #ef4444;
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-upload {
+      width: 100%;
+      padding: 16px;
+      border-radius: 10px;
+      border: 2px dashed rgba(239, 68, 68, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 16px;
+    }
+    .file-upload:hover {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+    .file-upload-text {
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+    .position-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 16px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .position-btn {
+      aspect-ratio: 1;
+      border-radius: 6px;
+      border: 1.5px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.8);
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .position-btn::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #ef4444;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+    }
+    .position-btn[data-position="top-left"]::after { top: 15%; left: 15%; }
+    .position-btn[data-position="top-center-left"]::after { top: 15%; left: 35%; }
+    .position-btn[data-position="top-center"]::after { top: 15%; left: 50%; transform: translateX(-50%); }
+    .position-btn[data-position="top-center-right"]::after { top: 15%; right: 35%; }
+    .position-btn[data-position="top-right"]::after { top: 15%; right: 15%; }
+    .position-btn[data-position="middle-left"]::after { top: 50%; left: 15%; transform: translateY(-50%); }
+    .position-btn[data-position="middle-center-left"]::after { top: 50%; left: 35%; transform: translateY(-50%); }
+    .position-btn[data-position="center"]::after { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .position-btn[data-position="middle-center-right"]::after { top: 50%; right: 35%; transform: translateY(-50%); }
+    .position-btn[data-position="middle-right"]::after { top: 50%; right: 15%; transform: translateY(-50%); }
+    .position-btn[data-position="bottom-left"]::after { bottom: 15%; left: 15%; }
+    .position-btn[data-position="bottom-center-left"]::after { bottom: 15%; left: 35%; }
+    .position-btn[data-position="bottom-center"]::after { bottom: 15%; left: 50%; transform: translateX(-50%); }
+    .position-btn[data-position="bottom-center-right"]::after { bottom: 15%; right: 35%; }
+    .position-btn[data-position="bottom-right"]::after { bottom: 15%; right: 15%; }
+    .position-btn:hover {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(239, 68, 68, 0.1);
+      transform: scale(1.05);
+    }
+    .position-btn.active {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.2);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+    }
+    .position-btn.active::after {
+      width: 10px;
+      height: 10px;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 1);
+    }
+    .position-full {
+      grid-column: 1 / -1;
+      aspect-ratio: auto;
+      padding: 8px;
+    }
+    .position-full::after {
+      display: none;
+    }
+    .position-drag {
+      grid-column: 1 / -1;
+      aspect-ratio: auto;
+      padding: 8px;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+    }
+    .position-drag::after {
+      display: none;
+    }
+    .slider-container {
+      margin-bottom: 16px;
+    }
+    .slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(148, 163, 184, 0.2);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ef4444;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+    }
+    .slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ef4444;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+    }
+    .slider-value {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      transition: all 0.3s;
+      margin-top: 8px;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+    }
+    .status {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #9ca3af;
+      text-align: center;
+    }
+    .status.ok {
+      color: #4ade80;
+    }
+    .status.err {
+      color: #f97373;
+    }
+    .preview-box {
+      width: 100%;
+      max-width: 450px;
+      background: white;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      min-height: 600px;
+    }
+    #pdf-canvas {
+      width: 100%;
+      display: block;
+    }
+    .preview-watermark {
+      position: absolute;
+      color: #808080;
+      font-weight: bold;
+      white-space: nowrap;
+      user-select: none;
+      pointer-events: auto;
+    }
+    .preview-watermark.dragging {
+      opacity: 0.8;
+      cursor: grabbing !important;
+    }
+    .drag-mode-active .preview-watermark {
+      cursor: grab;
+      border: 2px dashed rgba(239, 68, 68, 0.5);
+      padding: 4px;
+    }
+    .preview-box {
+      user-select: none;
+    }
+    .drag-mode-active {
+      cursor: crosshair;
+    }
+    .coordinates {
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 8px;
+      font-size: 11px;
+      color: #ef4444;
+      text-align: center;
+      display: none;
+    }
+    .coordinates.show {
+      display: block;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/pdfs'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">💧 Marca d'água</div>
+  <div class="tagline">Adicione marca d'água personalizada ao seu PDF</div>
+  
+  <div class="container">
+    <div class="card">
+      <h1>Configurações</h1>
+      <p class="subtitle">Personalize sua marca d'água</p>
+
+      <form method="POST" enctype="multipart/form-data" id="watermark-form">
+        <label>Tipo de marca d'água</label>
+        <div class="type-selector">
+          <div class="type-btn active" data-type="text" onclick="switchType('text')">📝 Texto</div>
+          <div class="type-btn" data-type="image" onclick="switchType('image')">🖼️ Imagem</div>
+        </div>
+        
+        <input type="hidden" name="type" id="type" value="text">
+        
+        <label for="file">Arquivo PDF</label>
+        <label for="file" class="file-upload">
+          <div class="file-upload-text" id="file-name">📄 Selecione um PDF</div>
+        </label>
+        <input type="file" id="file" name="file" accept=".pdf" required onchange="updateFileName()">
+        
+        <div id="text-options">
+          <label for="text">Texto da marca d'água</label>
+          <input type="text" id="text" name="text" value="MARCA D'ÁGUA" oninput="updatePreview()">
+          
+          <label for="font">Fonte</label>
+          <select id="font" name="font" onchange="updatePreview()">
+            <option value="Helvetica">Helvetica</option>
+            <option value="Helvetica-Bold">Helvetica Bold</option>
+            <option value="Times-Roman">Times Roman</option>
+            <option value="Times-Bold">Times Bold</option>
+            <option value="Courier">Courier</option>
+            <option value="Courier-Bold">Courier Bold</option>
+          </select>
+          
+          <label for="size">Tamanho da fonte: <span id="size-value">40</span>px</label>
+          <input type="range" id="size" name="size" min="10" max="100" value="40" class="slider" oninput="updateSize(); updatePreview()">
+          
+          <input type="hidden" id="color" name="color" value="#808080">
+          
+          <label for="rotation">Rotação: <span id="rotation-value">45</span>°</label>
+          <input type="range" id="rotation" name="rotation" min="0" max="360" value="45" class="slider" oninput="updateRotation(); updatePreview()">
+        </div>
+        
+        <div id="image-options" class="hidden">
+          <label for="watermark_image">Imagem da marca d'água</label>
+          <label for="watermark_image" class="file-upload">
+            <div class="file-upload-text" id="image-name">🖼️ Selecione uma imagem</div>
+          </label>
+          <input type="file" id="watermark_image" name="watermark_image" accept="image/*" onchange="updateImageName(); updatePreview()">
+          
+          <label for="img_size">Tamanho da imagem: <span id="img-size-value">200</span>px</label>
+          <input type="range" id="img_size" name="img_size" min="50" max="500" value="200" class="slider" oninput="updateImgSize(); updatePreview()">
+        </div>
+        
+        <label>Posição</label>
+        <div class="position-grid">
+          <div class="position-btn" data-position="top-left" onclick="selectPosition('top-left')"></div>
+          <div class="position-btn" data-position="top-center-left" onclick="selectPosition('top-center-left')"></div>
+          <div class="position-btn" data-position="top-center" onclick="selectPosition('top-center')"></div>
+          <div class="position-btn" data-position="top-center-right" onclick="selectPosition('top-center-right')"></div>
+          <div class="position-btn" data-position="top-right" onclick="selectPosition('top-right')"></div>
+          
+          <div class="position-btn" data-position="middle-left" onclick="selectPosition('middle-left')"></div>
+          <div class="position-btn" data-position="middle-center-left" onclick="selectPosition('middle-center-left')"></div>
+          <div class="position-btn active" data-position="center" onclick="selectPosition('center')"></div>
+          <div class="position-btn" data-position="middle-center-right" onclick="selectPosition('middle-center-right')"></div>
+          <div class="position-btn" data-position="middle-right" onclick="selectPosition('middle-right')"></div>
+          
+          <div class="position-btn" data-position="bottom-left" onclick="selectPosition('bottom-left')"></div>
+          <div class="position-btn" data-position="bottom-center-left" onclick="selectPosition('bottom-center-left')"></div>
+          <div class="position-btn" data-position="bottom-center" onclick="selectPosition('bottom-center')"></div>
+          <div class="position-btn" data-position="bottom-center-right" onclick="selectPosition('bottom-center-right')"></div>
+          <div class="position-btn" data-position="bottom-right" onclick="selectPosition('bottom-right')"></div>
+          
+          <div class="position-btn position-full" data-position="full" onclick="selectPosition('full')">
+            <span style="color: #94a3b8; font-size: 11px; font-weight: 600;">🔄 Fundo completo</span>
+          </div>
+          
+          <div class="position-btn position-drag" data-position="drag" onclick="selectPosition('drag')">
+            <span style="color: #ef4444; font-size: 11px; font-weight: 600;">🎯 Arrastar posição</span>
+          </div>
+        </div>
+        <input type="hidden" name="position" id="position" value="center">
+        <input type="hidden" name="custom_x" id="custom_x" value="">
+        <input type="hidden" name="custom_y" id="custom_y" value="">
+        <div class="coordinates" id="coordinates">Posição: X=<span id="coord-x">0</span>, Y=<span id="coord-y">0</span></div>
+        
+        <label for="opacity">Opacidade: <span id="opacity-value">30</span>%</label>
+        <input type="range" id="opacity" name="opacity" min="0" max="100" value="30" class="slider" oninput="updateOpacity(); updatePreview()">
+        
+        <button type="submit">💧 Adicionar Marca d'água</button>
+      </form>
+
+      {% if status %}
+        <div class="status ok">{{ status }}</div>
+      {% elif error %}
+        <div class="status err">{{ error }}</div>
+      {% else %}
+        <div class="status">Pronto para adicionar marca d'água.</div>
+      {% endif %}
+    </div>
+    
+    <div class="preview-card">
+      <h1>Preview</h1>
+      <p class="subtitle">Visualização em tempo real</p>
+      <div class="preview-box" id="preview-box">
+        <canvas id="pdf-canvas"></canvas>
+        <div class="preview-watermark" id="preview-watermark">MARCA D'ÁGUA</div>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 16px;">
+        <button type="button" onclick="prevPage()" style="width: auto; padding: 8px 16px; font-size: 12px;">← Anterior</button>
+        <span id="page-info" style="color: #94a3b8; font-size: 12px;">Página 1 de 1</span>
+        <button type="button" onclick="nextPage()" style="width: auto; padding: 8px 16px; font-size: 12px;">Próxima →</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    
+    let currentType = 'text';
+    let currentPosition = 'center';
+    let watermarkImage = null;
+    let isDragMode = false;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let pdfDoc = null;
+    let currentPage = 1;
+    let totalPages = 0;
+    let draggedPosition = { left: null, top: null };
+    
+    function switchType(type) {
+      currentType = type;
+      document.getElementById('type').value = type;
+      document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === type);
+      });
+      
+      if (type === 'text') {
+        document.getElementById('text-options').classList.remove('hidden');
+        document.getElementById('image-options').classList.add('hidden');
+      } else {
+        document.getElementById('text-options').classList.add('hidden');
+        document.getElementById('image-options').classList.remove('hidden');
+      }
+      updatePreview();
+    }
+    
+    function selectPosition(position) {
+      currentPosition = position;
+      document.getElementById('position').value = position;
+      document.querySelectorAll('.position-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.position === position);
+      });
+      
+      isDragMode = position === 'drag';
+      const previewBox = document.getElementById('preview-box');
+      const coords = document.getElementById('coordinates');
+      
+      if (isDragMode) {
+        previewBox.classList.add('drag-mode-active');
+        coords.classList.add('show');
+      } else {
+        previewBox.classList.remove('drag-mode-active');
+        coords.classList.remove('show');
+        document.getElementById('custom_x').value = '';
+        document.getElementById('custom_y').value = '';
+      }
+      
+      updatePreview();
+    }
+    
+    async function updateFileName() {
+      const file = document.getElementById('file').files[0];
+      if (file) {
+        document.getElementById('file-name').textContent = '📄 ' + file.name;
+        await loadPDF(file);
+      }
+    }
+    
+    async function loadPDF(file) {
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const typedarray = new Uint8Array(e.target.result);
+        pdfDoc = await pdfjsLib.getDocument(typedarray).promise;
+        renderPDF();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+    
+    async function renderPDF() {
+      if (!pdfDoc) return;
+      totalPages = pdfDoc.numPages;
+      const page = await pdfDoc.getPage(currentPage);
+      const canvas = document.getElementById('pdf-canvas');
+      const ctx = canvas.getContext('2d');
+      const viewport = page.getViewport({ scale: 1.5 });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      
+      // Armazena dimensões reais do PDF para cálculo de escala
+      window.pdfRealWidth = page.view[2];
+      window.pdfRealHeight = page.view[3];
+      window.pdfScale = viewport.scale;
+      
+      await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+      updatePageInfo();
+      updatePreview();
+    }
+    
+    function updatePageInfo() {
+      const info = document.getElementById('page-info');
+      if (info) info.textContent = `Página ${currentPage} de ${totalPages}`;
+    }
+    
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPDF();
+      }
+    }
+    
+    function nextPage() {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderPDF();
+      }
+    }
+    
+    function updateImageName() {
+      const file = document.getElementById('watermark_image').files[0];
+      if (file) {
+        document.getElementById('image-name').textContent = '🖼️ ' + file.name;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          watermarkImage = e.target.result;
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    function updateSize() {
+      document.getElementById('size-value').textContent = document.getElementById('size').value;
+    }
+    
+    function updateRotation() {
+      document.getElementById('rotation-value').textContent = document.getElementById('rotation').value;
+    }
+    
+    function updateOpacity() {
+      document.getElementById('opacity-value').textContent = document.getElementById('opacity').value;
+    }
+    
+    function updateImgSize() {
+      document.getElementById('img-size-value').textContent = document.getElementById('img_size').value;
+    }
+    
+    function updatePreview() {
+      const box = document.getElementById('preview-box');
+      const existingWatermarks = box.querySelectorAll('.preview-watermark');
+      existingWatermarks.forEach(w => w.remove());
+      
+      // Calcula fator de escala: tamanho do canvas / tamanho real do PDF
+      const canvas = document.getElementById('pdf-canvas');
+      const scaleFactor = window.pdfScale || 1.5;
+      
+      if (currentType === 'text') {
+        const text = document.getElementById('text').value;
+        const font = document.getElementById('font').value;
+        const size = document.getElementById('size').value;
+        const color = document.getElementById('color').value;
+        const rotation = document.getElementById('rotation').value;
+        const opacity = document.getElementById('opacity').value / 100;
+        
+        // Tamanho da fonte no preview = tamanho real * escala do PDF
+        const previewFontSize = size * scaleFactor;
+        
+        if (currentPosition === 'full') {
+          for (let y = 0; y < 600; y += 150) {
+            for (let x = 0; x < 400; x += 300) {
+              const mark = document.createElement('div');
+              mark.className = 'preview-watermark';
+              mark.textContent = text;
+              mark.style.fontSize = previewFontSize + 'px';
+              mark.style.color = color;
+              mark.style.opacity = opacity;
+              mark.style.transform = `translate(${x}px, ${y}px) rotate(${rotation}deg)`;
+              mark.style.fontFamily = font.replace('-', ' ');
+              mark.style.fontWeight = font.includes('Bold') ? 'bold' : 'normal';
+              box.appendChild(mark);
+            }
+          }
+        } else {
+          const mark = document.createElement('div');
+          mark.className = 'preview-watermark';
+          mark.textContent = text;
+          mark.style.fontSize = previewFontSize + 'px';
+          mark.style.color = color;
+          mark.style.opacity = opacity;
+          mark.style.transform = `rotate(${rotation}deg)`;
+          mark.style.transformOrigin = 'top left';
+          mark.style.fontFamily = font.replace('-', ' ');
+          mark.style.fontWeight = font.includes('Bold') ? 'bold' : 'normal';
+          
+          const positions = {
+            'center': { top: '50%', left: '50%', transform: `translate(-50%, -50%) rotate(${rotation}deg)`, transformOrigin: 'center' },
+            'top-left': { top: '8%', left: '8%', transform: `rotate(${rotation}deg)`, transformOrigin: 'top left' },
+            'top-center-left': { top: '8%', left: '30%', transform: `rotate(${rotation}deg)`, transformOrigin: 'top left' },
+            'top-center': { top: '8%', left: '50%', transform: `translateX(-50%) rotate(${rotation}deg)`, transformOrigin: 'top center' },
+            'top-center-right': { top: '8%', right: '30%', transform: `rotate(${rotation}deg)`, transformOrigin: 'top left' },
+            'top-right': { top: '8%', right: '8%', transform: `rotate(${rotation}deg)`, transformOrigin: 'top left' },
+            'middle-left': { top: '50%', left: '8%', transform: `translateY(-50%) rotate(${rotation}deg)`, transformOrigin: 'center left' },
+            'middle-center-left': { top: '50%', left: '30%', transform: `translateY(-50%) rotate(${rotation}deg)`, transformOrigin: 'center left' },
+            'middle-center-right': { top: '50%', right: '30%', transform: `translateY(-50%) rotate(${rotation}deg)`, transformOrigin: 'center left' },
+            'middle-right': { top: '50%', right: '8%', transform: `translateY(-50%) rotate(${rotation}deg)`, transformOrigin: 'center left' },
+            'bottom-left': { bottom: '8%', left: '8%', transform: `rotate(${rotation}deg)`, transformOrigin: 'top left' },
+            'bottom-center-left': { bottom: '8%', left: '30%', transform: `rotate(${rotation}deg)`, transformOrigin: 'top left' },
+            'bottom-center': { bottom: '8%', left: '50%', transform: `translateX(-50%) rotate(${rotation}deg)`, transformOrigin: 'top center' },
+            'bottom-center-right': { bottom: '8%', right: '30%', transform: `rotate(${rotation}deg)`, transformOrigin: 'top left' },
+            'bottom-right': { bottom: '8%', right: '8%', transform: `rotate(${rotation}deg)`, transformOrigin: 'top left' },
+            'drag': { top: '50%', left: '50%', transform: `translate(-50%, -50%) rotate(${rotation}deg)`, transformOrigin: 'center' }
+          };
+          
+          const pos = positions[currentPosition];
+          Object.assign(mark.style, pos);
+          
+          if (isDragMode && draggedPosition.left) {
+            mark.style.left = draggedPosition.left;
+            mark.style.top = draggedPosition.top;
+            mark.style.right = 'auto';
+            mark.style.bottom = 'auto';
+            mark.style.transform = `rotate(${rotation}deg)`;
+            mark.style.transformOrigin = 'top left';  // Origem no canto superior esquerdo
+          }
+          
+          box.appendChild(mark);
+        }
+      } else {
+        if (!watermarkImage) return;
+        
+        const imgSize = document.getElementById('img_size').value;
+        const opacity = document.getElementById('opacity').value / 100;
+        
+        // Calcula fator de escala para imagem
+        const scaleFactor = window.pdfScale || 1.5;
+        const previewImgSize = imgSize * scaleFactor;
+        
+        if (currentPosition === 'full') {
+          for (let y = 0; y < 600; y += previewImgSize + 25) {
+            for (let x = 0; x < 400; x += previewImgSize + 25) {
+              const mark = document.createElement('div');
+              mark.className = 'preview-watermark image';
+              mark.style.width = previewImgSize + 'px';
+              mark.style.height = previewImgSize + 'px';
+              mark.style.backgroundImage = `url(${watermarkImage})`;
+              mark.style.backgroundSize = 'contain';
+              mark.style.backgroundRepeat = 'no-repeat';
+              mark.style.opacity = opacity;
+              mark.style.left = x + 'px';
+              mark.style.top = y + 'px';
+              box.appendChild(mark);
+            }
+          }
+        } else {
+          const mark = document.createElement('div');
+          mark.className = 'preview-watermark image';
+          mark.style.width = previewImgSize + 'px';
+          mark.style.height = previewImgSize + 'px';
+          mark.style.backgroundImage = `url(${watermarkImage})`;
+          mark.style.backgroundSize = 'contain';
+          mark.style.backgroundRepeat = 'no-repeat';
+          mark.style.opacity = opacity;
+          
+          const positions = {
+            'center': { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
+            'top-left': { top: '8%', left: '8%' },
+            'top-center-left': { top: '8%', left: '30%' },
+            'top-center': { top: '8%', left: '50%', transform: 'translateX(-50%)' },
+            'top-center-right': { top: '8%', right: '30%' },
+            'top-right': { top: '8%', right: '8%' },
+            'middle-left': { top: '50%', left: '8%', transform: 'translateY(-50%)' },
+            'middle-center-left': { top: '50%', left: '30%', transform: 'translateY(-50%)' },
+            'middle-center-right': { top: '50%', right: '30%', transform: 'translateY(-50%)' },
+            'middle-right': { top: '50%', right: '8%', transform: 'translateY(-50%)' },
+            'bottom-left': { bottom: '8%', left: '8%' },
+            'bottom-center-left': { bottom: '8%', left: '30%' },
+            'bottom-center': { bottom: '8%', left: '50%', transform: 'translateX(-50%)' },
+            'bottom-center-right': { bottom: '8%', right: '30%' },
+            'bottom-right': { bottom: '8%', right: '8%' },
+            'drag': { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
+          };
+          
+          const pos = positions[currentPosition];
+          Object.assign(mark.style, pos);
+          
+          if (isDragMode && draggedPosition.left) {
+            mark.style.left = draggedPosition.left;
+            mark.style.top = draggedPosition.top;
+            mark.style.right = 'auto';
+            mark.style.bottom = 'auto';
+            mark.style.transform = 'none';
+          }
+          
+          box.appendChild(mark);
+        }
+      }
+    }
+    
+    // Drag and drop functionality
+    function setupDragAndDrop() {
+      const previewBox = document.getElementById('preview-box');
+      let offsetX = 0;
+      let offsetY = 0;
+      
+      previewBox.addEventListener('mousedown', function(e) {
+        if (!isDragMode) return;
+        
+        const watermark = previewBox.querySelector('.preview-watermark');
+        if (!watermark) return;
+        
+        const boxRect = previewBox.getBoundingClientRect();
+        const watermarkRect = watermark.getBoundingClientRect();
+        
+        if (e.clientX >= watermarkRect.left && e.clientX <= watermarkRect.right &&
+            e.clientY >= watermarkRect.top && e.clientY <= watermarkRect.bottom) {
+          
+          isDragging = true;
+          watermark.classList.add('dragging');
+          
+          offsetX = e.clientX - watermarkRect.left;
+          offsetY = e.clientY - watermarkRect.top;
+          
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+      
+      previewBox.addEventListener('mousemove', function(e) {
+        if (!isDragging || !isDragMode) return;
+        
+        const watermark = previewBox.querySelector('.preview-watermark');
+        if (!watermark) return;
+        
+        const boxRect = previewBox.getBoundingClientRect();
+        
+        let x = e.clientX - boxRect.left - offsetX;
+        let y = e.clientY - boxRect.top - offsetY;
+        
+        x = Math.max(0, Math.min(x, boxRect.width - watermark.offsetWidth));
+        y = Math.max(0, Math.min(y, boxRect.height - watermark.offsetHeight));
+        
+        watermark.style.left = x + 'px';
+        watermark.style.top = y + 'px';
+        watermark.style.right = 'auto';
+        watermark.style.bottom = 'auto';
+        
+        draggedPosition.left = x + 'px';
+        draggedPosition.top = y + 'px';
+        
+        // Mantém a rotação durante o drag, mas SEM translate
+        if (currentType === 'text') {
+          const rotation = document.getElementById('rotation').value;
+          watermark.style.transform = `rotate(${rotation}deg)`;
+          watermark.style.transformOrigin = 'top left';  // Origem no canto superior esquerdo
+        } else {
+          watermark.style.transform = 'none';
+        }
+        
+        const xPercent = ((x / boxRect.width) * 100).toFixed(1);
+        const yPercent = ((y / boxRect.height) * 100).toFixed(1);
+        document.getElementById('coord-x').textContent = xPercent + '%';
+        document.getElementById('coord-y').textContent = yPercent + '%';
+        document.getElementById('custom_x').value = xPercent;
+        document.getElementById('custom_y').value = yPercent;
+        
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      
+      document.addEventListener('mouseup', function(e) {
+        if (isDragging) {
+          isDragging = false;
+          const watermark = previewBox.querySelector('.preview-watermark');
+          if (watermark) watermark.classList.remove('dragging');
+        }
+      });
+      
+      previewBox.addEventListener('mouseleave', function() {
+        if (isDragging) {
+          isDragging = false;
+          const watermark = previewBox.querySelector('.preview-watermark');
+          if (watermark) watermark.classList.remove('dragging');
+        }
+      });
+    }
+    
+    setupDragAndDrop();
+    
+    updatePreview();
+  </script>
+</body>
+</html>

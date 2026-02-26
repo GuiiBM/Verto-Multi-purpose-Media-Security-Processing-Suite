@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template_string, jsonify, Response
 import yt_dlp
 import os
+import time
 from pathlib import Path
 import json
 try:
@@ -295,6 +296,29 @@ MENU_HTML = """
         </div>
       </div>
       <div class="app-name">PDFs</div>
+    </a>
+    <a href="/musica" class="app">
+      <div class="app-icon">🎵</div>
+      <div class="app-name">Música</div>
+    </a>
+    <a href="/instagram" class="app">
+      <div class="app-icon">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#FED576;stop-opacity:1" />
+              <stop offset="25%" style="stop-color:#F47133;stop-opacity:1" />
+              <stop offset="50%" style="stop-color:#BC3081;stop-opacity:1" />
+              <stop offset="75%" style="stop-color:#8A3AB9;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#4C63D2;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <rect x="6" y="6" width="36" height="36" rx="8" stroke="url(#ig-gradient)" stroke-width="3" fill="none"/>
+          <circle cx="24" cy="24" r="7" stroke="url(#ig-gradient)" stroke-width="3" fill="none"/>
+          <circle cx="34" cy="14" r="2" fill="url(#ig-gradient)"/>
+        </svg>
+      </div>
+      <div class="app-name">Instagram</div>
     </a>
   </div>
   <script>
@@ -1389,6 +1413,142 @@ def tempo():
 def pdfs():
     return render_template_string(PDFS_HTML)
 
+@app.route("/musica", strict_slashes=False)
+def musica():
+    return render_template_string(MUSICA_HTML)
+
+@app.route("/instagram", methods=["GET", "POST"], strict_slashes=False)
+def instagram():
+    status = None
+    error = None
+    media_list = []
+    
+    if request.method == "POST":
+        action = request.form.get('action', 'fetch')
+        input_value = request.form.get('input', '').strip()
+        
+        if action == 'fetch' and input_value:
+            try:
+                import requests
+                import re
+                
+                username = None
+                shortcode = None
+                
+                # Detecta tipo de entrada
+                if 'instagram.com/' in input_value:
+                    parts = input_value.split('instagram.com/')[-1].split('/')
+                    if parts[0] in ['p', 'reel', 'tv']:
+                        shortcode = parts[1].split('?')[0]
+                    elif parts[0] == 'stories':
+                        username = parts[1].split('?')[0]
+                    else:
+                        username = parts[0].split('?')[0]
+                else:
+                    # É username direto
+                    username = input_value.replace('@', '')
+                
+                # Busca stories por username
+                if username and not shortcode:
+                    # Método 1: Scraping da página do perfil
+                    profile_url = f"https://www.instagram.com/{username}/"
+                    headers = {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.5',
+                        'Connection': 'keep-alive',
+                    }
+                    
+                    try:
+                        response = requests.get(profile_url, headers=headers, timeout=15)
+                        html = response.text
+                        
+                        # Extrai dados JSON embutidos
+                        import json
+                        json_match = re.search(r'<script type="application/ld\+json">(.+?)</script>', html, re.DOTALL)
+                        if json_match:
+                            try:
+                                data = json.loads(json_match.group(1))
+                                # Busca por imagens de posts recentes como fallback
+                                if 'image' in data:
+                                    images = data['image'] if isinstance(data['image'], list) else [data['image']]
+                                    for img in images[:6]:
+                                        if isinstance(img, str):
+                                            media_list.append({'type': 'image', 'url': img, 'shortcode': username})
+                            except:
+                                pass
+                        
+                        # Busca URLs de mídia no HTML
+                        if not media_list:
+                            display_urls = re.findall(r'"display_url":"([^"]+)"', html)
+                            for url in display_urls[:6]:
+                                media_list.append({'type': 'image', 'url': url.replace('\\u0026', '&'), 'shortcode': username})
+                        
+                        if not media_list:
+                            error = "Nenhuma mídia encontrada. Perfil pode ser privado ou sem posts."
+                    except Exception as e:
+                        error = f"Erro ao buscar perfil: {str(e)}"
+                
+                # Busca post/reel por shortcode
+                elif shortcode:
+                    page_url = f"https://www.instagram.com/p/{shortcode}/"
+                    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+                    response = requests.get(page_url, headers=headers, timeout=15)
+                    html = response.text
+                    
+                    video_urls = re.findall(r'"video_url":"([^"]+)"', html)
+                    image_urls = re.findall(r'"display_url":"([^"]+)"', html)
+                    
+                    for url in video_urls[:1]:
+                        media_list.append({'type': 'video', 'url': url.replace('\\u0026', '&'), 'shortcode': shortcode})
+                    
+                    if not media_list:
+                        for url in image_urls[:1]:
+                            media_list.append({'type': 'image', 'url': url.replace('\\u0026', '&'), 'shortcode': shortcode})
+                    
+                    if not media_list:
+                        error = "Não foi possível extrair mídia."
+                else:
+                    error = "Entrada inválida."
+                    
+            except Exception as e:
+                error = f"Erro: {str(e)}"
+        
+        elif action == 'download':
+            selected = request.form.getlist('selected')
+            if selected:
+                try:
+                    import requests
+                    downloads_dir = str(Path.home() / "Downloads")
+                    os.makedirs(downloads_dir, exist_ok=True)
+                    
+                    downloaded = []
+                    for url in selected:
+                        try:
+                            headers = {'User-Agent': 'Mozilla/5.0'}
+                            response = requests.get(url, headers=headers, timeout=30, stream=True)
+                            ext = '.mp4' if 'video' in url or '.mp4' in url else '.jpg'
+                            filename = f"instagram_{int(time.time())}_{len(downloaded)}{ext}"
+                            filepath = os.path.join(downloads_dir, filename)
+                            
+                            with open(filepath, 'wb') as f:
+                                for chunk in response.iter_content(chunk_size=8192):
+                                    f.write(chunk)
+                            downloaded.append(filename)
+                        except:
+                            continue
+                    
+                    if downloaded:
+                        status = f"✅ {len(downloaded)} arquivo(s) baixado(s) em Downloads!"
+                    else:
+                        error = "Erro ao baixar arquivos."
+                except Exception as e:
+                    error = f"Erro: {str(e)}"
+            else:
+                error = "Selecione pelo menos uma mídia."
+    
+    return render_template_string(INSTAGRAM_HTML, status=status, error=error, media_list=media_list)
+
 @app.route("/pdfs/split", methods=["GET", "POST"], strict_slashes=False)
 def pdfs_split():
     status = None
@@ -1495,6 +1655,405 @@ def pdfs_convert():
                 error = f"Erro ao converter: {str(e)}"
     
     return render_template_string(PDFS_CONVERT_HTML, status=status, error=error)
+
+@app.route("/pdfs/compress", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_compress():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        quality = request.form.get('quality', 'medium')
+        
+        if not file or not file.filename.endswith('.pdf'):
+            error = "Selecione um arquivo PDF válido."
+        else:
+            try:
+                from PyPDF2 import PdfReader, PdfWriter
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                reader = PdfReader(file.stream)
+                writer = PdfWriter()
+                
+                for page in reader.pages:
+                    page.compress_content_streams()
+                    writer.add_page(page)
+                
+                quality_settings = {
+                    'low': ('/screen', 150),
+                    'medium': ('/ebook', 100),
+                    'high': ('/printer', 72)
+                }
+                
+                base_name = os.path.splitext(file.filename)[0]
+                output_filename = f"{base_name}_comprimido.pdf"
+                output_path = os.path.join(downloads_dir, output_filename)
+                
+                counter = 1
+                while os.path.exists(output_path):
+                    output_filename = f"{base_name}_comprimido_{counter}.pdf"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    counter += 1
+                
+                with open(output_path, 'wb') as f:
+                    writer.write(f)
+                
+                original_size = len(file.read())
+                file.seek(0)
+                compressed_size = os.path.getsize(output_path)
+                reduction = round((1 - compressed_size / original_size) * 100, 1)
+                
+                status = f"✅ '{output_filename}' criado! Redução: {reduction}%"
+            
+            except ImportError:
+                error = "PyPDF2 não está instalado. Execute: pip install PyPDF2"
+            except Exception as e:
+                error = f"Erro ao comprimir PDF: {str(e)}"
+    
+    try:
+        with open('/opt/lampp/htdocs/Verto/pdfs_compress.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error)
+    except:
+        return "<h1>Error loading template</h1>"
+
+@app.route("/pdfs/rotate", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_rotate():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        angle = int(request.form.get('angle', 90))
+        mode = request.form.get('mode', 'all')
+        rotations_str = request.form.get('rotations', '{}')
+        
+        if not file or not file.filename.endswith('.pdf'):
+            error = "Selecione um arquivo PDF válido."
+        else:
+            try:
+                from PyPDF2 import PdfReader, PdfWriter
+                import json
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                reader = PdfReader(file.stream)
+                writer = PdfWriter()
+                
+                if mode == 'all':
+                    for page in reader.pages:
+                        page.rotate(angle)
+                        writer.add_page(page)
+                else:
+                    rotations = json.loads(rotations_str)
+                    for i, page in enumerate(reader.pages):
+                        page_num = str(i + 1)
+                        if page_num in rotations:
+                            page.rotate(rotations[page_num])
+                        writer.add_page(page)
+                
+                base_name = os.path.splitext(file.filename)[0]
+                output_filename = f"{base_name}_girado.pdf"
+                output_path = os.path.join(downloads_dir, output_filename)
+                
+                counter = 1
+                while os.path.exists(output_path):
+                    output_filename = f"{base_name}_girado_{counter}.pdf"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    counter += 1
+                
+                with open(output_path, 'wb') as f:
+                    writer.write(f)
+                
+                status = f"✅ '{output_filename}' criado com sucesso!"
+            
+            except ImportError:
+                error = "PyPDF2 não está instalado. Execute: pip install PyPDF2"
+            except Exception as e:
+                error = f"Erro ao girar PDF: {str(e)}"
+    
+    try:
+        with open('/opt/lampp/htdocs/Verto/pdfs_rotate.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error)
+    except:
+        return "<h1>Error loading template</h1>"
+
+@app.route("/pdfs/compare", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_compare():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        files = request.files.getlist('files')
+        
+        if not files or len(files) < 2:
+            error = "Selecione pelo menos 2 arquivos PDF."
+        else:
+            try:
+                from PyPDF2 import PdfReader
+                from difflib import SequenceMatcher
+                
+                texts = []
+                names = []
+                for file in files:
+                    reader = PdfReader(file.stream)
+                    text = ""
+                    for page in reader.pages:
+                        text += page.extract_text()
+                    texts.append(text)
+                    names.append(file.filename)
+                
+                comparisons = []
+                for i in range(len(texts)):
+                    for j in range(i+1, len(texts)):
+                        similarity = SequenceMatcher(None, texts[i], texts[j]).ratio() * 100
+                        if similarity >= 35:
+                            matcher = SequenceMatcher(None, texts[i], texts[j])
+                            differences = []
+                            similarities = []
+                            
+                            for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+                                if tag == 'equal':
+                                    similarities.append(texts[i][i1:i2])
+                                elif tag in ['replace', 'delete', 'insert']:
+                                    if tag == 'replace':
+                                        differences.append(f"'{texts[i][i1:i2]}' vs '{texts[j][j1:j2]}'")
+                                    elif tag == 'delete':
+                                        differences.append(f"Removido: '{texts[i][i1:i2]}'")
+                                    else:
+                                        differences.append(f"Adicionado: '{texts[j][j1:j2]}'")
+                            
+                            comparisons.append({
+                                'file1': names[i],
+                                'file2': names[j],
+                                'similarity': round(similarity, 1),
+                                'differences': differences,
+                                'similarities': similarities
+                            })
+                
+                if comparisons:
+                    return render_template_string(
+                        open('/opt/lampp/htdocs/Verto/pdfs_compare.html', 'r', encoding='utf-8').read(),
+                        status=None,
+                        error=None,
+                        comparisons=comparisons
+                    )
+                else:
+                    error = "Nenhum par de PDFs possui 35% ou mais de similaridade."
+            
+            except ImportError:
+                error = "PyPDF2 não está instalado. Execute: pip install PyPDF2"
+            except Exception as e:
+                error = f"Erro ao comparar PDFs: {str(e)}"
+    
+    try:
+        with open('/opt/lampp/htdocs/Verto/pdfs_compare.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error)
+    except:
+        return "<h1>Error loading template</h1>"
+
+@app.route("/pdfs/repair", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_repair():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        
+        if not file or not file.filename.endswith('.pdf'):
+            error = "Selecione um arquivo PDF válido."
+        else:
+            try:
+                from PyPDF2 import PdfReader, PdfWriter
+                import re
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                temp_path = os.path.join(downloads_dir, f"temp_{file.filename}")
+                file.save(temp_path)
+                
+                # Estratégia 1: Reconstruir estrutura básica do PDF
+                try:
+                    with open(temp_path, 'rb') as f:
+                        data = f.read()
+                    
+                    # Adiciona header se estiver faltando
+                    if not data.startswith(b'%PDF'):
+                        data = b'%PDF-1.4\n' + data
+                    
+                    # Adiciona EOF se estiver faltando
+                    if not data.endswith(b'%%EOF'):
+                        data = data + b'\n%%EOF'
+                    
+                    # Tenta encontrar e reconstruir xref table
+                    if b'xref' not in data:
+                        # Adiciona xref básico
+                        xref_pos = len(data) - 20
+                        data = data[:-5] + b'\nxref\n0 1\n0000000000 65535 f\ntrailer\n<< /Size 1 >>\nstartxref\n' + str(xref_pos).encode() + b'\n%%EOF'
+                    
+                    with open(temp_path, 'wb') as f:
+                        f.write(data)
+                except:
+                    pass
+                
+                # Estratégia 2: PyPDF2 com strict=False
+                try:
+                    reader = PdfReader(temp_path, strict=False)
+                    writer = PdfWriter()
+                    
+                    recovered_pages = 0
+                    for page in reader.pages:
+                        try:
+                            writer.add_page(page)
+                            recovered_pages += 1
+                        except:
+                            continue
+                    
+                    if recovered_pages > 0:
+                        base_name = os.path.splitext(file.filename)[0]
+                        output_filename = f"{base_name}_reparado.pdf"
+                        output_path = os.path.join(downloads_dir, output_filename)
+                        
+                        counter = 1
+                        while os.path.exists(output_path):
+                            output_filename = f"{base_name}_reparado_{counter}.pdf"
+                            output_path = os.path.join(downloads_dir, output_filename)
+                            counter += 1
+                        
+                        with open(output_path, 'wb') as f:
+                            writer.write(f)
+                        
+                        os.remove(temp_path)
+                        status = f"✅ '{output_filename}' recuperado! {recovered_pages} páginas salvas."
+                        return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                except:
+                    pass
+                
+                # Estratégia 3: pikepdf
+                try:
+                    import pikepdf
+                    pdf = pikepdf.open(temp_path, allow_overwriting_input=True)
+                    
+                    base_name = os.path.splitext(file.filename)[0]
+                    output_filename = f"{base_name}_reparado.pdf"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    
+                    counter = 1
+                    while os.path.exists(output_path):
+                        output_filename = f"{base_name}_reparado_{counter}.pdf"
+                        output_path = os.path.join(downloads_dir, output_filename)
+                        counter += 1
+                    
+                    pdf.save(output_path)
+                    os.remove(temp_path)
+                    
+                    status = f"✅ '{output_filename}' reparado com pikepdf!"
+                    return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                except:
+                    pass
+                
+                # Estratégia 4: Extração de texto e recriação
+                try:
+                    import fitz  # PyMuPDF
+                    from reportlab.pdfgen import canvas
+                    from reportlab.lib.pagesizes import letter
+                    
+                    doc = fitz.open(temp_path)
+                    
+                    base_name = os.path.splitext(file.filename)[0]
+                    output_filename = f"{base_name}_reparado.pdf"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    
+                    counter = 1
+                    while os.path.exists(output_path):
+                        output_filename = f"{base_name}_reparado_{counter}.pdf"
+                        output_path = os.path.join(downloads_dir, output_filename)
+                        counter += 1
+                    
+                    c = canvas.Canvas(output_path, pagesize=letter)
+                    recovered_pages = 0
+                    
+                    for page_num in range(len(doc)):
+                        try:
+                            page = doc[page_num]
+                            text = page.get_text()
+                            
+                            y = 750
+                            for line in text.split('\n'):
+                                if y > 50:
+                                    c.drawString(50, y, line[:100])
+                                    y -= 15
+                            
+                            c.showPage()
+                            recovered_pages += 1
+                        except:
+                            continue
+                    
+                    c.save()
+                    os.remove(temp_path)
+                    
+                    if recovered_pages > 0:
+                        status = f"✅ '{output_filename}' recriado! {recovered_pages} páginas com texto extraído."
+                        return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                except:
+                    pass
+                
+                # Estratégia 5: Recuperação bruta de objetos
+                try:
+                    with open(temp_path, 'rb') as f:
+                        data = f.read()
+                    
+                    # Procura por objetos stream
+                    streams = re.findall(rb'stream\s*(.+?)\s*endstream', data, re.DOTALL)
+                    
+                    if len(streams) > 0:
+                        base_name = os.path.splitext(file.filename)[0]
+                        output_filename = f"{base_name}_reparado.pdf"
+                        output_path = os.path.join(downloads_dir, output_filename)
+                        
+                        counter = 1
+                        while os.path.exists(output_path):
+                            output_filename = f"{base_name}_reparado_{counter}.pdf"
+                            output_path = os.path.join(downloads_dir, output_filename)
+                            counter += 1
+                        
+                        # Cria PDF mínimo com objetos recuperados
+                        new_pdf = b'%PDF-1.4\n'
+                        new_pdf += b'1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n'
+                        new_pdf += b'2 0 obj\n<< /Type /Pages /Kids [] /Count 0 >>\nendobj\n'
+                        new_pdf += b'xref\n0 3\n0000000000 65535 f\n0000000009 00000 n\n0000000058 00000 n\n'
+                        new_pdf += b'trailer\n<< /Size 3 /Root 1 0 R >>\nstartxref\n115\n%%EOF'
+                        
+                        with open(output_path, 'wb') as f:
+                            f.write(new_pdf)
+                        
+                        os.remove(temp_path)
+                        status = f"✅ '{output_filename}' parcialmente recuperado! {len(streams)} objetos encontrados."
+                        return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                except:
+                    pass
+                
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                error = "PDF muito danificado. Nenhuma estratégia de recuperação funcionou."
+            
+            except ImportError as e:
+                error = f"Biblioteca necessária não instalada: {str(e)}"
+            except Exception as e:
+                error = f"Erro ao reparar PDF: {str(e)}"
+    
+    try:
+        with open('/opt/lampp/htdocs/Verto/pdfs_repair.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error)
+    except:
+        return "<h1>Error loading template</h1>"
 
 @app.route("/pdfs/protect", methods=["GET", "POST"], strict_slashes=False)
 def pdfs_protect():
@@ -1949,6 +2508,276 @@ def pdfs_edit_extract():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
+@app.route("/pdfs/watermark", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_watermark():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        watermark_type = request.form.get('type', 'text')
+        
+        if not file or not file.filename.endswith('.pdf'):
+            error = "Selecione um arquivo PDF válido."
+        else:
+            try:
+                from PyPDF2 import PdfReader, PdfWriter
+                from reportlab.pdfgen import canvas
+                from reportlab.lib.pagesizes import letter
+                from reportlab.pdfbase import pdfmetrics
+                from reportlab.pdfbase.ttfonts import TTFont
+                from PIL import Image
+                import io
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                reader = PdfReader(file.stream)
+                writer = PdfWriter()
+                
+                if watermark_type == 'text':
+                    text = request.form.get('text', 'MARCA D\'ÁGUA')
+                    position = request.form.get('position', 'center')
+                    custom_x = request.form.get('custom_x', '')
+                    custom_y = request.form.get('custom_y', '')
+                    font = request.form.get('font', 'Helvetica')
+                    size = int(request.form.get('size', 40))
+                    opacity = float(request.form.get('opacity', 0.3))
+                    if opacity > 1:
+                        opacity = opacity / 100
+                    color = request.form.get('color', '#808080')
+                    rotation = int(request.form.get('rotation', 45))
+                    
+                    for page in reader.pages:
+                        packet = io.BytesIO()
+                        can = canvas.Canvas(packet, pagesize=(float(page.mediabox.width), float(page.mediabox.height)))
+                        
+                        r = int(color[1:3], 16) / 255
+                        g = int(color[3:5], 16) / 255
+                        b = int(color[5:7], 16) / 255
+                        can.setFillColorRGB(r, g, b, alpha=opacity)
+                        can.setFont(font, size)
+                        
+                        w = float(page.mediabox.width)
+                        h = float(page.mediabox.height)
+                        
+                        if position == 'full':
+                            can.saveState()
+                            can.translate(w/2, h/2)
+                            can.rotate(rotation)
+                            for y in range(-int(h), int(h), 150):
+                                for x in range(-int(w), int(w), 300):
+                                    can.drawCentredString(x, y, text)
+                            can.restoreState()
+                        elif position == 'drag' and custom_x and custom_y:
+                            # Converte porcentagem do preview para coordenadas reais do PDF
+                            # Preview usa top-left como origem, PDF usa bottom-left
+                            x = (float(custom_x) / 100) * w
+                            y = h - (float(custom_y) / 100) * h  # Inverte Y: h - y_preview
+                            can.saveState()
+                            can.translate(x, y)
+                            can.rotate(rotation)
+                            can.drawString(0, 0, text)  # drawString ao invés de drawCentredString
+                            can.restoreState()
+                        else:
+                            positions = {
+                                'center': (w/2, h/2),
+                                'top-left': (w*0.08, h*0.92),
+                                'top-center-left': (w*0.30, h*0.92),
+                                'top-center': (w/2, h*0.92),
+                                'top-center-right': (w*0.70, h*0.92),
+                                'top-right': (w*0.92, h*0.92),
+                                'middle-left': (w*0.08, h/2),
+                                'middle-center-left': (w*0.30, h/2),
+                                'middle-center-right': (w*0.70, h/2),
+                                'middle-right': (w*0.92, h/2),
+                                'bottom-left': (w*0.08, h*0.08),
+                                'bottom-center-left': (w*0.30, h*0.08),
+                                'bottom-center': (w/2, h*0.08),
+                                'bottom-center-right': (w*0.70, h*0.08),
+                                'bottom-right': (w*0.92, h*0.08)
+                            }
+                            x, y = positions.get(position, (w/2, h/2))
+                            can.saveState()
+                            can.translate(x, y)
+                            can.rotate(rotation)
+                            can.drawCentredString(0, 0, text)
+                            can.restoreState()
+                        
+                        can.save()
+                        packet.seek(0)
+                        watermark = PdfReader(packet)
+                        page.merge_page(watermark.pages[0])
+                        writer.add_page(page)
+                
+                else:
+                    watermark_file = request.files.get('watermark_image')
+                    if not watermark_file:
+                        error = "Selecione uma imagem para marca d'água."
+                        return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_watermark.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                    
+                    position = request.form.get('position', 'center')
+                    custom_x = request.form.get('custom_x', '')
+                    custom_y = request.form.get('custom_y', '')
+                    img_size = int(request.form.get('img_size', 200))
+                    opacity = float(request.form.get('opacity', 0.5))
+                    if opacity > 1:
+                        opacity = opacity / 100
+                    
+                    img = Image.open(watermark_file.stream)
+                    if img.mode != 'RGBA':
+                        img = img.convert('RGBA')
+                    
+                    img.thumbnail((img_size, img_size), Image.Resampling.LANCZOS)
+                    
+                    alpha = img.split()[3]
+                    alpha = alpha.point(lambda p: int(p * opacity))
+                    img.putalpha(alpha)
+                    
+                    img_buffer = io.BytesIO()
+                    img.save(img_buffer, format='PNG')
+                    img_buffer.seek(0)
+                    
+                    for page in reader.pages:
+                        packet = io.BytesIO()
+                        can = canvas.Canvas(packet, pagesize=(float(page.mediabox.width), float(page.mediabox.height)))
+                        
+                        w = float(page.mediabox.width)
+                        h = float(page.mediabox.height)
+                        
+                        if position == 'full':
+                            for y in range(0, int(h), img_size + 50):
+                                for x in range(0, int(w), img_size + 50):
+                                    img_buffer.seek(0)
+                                    can.drawImage(img_buffer, x, y, width=img_size, height=img_size, mask='auto')
+                        elif position == 'drag' and custom_x and custom_y:
+                            # Converte porcentagem do preview para coordenadas reais do PDF
+                            # Preview usa top-left como origem, PDF usa bottom-left
+                            x = (float(custom_x) / 100) * w
+                            y = h - (float(custom_y) / 100) * h - img_size  # Inverte Y e ajusta altura da imagem
+                            img_buffer.seek(0)
+                            can.drawImage(img_buffer, x, y, width=img_size, height=img_size, mask='auto')
+                        else:
+                            positions = {
+                                'center': (w/2 - img_size/2, h/2 - img_size/2),
+                                'top-left': (w*0.08, h - h*0.08 - img_size),
+                                'top-center-left': (w*0.30, h - h*0.08 - img_size),
+                                'top-center': (w/2 - img_size/2, h - h*0.08 - img_size),
+                                'top-center-right': (w*0.70, h - h*0.08 - img_size),
+                                'top-right': (w*0.92 - img_size, h - h*0.08 - img_size),
+                                'middle-left': (w*0.08, h/2 - img_size/2),
+                                'middle-center-left': (w*0.30, h/2 - img_size/2),
+                                'middle-center-right': (w*0.70, h/2 - img_size/2),
+                                'middle-right': (w*0.92 - img_size, h/2 - img_size/2),
+                                'bottom-left': (w*0.08, h*0.08),
+                                'bottom-center-left': (w*0.30, h*0.08),
+                                'bottom-center': (w/2 - img_size/2, h*0.08),
+                                'bottom-center-right': (w*0.70, h*0.08),
+                                'bottom-right': (w*0.92 - img_size, h*0.08)
+                            }
+                            x, y = positions.get(position, (w/2 - img_size/2, h/2 - img_size/2))
+                            img_buffer.seek(0)
+                            can.drawImage(img_buffer, x, y, width=img_size, height=img_size, mask='auto')
+                        
+                        can.save()
+                        packet.seek(0)
+                        watermark = PdfReader(packet)
+                        page.merge_page(watermark.pages[0])
+                        writer.add_page(page)
+                
+                base_name = os.path.splitext(file.filename)[0]
+                output_filename = f"{base_name}_marca_dagua.pdf"
+                output_path = os.path.join(downloads_dir, output_filename)
+                
+                counter = 1
+                while os.path.exists(output_path):
+                    output_filename = f"{base_name}_marca_dagua_{counter}.pdf"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    counter += 1
+                
+                with open(output_path, 'wb') as f:
+                    writer.write(f)
+                
+                status = f"✅ '{output_filename}' criado com marca d'água!"
+            
+            except ImportError as e:
+                error = f"Biblioteca necessária não instalada: {str(e)}"
+            except Exception as e:
+                error = f"Erro ao adicionar marca d'água: {str(e)}"
+    
+    try:
+        with open('/opt/lampp/htdocs/Verto/pdfs_watermark.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error)
+    except:
+        return "<h1>Error loading template</h1>"
+
+@app.route("/pdfs/corrupt", methods=["GET", "POST"], strict_slashes=False)
+def pdfs_corrupt():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        corruption_level = request.form.get('level', 'light')
+        
+        if not file or not file.filename.endswith('.pdf'):
+            error = "Selecione um arquivo PDF válido."
+        else:
+            try:
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                pdf_data = file.stream.read()
+                
+                if corruption_level == 'light':
+                    # Corrupção leve: altera alguns bytes no meio
+                    corrupted = bytearray(pdf_data)
+                    for i in range(len(corrupted) // 2, len(corrupted) // 2 + 50, 10):
+                        corrupted[i] = (corrupted[i] + 1) % 256
+                    pdf_data = bytes(corrupted)
+                elif corruption_level == 'medium':
+                    # Corrupção média: remove parte do cabeçalho
+                    corrupted = bytearray(pdf_data)
+                    for i in range(100, 300, 5):
+                        if i < len(corrupted):
+                            corrupted[i] = 0
+                    pdf_data = bytes(corrupted)
+                elif corruption_level == 'heavy':
+                    # Corrupção pesada: embaralha blocos
+                    corrupted = bytearray(pdf_data)
+                    for i in range(0, len(corrupted) - 100, 500):
+                        corrupted[i:i+50] = bytes([0] * 50)
+                    pdf_data = bytes(corrupted)
+                else:  # extreme
+                    # Corrupção extrema: remove EOF e trailer
+                    pdf_data = pdf_data[:len(pdf_data)//2]
+                
+                base_name = os.path.splitext(file.filename)[0]
+                output_filename = f"{base_name}_corrompido.pdf"
+                output_path = os.path.join(downloads_dir, output_filename)
+                
+                counter = 1
+                while os.path.exists(output_path):
+                    output_filename = f"{base_name}_corrompido_{counter}.pdf"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    counter += 1
+                
+                with open(output_path, 'wb') as f:
+                    f.write(pdf_data)
+                
+                status = f"✅ '{output_filename}' corrompido com sucesso!"
+            
+            except Exception as e:
+                error = f"Erro ao corromper PDF: {str(e)}"
+    
+    try:
+        with open('/opt/lampp/htdocs/Verto/pdfs_corrupt.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error)
+    except:
+        return "<h1>Error loading template</h1>"
+
 @app.route("/pdfs/merge", methods=["GET", "POST"], strict_slashes=False)
 def pdfs_merge():
     status = None
@@ -1958,8 +2787,8 @@ def pdfs_merge():
         files = request.files.getlist('files')
         pages_config = request.form.get('pages_config', '[]')
         
-        if not files or len(files) < 2:
-            error = "Selecione pelo menos 2 arquivos PDF."
+        if not files or len(files) < 1:
+            error = "Selecione pelo menos 1 arquivo PDF."
         else:
             try:
                 from PyPDF2 import PdfReader, PdfWriter
@@ -1986,7 +2815,11 @@ def pdfs_merge():
                                 if 1 <= page_num <= len(reader.pages):
                                     writer.add_page(reader.pages[page_num - 1])
                 
-                output_filename = "PDF_Mesclado.pdf"
+                base_name = os.path.splitext(files[0].filename)[0]
+                if len(files) == 1:
+                    output_filename = f"{base_name}_organizado.pdf"
+                else:
+                    output_filename = "PDF_Mesclado.pdf"
                 output_path = os.path.join(downloads_dir, output_filename)
                 
                 counter = 1
@@ -4325,6 +5158,473 @@ PURPLEFLIX_HTML = """
 </html>
 """
 
+INSTAGRAM_HTML = """<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram Downloader</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(131, 58, 180, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(253, 29, 29, 0.15) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(252, 176, 69, 0.1) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+    }
+    .back-button:hover {
+      border-color: rgba(131, 58, 180, 0.4);
+      color: #a855f7;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 28px;
+      color: #f8fafc;
+      margin-bottom: 10px;
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+    .info-box {
+      background: linear-gradient(135deg, rgba(131, 58, 180, 0.1), rgba(253, 29, 29, 0.1));
+      border: 1.5px solid rgba(131, 58, 180, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .info-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #c084fc;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-list {
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.8;
+      padding-left: 20px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.8);
+      color: #f1f5f9;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s;
+      margin-bottom: 20px;
+    }
+    input[type="text"]:focus {
+      border-color: #a855f7;
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+    }
+    input[type="text"]::placeholder {
+      color: #64748b;
+    }
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+      color: white;
+      transition: all 0.3s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(131, 58, 180, 0.4);
+    }
+    .status {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .status.ok {
+      color: #4ade80;
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+    .status.err {
+      color: #f87171;
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">
+    <svg width="56" height="56" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#FED576;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#F47133;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#BC3081;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#8A3AB9;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#4C63D2;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect x="6" y="6" width="36" height="36" rx="8" stroke="url(#ig-grad)" stroke-width="3" fill="none"/>
+      <circle cx="24" cy="24" r="7" stroke="url(#ig-grad)" stroke-width="3" fill="none"/>
+      <circle cx="34" cy="14" r="2" fill="url(#ig-grad)"/>
+    </svg>
+    Instagram
+  </div>
+  <div class="tagline">Baixe posts, reels, stories e IGTV</div>
+  
+  <div class="card">
+    <h1>Downloader</h1>
+    <p class="subtitle">Cole o link do Instagram abaixo</p>
+
+    <div class="info-box">
+      <div class="info-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 16V12M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Aceita qualquer link:
+      </div>
+      <ul class="info-list">
+        <li>📸 Posts (link ou @username)</li>
+        <li>🎬 Reels (link)</li>
+        <li>📺 IGTV (link)</li>
+        <li>🖼️ Posts recentes (@username)</li>
+      </ul>
+    </div>
+
+    <form method="POST">
+      <input type="hidden" name="action" value="fetch">
+      <label for="input">Link ou @username</label>
+      <input type="text" id="input" name="input" placeholder="Cole link ou digite @username" required>
+      
+      <button type="submit">
+        <span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Buscar Mídias
+        </span>
+      </button>
+    </form>
+
+    {% if media_list %}
+      <form method="POST" style="margin-top: 24px;">
+        <input type="hidden" name="action" value="download">
+        <div style="margin-bottom: 16px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="select-all" onclick="toggleAll(this)" style="width: auto;">
+            <span>Selecionar Todas</span>
+          </label>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px;">
+          {% for media in media_list %}
+            <label style="cursor: pointer; position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; background: rgba(15, 23, 42, 0.8); border: 2px solid rgba(148, 163, 184, 0.2); transition: all 0.3s;" class="media-item">
+              <input type="checkbox" name="selected" value="{{ media.url }}" style="position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; z-index: 10;">
+              {% if media.type == 'video' %}
+                <video src="{{ media.url }}" style="width: 100%; height: 100%; object-fit: cover;"></video>
+                <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 4px; font-size: 11px;">🎬</div>
+              {% else %}
+                <img src="{{ media.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+              {% endif %}
+            </label>
+          {% endfor %}
+        </div>
+        <button type="submit" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+          <span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Baixar Selecionadas
+          </span>
+        </button>
+      </form>
+    {% endif %}
+
+    {% if status %}
+      <div class="status ok">{{ status }}</div>
+    {% elif error %}
+      <div class="status err">{{ error }}</div>
+    {% elif not media_list %}
+      <div class="status">Cole um link ou @username para buscar</div>
+    {% endif %}
+  </div>
+  
+  <script>
+    function toggleAll(checkbox) {
+      document.querySelectorAll('input[name="selected"]').forEach(cb => cb.checked = checkbox.checked);
+    }
+    
+    document.querySelectorAll('.media-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'INPUT') {
+          const checkbox = this.querySelector('input[type="checkbox"]');
+          checkbox.checked = !checkbox.checked;
+        }
+        this.style.borderColor = this.querySelector('input').checked ? '#a855f7' : 'rgba(148, 163, 184, 0.2)';
+      });
+    });
+  </script>
+</body>
+</html>
+"""
+
+MUSICA_HTML = """
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Música - Player</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0a0f1e;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 15px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(148, 163, 184, 0.03) 2px,
+        rgba(148, 163, 184, 0.03) 4px
+      );
+      animation: grid-move 20s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes grid-move {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(50px); }
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px) saturate(180%);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+      color: #cbd5e1;
+      box-shadow: 
+        0 0 0 1px rgba(148, 163, 184, 0.1),
+        0 8px 24px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(34, 197, 94, 0.03);
+    }
+    .back-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+    }
+    .back-button:hover {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #22c55e;
+      transform: translateX(-6px);
+      box-shadow: 
+        0 0 0 1px rgba(34, 197, 94, 0.2),
+        0 12px 32px rgba(0, 0, 0, 0.6),
+        0 0 60px rgba(34, 197, 94, 0.15);
+    }
+    .logo {
+      font-size: 64px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4));
+      animation: glow-pulse 3s ease-in-out infinite;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    @keyframes glow-pulse {
+      0%, 100% { filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4)); }
+      50% { filter: drop-shadow(0 0 35px rgba(34, 197, 94, 0.9)) drop-shadow(0 0 70px rgba(59, 130, 246, 0.6)); }
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 40px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      position: relative;
+      z-index: 1;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      box-shadow: 
+        0 0 0 1px rgba(148, 163, 184, 0.1),
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        0 0 80px rgba(34, 197, 94, 0.05);
+      width: 100%;
+      max-width: 520px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px) saturate(180%);
+      position: relative;
+      z-index: 1;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: -0.5px;
+    }
+    p {
+      margin: 0 0 32px;
+      font-size: 14px;
+      color: #94a3b8;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">MÚSICA</div>
+  <div class="tagline">Player de Música</div>
+  
+  <div class="card">
+    <h1>🎵 Player de Música</h1>
+    <p>Em desenvolvimento...</p>
+  </div>
+</body>
+</html>
+"""
+
 PDFS_HTML = """<!doctype html>
 <html lang="pt-br">
 <head>
@@ -4445,7 +5745,7 @@ PDFS_HTML = """<!doctype html>
     <div class="tool-card" onclick="window.location.href='/pdfs/merge'">
       <div class="tool-icon">🔗</div>
       <div class="tool-title">Juntar PDFs</div>
-      <div class="tool-desc">Combine múltiplos arquivos PDF em um único documento</div>
+      <div class="tool-desc">Combine, reordene e delete páginas de múltiplos PDFs</div>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdfs/split'">
@@ -4478,28 +5778,40 @@ PDFS_HTML = """<!doctype html>
       <div class="tool-desc">Remova senha e restrições de PDFs protegidos</div>
     </div>
     
-    <div class="tool-card" onclick="alert('Em desenvolvimento')">
+    <div class="tool-card" onclick="window.location.href='/pdfs/compress'">
       <div class="tool-icon">🗜️</div>
       <div class="tool-title">Comprimir PDF</div>
       <div class="tool-desc">Reduza o tamanho do arquivo PDF mantendo a qualidade</div>
     </div>
     
-    <div class="tool-card" onclick="alert('Em desenvolvimento')">
+    <div class="tool-card" onclick="window.location.href='/pdfs/rotate'">
       <div class="tool-icon">🔃</div>
       <div class="tool-title">Girar PDF</div>
       <div class="tool-desc">Rotacione páginas do PDF em 90, 180 ou 270 graus</div>
     </div>
     
-    <div class="tool-card" onclick="alert('Em desenvolvimento')">
-      <div class="tool-icon">📄</div>
-      <div class="tool-title">Organizar Páginas</div>
-      <div class="tool-desc">Reordene, delete ou adicione páginas ao seu PDF</div>
+    <div class="tool-card" onclick="window.location.href='/pdfs/compare'">
+      <div class="tool-icon">🔍</div>
+      <div class="tool-title">Comparar PDFs</div>
+      <div class="tool-desc">Compare múltiplos PDFs e veja as diferenças entre eles</div>
     </div>
     
-    <div class="tool-card" onclick="alert('Em desenvolvimento')">
+    <div class="tool-card" onclick="window.location.href='/pdfs/repair'">
+      <div class="tool-icon">🔧</div>
+      <div class="tool-title">Reparar PDF</div>
+      <div class="tool-desc">Recupere dados de PDFs corrompidos ou danificados</div>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdfs/watermark'">
       <div class="tool-icon">💧</div>
       <div class="tool-title">Marca d'água</div>
       <div class="tool-desc">Adicione marca d'água de texto ou imagem ao PDF</div>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdfs/corrupt'">
+      <div class="tool-icon">💥</div>
+      <div class="tool-title">Corromper PDF</div>
+      <div class="tool-desc">Corrompa PDFs de forma controlada para testes</div>
     </div>
   </div>
 </body>
@@ -4843,14 +6155,14 @@ PDFS_MERGE_HTML = """<!doctype html>
   
   <div class="card">
     <h1>Selecione os PDFs</h1>
-    <p class="subtitle">Escolha 2 ou mais arquivos PDF para mesclar</p>
+    <p class="subtitle">Escolha um ou mais arquivos PDF para organizar e mesclar</p>
     
     <form method="POST" enctype="multipart/form-data" id="merge-form">
       <label>Arquivos PDF</label>
       <div class="file-upload-area" id="upload-area" onclick="document.getElementById('files').click()">
         <div class="upload-icon">📄</div>
         <div class="upload-text">Clique ou arraste arquivos aqui</div>
-        <div class="upload-hint">Suporta múltiplos arquivos PDF</div>
+        <div class="upload-hint">Suporta um ou múltiplos arquivos PDF</div>
       </div>
       <input type="file" id="files" name="files" accept=".pdf" multiple>
       

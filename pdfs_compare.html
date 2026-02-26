@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparar PDFs</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+    }
+    .back-button:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 28px;
+      color: #f8fafc;
+      margin-bottom: 10px;
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-upload-area {
+      width: 100%;
+      padding: 40px;
+      border-radius: 12px;
+      border: 2px dashed rgba(239, 68, 68, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 24px;
+    }
+    .file-upload-area:hover {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(15, 23, 42, 0.8);
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .upload-text {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .upload-hint {
+      color: #64748b;
+      font-size: 12px;
+    }
+    .files-list {
+      display: none;
+      margin-top: 16px;
+    }
+    .files-list.show {
+      display: block;
+    }
+    .file-item {
+      padding: 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .file-icon {
+      font-size: 20px;
+    }
+    .file-name {
+      flex: 1;
+      font-size: 13px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+    .file-remove {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    .file-remove:hover {
+      background: rgba(239, 68, 68, 0.3);
+      transform: scale(1.1);
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+    .results {
+      margin-top: 24px;
+      display: none;
+    }
+    .results.show {
+      display: block;
+    }
+    .comparison-item {
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    .comparison-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .comparison-files {
+      font-size: 13px;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    .similarity-badge {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .similarity-badge.high {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .similarity-badge.medium {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    .similarity-badge.low {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .differences {
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+    .diff-section {
+      margin-bottom: 12px;
+    }
+    .diff-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .diff-item {
+      padding: 8px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    .diff-item.similar {
+      border-left: 3px solid #4ade80;
+      color: #94a3b8;
+    }
+    .diff-item.different {
+      border-left: 3px solid #ef4444;
+      color: #cbd5e1;
+    }
+    .diff-highlight {
+      background: rgba(239, 68, 68, 0.2);
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #ef4444;
+      font-weight: 600;
+    }
+    .status {
+      margin-top: 16px;
+      font-size: 13px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .status.ok {
+      background: rgba(34, 197, 94, 0.1);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .status.err {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/pdfs'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">🔍 COMPARAR PDFs</div>
+  <div class="tagline">Compare múltiplos PDFs e veja as diferenças</div>
+  
+  <div class="card">
+    <h1>Selecione os PDFs</h1>
+    <p class="subtitle">Envie 2 ou mais arquivos para comparar (mínimo 35% de similaridade)</p>
+    
+    <form method="POST" enctype="multipart/form-data" id="compare-form">
+      <label>Arquivos PDF</label>
+      <div class="file-upload-area" id="upload-area" onclick="document.getElementById('files').click()">
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">Clique ou arraste arquivos aqui</div>
+        <div class="upload-hint">Suporta múltiplos arquivos PDF</div>
+      </div>
+      <input type="file" id="files" name="files" accept=".pdf" multiple required>
+      
+      <div class="files-list" id="files-list"></div>
+      
+      <button type="submit">🔍 Comparar PDFs</button>
+    </form>
+    
+    <div class="results" id="results">
+      {% if comparisons %}
+        {% for comp in comparisons %}
+        <div class="comparison-item">
+          <div class="comparison-header">
+            <div class="comparison-files">📄 {{ comp.file1 }} ↔️ {{ comp.file2 }}</div>
+            <div class="similarity-badge {% if comp.similarity >= 70 %}high{% elif comp.similarity >= 50 %}medium{% else %}low{% endif %}">
+              {{ comp.similarity }}% Similar
+            </div>
+          </div>
+          
+          <div class="differences">
+            {% if comp.similarities %}
+            <div class="diff-section">
+              <div class="diff-title">✅ Trechos Similares:</div>
+              {% for sim in comp.similarities %}
+              <div class="diff-item similar">{{ sim }}...</div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if comp.differences %}
+            <div class="diff-section">
+              <div class="diff-title">⚠️ Diferenças Encontradas:</div>
+              {% for diff in comp.differences %}
+              <div class="diff-item different">{{ diff }}</div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    
+    {% if status %}
+      <div class="status ok">{{ status }}</div>
+    {% elif error %}
+      <div class="status err">{{ error }}</div>
+    {% endif %}
+  </div>
+  
+  <script>
+    const fileInput = document.getElementById('files');
+    const uploadArea = document.getElementById('upload-area');
+    const filesList = document.getElementById('files-list');
+    const results = document.getElementById('results');
+    let selectedFiles = [];
+    
+    // Mostrar resultados se existirem
+    {% if comparisons %}
+    results.classList.add('show');
+    {% endif %}
+    
+    fileInput.addEventListener('change', (e) => {
+      const newFiles = Array.from(e.target.files);
+      newFiles.forEach(file => {
+        if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
+          selectedFiles.push(file);
+        }
+      });
+      const dt = new DataTransfer();
+      selectedFiles.forEach(f => dt.items.add(f));
+      fileInput.files = dt.files;
+      renderFilesList();
+    });
+    
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+      const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.pdf'));
+      selectedFiles = files;
+      const dt = new DataTransfer();
+      files.forEach(f => dt.items.add(f));
+      fileInput.files = dt.files;
+      renderFilesList();
+    });
+    
+    function renderFilesList() {
+      if (selectedFiles.length === 0) {
+        filesList.classList.remove('show');
+        return;
+      }
+      
+      filesList.classList.add('show');
+      filesList.innerHTML = selectedFiles.map((file, idx) => `
+        <div class="file-item">
+          <div class="file-icon">📄</div>
+          <div class="file-name">${file.name}</div>
+          <div class="file-remove" onclick="removeFile(${idx})">×</div>
+        </div>
+      `).join('');
+    }
+    
+    function removeFile(idx) {
+      selectedFiles.splice(idx, 1);
+      const dt = new DataTransfer();
+      selectedFiles.forEach(f => dt.items.add(f));
+      fileInput.files = dt.files;
+      renderFilesList();
+    }
+  </script>
+</body>
+</html>
