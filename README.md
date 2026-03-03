@@ -17,6 +17,7 @@ Aplicação web para baixar vídeos do YouTube com seleção de qualidade.
 - ⚙️ **Configurações** - (em desenvolvimento)
 - 📁 **Arquivos** - (em desenvolvimento)
 - 🎵 **Música** - (em desenvolvimento)
+- 📱 **QR Code** - Gerador de QR Code gratuito e permanente
 
 ## ✨ Novidade: Cálculo Automático de Tamanho
 
@@ -78,3 +79,24 @@ Aplicação web para baixar vídeos do YouTube com seleção de qualidade.
 ## 📖 Documentação
 
 Leia `docs/PASSO_A_PASSO.md` para instruções detalhadas.
+
+
+## 🔲 Gerador de QR Code
+
+**Contra-ataque aos geradores "gratuitos" que cobram por QR Codes dinâmicos!**
+
+### Funcionalidades:
+- ✅ **QR Codes Estáticos** - Nunca expiram
+- 🎨 **Customização Total** - Cores, tamanho, bordas
+- 🖼️ **Logo Central** - Adicione sua marca
+- 🔧 **Correção de Erro** - 4 níveis (7% a 30%)
+- 🚫 **Sem Marcas D'água** - 100% limpo
+
+### Tipos Suportados:
+1. **🔗 Links/URLs** - Qualquer endereço web
+2. **📶 Wi-Fi** - Compartilhe sua rede
+3. **👤 vCard** - Cartão de visita digital
+4. **💰 PIX** - Pagamentos instantâneos
+
+### Diferencial:
+Todos os QR Codes gerados são **estáticos e permanentes**. Não há planos mensais, não há expiração, não há rastreamento. Seu QR Code, suas regras!

@@ -95,7 +95,9 @@ def main():
         "reportlab",
         "PyMuPDF",
         "rembg",
-        "numpy"
+        "numpy",
+        "qrcode[pil]>=7.4.2",
+        "segno>=1.6.0"
     ]
     
     for i, package in enumerate(packages, 1):

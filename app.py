@@ -301,6 +301,10 @@ MENU_HTML = """
       <div class="app-icon">🎨</div>
       <div class="app-name">Transparência</div>
     </a>
+    <a href="/qrcode" class="app">
+      <div class="app-icon">🔲</div>
+      <div class="app-name">QR Code</div>
+    </a>
   </div>
   <script>
     function updateTime() {
@@ -3628,7 +3632,7 @@ FILES_HTML = """
         <div class="clear-file" id="clear-file" onclick="clearFile()">×</div>
       </div>
       <div class="file-input-wrapper">
-        <input type="file" id="file" name="file" accept="image/*" required>
+        <input type="file" id="file" name="file" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.tar,.gz,.bz2,.txt,.csv,.json,.xml,.html,.css,.js,.py,.java,.cpp,.c,.h,.php,.rb,.go,.rs,.swift,.kt,.ts,.jsx,.tsx,.vue,.sql,.md,.yaml,.yml,.toml,.ini,.cfg,.conf,.log,.sh,.bat,.ps1,.cmd,.exe,.dll,.so,.dylib,.app,.dmg,.pkg,.deb,.rpm,.apk,.ipa,.iso,.img,.bin,.dat,.db,.sqlite,.mdb,.accdb,.psd,.ai,.eps,.svg,.sketch,.fig,.xd,.indd,.dwg,.dxf,.stl,.obj,.fbx,.blend,.max,.ma,.mb,.3ds,.dae,.gltf,.glb,.usd,.wrl,.x3d,.ply,.off,.iges,.step,.stp,.sat,.sab,.catpart,.prt,.asm,.sldprt,.ifc,.rvt,.rfa,.skp,.3dm,.nef,.cr2,.arw,.dng,.orf,.raf,.rw2,.pef,.sr2,.raw,.heic,.heif,.avif,.webp,.tiff,.tif,.bmp,.ico,.cur,.ani,.pcx,.tga,.dds,.exr,.hdr,.jp2,.j2k,.jpf,.jpx,.jpm,.mj2,.jxr,.wdp,.hdp" required>
       </div>
       
       <input type="hidden" id="format" name="format" value="png">
@@ -6558,5 +6562,239 @@ status.className=`status ${type}`;
 </body>
 </html>
 """
+@app.route("/qrcode", methods=["GET", "POST"], strict_slashes=False)
+def qrcode_generator():
+    status = None
+    error = None
+    qr_preview = None
+    
+    if request.method == "POST":
+        try:
+            import qrcode
+            import base64
+            from io import BytesIO
+            
+            qr_type = request.form.get('type', 'url')
+            
+            # Funções de extração automática
+            import re
+            from urllib.parse import urlparse, parse_qs
+            
+            def extract_youtube_id(url):
+                patterns = [
+                    r'(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)',
+                    r'youtube\.com\/embed\/([\w-]+)',
+                    r'youtube\.com\/v\/([\w-]+)',
+                    r'youtube\.com\/shorts\/([\w-]+)',
+                    r'youtube\.com\/channel\/([\w-]+)',
+                    r'youtube\.com\/@([\w-]+)'
+                ]
+                for pattern in patterns:
+                    match = re.search(pattern, url)
+                    if match:
+                        return match.group(1)
+                return url
+            
+            def extract_instagram_user(url):
+                match = re.search(r'instagram\.com\/([\w.]+)', url)
+                return match.group(1) if match else url.replace('@', '')
+            
+            def extract_tiktok_user(url):
+                match = re.search(r'tiktok\.com\/@([\w.]+)', url)
+                return match.group(1) if match else url.replace('@', '')
+            
+            def extract_twitter_user(url):
+                match = re.search(r'(?:twitter|x)\.com\/([\w]+)', url)
+                return match.group(1) if match else url.replace('@', '')
+            
+            def extract_spotify_uri(url):
+                if 'spotify.com' in url:
+                    match = re.search(r'spotify\.com\/(track|album|playlist|artist)\/([\w]+)', url)
+                    if match:
+                        return f"spotify:{match.group(1)}:{match.group(2)}"
+                return url
+            
+            def extract_facebook_user(url):
+                match = re.search(r'facebook\.com\/([\w.]+)', url)
+                return match.group(1) if match else url
+            
+            def extract_linkedin_user(url):
+                match = re.search(r'linkedin\.com\/(in|company)\/([\w-]+)', url)
+                if match:
+                    return (match.group(2), match.group(1))
+                return (url, 'in')
+            
+            # Gerar dados baseado no tipo
+            if qr_type == 'url':
+                data = request.form.get('url', '')
+            elif qr_type == 'whatsapp':
+                number = request.form.get('whatsapp_number', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+                message = request.form.get('whatsapp_message', '')
+                data = f"https://wa.me/{number}?text={message}" if message else f"https://wa.me/{number}"
+            elif qr_type == 'instagram':
+                user_input = request.form.get('instagram_user', '')
+                user = extract_instagram_user(user_input)
+                data = f"https://instagram.com/{user}"
+            elif qr_type == 'facebook':
+                user_input = request.form.get('facebook_user', '')
+                user = extract_facebook_user(user_input)
+                data = f"https://facebook.com/{user}"
+            elif qr_type == 'twitter':
+                user_input = request.form.get('twitter_user', '')
+                user = extract_twitter_user(user_input)
+                data = f"https://twitter.com/{user}"
+            elif qr_type == 'linkedin':
+                user_input = request.form.get('linkedin_user', '')
+                linkedin_type = request.form.get('linkedin_type', 'in')
+                if 'linkedin.com' in user_input:
+                    user, detected_type = extract_linkedin_user(user_input)
+                    linkedin_type = detected_type
+                else:
+                    user = user_input
+                data = f"https://linkedin.com/{linkedin_type}/{user}"
+            elif qr_type == 'youtube':
+                channel_input = request.form.get('youtube_channel', '')
+                youtube_type = request.form.get('youtube_type', 'channel')
+                
+                if 'youtube.com' in channel_input or 'youtu.be' in channel_input:
+                    extracted_id = extract_youtube_id(channel_input)
+                    if 'watch?v=' in channel_input or 'youtu.be' in channel_input or 'shorts' in channel_input:
+                        data = f"https://youtube.com/watch?v={extracted_id}"
+                    elif '@' in channel_input or '@' in extracted_id:
+                        data = f"https://youtube.com/@{extracted_id.replace('@', '')}"
+                    else:
+                        data = f"https://youtube.com/channel/{extracted_id}"
+                else:
+                    if youtube_type == 'channel':
+                        data = f"https://youtube.com/{channel_input}" if channel_input.startswith('@') else f"https://youtube.com/@{channel_input}"
+                    else:
+                        data = f"https://youtube.com/watch?v={channel_input}"
+            elif qr_type == 'tiktok':
+                user_input = request.form.get('tiktok_user', '')
+                user = extract_tiktok_user(user_input)
+                data = f"https://tiktok.com/@{user}"
+            elif qr_type == 'telegram':
+                user = request.form.get('telegram_user', '')
+                telegram_type = request.form.get('telegram_type', 'user')
+                data = f"https://t.me/{user}"
+            elif qr_type == 'spotify':
+                uri_input = request.form.get('spotify_uri', '')
+                uri = extract_spotify_uri(uri_input)
+                data = uri
+            elif qr_type == 'location':
+                lat = request.form.get('location_lat', '')
+                lng = request.form.get('location_lng', '')
+                label = request.form.get('location_label', '')
+                data = f"geo:{lat},{lng}?q={lat},{lng}({label})" if label else f"geo:{lat},{lng}"
+            elif qr_type == 'event':
+                title = request.form.get('event_title', '')
+                location = request.form.get('event_location', '')
+                start = request.form.get('event_start', '').replace('T', '').replace('-', '').replace(':', '')
+                end = request.form.get('event_end', '').replace('T', '').replace('-', '').replace(':', '')
+                description = request.form.get('event_description', '')
+                data = f"BEGIN:VEVENT\nSUMMARY:{title}\nLOCATION:{location}\nDTSTART:{start}\nDTEND:{end}\nDESCRIPTION:{description}\nEND:VEVENT"
+            elif qr_type == 'wifi':
+                ssid = request.form.get('ssid', '')
+                password = request.form.get('password', '')
+                security = request.form.get('security', 'WPA')
+                data = f"WIFI:T:{security};S:{ssid};P:{password};;"
+            elif qr_type == 'vcard':
+                name = request.form.get('name', '')
+                phone = request.form.get('phone', '')
+                email = request.form.get('email', '')
+                org = request.form.get('org', '')
+                vcard_url = request.form.get('vcard_url', '')
+                address = request.form.get('address', '')
+                data = f"BEGIN:VCARD\nVERSION:3.0\nFN:{name}\nTEL:{phone}\nEMAIL:{email}\nORG:{org}\nURL:{vcard_url}\nADR:{address}\nEND:VCARD"
+            elif qr_type == 'pix':
+                pix_key = request.form.get('pix_key', '')
+                pix_name = request.form.get('pix_name', '')
+                pix_city = request.form.get('pix_city', '')
+                pix_value = request.form.get('pix_value', '')
+                data = f"PIX:{pix_key}|{pix_name}|{pix_city}|{pix_value}"
+            elif qr_type == 'email':
+                email_to = request.form.get('email_to', '')
+                email_subject = request.form.get('email_subject', '')
+                email_body = request.form.get('email_body', '')
+                data = f"mailto:{email_to}?subject={email_subject}&body={email_body}"
+            elif qr_type == 'sms':
+                sms_number = request.form.get('sms_number', '')
+                sms_message = request.form.get('sms_message', '')
+                data = f"smsto:{sms_number}:{sms_message}"
+            elif qr_type == 'phone':
+                phone_number = request.form.get('phone_number', '')
+                data = f"tel:{phone_number}"
+            elif qr_type == 'text':
+                data = request.form.get('text', '')
+            else:
+                data = ''
+            
+            if not data:
+                error = "Preencha os campos necessários"
+            else:
+                # Configurações avançadas
+                error_correction = request.form.get('error_correction', 'M')
+                box_size = int(request.form.get('box_size', 10))
+                border = int(request.form.get('border', 4))
+                fg_color = request.form.get('fg_color', '#000000')
+                bg_color = request.form.get('bg_color', '#FFFFFF')
+                
+                # Criar QR Code
+                qr = qrcode.QRCode(
+                    version=1,
+                    error_correction=getattr(qrcode.constants, f'ERROR_CORRECT_{error_correction}'),
+                    box_size=box_size,
+                    border=border,
+                )
+                qr.add_data(data)
+                qr.make(fit=True)
+                
+                img = qr.make_image(fill_color=fg_color, back_color=bg_color)
+                
+                # Adicionar logo se fornecido
+                if 'logo' in request.files and request.files['logo'].filename:
+                    try:
+                        from PIL import Image
+                        logo_file = request.files['logo']
+                        logo = Image.open(logo_file.stream)
+                        
+                        # Redimensionar logo
+                        qr_width, qr_height = img.size
+                        logo_size = min(qr_width, qr_height) // 4
+                        logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
+                        
+                        # Posicionar logo no centro
+                        logo_pos = ((qr_width - logo_size) // 2, (qr_height - logo_size) // 2)
+                        img.paste(logo, logo_pos)
+                    except:
+                        pass
+                
+                # Salvar na pasta Downloads
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                filename = f"qrcode_{qr_type}_{int(time.time())}.png"
+                filepath = os.path.join(downloads_dir, filename)
+                img.save(filepath)
+                
+                # Gerar preview base64
+                buffered = BytesIO()
+                img.save(buffered, format="PNG")
+                qr_preview = base64.b64encode(buffered.getvalue()).decode()
+                
+                status = f"✅ QR Code salvo: {filename}"
+        
+        except ImportError:
+            error = "Biblioteca qrcode não instalada. Execute: pip install qrcode[pil]"
+        except Exception as e:
+            error = f"Erro ao gerar QR Code: {str(e)}"
+    
+    try:
+        with open('templates/qrcode.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error, qr_preview=qr_preview)
+    except:
+        return "<h1>Error loading template</h1>"
+
 if __name__ == "__main__":
     app.run(debug=True)
