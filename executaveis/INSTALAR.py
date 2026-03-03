@@ -34,8 +34,8 @@ def run_command(cmd, shell=True):
 def main():
     os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
-    print_colored("========================================", "blue")
-    print_colored("    YouTube MP4 Downloader - Instalação", "blue")
+    print_colored("\n========================================", "blue")
+    print_colored("    Verto - Instalação Completa", "blue")
     print_colored("========================================", "blue")
     
     system = platform.system()
@@ -83,26 +83,33 @@ def main():
     print_colored("\n[3/5] Atualizando pip...", "yellow")
     run_command(f"{python_venv} -m pip install --upgrade pip --quiet")
     
-    # [4/5] Instalar Flask
-    print_colored("\n[4/5] Instalando Flask...", "yellow")
-    success, _, _ = run_command(f"{pip_cmd} install Flask>=2.3.3 --quiet")
-    if not success:
-        print_colored("[ERRO] Falha ao instalar Flask", "red")
-        input("Pressione Enter para sair...")
-        sys.exit(1)
-    print_colored("Flask instalado com sucesso!", "green")
+    # [4/8] Instalar dependências Python
+    print_colored("\n[4/8] Instalando dependências Python...", "yellow")
     
-    # [5/5] Instalar yt-dlp
-    print_colored("\n[5/5] Instalando yt-dlp...", "yellow")
-    success, _, _ = run_command(f"{pip_cmd} install yt-dlp>=2024.1.0 --quiet")
-    if not success:
-        print_colored("[ERRO] Falha ao instalar yt-dlp", "red")
-        input("Pressione Enter para sair...")
-        sys.exit(1)
-    print_colored("yt-dlp instalado com sucesso!", "green")
+    packages = [
+        "Flask>=2.3.3",
+        "yt-dlp>=2024.1.0",
+        "PyPDF2",
+        "Pillow",
+        "pikepdf",
+        "reportlab",
+        "PyMuPDF",
+        "rembg",
+        "numpy"
+    ]
     
-    # [6/6] Instalar FFmpeg
-    print_colored("\n[6/6] Instalando FFmpeg...", "yellow")
+    for i, package in enumerate(packages, 1):
+        print_colored(f"  [{i}/{len(packages)}] Instalando {package.split('>=')[0]}...", "white")
+        success, _, _ = run_command(f"{pip_cmd} install {package} --quiet")
+        if not success:
+            print_colored(f"  [AVISO] Falha ao instalar {package}", "yellow")
+        else:
+            print_colored(f"  ✓ {package.split('>=')[0]} instalado", "green")
+    
+    print_colored("\nDependências Python instaladas!", "green")
+    
+    # [5/8] Instalar FFmpeg
+    print_colored("\n[5/8] Instalando FFmpeg...", "yellow")
     
     if system == "Windows":
         # Windows - baixar FFmpeg
@@ -159,13 +166,13 @@ def main():
     print_colored("\n========================================", "green")
     print_colored("    INSTALAÇÃO CONCLUÍDA COM SUCESSO!", "green")
     print_colored("========================================", "green")
-    print_colored("\nTodas as dependências instaladas!", "white")
-    print_colored("Agora você pode baixar vídeos em alta qualidade.", "white")
+    print_colored("\nTodas as dependências foram instaladas!", "white")
+    print_colored("Verto está pronto para uso.", "white")
     
     if system == "Windows":
-        print_colored("\nPróximo passo: Execute INICIAR.bat", "white")
+        print_colored("\nPróximo passo: Execute python executaveis\\INICIAR.py", "white")
     else:
-        print_colored("\nPróximo passo: Execute ./INICIAR.sh", "white")
+        print_colored("\nPróximo passo: Execute python3 executaveis/INICIAR.py", "white")
     
     input("\nPressione Enter para sair...")
 

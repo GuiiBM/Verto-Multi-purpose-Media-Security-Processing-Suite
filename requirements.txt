@@ -1,2 +1,9 @@
 Flask>=2.3.3
 yt-dlp>=2024.1.0
+PyPDF2
+Pillow
+pikepdf
+reportlab
+PyMuPDF
+rembg
+numpy
