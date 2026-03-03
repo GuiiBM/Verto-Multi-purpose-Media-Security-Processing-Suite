@@ -9,7 +9,7 @@ try:
 except:
     pass
 
-from pdfs_templates import PDFS_SPLIT_HTML, PDFS_CONVERT_HTML
+from PDFs.pdfs_templates import PDFS_SPLIT_HTML, PDFS_CONVERT_HTML
 
 app = Flask(__name__)
 
@@ -1694,7 +1694,7 @@ def pdfs_compress():
                 error = f"Erro ao comprimir PDF: {str(e)}"
     
     try:
-        with open('/opt/lampp/htdocs/Verto/pdfs_compress.html', 'r', encoding='utf-8') as f:
+        with open('/opt/lampp/htdocs/Verto/PDFs/pdfs_compress.html', 'r', encoding='utf-8') as f:
             template = f.read()
         return render_template_string(template, status=status, error=error)
     except:
@@ -1757,7 +1757,7 @@ def pdfs_rotate():
                 error = f"Erro ao girar PDF: {str(e)}"
     
     try:
-        with open('/opt/lampp/htdocs/Verto/pdfs_rotate.html', 'r', encoding='utf-8') as f:
+        with open('/opt/lampp/htdocs/Verto/PDFs/pdfs_rotate.html', 'r', encoding='utf-8') as f:
             template = f.read()
         return render_template_string(template, status=status, error=error)
     except:
@@ -1818,7 +1818,7 @@ def pdfs_compare():
                 
                 if comparisons:
                     return render_template_string(
-                        open('/opt/lampp/htdocs/Verto/pdfs_compare.html', 'r', encoding='utf-8').read(),
+                        open('/opt/lampp/htdocs/Verto/PDFs/pdfs_compare.html', 'r', encoding='utf-8').read(),
                         status=None,
                         error=None,
                         comparisons=comparisons
@@ -1832,7 +1832,7 @@ def pdfs_compare():
                 error = f"Erro ao comparar PDFs: {str(e)}"
     
     try:
-        with open('/opt/lampp/htdocs/Verto/pdfs_compare.html', 'r', encoding='utf-8') as f:
+        with open('/opt/lampp/htdocs/Verto/PDFs/pdfs_compare.html', 'r', encoding='utf-8') as f:
             template = f.read()
         return render_template_string(template, status=status, error=error)
     except:
@@ -1912,7 +1912,7 @@ def pdfs_repair():
                         
                         os.remove(temp_path)
                         status = f"✅ '{output_filename}' recuperado! {recovered_pages} páginas salvas."
-                        return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                        return render_template_string(open('/opt/lampp/htdocs/Verto/PDFs/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
                 except:
                     pass
                 
@@ -1935,7 +1935,7 @@ def pdfs_repair():
                     os.remove(temp_path)
                     
                     status = f"✅ '{output_filename}' reparado com pikepdf!"
-                    return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                    return render_template_string(open('/opt/lampp/htdocs/Verto/PDFs/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
                 except:
                     pass
                 
@@ -1981,7 +1981,7 @@ def pdfs_repair():
                     
                     if recovered_pages > 0:
                         status = f"✅ '{output_filename}' recriado! {recovered_pages} páginas com texto extraído."
-                        return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                        return render_template_string(open('/opt/lampp/htdocs/Verto/PDFs/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
                 except:
                     pass
                 
@@ -2016,7 +2016,7 @@ def pdfs_repair():
                         
                         os.remove(temp_path)
                         status = f"✅ '{output_filename}' parcialmente recuperado! {len(streams)} objetos encontrados."
-                        return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                        return render_template_string(open('/opt/lampp/htdocs/Verto/PDFs/pdfs_repair.html', 'r', encoding='utf-8').read(), status=status, error=error)
                 except:
                     pass
                 
@@ -2030,7 +2030,7 @@ def pdfs_repair():
                 error = f"Erro ao reparar PDF: {str(e)}"
     
     try:
-        with open('/opt/lampp/htdocs/Verto/pdfs_repair.html', 'r', encoding='utf-8') as f:
+        with open('/opt/lampp/htdocs/Verto/PDFs/pdfs_repair.html', 'r', encoding='utf-8') as f:
             template = f.read()
         return render_template_string(template, status=status, error=error)
     except:
@@ -2088,7 +2088,7 @@ def pdfs_protect():
                 error = f"Erro ao proteger PDF: {str(e)}"
     
     try:
-        with open('/opt/lampp/htdocs/Verto/pdfs_protect.html', 'r', encoding='utf-8') as f:
+        with open('/opt/lampp/htdocs/Verto/PDFs/pdfs_protect.html', 'r', encoding='utf-8') as f:
             template = f.read()
         return render_template_string(template, status=status, error=error)
     except:
@@ -2356,7 +2356,7 @@ def pdfs_unlock():
                     if not unlocked:
                         os.remove(temp_path)
                         error = "Não foi possível desbloquear. Senha muito forte ou criptografia avançada."
-                        return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_unlock.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                        return render_template_string(open('/opt/lampp/htdocs/Verto/PDFs/pdfs_unlock.html', 'r', encoding='utf-8').read(), status=status, error=error)
                 
                 writer = PdfWriter()
                 for page in reader.pages:
@@ -2390,7 +2390,7 @@ def pdfs_unlock():
                     os.remove(temp_path)
     
     try:
-        with open('/opt/lampp/htdocs/Verto/pdfs_unlock.html', 'r', encoding='utf-8') as f:
+        with open('/opt/lampp/htdocs/Verto/PDFs/pdfs_unlock.html', 'r', encoding='utf-8') as f:
             template = f.read()
         return render_template_string(template, status=status, error=error)
     except:
@@ -2463,7 +2463,7 @@ def pdfs_edit():
                 error = f"Erro ao salvar PDF: {str(e)}"
     
     try:
-        with open('/opt/lampp/htdocs/Verto/pdfs_edit.html', 'r', encoding='utf-8') as f:
+        with open('/opt/lampp/htdocs/Verto/PDFs/pdfs_edit.html', 'r', encoding='utf-8') as f:
             template = f.read()
         return render_template_string(template, status=status, error=error)
     except:
@@ -2595,7 +2595,7 @@ def pdfs_watermark():
                     watermark_file = request.files.get('watermark_image')
                     if not watermark_file:
                         error = "Selecione uma imagem para marca d'água."
-                        return render_template_string(open('/opt/lampp/htdocs/Verto/pdfs_watermark.html', 'r', encoding='utf-8').read(), status=status, error=error)
+                        return render_template_string(open('/opt/lampp/htdocs/Verto/PDFs/pdfs_watermark.html', 'r', encoding='utf-8').read(), status=status, error=error)
                     
                     position = request.form.get('position', 'center')
                     custom_x = request.form.get('custom_x', '')
@@ -2687,7 +2687,7 @@ def pdfs_watermark():
                 error = f"Erro ao adicionar marca d'água: {str(e)}"
     
     try:
-        with open('/opt/lampp/htdocs/Verto/pdfs_watermark.html', 'r', encoding='utf-8') as f:
+        with open('/opt/lampp/htdocs/Verto/PDFs/pdfs_watermark.html', 'r', encoding='utf-8') as f:
             template = f.read()
         return render_template_string(template, status=status, error=error)
     except:
@@ -2753,7 +2753,7 @@ def pdfs_corrupt():
                 error = f"Erro ao corromper PDF: {str(e)}"
     
     try:
-        with open('/opt/lampp/htdocs/Verto/pdfs_corrupt.html', 'r', encoding='utf-8') as f:
+        with open('/opt/lampp/htdocs/Verto/PDFs/pdfs_corrupt.html', 'r', encoding='utf-8') as f:
             template = f.read()
         return render_template_string(template, status=status, error=error)
     except:
