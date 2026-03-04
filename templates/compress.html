@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compressor Universal</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0a0f1e;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 15px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(148, 163, 184, 0.03) 2px, rgba(148, 163, 184, 0.03) 4px);
+      animation: grid-move 20s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes grid-move {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(50px); }
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px) saturate(180%);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+      color: #cbd5e1;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .back-button:hover {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #22c55e;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 72px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 18px;
+      text-transform: uppercase;
+      filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4));
+      animation: glow-pulse 3s ease-in-out infinite;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    @keyframes glow-pulse {
+      0%, 100% { filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4)); }
+      50% { filter: drop-shadow(0 0 35px rgba(34, 197, 94, 0.9)) drop-shadow(0 0 70px rgba(59, 130, 246, 0.6)); }
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 48px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      position: relative;
+      z-index: 1;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
+      width: 100%;
+      max-width: 600px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px) saturate(180%);
+      position: relative;
+      z-index: 1;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: -0.5px;
+    }
+    p.subtitle {
+      margin: 0 0 32px;
+      font-size: 14px;
+      color: #94a3b8;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+      letter-spacing: 0.3px;
+    }
+    input[type="file"] {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px dashed rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    input[type="file"]::file-selector-button {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-right: 16px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+    }
+    input[type="file"]:hover {
+      border-color: rgba(34, 197, 94, 0.5);
+      background: rgba(15, 23, 42, 0.8);
+      border-style: solid;
+    }
+    .slider-container {
+      margin: 24px 0;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .slider-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #22c55e;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: rgba(148, 163, 184, 0.2);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    }
+    .quality-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 8px;
+    }
+    .file-info {
+      margin-top: 20px;
+      padding: 16px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      display: none;
+    }
+    .file-info.show {
+      display: block;
+    }
+    .file-info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .file-info-label {
+      color: #94a3b8;
+    }
+    .file-info-value {
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    button {
+      margin-top: 24px;
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      transition: all 0.3s;
+      box-shadow: 0 4px 16px rgba(34, 197, 94, 0.2);
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .status {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+      min-height: 20px;
+    }
+    .status.ok {
+      color: #4ade80;
+    }
+    .status.err {
+      color: #f97373;
+    }
+    @media (max-width: 640px) {
+      body { padding: 30px 10px; padding-top: 100px; }
+      .logo { font-size: 48px; letter-spacing: 12px; }
+      .card { padding: 24px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">COMPRESS</div>
+  <div class="tagline">Compressor Universal de Arquivos • 150+ Formatos</div>
+  
+  <div class="card">
+    <h1>🗜️ Compressor Universal</h1>
+    <p class="subtitle">Comprima qualquer arquivo mantendo controle total sobre a qualidade</p>
+
+    <form method="POST" enctype="multipart/form-data" id="compress-form">
+      <label for="file">Selecione o arquivo</label>
+      <input type="file" id="file" name="file" required>
+      
+      <div class="file-info" id="file-info">
+        <div class="file-info-row">
+          <span class="file-info-label">Tamanho original:</span>
+          <span class="file-info-value" id="original-size">-</span>
+        </div>
+        <div class="file-info-row">
+          <span class="file-info-label">Tamanho estimado:</span>
+          <span class="file-info-value" id="estimated-size">-</span>
+        </div>
+        <div class="file-info-row">
+          <span class="file-info-label">Redução estimada:</span>
+          <span class="file-info-value" id="reduction">-</span>
+        </div>
+      </div>
+      
+      <div class="slider-container">
+        <div class="slider-header">
+          <label for="quality">Nível de Compressão</label>
+          <span class="slider-value" id="quality-value">50%</span>
+        </div>
+        <input type="range" id="quality" name="quality" min="1" max="100" value="50">
+        <div class="quality-labels">
+          <span>Máxima compressão</span>
+          <span>Balanceado</span>
+          <span>Qualidade máxima</span>
+        </div>
+      </div>
+      
+      <button type="submit" id="compress-btn">🗜️ Comprimir Arquivo</button>
+    </form>
+
+    {% if status %}
+      <div class="status ok">{{ status }}</div>
+    {% elif error %}
+      <div class="status err">{{ error }}</div>
+    {% else %}
+      <div class="status">Selecione um arquivo para começar</div>
+    {% endif %}
+  </div>
+  
+  <script>
+    const fileInput = document.getElementById('file');
+    const qualitySlider = document.getElementById('quality');
+    const qualityValue = document.getElementById('quality-value');
+    const fileInfo = document.getElementById('file-info');
+    const originalSizeEl = document.getElementById('original-size');
+    const estimatedSizeEl = document.getElementById('estimated-size');
+    const reductionEl = document.getElementById('reduction');
+    let originalSize = 0;
+    
+    qualitySlider.addEventListener('input', (e) => {
+      const value = e.target.value;
+      qualityValue.textContent = value + '%';
+      updateEstimate();
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        originalSize = file.size;
+        originalSizeEl.textContent = formatBytes(originalSize);
+        fileInfo.classList.add('show');
+        updateEstimate();
+      } else {
+        fileInfo.classList.remove('show');
+      }
+    });
+    
+    function updateEstimate() {
+      if (originalSize === 0) return;
+      
+      const quality = parseInt(qualitySlider.value);
+      const fileName = fileInput.files[0]?.name || '';
+      const ext = fileName.toLowerCase().split('.').pop();
+      
+      let estimatedSize;
+      
+      if (['jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'tif', 'gif'].includes(ext)) {
+        // Imagens: escala fixa
+        let scale;
+        if (quality <= 20) scale = 0.3;
+        else if (quality <= 40) scale = 0.5;
+        else if (quality <= 60) scale = 0.7;
+        else if (quality <= 80) scale = 0.85;
+        else scale = 1.0;
+        
+        const qualityFactor = quality / 100;
+        estimatedSize = Math.round(originalSize * scale * scale * qualityFactor);
+      } else if (['mp4', 'avi', 'mkv', 'mov', 'webm', 'flv', 'wmv', 'm4v', 'mpg', 'mpeg'].includes(ext)) {
+        // Vídeos: resolução fixa
+        let factor;
+        if (quality <= 20) factor = 0.08;  // 360p
+        else if (quality <= 40) factor = 0.15;  // 480p
+        else if (quality <= 60) factor = 0.30;  // 720p
+        else if (quality <= 80) factor = 0.50;  // 1080p
+        else factor = 0.65;  // 1080p alta
+        
+        estimatedSize = Math.round(originalSize * factor);
+      } else if (['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'wma'].includes(ext)) {
+        // Áudio: bitrate
+        const bitrate = Math.max(32, quality * 1.28);
+        estimatedSize = Math.round(originalSize * (bitrate / 320) * 0.5);
+      } else if (ext === 'pdf') {
+        // PDF: compressão moderada
+        estimatedSize = Math.round(originalSize * (0.4 + (quality / 100) * 0.4));
+      } else {
+        // Outros: LZMA
+        estimatedSize = Math.round(originalSize * 0.25);
+      }
+      
+      const reduction = Math.max(0, Math.round((1 - (estimatedSize / originalSize)) * 100));
+      
+      estimatedSizeEl.textContent = formatBytes(estimatedSize);
+      reductionEl.textContent = reduction + '%';
+    }
+    
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+  </script>
+</body>
+</html>

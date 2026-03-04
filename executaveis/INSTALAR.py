@@ -97,7 +97,8 @@ def main():
         "rembg",
         "numpy",
         "qrcode[pil]>=7.4.2",
-        "segno>=1.6.0"
+        "segno>=1.6.0",
+        "moviepy"
     ]
     
     for i, package in enumerate(packages, 1):

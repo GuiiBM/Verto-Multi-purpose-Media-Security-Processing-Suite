@@ -305,6 +305,10 @@ MENU_HTML = """
       <div class="app-icon">🔲</div>
       <div class="app-name">QR Code</div>
     </a>
+    <a href="/compress" class="app">
+      <div class="app-icon">🗜️</div>
+      <div class="app-name">Compressor</div>
+    </a>
   </div>
   <script>
     function updateTime() {
@@ -6793,6 +6797,221 @@ def qrcode_generator():
         with open('templates/qrcode.html', 'r', encoding='utf-8') as f:
             template = f.read()
         return render_template_string(template, status=status, error=error, qr_preview=qr_preview)
+    except:
+        return "<h1>Error loading template</h1>"
+
+@app.route("/compress", methods=["GET", "POST"], strict_slashes=False)
+def compress():
+    status = None
+    error = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        quality = int(request.form.get('quality', 50))
+        
+        if not file or not file.filename:
+            error = "Selecione um arquivo válido."
+        else:
+            try:
+                from PIL import Image
+                import subprocess
+                import lzma
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                original_name = os.path.splitext(file.filename)[0]
+                file_ext = os.path.splitext(file.filename)[1].lower()
+                
+                # Salvar arquivo temporário para verificar tamanho
+                temp_input = os.path.join(downloads_dir, f"temp_{file.filename}")
+                file.save(temp_input)
+                original_size = os.path.getsize(temp_input)
+                
+                output_filename = f"{original_name}_compressed{file_ext}"
+                output_path = os.path.join(downloads_dir, output_filename)
+                
+                counter = 1
+                while os.path.exists(output_path):
+                    output_filename = f"{original_name}_compressed_{counter}{file_ext}"
+                    output_path = os.path.join(downloads_dir, output_filename)
+                    counter += 1
+                
+                compressed = False
+                
+                # Imagens
+                if file_ext in ['.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tiff', '.tif', '.gif']:
+                    img = Image.open(temp_input)
+                    
+                    # Calcular nova dimensão
+                    if quality <= 20:
+                        scale = 0.3
+                    elif quality <= 40:
+                        scale = 0.5
+                    elif quality <= 60:
+                        scale = 0.7
+                    elif quality <= 80:
+                        scale = 0.85
+                    else:
+                        scale = 1.0
+                    
+                    if scale < 1.0:
+                        new_size = (int(img.width * scale), int(img.height * scale))
+                        img = img.resize(new_size, Image.Resampling.LANCZOS)
+                    
+                    # Converter para RGB se necessário
+                    if file_ext in ['.jpg', '.jpeg'] and img.mode in ('RGBA', 'LA', 'P'):
+                        bg = Image.new('RGB', img.size, (255, 255, 255))
+                        if img.mode == 'P':
+                            img = img.convert('RGBA')
+                        if img.mode == 'RGBA':
+                            bg.paste(img, mask=img.split()[-1])
+                        else:
+                            bg.paste(img)
+                        img = bg
+                    
+                    # Salvar com compressão máxima
+                    if file_ext in ['.jpg', '.jpeg']:
+                        img.save(output_path, 'JPEG', quality=quality, optimize=True, progressive=True)
+                    elif file_ext == '.png':
+                        img.save(output_path, 'PNG', compress_level=9, optimize=True)
+                    elif file_ext == '.webp':
+                        img.save(output_path, 'WEBP', quality=quality, method=6)
+                    else:
+                        img.save(output_path, optimize=True)
+                    
+                    compressed = True
+                
+                # Vídeos
+                elif file_ext in ['.mp4', '.avi', '.mkv', '.mov', '.webm', '.flv', '.wmv', '.m4v', '.mpg', '.mpeg']:
+                    # Determinar resolução e CRF
+                    if quality <= 20:
+                        scale = "scale=640:360"
+                        crf = 35
+                    elif quality <= 40:
+                        scale = "scale=854:480"
+                        crf = 30
+                    elif quality <= 60:
+                        scale = "scale=1280:720"
+                        crf = 26
+                    elif quality <= 80:
+                        scale = "scale=1920:1080"
+                        crf = 23
+                    else:
+                        scale = "scale=1920:1080"
+                        crf = 20
+                    
+                    result = subprocess.run([
+                        'ffmpeg', '-i', temp_input, '-vf', scale, '-c:v', 'libx264', 
+                        '-crf', str(crf), '-preset', 'slow', '-c:a', 'aac', 
+                        '-b:a', '64k', '-ac', '1', output_path, '-y'
+                    ], capture_output=True, timeout=600)
+                    
+                    compressed = result.returncode == 0
+                
+                # Áudio
+                elif file_ext in ['.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a', '.wma']:
+                    bitrate = max(32, int(quality * 1.28))
+                    
+                    result = subprocess.run([
+                        'ffmpeg', '-i', temp_input, '-b:a', f'{bitrate}k', 
+                        '-ar', '22050', '-ac', '1', output_path, '-y'
+                    ], capture_output=True, timeout=300)
+                    
+                    compressed = result.returncode == 0
+                
+                # PDFs
+                elif file_ext == '.pdf':
+                    try:
+                        import fitz
+                        doc = fitz.open(temp_input)
+                        
+                        for page_num in range(len(doc)):
+                            page = doc[page_num]
+                            
+                            for img_index, img in enumerate(page.get_images()):
+                                xref = img[0]
+                                try:
+                                    base_image = doc.extract_image(xref)
+                                    image_bytes = base_image["image"]
+                                    
+                                    img_pil = Image.open(BytesIO(image_bytes))
+                                    
+                                    # Redimensionar imagem
+                                    max_dim = 1024 if quality < 50 else 1920
+                                    if img_pil.width > max_dim or img_pil.height > max_dim:
+                                        ratio = min(max_dim / img_pil.width, max_dim / img_pil.height)
+                                        new_size = (int(img_pil.width * ratio), int(img_pil.height * ratio))
+                                        img_pil = img_pil.resize(new_size, Image.Resampling.LANCZOS)
+                                    
+                                    if img_pil.mode in ('RGBA', 'LA', 'P'):
+                                        img_pil = img_pil.convert('RGB')
+                                    
+                                    img_buffer = BytesIO()
+                                    img_pil.save(img_buffer, format='JPEG', quality=max(30, quality), optimize=True)
+                                    
+                                    page.insert_image(page.rect, stream=img_buffer.getvalue())
+                                except:
+                                    pass
+                        
+                        doc.save(output_path, garbage=4, deflate=True, clean=True, linear=True)
+                        doc.close()
+                        compressed = True
+                    except:
+                        from PyPDF2 import PdfReader, PdfWriter
+                        reader = PdfReader(temp_input)
+                        writer = PdfWriter()
+                        for page in reader.pages:
+                            page.compress_content_streams()
+                            writer.add_page(page)
+                        with open(output_path, 'wb') as f:
+                            writer.write(f)
+                        compressed = True
+                
+                # Outros arquivos - LZMA
+                else:
+                    with open(temp_input, 'rb') as f_in:
+                        with lzma.open(output_path + '.xz', 'wb', preset=9) as f_out:
+                            f_out.write(f_in.read())
+                    output_path = output_path + '.xz'
+                    output_filename = output_filename + '.xz'
+                    compressed = True
+                
+                # Verificar se comprimiu
+                if compressed and os.path.exists(output_path):
+                    compressed_size = os.path.getsize(output_path)
+                    original_size_mb = round(original_size / (1024 * 1024), 2)
+                    compressed_size_mb = round(compressed_size / (1024 * 1024), 2)
+                    
+                    if compressed_size >= original_size:
+                        # Arquivo comprimido é maior ou igual, usar original
+                        os.remove(output_path)
+                        import shutil
+                        shutil.copy(temp_input, output_path)
+                        status = f"⚠️ '{output_filename}' mantido no tamanho original ({original_size_mb} MB) - compressão não reduziu o arquivo"
+                    else:
+                        reduction = round((1 - compressed_size / original_size) * 100, 1)
+                        status = f"✅ '{output_filename}' comprimido! Original: {original_size_mb} MB → Comprimido: {compressed_size_mb} MB (Redução: {reduction}%)"
+                else:
+                    error = "Erro ao comprimir arquivo"
+                
+                # Limpar arquivo temporário
+                if os.path.exists(temp_input):
+                    os.remove(temp_input)
+            
+            except subprocess.TimeoutExpired:
+                error = "Timeout: arquivo muito grande"
+                if os.path.exists(temp_input):
+                    os.remove(temp_input)
+            except Exception as e:
+                error = f"Erro: {str(e)}"
+                if os.path.exists(temp_input):
+                    os.remove(temp_input)
+    
+    try:
+        with open('templates/compress.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+        return render_template_string(template, status=status, error=error)
     except:
         return "<h1>Error loading template</h1>"
 
