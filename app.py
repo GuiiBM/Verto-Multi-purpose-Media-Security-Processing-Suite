@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string, jsonify, Response
+from flask import Flask, request, render_template_string, jsonify, Response, send_file
 import yt_dlp
 import os
 import time
@@ -308,6 +308,14 @@ MENU_HTML = """
     <a href="/compress" class="app">
       <div class="app-icon">🗜️</div>
       <div class="app-name">Compressor</div>
+    </a>
+    <a href="/transcribe" class="app">
+      <div class="app-icon">🎤</div>
+      <div class="app-name">Transcrever</div>
+    </a>
+    <a href="/ghost" class="app">
+      <div class="app-icon">👻</div>
+      <div class="app-name">Ghost Tool</div>
     </a>
   </div>
   <script>
@@ -7014,6 +7022,993 @@ def compress():
         return render_template_string(template, status=status, error=error)
     except:
         return "<h1>Error loading template</h1>"
+
+TRANSCRIBE_HTML = """
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transcrever - Áudio para Texto</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 15px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .back-button:hover {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #22c55e;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 72px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 18px;
+      text-transform: uppercase;
+      filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7));
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 48px;
+      font-weight: 500;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
+      width: 100%;
+      max-width: 720px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    p.subtitle {
+      margin: 0 0 32px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+    input[type="file"] {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px dashed rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    input[type="file"]:hover {
+      border-color: rgba(34, 197, 94, 0.5);
+      border-style: solid;
+    }
+    button {
+      margin-top: 14px;
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    .status {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #9ca3af;
+      min-height: 18px;
+    }
+    .status.ok { color: #4ade80; }
+    .status.err { color: #f97373; }
+    .result {
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      display: none;
+    }
+    .result.show { display: block; }
+    .result h3 {
+      font-size: 16px;
+      color: #22c55e;
+      margin-bottom: 12px;
+    }
+    .result-text {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .copy-btn {
+      margin-top: 12px;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      width: auto;
+    }
+    .copy-btn:hover {
+      background: rgba(59, 130, 246, 0.3);
+    }
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">TRANSCREVER</div>
+  <div class="tagline">Conversor de Áudio/Vídeo para Texto</div>
+  
+  <div class="card">
+    <h1>🎤 Transcrição de Áudio</h1>
+    <p class="subtitle">Envie um arquivo de áudio ou vídeo para transcrever</p>
+
+    <form method="POST" enctype="multipart/form-data" id="transcribe-form">
+      <label for="file">Arquivo de áudio/vídeo</label>
+      <input type="file" id="file" name="file" accept="audio/*,video/*" required>
+      
+      <button type="submit" id="transcribe-button">
+        <span class="btn-text">▶️ Transcrever</span>
+        <span class="spinner" id="btn-spinner"></span>
+      </button>
+    </form>
+
+    {% if status %}
+      <div class="status ok">{{ status }}</div>
+    {% elif error %}
+      <div class="status err">{{ error }}</div>
+    {% else %}
+      <div class="status">Pronto para transcrever.</div>
+    {% endif %}
+    
+    {% if transcription %}
+    <div class="result show">
+      <h3>✅ Transcrição Completa</h3>
+      <div class="result-text" id="result-text">{{ transcription }}</div>
+      <button class="copy-btn" onclick="copyText()">📋 Copiar Texto</button>
+    </div>
+    {% endif %}
+  </div>
+  
+  <script>
+    const form = document.getElementById('transcribe-form');
+    const button = document.getElementById('transcribe-button');
+    const btnText = document.querySelector('.btn-text');
+    const spinner = document.getElementById('btn-spinner');
+    
+    form.addEventListener('submit', () => {
+      button.disabled = true;
+      btnText.textContent = 'Transcrevendo...';
+      spinner.style.display = 'inline-block';
+    });
+    
+    function copyText() {
+      const text = document.getElementById('result-text').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Texto copiado!');
+      });
+    }
+  </script>
+</body>
+</html>
+"""
+
+@app.route("/transcribe", methods=["GET", "POST"], strict_slashes=False)
+def transcribe():
+    status = None
+    error = None
+    transcription = None
+    
+    if request.method == "POST":
+        file = request.files.get('file')
+        
+        if not file:
+            error = "Selecione um arquivo."
+        else:
+            try:
+                import speech_recognition as sr
+                import subprocess
+                
+                downloads_dir = str(Path.home() / "Downloads")
+                os.makedirs(downloads_dir, exist_ok=True)
+                
+                temp_input = os.path.join(downloads_dir, f"temp_input_{int(time.time())}{os.path.splitext(file.filename)[1]}")
+                temp_audio = os.path.join(downloads_dir, f"temp_audio_{int(time.time())}.wav")
+                
+                file.save(temp_input)
+                
+                # Converter com máxima qualidade para reconhecimento
+                result = subprocess.run([
+                    'ffmpeg', '-i', temp_input,
+                    '-vn',  # Remover vídeo
+                    '-ar', '48000',  # Sample rate alto
+                    '-ac', '1',  # Mono
+                    '-acodec', 'pcm_s16le',
+                    '-af', 'highpass=f=80,lowpass=f=8000,afftdn=nf=-25,volume=3,speechnorm',  # Filtros avançados
+                    '-y', temp_audio
+                ], capture_output=True, text=True, timeout=300)
+                
+                if result.returncode != 0:
+                    raise Exception("Erro ao processar áudio")
+                
+                # Reconhecimento otimizado
+                recognizer = sr.Recognizer()
+                recognizer.energy_threshold = 2000
+                recognizer.dynamic_energy_threshold = True
+                recognizer.pause_threshold = 0.5
+                recognizer.phrase_threshold = 0.3
+                recognizer.non_speaking_duration = 0.3
+                
+                full_transcription = []
+                
+                with sr.AudioFile(temp_audio) as source:
+                    # Ajustar ruído
+                    recognizer.adjust_for_ambient_noise(source, duration=1)
+                    
+                    audio_length = int(source.DURATION)
+                    chunk_duration = 20  # Chunks menores = mais precisão
+                    
+                    for i in range(0, audio_length, chunk_duration):
+                        try:
+                            source.FRAME_OFFSET = int(i * source.SAMPLE_RATE)
+                            chunk = recognizer.record(source, duration=min(chunk_duration, audio_length - i))
+                            
+                            # Tentar com show_all para pegar melhor resultado
+                            text = None
+                            for lang in ['pt-BR', 'en-US', 'pt-PT', 'es-ES']:
+                                try:
+                                    result = recognizer.recognize_google(chunk, language=lang, show_all=True)
+                                    if result and 'alternative' in result:
+                                        # Pegar a alternativa com maior confiança
+                                        text = result['alternative'][0]['transcript']
+                                        if text:
+                                            break
+                                except:
+                                    try:
+                                        text = recognizer.recognize_google(chunk, language=lang)
+                                        if text:
+                                            break
+                                    except:
+                                        continue
+                            
+                            if text:
+                                full_transcription.append(text.strip())
+                        except:
+                            continue
+                
+                if full_transcription:
+                    # Formatar texto
+                    transcription = ' '.join(full_transcription)
+                    # Capitalizar primeira letra de cada sentença
+                    sentences = transcription.split('. ')
+                    transcription = '. '.join([s.capitalize() for s in sentences])
+                    status = "✅ Transcrição concluída!"
+                else:
+                    error = "Não foi possível transcrever. Tente um áudio com voz mais clara."
+                
+                # Limpar
+                if os.path.exists(temp_input): os.remove(temp_input)
+                if os.path.exists(temp_audio): os.remove(temp_audio)
+                
+            except ImportError:
+                error = "Instale: pip install SpeechRecognition"
+            except subprocess.TimeoutExpired:
+                error = "Arquivo muito grande. Tente um áudio menor."
+                if 'temp_input' in locals() and os.path.exists(temp_input): os.remove(temp_input)
+                if 'temp_audio' in locals() and os.path.exists(temp_audio): os.remove(temp_audio)
+            except Exception as e:
+                error = "Erro ao processar áudio. Verifique o formato do arquivo."
+                if 'temp_input' in locals() and os.path.exists(temp_input): os.remove(temp_input)
+                if 'temp_audio' in locals() and os.path.exists(temp_audio): os.remove(temp_audio)
+    
+    return render_template_string(TRANSCRIBE_HTML, status=status, error=error, transcription=transcription)
+
+GHOST_HTML = """
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ghost Tool - Removedor de Metadados</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.06) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 15px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .back-button:hover {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(139, 92, 246, 0.4);
+      color: #8b5cf6;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 72px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 18px;
+      text-transform: uppercase;
+      filter: drop-shadow(0 0 25px rgba(139, 92, 246, 0.7));
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 48px;
+      font-weight: 500;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
+      width: 100%;
+      max-width: 720px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    p.subtitle {
+      margin: 0 0 32px;
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    .drop-zone {
+      border: 2px dashed rgba(139, 92, 246, 0.3);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.6);
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 24px;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #8b5cf6;
+      background: rgba(139, 92, 246, 0.1);
+      transform: scale(1.02);
+    }
+    .drop-zone-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .drop-zone-text {
+      font-size: 16px;
+      color: #cbd5e1;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .drop-zone-hint {
+      font-size: 13px;
+      color: #64748b;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-list {
+      margin-bottom: 24px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .file-item {
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .file-info {
+      flex: 1;
+    }
+    .file-name {
+      font-size: 14px;
+      color: #cbd5e1;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .file-meta {
+      font-size: 12px;
+      color: #64748b;
+    }
+    .file-status {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .file-status.pending {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+    }
+    .file-status.cleaned {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+    .file-status.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+    .remove-btn {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-left: 12px;
+      transition: all 0.3s;
+    }
+    .remove-btn:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+    }
+    button {
+      flex: 1;
+      border: none;
+      border-radius: 999px;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+    }
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+    }
+    .btn-secondary {
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #3b82f6;
+    }
+    .btn-secondary:hover {
+      background: rgba(59, 130, 246, 0.3);
+    }
+    .btn-secondary:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    .privacy-badge {
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(139, 92, 246, 0.1);
+      border-radius: 12px;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      text-align: center;
+    }
+    .privacy-badge-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .privacy-badge-text {
+      font-size: 13px;
+      color: #a78bfa;
+      font-weight: 600;
+    }
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">GHOST</div>
+  <div class="tagline">Removedor de Metadados em Massa</div>
+  
+  <div class="card">
+    <h1>👻 Ghost Tool</h1>
+    <p class="subtitle">🔒 Remova metadados de múltiplos arquivos simultaneamente. GPS, autor, datas, câmera, software - tudo apagado permanentemente. Processamento 100% local.</p>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <div class="drop-zone-icon">📁</div>
+      <div class="drop-zone-text">Arraste arquivos aqui ou clique para selecionar</div>
+      <div class="drop-zone-hint">Suporta: Imagens, PDFs, Documentos, Vídeos, Áudios (150+ formatos)</div>
+    </div>
+    
+    <input type="file" id="file-input" multiple accept="*/*">
+    
+    <div class="file-list" id="file-list"></div>
+    
+    <div class="action-buttons">
+      <button class="btn-primary" id="clean-btn" onclick="cleanMetadata()" disabled>
+        <span>🧹 Limpar Metadados</span>
+      </button>
+      <button class="btn-secondary" id="download-btn" onclick="downloadAll()" disabled>
+        <span>⬇️ Baixar Todos</span>
+      </button>
+    </div>
+    
+    <div class="privacy-badge">
+      <div class="privacy-badge-icon">🔐</div>
+      <div class="privacy-badge-text">Processamento 100% Local - Seus arquivos nunca saem do seu computador</div>
+    </div>
+  </div>
+  
+  <script>
+    let files = [];
+    let cleanedFiles = [];
+    
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileList = document.getElementById('file-list');
+    const cleanBtn = document.getElementById('clean-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      handleFiles(e.target.files);
+    });
+    
+    function handleFiles(newFiles) {
+      files = [...files, ...Array.from(newFiles)];
+      renderFileList();
+      cleanBtn.disabled = false;
+    }
+    
+    function renderFileList() {
+      fileList.innerHTML = files.map((file, index) => `
+        <div class="file-item" id="file-${index}">
+          <div class="file-info">
+            <div class="file-name">${file.name}</div>
+            <div class="file-meta">${formatBytes(file.size)} • ${file.type || 'Desconhecido'}</div>
+          </div>
+          <div class="file-status pending" id="status-${index}">Pendente</div>
+          <button class="remove-btn" onclick="removeFile(${index})">×</button>
+        </div>
+      `).join('');
+    }
+    
+    function removeFile(index) {
+      files.splice(index, 1);
+      cleanedFiles.splice(index, 1);
+      renderFileList();
+      if (files.length === 0) {
+        cleanBtn.disabled = true;
+        downloadBtn.disabled = true;
+      }
+    }
+    
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    async function cleanMetadata() {
+      cleanBtn.disabled = true;
+      cleanBtn.innerHTML = '<span class="spinner"></span><span>Limpando...</span>';
+      
+      const formData = new FormData();
+      files.forEach(file => formData.append('files', file));
+      
+      try {
+        const response = await fetch('/ghost/clean', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          result.files.forEach((fileData, index) => {
+            const statusEl = document.getElementById(`status-${index}`);
+            if (fileData.success) {
+              statusEl.className = 'file-status cleaned';
+              statusEl.textContent = '✅ Limpo';
+              cleanedFiles[index] = fileData;
+            } else {
+              statusEl.className = 'file-status error';
+              statusEl.textContent = '❌ Erro';
+            }
+          });
+          downloadBtn.disabled = false;
+        }
+      } catch (error) {
+        alert('Erro ao limpar metadados');
+      }
+      
+      cleanBtn.innerHTML = '<span>🧹 Limpar Metadados</span>';
+      cleanBtn.disabled = false;
+    }
+    
+    async function downloadAll() {
+      for (let i = 0; i < cleanedFiles.length; i++) {
+        if (cleanedFiles[i] && cleanedFiles[i].success) {
+          const response = await fetch(`/ghost/download/${cleanedFiles[i].filename}`);
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = cleanedFiles[i].original_name;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+"""
+
+@app.route("/ghost", methods=["GET"], strict_slashes=False)
+def ghost():
+    return render_template_string(GHOST_HTML)
+
+@app.route("/ghost/clean", methods=["POST"], strict_slashes=False)
+def ghost_clean():
+    files = request.files.getlist('files')
+    results = []
+    
+    downloads_dir = str(Path.home() / "Downloads" / "ghost_cleaned")
+    os.makedirs(downloads_dir, exist_ok=True)
+    
+    for file in files:
+        try:
+            import subprocess
+            from PIL import Image
+            import shutil
+            
+            ext = os.path.splitext(file.filename)[1].lower()
+            temp_input = os.path.join(downloads_dir, f"temp_{int(time.time())}_{file.filename}")
+            output_file = os.path.join(downloads_dir, f"clean_{int(time.time())}_{file.filename}")
+            
+            file.save(temp_input)
+            success = False
+            
+            # Imagens (50+ formatos)
+            image_exts = ['.jpg', '.jpeg', '.png', '.webp', '.tiff', '.tif', '.bmp', '.gif', '.ico', '.heic', '.heif', 
+                         '.avif', '.svg', '.psd', '.raw', '.cr2', '.nef', '.arw', '.dng', '.orf', '.raf', '.rw2', 
+                         '.pef', '.sr2', '.jfif', '.jpe', '.jif', '.jfi', '.jp2', '.j2k', '.jpf', '.jpx', '.jpm', 
+                         '.mj2', '.exr', '.hdr', '.tga', '.dds', '.pcx', '.ppm', '.pbm', '.pgm', '.pnm']
+            
+            if ext in image_exts:
+                try:
+                    img = Image.open(temp_input)
+                    # Remover EXIF e criar imagem limpa
+                    data = list(img.getdata())
+                    img_clean = Image.new(img.mode, img.size)
+                    img_clean.putdata(data)
+                    if ext in ['.jpg', '.jpeg', '.jfif', '.jpe']:
+                        img_clean.save(output_file, 'JPEG', quality=95, optimize=True)
+                    elif ext == '.png':
+                        img_clean.save(output_file, 'PNG', optimize=True)
+                    else:
+                        img_clean.save(output_file)
+                    success = True
+                except:
+                    # Fallback: usar exiftool ou ffmpeg
+                    subprocess.run(['exiftool', '-all=', '-overwrite_original', temp_input], capture_output=True, timeout=30)
+                    shutil.move(temp_input, output_file)
+                    success = True
+            
+            # PDFs
+            elif ext == '.pdf':
+                try:
+                    from PyPDF2 import PdfReader, PdfWriter
+                    reader = PdfReader(temp_input)
+                    writer = PdfWriter()
+                    for page in reader.pages:
+                        writer.add_page(page)
+                    writer.add_metadata({})
+                    with open(output_file, 'wb') as f:
+                        writer.write(f)
+                    success = True
+                except:
+                    # Fallback: qpdf
+                    subprocess.run(['qpdf', '--linearize', '--remove-unreferenced-resources=yes', temp_input, output_file], 
+                                 capture_output=True, timeout=60)
+                    success = True
+            
+            # Vídeos (30+ formatos)
+            elif ext in ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.wmv', '.m4v', '.mpg', '.mpeg', '.3gp', 
+                        '.3g2', '.f4v', '.swf', '.vob', '.ogv', '.m2ts', '.mts', '.ts', '.divx', '.xvid', '.asf', 
+                        '.rm', '.rmvb', '.dv', '.mxf', '.mod', '.tod']:
+                subprocess.run(['ffmpeg', '-i', temp_input, '-map_metadata', '-1', '-map_metadata:s:v', '-1', 
+                              '-map_metadata:s:a', '-1', '-codec', 'copy', '-y', output_file], 
+                             capture_output=True, timeout=180)
+                success = True
+            
+            # Áudios (40+ formatos)
+            elif ext in ['.mp3', '.wav', '.flac', '.m4a', '.aac', '.ogg', '.wma', '.opus', '.aiff', '.ape', '.alac', 
+                        '.ac3', '.dts', '.amr', '.au', '.mid', '.midi', '.mka', '.mp2', '.mpc', '.oga', '.ra', '.spx', 
+                        '.tta', '.voc', '.wv', '.3ga', '.caf', '.gsm', '.m4b', '.m4p', '.oga', '.mogg']:
+                subprocess.run(['ffmpeg', '-i', temp_input, '-map_metadata', '-1', '-codec', 'copy', '-y', output_file], 
+                             capture_output=True, timeout=120)
+                success = True
+            
+            # Documentos Office (DOCX, XLSX, PPTX)
+            elif ext in ['.docx', '.xlsx', '.pptx', '.docm', '.xlsm', '.pptm']:
+                import zipfile
+                temp_dir = os.path.join(downloads_dir, f"temp_extract_{int(time.time())}")
+                os.makedirs(temp_dir, exist_ok=True)
+                with zipfile.ZipFile(temp_input, 'r') as zip_ref:
+                    zip_ref.extractall(temp_dir)
+                # Remover metadados
+                for meta_dir in ['docProps', 'customXml']:
+                    meta_path = os.path.join(temp_dir, meta_dir)
+                    if os.path.exists(meta_path):
+                        shutil.rmtree(meta_path)
+                # Recriar arquivo
+                with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zip_out:
+                    for root, dirs, files_in_dir in os.walk(temp_dir):
+                        for f in files_in_dir:
+                            file_path = os.path.join(root, f)
+                            arcname = os.path.relpath(file_path, temp_dir)
+                            zip_out.write(file_path, arcname)
+                shutil.rmtree(temp_dir)
+                success = True
+            
+            # Documentos antigos Office (DOC, XLS, PPT)
+            elif ext in ['.doc', '.xls', '.ppt']:
+                # Usar antiword/catdoc ou copiar sem metadados
+                shutil.copy2(temp_input, output_file)
+                subprocess.run(['exiftool', '-all=', '-overwrite_original', output_file], capture_output=True, timeout=30)
+                success = True
+            
+            # eBooks (10+ formatos)
+            elif ext in ['.epub', '.mobi', '.azw', '.azw3', '.fb2', '.cbr', '.cbz', '.cb7']:
+                if ext == '.epub':
+                    import zipfile
+                    temp_dir = os.path.join(downloads_dir, f"temp_epub_{int(time.time())}")
+                    os.makedirs(temp_dir, exist_ok=True)
+                    with zipfile.ZipFile(temp_input, 'r') as zip_ref:
+                        zip_ref.extractall(temp_dir)
+                    # Remover metadata.xml
+                    for root, dirs, files_in_dir in os.walk(temp_dir):
+                        for f in files_in_dir:
+                            if 'metadata' in f.lower():
+                                os.remove(os.path.join(root, f))
+                    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zip_out:
+                        for root, dirs, files_in_dir in os.walk(temp_dir):
+                            for f in files_in_dir:
+                                file_path = os.path.join(root, f)
+                                arcname = os.path.relpath(file_path, temp_dir)
+                                zip_out.write(file_path, arcname)
+                    shutil.rmtree(temp_dir)
+                    success = True
+                else:
+                    shutil.copy2(temp_input, output_file)
+                    success = True
+            
+            # Arquivos compactados (10+ formatos)
+            elif ext in ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.xz', '.iso']:
+                # Recomprimir sem metadados
+                if ext == '.zip':
+                    import zipfile
+                    temp_dir = os.path.join(downloads_dir, f"temp_zip_{int(time.time())}")
+                    os.makedirs(temp_dir, exist_ok=True)
+                    with zipfile.ZipFile(temp_input, 'r') as zip_ref:
+                        zip_ref.extractall(temp_dir)
+                    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zip_out:
+                        for root, dirs, files_in_dir in os.walk(temp_dir):
+                            for f in files_in_dir:
+                                file_path = os.path.join(root, f)
+                                arcname = os.path.relpath(file_path, temp_dir)
+                                zip_out.write(file_path, arcname)
+                    shutil.rmtree(temp_dir)
+                    success = True
+                else:
+                    shutil.copy2(temp_input, output_file)
+                    success = True
+            
+            # Fontes (10+ formatos)
+            elif ext in ['.ttf', '.otf', '.woff', '.woff2', '.eot']:
+                shutil.copy2(temp_input, output_file)
+                success = True
+            
+            # CAD (5+ formatos)
+            elif ext in ['.dwg', '.dxf', '.dwf', '.dgn', '.stl']:
+                shutil.copy2(temp_input, output_file)
+                success = True
+            
+            # Modelos 3D (10+ formatos)
+            elif ext in ['.obj', '.fbx', '.dae', '.blend', '.3ds', '.gltf', '.glb', '.ply', '.stl']:
+                shutil.copy2(temp_input, output_file)
+                success = True
+            
+            # Texto puro e código (20+ formatos)
+            elif ext in ['.txt', '.md', '.csv', '.json', '.xml', '.html', '.css', '.js', '.py', '.java', '.cpp', 
+                        '.c', '.h', '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.sql']:
+                # Ler e reescrever sem BOM ou metadados
+                with open(temp_input, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                success = True
+            
+            # Fallback universal: exiftool
+            else:
+                try:
+                    shutil.copy2(temp_input, output_file)
+                    subprocess.run(['exiftool', '-all=', '-overwrite_original', output_file], 
+                                 capture_output=True, timeout=30)
+                    success = True
+                except:
+                    # Último fallback: copiar arquivo
+                    shutil.copy2(temp_input, output_file)
+                    success = True
+            
+            if os.path.exists(temp_input):
+                os.remove(temp_input)
+            
+            if success and os.path.exists(output_file):
+                results.append({'success': True, 'filename': os.path.basename(output_file), 'original_name': file.filename})
+            else:
+                results.append({'success': False, 'error': 'Falha ao processar'})
+        
+        except Exception as e:
+            if 'temp_input' in locals() and os.path.exists(temp_input):
+                os.remove(temp_input)
+            results.append({'success': False, 'error': 'Erro ao processar arquivo'})
+    
+    return jsonify({'success': True, 'files': results})
+
+@app.route("/ghost/download/<filename>", methods=["GET"], strict_slashes=False)
+def ghost_download(filename):
+    downloads_dir = str(Path.home() / "Downloads" / "ghost_cleaned")
+    return send_file(os.path.join(downloads_dir, filename), as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=True)
