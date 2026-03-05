@@ -13,11 +13,19 @@ Aplicação web para baixar vídeos do YouTube com seleção de qualidade.
 4. **Use a seta ← no canto superior esquerdo** para voltar ao menu
 
 ### Recursos do Menu:
-- 🎬 **Verto** - Conversor de vídeos do YouTube
-- ⚙️ **Configurações** - (em desenvolvimento)
-- 📁 **Arquivos** - (em desenvolvimento)
-- 🎵 **Música** - (em desenvolvimento)
-- 📱 **QR Code** - Gerador de QR Code gratuito e permanente
+- 🎬 **Verto** - Conversor de vídeos do YouTube (MP4/MP3/Thumbnails)
+- 📖 **Instruções** - Documentação completa de todos os apps
+- 📁 **Arquivos** - Conversor universal (150+ formatos)
+- 🎮 **PurpleFlix** - Streaming integrado
+- ⏰ **Tempo** - Relógio e calendário com feriados brasileiros
+- 📄 **PDFs** - Suite completa (dividir, converter, comprimir, girar, etc)
+- 🎨 **Transparência** - Remover fundo de imagens com IA
+- 🔲 **QR Code** - Gerador gratuito e permanente
+- 🗜️ **Compressor** - Redução de tamanho de arquivos
+- 🎤 **Transcrever** - Áudio para texto com IA
+- 👻 **Ghost Tool** - Removedor de metadados (150+ formatos)
+- 🕵️ **Stealth** - Esteganografia com criptografia AES-256
+- 🔒 **Censor** - Proteção de privacidade com IA (9 tipos de detecção)
 
 ## ✨ Novidade: Cálculo Automático de Tamanho
 

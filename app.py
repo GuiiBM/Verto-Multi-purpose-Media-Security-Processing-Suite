@@ -235,9 +235,9 @@ MENU_HTML = """
       </div>
       <div class="app-name">Verto</div>
     </a>
-    <a href="/config" class="app">
-      <div class="app-icon">⚙️</div>
-      <div class="app-name">Configurações</div>
+    <a href="/instructions" class="app">
+      <div class="app-icon">📖</div>
+      <div class="app-name">Instruções</div>
     </a>
     <a href="/files" class="app">
       <div class="app-icon">📁</div>
@@ -316,6 +316,14 @@ MENU_HTML = """
     <a href="/ghost" class="app">
       <div class="app-icon">👻</div>
       <div class="app-name">Ghost Tool</div>
+    </a>
+    <a href="/stealth" class="app">
+      <div class="app-icon">🕵️</div>
+      <div class="app-name">Stealth</div>
+    </a>
+    <a href="/censor" class="app">
+      <div class="app-icon">🔒</div>
+      <div class="app-name">Censor</div>
     </a>
   </div>
   <script>
@@ -1390,9 +1398,14 @@ def verto():
 
     return render_template_string(VERTO_HTML, status=status, error=error)
 
+@app.route("/instructions", strict_slashes=False)
 @app.route("/config", strict_slashes=False)
-def config():
-    return render_template_string(CONFIG_HTML)
+def instructions():
+    try:
+        with open('templates/instructions.html', 'r', encoding='utf-8') as f:
+            return f.read()
+    except:
+        return render_template_string(CONFIG_HTML)
 
 @app.route("/purpleflix", strict_slashes=False)
 def purpleflix():
@@ -1405,6 +1418,72 @@ def tempo():
             return f.read()
     except:
         return render_template_string(TEMPO_HTML)
+
+@app.route("/api/holidays/<int:year>", methods=["GET"], strict_slashes=False)
+def get_holidays(year):
+    """API para buscar feriados de um ano específico"""
+    try:
+        import json
+        from datetime import datetime, timedelta
+        
+        # Tentar carregar do cache
+        try:
+            with open('templates/holidays_cache.json', 'r', encoding='utf-8') as f:
+                cache = json.load(f)
+                if str(year) in cache:
+                    return jsonify({'success': True, 'holidays': cache[str(year)]})
+        except:
+            pass
+        
+        # Calcular dinamicamente
+        holidays = []
+        
+        # Feriados fixos
+        fixed = [
+            {'date': f'{year}-01-01', 'name': 'Confraternização Universal'},
+            {'date': f'{year}-04-21', 'name': 'Tiradentes'},
+            {'date': f'{year}-05-01', 'name': 'Dia do Trabalho'},
+            {'date': f'{year}-09-07', 'name': 'Independência do Brasil'},
+            {'date': f'{year}-10-12', 'name': 'Nossa Senhora Aparecida'},
+            {'date': f'{year}-11-02', 'name': 'Finados'},
+            {'date': f'{year}-11-15', 'name': 'Proclamação da República'},
+            {'date': f'{year}-11-20', 'name': 'Consciência Negra'},
+            {'date': f'{year}-12-25', 'name': 'Natal'}
+        ]
+        
+        # Calcular Páscoa
+        a = year % 19
+        b = year // 100
+        c = year % 100
+        d = b // 4
+        e = b % 4
+        f = (b + 8) // 25
+        g = (b - f + 1) // 3
+        h = (19 * a + b - d - g + 15) % 30
+        i = c // 4
+        k = c % 4
+        l = (32 + 2 * e + 2 * i - h - k) % 7
+        m = (a + 11 * h + 22 * l) // 451
+        month = (h + l - 7 * m + 114) // 31
+        day = ((h + l - 7 * m + 114) % 31) + 1
+        
+        easter = datetime(year, month, day)
+        carnaval = easter - timedelta(days=47)
+        sexta_santa = easter - timedelta(days=2)
+        corpus = easter + timedelta(days=60)
+        
+        mobile = [
+            {'date': carnaval.strftime('%Y-%m-%d'), 'name': 'Carnaval'},
+            {'date': sexta_santa.strftime('%Y-%m-%d'), 'name': 'Sexta-feira Santa'},
+            {'date': corpus.strftime('%Y-%m-%d'), 'name': 'Corpus Christi'}
+        ]
+        
+        holidays = fixed + mobile
+        holidays.sort(key=lambda x: x['date'])
+        
+        return jsonify({'success': True, 'holidays': holidays})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route("/pdfs", strict_slashes=False)
 def pdfs():
@@ -8009,6 +8088,631 @@ def ghost_clean():
 def ghost_download(filename):
     downloads_dir = str(Path.home() / "Downloads" / "ghost_cleaned")
     return send_file(os.path.join(downloads_dir, filename), as_attachment=True)
+
+STEALTH_HTML = """
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stealth - Esteganografia Criptografada</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(220, 38, 38, 0.06) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 15px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .back-button:hover {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 72px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 18px;
+      text-transform: uppercase;
+      filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.7));
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 48px;
+      font-weight: 500;
+    }
+    .mode-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 40px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 6px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .mode-btn {
+      padding: 12px 32px;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .mode-btn.active {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 40px;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
+      width: 100%;
+      max-width: 720px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    p.subtitle {
+      margin: 0 0 32px;
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+    input[type="file"], input[type="password"], textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.8);
+      color: #f1f5f9;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus {
+      border-color: #ef4444;
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+    }
+    .status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+    }
+    .status.show { display: block; }
+    .status.success {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #22c55e;
+    }
+    .status.error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+    }
+    .security-badge {
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 12px;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      text-align: center;
+    }
+    .security-badge-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .security-badge-text {
+      font-size: 13px;
+      color: #fca5a5;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .mode-content {
+      display: none;
+    }
+    .mode-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">STEALTH</div>
+  <div class="tagline">Esteganografia com Criptografia AES-256</div>
+  
+  <div class="mode-selector">
+    <button class="mode-btn active" onclick="switchMode('hide')">🔒 Esconder</button>
+    <button class="mode-btn" onclick="switchMode('extract')">🔓 Extrair</button>
+  </div>
+  
+  <div class="card">
+    <!-- MODO ESCONDER -->
+    <div class="mode-content active" id="hide-mode">
+      <h1>🕵️ Esconder Arquivo</h1>
+      <p class="subtitle">🔐 Esconda múltiplos arquivos dentro de imagens, vídeos, áudios ou PDFs. Criptografia AES-256 opcional.</p>
+
+      <form method="POST" enctype="multipart/form-data" action="/stealth/hide" id="hide-form">
+        <label for="cover-image">Arquivo de Cobertura (Imagem/Vídeo/Áudio/PDF)</label>
+        <input type="file" id="cover-image" name="cover_image" accept="image/*,video/*,audio/*,.pdf" required>
+        
+        <label for="secret-file">Arquivo(s) Secreto(s) - Múltiplos permitidos</label>
+        <input type="file" id="secret-file" name="secret_files" multiple required>
+        
+        <label for="password-hide">Senha (Opcional - deixe vazio para sem senha)</label>
+        <input type="password" id="password-hide" name="password" placeholder="Senha forte (opcional)" minlength="8">
+        
+        <button type="submit" id="hide-btn">
+          <span>🔒 Esconder Arquivo(s)</span>
+        </button>
+      </form>
+      
+      <div class="status" id="hide-status"></div>
+    </div>
+    
+    <!-- MODO EXTRAIR -->
+    <div class="mode-content" id="extract-mode">
+      <h1>🔓 Extrair Arquivo</h1>
+      <p class="subtitle">🔍 Extraia arquivos de imagens, vídeos, áudios ou PDFs esteganográficos. Senha opcional.</p>
+
+      <form method="POST" enctype="multipart/form-data" action="/stealth/extract" id="extract-form">
+        <label for="stego-image">Arquivo com Dados Escondidos</label>
+        <input type="file" id="stego-image" name="stego_image" accept="*/*" required>
+        
+        <label for="password-extract">Senha (Deixe vazio se não usou senha)</label>
+        <input type="password" id="password-extract" name="password" placeholder="Senha (se usou)">
+        
+        <button type="submit" id="extract-btn">
+          <span>🔓 Extrair Arquivo(s)</span>
+        </button>
+      </form>
+      
+      <div class="status" id="extract-status"></div>
+    </div>
+    
+    <div class="security-badge">
+      <div class="security-badge-icon">🛡️</div>
+      <div class="security-badge-text">Criptografia AES-256 + LSB Steganography<br>Arquivos processados localmente - Máxima segurança</div>
+    </div>
+  </div>
+  
+  <script>
+    function switchMode(mode) {
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.mode-content').forEach(content => content.classList.remove('active'));
+      
+      if (mode === 'hide') {
+        document.querySelector('.mode-btn:first-child').classList.add('active');
+        document.getElementById('hide-mode').classList.add('active');
+      } else {
+        document.querySelector('.mode-btn:last-child').classList.add('active');
+        document.getElementById('extract-mode').classList.add('active');
+      }
+    }
+    
+    document.getElementById('hide-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('hide-btn');
+      const status = document.getElementById('hide-status');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span><span>Processando...</span>';
+      status.classList.remove('show');
+      
+      const formData = new FormData(e.target);
+      
+      try {
+        const response = await fetch('/stealth/hide', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'stealth_image.png';
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          
+          status.className = 'status success show';
+          status.textContent = '✅ Arquivo escondido com sucesso! Download iniciado.';
+        } else {
+          const result = await response.json();
+          status.className = 'status error show';
+          status.textContent = '❌ ' + (result.error || 'Erro ao esconder arquivo');
+        }
+      } catch (error) {
+        status.className = 'status error show';
+        status.textContent = '❌ Erro ao processar';
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔒 Esconder Arquivo</span>';
+    });
+    
+    document.getElementById('extract-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('extract-btn');
+      const status = document.getElementById('extract-status');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span><span>Extraindo...</span>';
+      status.classList.remove('show');
+      
+      const formData = new FormData(e.target);
+      
+      try {
+        const response = await fetch('/stealth/extract', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          const filename = response.headers.get('X-Filename') || 'extracted_file';
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          
+          status.className = 'status success show';
+          status.textContent = '✅ Arquivo extraído com sucesso! Download iniciado.';
+        } else {
+          const result = await response.json();
+          status.className = 'status error show';
+          status.textContent = '❌ ' + (result.error || 'Erro ao extrair arquivo');
+        }
+      } catch (error) {
+        status.className = 'status error show';
+        status.textContent = '❌ Erro ao processar';
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔓 Extrair Arquivo</span>';
+    });
+  </script>
+</body>
+</html>
+"""
+
+@app.route("/stealth", methods=["GET"], strict_slashes=False)
+def stealth():
+    return render_template_string(STEALTH_HTML)
+
+@app.route("/stealth/hide", methods=["POST"], strict_slashes=False)
+def stealth_hide():
+    try:
+        from PIL import Image
+        from Crypto.Cipher import AES
+        from Crypto.Random import get_random_bytes
+        from Crypto.Protocol.KDF import PBKDF2
+        import io
+        import zipfile
+        import subprocess
+        
+        cover_file = request.files.get('cover_image')
+        secret_files = request.files.getlist('secret_files')
+        password = request.form.get('password', '').strip()
+        
+        if not all([cover_file, secret_files]):
+            return jsonify({'error': 'Dados incompletos'}), 400
+        
+        # Ler arquivo de cobertura
+        cover_data = cover_file.read()
+        cover_ext = os.path.splitext(cover_file.filename)[1].lower()
+        
+        # Preparar múltiplos arquivos secretos
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for secret_file in secret_files:
+                zf.writestr(secret_file.filename, secret_file.read())
+        secret_data = zip_buffer.getvalue()
+        
+        # Criptografar se senha fornecida
+        if password:
+            salt = get_random_bytes(16)
+            key = PBKDF2(password, salt, dkLen=32)
+            cipher = AES.new(key, AES.MODE_GCM)
+            ciphertext, tag = cipher.encrypt_and_digest(secret_data)
+            # Header: MAGIC + salt + nonce + tag + data_len + data
+            header = b'STLTH' + salt + cipher.nonce + tag + len(ciphertext).to_bytes(4, 'big')
+            full_data = header + ciphertext
+        else:
+            # Sem senha: MAGIC + data_len + data
+            header = b'STLTH' + b'\x00' * 48 + len(secret_data).to_bytes(4, 'big')
+            full_data = header + secret_data
+        
+        # Esconder baseado no tipo de arquivo
+        if cover_ext in ['.jpg', '.jpeg', '.png', '.bmp', '.gif', '.webp', '.tiff', '.tif']:
+            # LSB em imagens
+            img = Image.open(io.BytesIO(cover_data))
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            pixels = list(img.getdata())
+            
+            data_bits = ''.join(format(byte, '08b') for byte in full_data)
+            max_bits = len(pixels) * 3
+            
+            if len(data_bits) > max_bits - 32:
+                return jsonify({'error': 'Arquivo de cobertura muito pequeno'}), 400
+            
+            new_pixels = []
+            bit_index = 0
+            
+            for pixel in pixels:
+                r, g, b = pixel
+                if bit_index < len(data_bits):
+                    r = (r & 0xFE) | int(data_bits[bit_index])
+                    bit_index += 1
+                if bit_index < len(data_bits):
+                    g = (g & 0xFE) | int(data_bits[bit_index])
+                    bit_index += 1
+                if bit_index < len(data_bits):
+                    b = (b & 0xFE) | int(data_bits[bit_index])
+                    bit_index += 1
+                new_pixels.append((r, g, b))
+            
+            stego_img = Image.new('RGB', img.size)
+            stego_img.putdata(new_pixels)
+            output = io.BytesIO()
+            stego_img.save(output, format='PNG')
+            output.seek(0)
+            
+            # Manter extensão original se possível
+            output_ext = cover_ext if cover_ext in ['.png'] else '.png'
+            return send_file(output, as_attachment=True, download_name=f'stealth{output_ext}')
+        
+        else:
+            # Para vídeos, áudios, PDFs e outros: anexar ao final
+            output = io.BytesIO()
+            output.write(cover_data)
+            output.write(full_data)
+            output.seek(0)
+            
+            # Manter extensão e mimetype original
+            mimetype_map = {
+                '.mp4': 'video/mp4',
+                '.avi': 'video/x-msvideo',
+                '.mkv': 'video/x-matroska',
+                '.mov': 'video/quicktime',
+                '.mp3': 'audio/mpeg',
+                '.wav': 'audio/wav',
+                '.flac': 'audio/flac',
+                '.m4a': 'audio/mp4',
+                '.ogg': 'audio/ogg',
+                '.pdf': 'application/pdf'
+            }
+            
+            mimetype = mimetype_map.get(cover_ext, 'application/octet-stream')
+            filename = f'stealth{cover_ext}'
+            
+            return send_file(output, mimetype=mimetype, as_attachment=True, download_name=filename)
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route("/stealth/extract", methods=["POST"], strict_slashes=False)
+def stealth_extract():
+    try:
+        from PIL import Image
+        from Crypto.Cipher import AES
+        from Crypto.Protocol.KDF import PBKDF2
+        import io
+        import zipfile
+        
+        stego_file = request.files.get('stego_image')
+        password = request.form.get('password', '').strip()
+        
+        if not stego_file:
+            return jsonify({'error': 'Arquivo não fornecido'}), 400
+        
+        file_data = stego_file.read()
+        file_ext = os.path.splitext(stego_file.filename)[1].lower()
+        
+        data_bytes = None
+        
+        # Extrair baseado no tipo
+        if file_ext in ['.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp']:
+            # LSB de imagens
+            img = Image.open(io.BytesIO(file_data))
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            pixels = list(img.getdata())
+            
+            bits = []
+            for pixel in pixels:
+                r, g, b = pixel
+                bits.append(str(r & 1))
+                bits.append(str(g & 1))
+                bits.append(str(b & 1))
+            
+            bit_string = ''.join(bits)
+            data_bytes = bytearray()
+            for i in range(0, len(bit_string), 8):
+                byte = bit_string[i:i+8]
+                if len(byte) == 8:
+                    data_bytes.append(int(byte, 2))
+        
+        else:
+            # Buscar MAGIC no final do arquivo
+            data_bytes = bytearray(file_data)
+        
+        # Procurar por MAGIC marker
+        magic = b'STLTH'
+        magic_index = -1
+        
+        for i in range(len(data_bytes) - len(magic)):
+            if bytes(data_bytes[i:i+len(magic)]) == magic:
+                magic_index = i
+                break
+        
+        if magic_index == -1:
+            return jsonify({'error': 'Nenhum arquivo escondido encontrado'}), 400
+        
+        # Extrair header
+        header_start = magic_index + len(magic)
+        salt = bytes(data_bytes[header_start:header_start+16])
+        
+        # Verificar se tem senha
+        has_password = salt != b'\x00' * 16
+        
+        if has_password:
+            if not password:
+                return jsonify({'error': 'Este arquivo requer senha'}), 400
+            
+            nonce = bytes(data_bytes[header_start+16:header_start+32])
+            tag = bytes(data_bytes[header_start+32:header_start+48])
+            data_len = int.from_bytes(bytes(data_bytes[header_start+48:header_start+52]), 'big')
+            ciphertext = bytes(data_bytes[header_start+52:header_start+52+data_len])
+            
+            # Descriptografar
+            key = PBKDF2(password, salt, dkLen=32)
+            cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
+            plaintext = cipher.decrypt_and_verify(ciphertext, tag)
+        else:
+            # Sem senha
+            data_len = int.from_bytes(bytes(data_bytes[header_start+48:header_start+52]), 'big')
+            plaintext = bytes(data_bytes[header_start+52:header_start+52+data_len])
+        
+        # Extrair ZIP com múltiplos arquivos
+        zip_buffer = io.BytesIO(plaintext)
+        
+        # Se for apenas 1 arquivo, retornar diretamente
+        with zipfile.ZipFile(zip_buffer, 'r') as zf:
+            files = zf.namelist()
+            if len(files) == 1:
+                filename = files[0]
+                file_data = zf.read(filename)
+                output = io.BytesIO(file_data)
+                output.seek(0)
+                response = send_file(output, as_attachment=True, download_name=filename)
+                response.headers['X-Filename'] = filename
+                return response
+            else:
+                # Múltiplos arquivos: retornar ZIP
+                output = io.BytesIO(plaintext)
+                output.seek(0)
+                response = send_file(output, as_attachment=True, download_name='extracted_files.zip')
+                response.headers['X-Filename'] = 'extracted_files.zip'
+                return response
+    
+    except Exception as e:
+        return jsonify({'error': 'Erro ao extrair: senha incorreta ou arquivo inválido'}), 400
+
+@app.route("/censor", methods=["GET"], strict_slashes=False)
+def censor():
+    try:
+        with open('templates/censor.html', 'r', encoding='utf-8') as f:
+            return f.read()
+    except:
+        return "<h1>Erro ao carregar Censor</h1>"
 
 if __name__ == "__main__":
     app.run(debug=True)

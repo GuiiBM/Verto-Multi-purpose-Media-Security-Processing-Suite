@@ -1,0 +1,62 @@
+{
+  "images": {
+    "formats": [".jpg", ".jpeg", ".png", ".webp", ".tiff", ".tif", ".bmp", ".gif", ".ico", ".heic", ".heif", ".avif", ".svg", ".psd", ".raw", ".cr2", ".nef", ".arw", ".dng", ".orf", ".raf", ".rw2", ".pef", ".sr2", ".jfif", ".jpe", ".jif", ".jfi", ".jp2", ".j2k", ".jpf", ".jpx", ".jpm", ".mj2", ".exr", ".hdr", ".tga", ".dds", ".pcx", ".ppm", ".pbm", ".pgm", ".pnm", ".pfm", ".pam", ".pgx", ".xcf", ".xpm", ".xbm", ".xwd", ".cur", ".dcm", ".fax", ".fts", ".g3", ".g4"],
+    "description": "Formatos de imagem suportados"
+  },
+  "raw_images": {
+    "formats": [".cr2", ".nef", ".arw", ".dng", ".orf", ".raf", ".rw2", ".pef", ".sr2", ".3fr", ".mef", ".mrw", ".dcr", ".kdc", ".k25", ".crw", ".erf", ".iiq", ".nrw", ".srf", ".x3f"],
+    "description": "Formatos RAW de câmeras"
+  },
+  "videos": {
+    "formats": [".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv", ".m4v", ".mpg", ".mpeg", ".3gp", ".3g2", ".f4v", ".swf", ".vob", ".ogv", ".m2ts", ".mts", ".ts", ".divx", ".xvid", ".asf", ".rm", ".rmvb", ".dv", ".mxf", ".mod", ".tod", ".m2v", ".mjpeg", ".hevc", ".av1", ".vp8", ".vp9", ".theora", ".prores", ".dnxhd", ".cineform"],
+    "description": "Formatos de vídeo suportados"
+  },
+  "audio": {
+    "formats": [".mp3", ".wav", ".flac", ".m4a", ".aac", ".ogg", ".wma", ".opus", ".aiff", ".ape", ".alac", ".ac3", ".dts", ".amr", ".au", ".mid", ".midi", ".mka", ".mp2", ".mpc", ".oga", ".ra", ".spx", ".tta", ".voc", ".wv", ".3ga", ".caf", ".gsm", ".m4b", ".m4p", ".mogg", ".raw", ".rf64", ".sln", ".vox", ".webm", ".8svx", ".cda"],
+    "description": "Formatos de áudio suportados"
+  },
+  "documents": {
+    "formats": [".pdf", ".doc", ".docx", ".txt", ".rtf", ".odt", ".html", ".htm", ".xls", ".xlsx", ".csv", ".docm", ".dot", ".dotx", ".dotm", ".xps", ".oxps", ".ods", ".ots", ".numbers", ".pages", ".tex", ".md", ".markdown", ".rst", ".adoc", ".abw", ".aw", ".dbk", ".djvu", ".kwd", ".sxw", ".wps"],
+    "description": "Formatos de documentos suportados"
+  },
+  "presentations": {
+    "formats": [".ppt", ".pptx", ".odp", ".pps", ".ppsx", ".pptm", ".potx", ".pot", ".potm", ".ppsm", ".key", ".sxi", ".sti"],
+    "description": "Formatos de apresentação suportados"
+  },
+  "ebooks": {
+    "formats": [".epub", ".mobi", ".azw", ".azw3", ".azw4", ".fb2", ".cbr", ".cbz", ".cb7", ".cbt", ".cba", ".lit", ".prc", ".lrf", ".rb", ".snb", ".tcr", ".opf", ".tr2", ".tr3"],
+    "description": "Formatos de eBooks suportados"
+  },
+  "archives": {
+    "formats": [".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".iso", ".dmg", ".pkg", ".deb", ".rpm", ".apk", ".ipa", ".ace", ".alz", ".arc", ".arj", ".cab", ".cpio", ".jar", ".lha", ".lz", ".lzma", ".lzo", ".z", ".tbz2", ".tgz"],
+    "description": "Formatos de arquivo compactado suportados"
+  },
+  "fonts": {
+    "formats": [".ttf", ".otf", ".woff", ".woff2", ".eot", ".pfa", ".pfb", ".fon", ".fnt", ".bdf", ".pcf", ".snf", ".afm", ".cff", ".cid", ".dfont", ".sfd", ".ufo", ".ps", ".pt3", ".t11", ".t42"],
+    "description": "Formatos de fonte suportados"
+  },
+  "cad": {
+    "formats": [".dwg", ".dxf", ".dwf", ".dgn", ".iges", ".igs", ".step", ".stp", ".stl", ".ifc", ".rvt", ".rfa", ".sat", ".sab", ".catpart", ".catproduct", ".prt", ".asm", ".sldprt", ".sldasm", ".slddrw", ".skp"],
+    "description": "Formatos CAD suportados"
+  },
+  "3d_models": {
+    "formats": [".obj", ".fbx", ".stl", ".3ds", ".dae", ".blend", ".gltf", ".glb", ".ply", ".usd", ".usda", ".usdc", ".usdz", ".x3d", ".wrl", ".vrml", ".ma", ".mb", ".max", ".c4d", ".lwo", ".lws", ".lxo", ".modo", ".zpr", ".ztl"],
+    "description": "Formatos de modelos 3D suportados"
+  },
+  "code": {
+    "formats": [".txt", ".md", ".csv", ".json", ".xml", ".html", ".css", ".js", ".py", ".java", ".cpp", ".c", ".h", ".php", ".rb", ".go", ".rs", ".swift", ".kt", ".sql", ".ts", ".jsx", ".tsx", ".vue", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", ".log", ".sh", ".bat", ".ps1", ".cmd"],
+    "description": "Formatos de código e texto suportados"
+  },
+  "executables": {
+    "formats": [".exe", ".dll", ".so", ".dylib", ".app", ".msi", ".bin", ".dat"],
+    "description": "Formatos executáveis"
+  },
+  "databases": {
+    "formats": [".db", ".sqlite", ".mdb", ".accdb", ".sql"],
+    "description": "Formatos de banco de dados"
+  },
+  "design": {
+    "formats": [".psd", ".ai", ".eps", ".sketch", ".fig", ".xd", ".indd"],
+    "description": "Formatos de design gráfico"
+  }
+}

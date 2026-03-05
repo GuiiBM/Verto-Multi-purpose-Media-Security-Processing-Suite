@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instruções - LocalTools</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .back-button:hover {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #22c55e;
+      transform: translateX(-6px);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .logo {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 10px;
+      letter-spacing: 8px;
+    }
+    .tagline {
+      text-align: center;
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 48px;
+      font-weight: 500;
+    }
+    .app-section {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+    }
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .app-icon {
+      font-size: 48px;
+    }
+    .app-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .app-description {
+      font-size: 15px;
+      color: #94a3b8;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .features {
+      display: grid;
+      gap: 12px;
+    }
+    .feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .feature-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .feature-text {
+      flex: 1;
+    }
+    .feature-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .feature-desc {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+    .sub-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .sub-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="container">
+    <div class="logo">LOCALTOOLS</div>
+    <div class="tagline">Guia Completo de Funcionalidades</div>
+    
+    <!-- VERTO -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🎬</div>
+        <div class="app-title">Verto - Conversor de Mídia</div>
+      </div>
+      <div class="app-description">
+        Baixe vídeos e áudios do YouTube com seleção de qualidade e cálculo automático de tamanho.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📺</div>
+          <div class="feature-text">
+            <div class="feature-title">Download de Vídeos MP4</div>
+            <div class="feature-desc">Qualidades: 8K, 4K, 2K, 1080p, 720p, 480p, 360p. Tamanho estimado em tempo real.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎵</div>
+          <div class="feature-text">
+            <div class="feature-title">Download de Áudio MP3</div>
+            <div class="feature-desc">Bitrates: 320kbps, 256kbps, 192kbps, 128kbps. Extração de áudio de alta qualidade.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🖼️</div>
+          <div class="feature-text">
+            <div class="feature-title">Download de Thumbnails</div>
+            <div class="feature-desc">Formatos PNG e JPG. Resoluções: Máxima, Alta, Média, Padrão.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <div class="feature-title">Preview em Tempo Real</div>
+            <div class="feature-desc">Visualize thumbnail, título e duração antes de baixar.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PURPLEFLIX -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🎮</div>
+        <div class="app-title">PurpleFlix - Streaming</div>
+      </div>
+      <div class="app-description">
+        Plataforma de streaming integrada.
+      </div>
+    </div>
+
+    <!-- TEMPO -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">⏰</div>
+        <div class="app-title">Tempo - Relógio e Calendário</div>
+      </div>
+      <div class="app-description">
+        Relógio digital e analógico com calendário interativo e feriados brasileiros.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🕐</div>
+          <div class="feature-text">
+            <div class="feature-title">Relógio Duplo</div>
+            <div class="feature-desc">Digital e analógico sincronizados em tempo real.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📅</div>
+          <div class="feature-text">
+            <div class="feature-title">Calendário Interativo</div>
+            <div class="feature-desc">Navegação por meses e anos. Visualização de dias, meses e anos.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎉</div>
+          <div class="feature-text">
+            <div class="feature-title">Feriados Brasileiros</div>
+            <div class="feature-desc">Lista completa de feriados nacionais de 2024-2026.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDFS -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">📄</div>
+        <div class="app-title">PDFs - Suite Completa</div>
+      </div>
+      <div class="app-description">
+        Ferramentas profissionais para manipulação de PDFs.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">✂️</div>
+          <div class="feature-text">
+            <div class="feature-title">Dividir PDF</div>
+            <div class="feature-desc">Divida PDFs em múltiplos arquivos por intervalos de páginas personalizados.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔄</div>
+          <div class="feature-text">
+            <div class="feature-title">Converter PDF</div>
+            <div class="feature-desc">PDF ↔ Imagens (JPG/PNG). Imagens → PDF.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🗜️</div>
+          <div class="feature-text">
+            <div class="feature-title">Comprimir PDF</div>
+            <div class="feature-desc">Reduza o tamanho com 3 níveis de qualidade (Baixa, Média, Alta).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔄</div>
+          <div class="feature-text">
+            <div class="feature-title">Girar PDF</div>
+            <div class="feature-desc">Rotação de páginas: 90°, 180°, 270°. Individual ou em massa.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔍</div>
+          <div class="feature-text">
+            <div class="feature-title">Comparar PDFs</div>
+            <div class="feature-desc">Compare múltiplos PDFs e veja diferenças e similaridades.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔧</div>
+          <div class="feature-text">
+            <div class="feature-title">Reparar PDF</div>
+            <div class="feature-desc">5 estratégias de recuperação para PDFs corrompidos.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text">
+            <div class="feature-title">Proteger PDF</div>
+            <div class="feature-desc">Adicione senha de criptografia aos seus PDFs.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔓</div>
+          <div class="feature-text">
+            <div class="feature-title">Desbloquear PDF</div>
+            <div class="feature-desc">Remova senhas com força bruta (10.000 combinações) ou senha conhecida.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">✏️</div>
+          <div class="feature-text">
+            <div class="feature-title">Editar PDF</div>
+            <div class="feature-desc">Extraia texto e crie novo PDF editado.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💧</div>
+          <div class="feature-text">
+            <div class="feature-title">Marca D'água</div>
+            <div class="feature-desc">Adicione texto ou imagem como marca d'água. 15 posições + arraste customizado.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💥</div>
+          <div class="feature-text">
+            <div class="feature-title">Corromper PDF</div>
+            <div class="feature-desc">4 níveis de corrupção para testes (Leve, Médio, Pesado, Extremo).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔗</div>
+          <div class="feature-text">
+            <div class="feature-title">Mesclar PDFs</div>
+            <div class="feature-desc">Una múltiplos PDFs em um só. Selecione páginas específicas.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSPARÊNCIA -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🎨</div>
+        <div class="app-title">Transparência - Remover Fundo</div>
+      </div>
+      <div class="app-description">
+        Remova fundos de imagens automaticamente usando IA.
+      </div>
+    </div>
+
+    <!-- QR CODE -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🔲</div>
+        <div class="app-title">QR Code - Gerador Gratuito</div>
+      </div>
+      <div class="app-description">
+        Gere QR Codes estáticos permanentes sem marcas d'água ou expiração.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🔗</div>
+          <div class="feature-text">
+            <div class="feature-title">Links/URLs</div>
+            <div class="feature-desc">Qualquer endereço web.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📶</div>
+          <div class="feature-text">
+            <div class="feature-title">Wi-Fi</div>
+            <div class="feature-desc">Compartilhe credenciais de rede.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">👤</div>
+          <div class="feature-text">
+            <div class="feature-title">vCard</div>
+            <div class="feature-desc">Cartão de visita digital.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💰</div>
+          <div class="feature-text">
+            <div class="feature-title">PIX</div>
+            <div class="feature-desc">Pagamentos instantâneos.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎨</div>
+          <div class="feature-text">
+            <div class="feature-title">Customização Total</div>
+            <div class="feature-desc">Cores, tamanho, bordas, logo central, 4 níveis de correção de erro.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPRESSOR -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🗜️</div>
+        <div class="app-title">Compressor - Redução de Tamanho</div>
+      </div>
+      <div class="app-description">
+        Comprima imagens, vídeos e áudios mantendo qualidade.
+      </div>
+    </div>
+
+    <!-- ARQUIVOS -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">📁</div>
+        <div class="app-title">Arquivos - Conversor Universal</div>
+      </div>
+      <div class="app-description">
+        Converta entre 150+ formatos de arquivo com estimativa de tamanho.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🖼️</div>
+          <div class="feature-text">
+            <div class="feature-title">Imagens (50+ formatos)</div>
+            <div class="feature-desc">PNG, JPG, WEBP, HEIC, RAW, TIFF, BMP, GIF, SVG, PSD, etc.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎬</div>
+          <div class="feature-text">
+            <div class="feature-title">Vídeos (35+ formatos)</div>
+            <div class="feature-desc">MP4, AVI, MKV, MOV, WEBM, FLV, etc.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎵</div>
+          <div class="feature-text">
+            <div class="feature-title">Áudios (40+ formatos)</div>
+            <div class="feature-desc">MP3, WAV, FLAC, AAC, OGG, OPUS, etc.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📄</div>
+          <div class="feature-text">
+            <div class="feature-title">Documentos, eBooks, Fontes, CAD, 3D</div>
+            <div class="feature-desc">PDF, DOCX, EPUB, TTF, DWG, OBJ e muito mais.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSCREVER -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🎤</div>
+        <div class="app-title">Transcrever - Áudio para Texto</div>
+      </div>
+      <div class="app-description">
+        Converta áudios e vídeos em texto formatado usando reconhecimento de voz.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🎯</div>
+          <div class="feature-text">
+            <div class="feature-title">Reconhecimento Avançado</div>
+            <div class="feature-desc">Sample rate 48kHz, filtros de áudio (FFT, speechnorm), chunks de 20s.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🌍</div>
+          <div class="feature-text">
+            <div class="feature-title">Múltiplos Idiomas</div>
+            <div class="feature-desc">PT-BR, EN-US, PT-PT, ES-ES com fallback automático.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📝</div>
+          <div class="feature-text">
+            <div class="feature-title">Formatação Automática</div>
+            <div class="feature-desc">Capitalização de sentenças e texto limpo.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📋</div>
+          <div class="feature-text">
+            <div class="feature-title">Copiar Resultado</div>
+            <div class="feature-desc">Botão para copiar transcrição para área de transferência.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GHOST TOOL -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">👻</div>
+        <div class="app-title">Ghost Tool - Removedor de Metadados</div>
+      </div>
+      <div class="app-description">
+        Remova metadados de múltiplos arquivos simultaneamente. GPS, autor, datas, câmera - tudo apagado permanentemente.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📷</div>
+          <div class="feature-text">
+            <div class="feature-title">Imagens (50+ formatos)</div>
+            <div class="feature-desc">Remove EXIF, GPS, câmera, software. Recria pixel por pixel.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎬</div>
+          <div class="feature-text">
+            <div class="feature-title">Vídeos e Áudios (70+ formatos)</div>
+            <div class="feature-desc">Remove metadados com FFmpeg. Mantém qualidade original.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📄</div>
+          <div class="feature-text">
+            <div class="feature-title">Documentos Office</div>
+            <div class="feature-desc">Remove autor, empresa, datas de DOCX, XLSX, PPTX.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📚</div>
+          <div class="feature-text">
+            <div class="feature-title">PDFs, eBooks, Arquivos</div>
+            <div class="feature-desc">Remove metadados de PDFs, EPUBs, ZIPs e mais.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <div class="feature-title">Processamento em Massa</div>
+            <div class="feature-desc">Múltiplos arquivos simultaneamente. Download em lote.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text">
+            <div class="feature-title">100% Local</div>
+            <div class="feature-desc">Arquivos nunca saem do seu computador.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEALTH -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🕵️</div>
+        <div class="app-title">Stealth - Esteganografia Criptografada</div>
+      </div>
+      <div class="app-description">
+        Esconda arquivos secretos dentro de imagens, vídeos, áudios ou PDFs com criptografia AES-256 opcional.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🔐</div>
+          <div class="feature-text">
+            <div class="feature-title">Esconder Arquivos</div>
+            <div class="feature-desc">Múltiplos arquivos em imagens (LSB), vídeos, áudios ou PDFs. Senha opcional.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔓</div>
+          <div class="feature-text">
+            <div class="feature-title">Extrair Arquivos</div>
+            <div class="feature-desc">Recupere arquivos escondidos com ou sem senha. Detecção automática.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🛡️</div>
+          <div class="feature-text">
+            <div class="feature-title">Criptografia AES-256-GCM</div>
+            <div class="feature-desc">Criptografia militar com PBKDF2, salt, nonce e tag de autenticação.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎨</div>
+          <div class="feature-text">
+            <div class="feature-title">LSB Steganography</div>
+            <div class="feature-desc">Esconde dados nos bits menos significativos dos pixels. Invisível ao olho humano.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📦</div>
+          <div class="feature-text">
+            <div class="feature-title">Múltiplos Arquivos</div>
+            <div class="feature-desc">Esconda vários arquivos de uma vez. Compactação automática em ZIP.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎯</div>
+          <div class="feature-text">
+            <div class="feature-title">Formato Original Mantido</div>
+            <div class="feature-desc">MP4 → MP4, MP3 → MP3, PDF → PDF. Arquivo de saída mantém formato de cobertura.</div>
+          </div>
+        </div>
+      </div>
+      <div class="sub-section">
+        <div class="sub-title">📋 Casos de Uso</div>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">📱</div>
+            <div class="feature-text">
+              <div class="feature-desc">Envie documentos secretos via redes sociais (Instagram, WhatsApp)</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">💾</div>
+            <div class="feature-text">
+              <div class="feature-desc">Backup criptografado disfarçado em fotos comuns</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">🔒</div>
+            <div class="feature-text">
+              <div class="feature-desc">Comunicação segura e discreta</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">🎭</div>
+            <div class="feature-text">
+              <div class="feature-desc">Proteção de dados sensíveis em plain sight</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENSOR -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🔒</div>
+        <div class="app-title">Censor - Proteção de Privacidade com IA</div>
+      </div>
+      <div class="app-description">
+        Censura automática de informações sensíveis em imagens usando IA. Detecta e oculta rostos, documentos, placas, e-mails, telefones, cartões, sites, nomes, @IDs e mais.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">👤</div>
+          <div class="feature-text">
+            <div class="feature-title">Detecção de Rostos</div>
+            <div class="feature-desc">BlazeFace (TensorFlow.js) detecta rostos automaticamente em tempo real.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔤</div>
+          <div class="feature-text">
+            <div class="feature-title">Documentos (CPF, RG, CNH)</div>
+            <div class="feature-desc">OCR com Tesseract.js identifica números de documentos brasileiros.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🚗</div>
+          <div class="feature-text">
+            <div class="feature-title">Placas de Veículos</div>
+            <div class="feature-desc">Detecta placas padrão brasileiro (ABC1D23) e Mercosul.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">✉️</div>
+          <div class="feature-text">
+            <div class="feature-title">E-mails</div>
+            <div class="feature-desc">Identifica e censura endereços de e-mail em imagens.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📞</div>
+          <div class="feature-text">
+            <div class="feature-title">Telefones</div>
+            <div class="feature-desc">Detecta números de telefone (fixo e celular) com DDD.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💳</div>
+          <div class="feature-text">
+            <div class="feature-title">Cartões de Crédito</div>
+            <div class="feature-desc">Identifica padrões de 16 dígitos de cartões.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🌐</div>
+          <div class="feature-text">
+            <div class="feature-title">Sites e URLs</div>
+            <div class="feature-desc">Detecta endereços web (http://, https://, www.) em imagens.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">👤</div>
+          <div class="feature-text">
+            <div class="feature-title">Nomes de Pessoas</div>
+            <div class="feature-desc">Identifica nomes próprios (padrão Nome Sobrenome).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">@</div>
+          <div class="feature-text">
+            <div class="feature-title">IDs e Handles</div>
+            <div class="feature-desc">Detecta @usernames de redes sociais (Twitter, Instagram, etc).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎨</div>
+          <div class="feature-text">
+            <div class="feature-title">8 Tipos de Censura</div>
+            <div class="feature-desc">Desfoque, Pixelizar, Tarja Preta, Tarja Branca, Emoji 😎, Gradiente, Redação ████, Ruído.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🤖</div>
+          <div class="feature-text">
+            <div class="feature-title">Intensidade Automática</div>
+            <div class="feature-desc">IA analisa brilho da imagem e ajusta intensidade automaticamente (ou manual: Baixa/Média/Alta).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <div class="feature-title">Processamento em Massa</div>
+            <div class="feature-desc">Até 20 imagens simultaneamente com download em lote.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text">
+            <div class="feature-title">100% Local no Navegador</div>
+            <div class="feature-desc">IA roda no navegador. Arquivos nunca saem do seu computador.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 60px;"></div>
+  </div>
+</body>
+</html>

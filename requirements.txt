@@ -9,3 +9,5 @@ rembg
 numpy
 qrcode[pil]
 segno
+SpeechRecognition
+pycryptodome

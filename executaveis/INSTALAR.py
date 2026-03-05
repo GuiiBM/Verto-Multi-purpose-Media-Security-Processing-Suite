@@ -98,7 +98,9 @@ def main():
         "numpy",
         "qrcode[pil]>=7.4.2",
         "segno>=1.6.0",
-        "moviepy"
+        "moviepy",
+        "SpeechRecognition",
+        "pycryptodome"
     ]
     
     for i, package in enumerate(packages, 1):
