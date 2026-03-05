@@ -12948,21 +12948,17 @@ class FrontroGroupBaseIE(FrontoBaseIE):
 
 
 class TheChosenGroupIE(FrontroGroupBaseIE):
-    _module = 'yt_dlp.extractor.frontro'
+    _module = 'yt_dlp.extractor.thechosen'
     IE_NAME = 'TheChosenGroup'
     _VALID_URL = 'https?://(?:www\\.)?watch\\.thechosen\\.tv/group/(?P<id>[0-9]+)'
+    _WORKING = False
     _RETURN_TYPE = 'playlist'
 
 
-class FrontroVideoBaseIE(FrontoBaseIE):
-    _module = 'yt_dlp.extractor.frontro'
-    IE_NAME = 'FrontroVideoBase'
-
-
-class TheChosenIE(FrontroVideoBaseIE):
-    _module = 'yt_dlp.extractor.frontro'
+class TheChosenIE(LazyLoadExtractor):
+    _module = 'yt_dlp.extractor.thechosen'
     IE_NAME = 'TheChosen'
-    _VALID_URL = 'https?://(?:www\\.)?watch\\.thechosen\\.tv/watch/(?P<id>[0-9]+)'
+    _VALID_URL = 'https?://(?:www\\.)?watch\\.thechosen\\.tv/(?:video|watch)/(?P<id>[0-9]+)'
     _RETURN_TYPE = 'video'
 
 
@@ -15701,7 +15697,7 @@ class ZaikoIE(ZaikoBaseIE):
 class ZapiksIE(LazyLoadExtractor):
     _module = 'yt_dlp.extractor.zapiks'
     IE_NAME = 'Zapiks'
-    _VALID_URL = 'https?://(?:www\\.)?zapiks\\.(?:fr|com)/(?:(?:[a-z]{2}/)?(?P<display_id>.+?)\\.html|index\\.php\\?.*\\bmedia_id=(?P<id>\\d+))'
+    _VALID_URL = ['https?://(?:www\\.)?zapiks\\.(?:com|fr)/(?P<id>[\\w-]+)\\.html', 'https?://(?:www\\.)?zapiks\\.fr/index\\.php\\?(?:[^#]+&)?media_id=(?P<id>\\d+)']
     _RETURN_TYPE = 'video'
 
 

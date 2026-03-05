@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clean Reader - Limpador de Distração</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.06) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+    }
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      width: 56px;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(40px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 1000;
+      color: #cbd5e1;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .back-button:hover {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(59, 130, 246, 0.4);
+      color: #3b82f6;
+      transform: translateX(-6px);
+    }
+    .logo {
+      font-size: 64px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.7));
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .tagline {
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 48px;
+      font-weight: 500;
+      text-align: center;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .input-section {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 32px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+    }
+    h2 {
+      font-size: 20px;
+      color: #3b82f6;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    .input-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    input[type="url"] {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.8);
+      color: #f1f5f9;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    input[type="url"]:focus {
+      border-color: #3b82f6;
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    button {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .status {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .status.error {
+      color: #ef4444;
+    }
+    .status.success {
+      color: #22c55e;
+    }
+    .content-section {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 28px;
+      padding: 32px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      backdrop-filter: blur(40px);
+      display: none;
+    }
+    .content-section.show {
+      display: block;
+    }
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .content-title {
+      font-size: 24px;
+      color: #f1f5f9;
+      font-weight: 700;
+      flex: 1;
+    }
+    .export-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .export-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #3b82f6;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .export-btn:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+      transform: translateY(-2px);
+    }
+    .content-body {
+      background: white;
+      color: #1a1a1a;
+      padding: 40px;
+      border-radius: 16px;
+      line-height: 1.8;
+      font-size: 16px;
+    }
+    .content-body h1, .content-body h2, .content-body h3 {
+      color: #0f172a;
+      margin: 24px 0 16px;
+      font-weight: 700;
+    }
+    .content-body h1 { font-size: 28px; }
+    .content-body h2 { font-size: 24px; }
+    .content-body h3 { font-size: 20px; }
+    .content-body p {
+      margin-bottom: 16px;
+    }
+    .content-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+    .content-body a {
+      color: #3b82f6;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .content-body a:hover {
+      border-bottom-color: #3b82f6;
+    }
+    .reader-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #ffffff;
+      z-index: 2000;
+      overflow-y: auto;
+      display: none;
+      padding: 60px 20px 40px;
+    }
+    .reader-mode.show {
+      display: block;
+    }
+    .reader-content {
+      max-width: 700px;
+      margin: 0 auto;
+      color: #1a1a1a;
+      line-height: 1.8;
+      font-size: 18px;
+    }
+    .reader-content h1 {
+      font-size: 36px;
+      margin-bottom: 24px;
+      color: #0f172a;
+    }
+    .reader-close {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 24px;
+      color: #1a1a1a;
+    }
+    .reader-close:hover {
+      background: rgba(0, 0, 0, 0.2);
+      transform: scale(1.1);
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #94a3b8;
+    }
+    .loading.show {
+      display: block;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(59, 130, 246, 0.2);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @media (max-width: 640px) {
+      .logo { font-size: 48px; letter-spacing: 4px; }
+      .content-body { padding: 24px; font-size: 15px; }
+      .input-group { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  
+  <div class="logo">CLEAN</div>
+  <div class="tagline">Limpador de Distração - Leitura Sem Anúncios</div>
+  
+  <div class="container">
+    <div class="input-section">
+      <h2>🧹 Cole a URL do Artigo</h2>
+      <div class="input-group">
+        <input type="url" id="url-input" placeholder="https://exemplo.com/artigo" />
+        <button id="extract-btn" onclick="extractContent()">Limpar</button>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+    
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Extraindo conteúdo limpo...</p>
+    </div>
+    
+    <div class="content-section" id="content-section">
+      <div class="content-header">
+        <h2 class="content-title" id="content-title">Título do Artigo</h2>
+        <div class="export-buttons">
+          <button class="export-btn" onclick="readMode()">👁️ Ler</button>
+          <button class="export-btn" onclick="exportContent('pdf')">📄 PDF</button>
+          <button class="export-btn" onclick="exportContent('markdown')">📝 Markdown</button>
+          <button class="export-btn" onclick="exportContent('epub')">📚 EPUB</button>
+        </div>
+      </div>
+      <div class="content-body" id="content-body"></div>
+    </div>
+  </div>
+  
+  <script>
+    let currentContent = '';
+    let currentTitle = '';
+    
+    async function extractContent() {
+      const url = document.getElementById('url-input').value.trim();
+      const status = document.getElementById('status');
+      const loading = document.getElementById('loading');
+      const contentSection = document.getElementById('content-section');
+      const extractBtn = document.getElementById('extract-btn');
+      
+      if (!url) {
+        status.textContent = 'Por favor, insira uma URL válida';
+        status.className = 'status error';
+        return;
+      }
+      
+      extractBtn.disabled = true;
+      loading.classList.add('show');
+      contentSection.classList.remove('show');
+      status.textContent = '';
+      
+      try {
+        const response = await fetch('/clean/extract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          currentTitle = result.title;
+          currentContent = result.content;
+          
+          document.getElementById('content-title').textContent = result.title;
+          document.getElementById('content-body').innerHTML = result.content;
+          
+          loading.classList.remove('show');
+          contentSection.classList.add('show');
+          status.textContent = '✅ Conteúdo extraído com sucesso!';
+          status.className = 'status success';
+        } else {
+          loading.classList.remove('show');
+          status.textContent = '❌ Erro: ' + result.error;
+          status.className = 'status error';
+        }
+      } catch (error) {
+        loading.classList.remove('show');
+        status.textContent = '❌ Erro ao extrair conteúdo: ' + error.message;
+        status.className = 'status error';
+      } finally {
+        extractBtn.disabled = false;
+      }
+    }
+    
+    async function exportContent(format) {
+      const status = document.getElementById('status');
+      
+      try {
+        status.textContent = `Exportando para ${format.toUpperCase()}...`;
+        status.className = 'status';
+        
+        const response = await fetch('/clean/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            format: format,
+            title: currentTitle,
+            content: currentContent
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          status.textContent = `✅ ${result.filename} salvo em Downloads!`;
+          status.className = 'status success';
+        } else {
+          status.textContent = '❌ Erro ao exportar: ' + result.error;
+          status.className = 'status error';
+        }
+      } catch (error) {
+        status.textContent = '❌ Erro ao exportar: ' + error.message;
+        status.className = 'status error';
+      }
+    }
+    
+    document.getElementById('url-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        extractContent();
+      }
+    });
+    
+    function readMode() {
+      const readerMode = document.createElement('div');
+      readerMode.className = 'reader-mode show';
+      readerMode.innerHTML = `
+        <div class="reader-close" onclick="this.parentElement.remove()">×</div>
+        <div class="reader-content">
+          <h1>${currentTitle}</h1>
+          ${currentContent}
+        </div>
+      `;
+      document.body.appendChild(readerMode);
+    }
+  </script>
+</body>
+</html>

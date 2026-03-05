@@ -11,3 +11,11 @@ qrcode[pil]
 segno
 SpeechRecognition
 pycryptodome
+readability-lxml
+beautifulsoup4
+requests
+html2text
+ebooklib
+lxml
+demucs
+soundfile

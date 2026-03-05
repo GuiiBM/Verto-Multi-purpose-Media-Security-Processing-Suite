@@ -26,6 +26,9 @@ Aplicação web para baixar vídeos do YouTube com seleção de qualidade.
 - 👻 **Ghost Tool** - Removedor de metadados (150+ formatos)
 - 🕵️ **Stealth** - Esteganografia com criptografia AES-256
 - 🔒 **Censor** - Proteção de privacidade com IA (9 tipos de detecção)
+- 📱 **Social Preview** - Visualize posts em 24 formatos (Mobile/Desktop/Tablet)
+- 🧹 **Clean Reader** - Limpador de distrações com modo leitura
+- 🎤 **Isolador de Voz** - Separe vocais e instrumentais com IA (Demucs)
 
 ## ✨ Novidade: Cálculo Automático de Tamanho
 

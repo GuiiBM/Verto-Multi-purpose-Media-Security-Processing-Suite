@@ -35,7 +35,7 @@ def main():
     os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
     print_colored("\n========================================", "blue")
-    print_colored("    Verto - Instalação Completa", "blue")
+    print_colored("    LocalTools - Instalação Completa", "blue")
     print_colored("========================================", "blue")
     
     system = platform.system()
@@ -83,7 +83,7 @@ def main():
     print_colored("\n[3/5] Atualizando pip...", "yellow")
     run_command(f"{python_venv} -m pip install --upgrade pip --quiet")
     
-    # [4/8] Instalar dependências Python
+    # [4/5] Instalar dependências Python
     print_colored("\n[4/8] Instalando dependências Python...", "yellow")
     
     packages = [
@@ -100,7 +100,15 @@ def main():
         "segno>=1.6.0",
         "moviepy",
         "SpeechRecognition",
-        "pycryptodome"
+        "pycryptodome",
+        "readability-lxml",
+        "beautifulsoup4",
+        "requests",
+        "html2text",
+        "ebooklib",
+        "lxml",
+        "demucs",
+        "soundfile"
     ]
     
     for i, package in enumerate(packages, 1):
@@ -113,7 +121,7 @@ def main():
     
     print_colored("\nDependências Python instaladas!", "green")
     
-    # [5/8] Instalar FFmpeg
+    # [5/5] Instalar FFmpeg
     print_colored("\n[5/8] Instalando FFmpeg...", "yellow")
     
     if system == "Windows":

@@ -2,6 +2,7 @@ from flask import Flask, request, render_template_string, jsonify, Response, sen
 import yt_dlp
 import os
 import time
+import shutil
 from pathlib import Path
 import json
 try:
@@ -328,6 +329,14 @@ MENU_HTML = """
     <a href="/social" class="app">
       <div class="app-icon">📱</div>
       <div class="app-name">Social Preview</div>
+    </a>
+    <a href="/clean" class="app">
+      <div class="app-icon">🧹</div>
+      <div class="app-name">Clean Reader</div>
+    </a>
+    <a href="/isolate" class="app">
+      <div class="app-icon">🎤</div>
+      <div class="app-name">Isolador de Voz</div>
     </a>
   </div>
   <script>
@@ -8798,6 +8807,246 @@ def social():
             return f.read()
     except:
         return "<h1>Erro ao carregar Social Preview</h1>"
+
+@app.route("/clean", methods=["GET"], strict_slashes=False)
+def clean():
+    try:
+        with open('templates/clean.html', 'r', encoding='utf-8') as f:
+            return f.read()
+    except:
+        return "<h1>Erro ao carregar Clean Reader</h1>"
+
+@app.route("/clean/extract", methods=["POST"], strict_slashes=False)
+def clean_extract():
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        
+        data = request.get_json()
+        url = data.get('url', '').strip()
+        
+        if not url:
+            return jsonify({'success': False, 'error': 'URL inválida'})
+        
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Remover elementos indesejados
+        for tag in soup.find_all(['script', 'style', 'iframe', 'noscript', 'nav', 'header', 'footer', 'aside', 'form', 'button']):
+            tag.decompose()
+        
+        # Extrair título
+        title = soup.find('title')
+        title = title.get_text() if title else 'Artigo'
+        
+        # Extrair conteúdo principal
+        main_content = soup.find('article') or soup.find('main') or soup.find('div', class_=['content', 'post', 'article', 'entry']) or soup.find('body')
+        
+        if main_content:
+            # Limpar classes e IDs
+            for tag in main_content.find_all(True):
+                tag.attrs = {k: v for k, v in tag.attrs.items() if k in ['href', 'src', 'alt']}
+            
+            clean_html = str(main_content)
+            text_only = main_content.get_text(separator='\n', strip=True)
+        else:
+            clean_html = '<p>Não foi possível extrair o conteúdo</p>'
+            text_only = 'Não foi possível extrair o conteúdo'
+        
+        return jsonify({
+            'success': True,
+            'title': title,
+            'content': clean_html,
+            'text': text_only,
+            'url': url
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route("/clean/export", methods=["POST"], strict_slashes=False)
+def clean_export():
+    try:
+        data = request.get_json()
+        format_type = data.get('format', 'pdf')
+        title = data.get('title', 'Artigo')
+        content = data.get('content', '')
+        
+        downloads_dir = str(Path.home() / "Downloads")
+        os.makedirs(downloads_dir, exist_ok=True)
+        
+        filename = f"{title[:50].replace('/', '-')}"
+        
+        if format_type == 'pdf':
+            from reportlab.lib.pagesizes import letter
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.units import inch
+            from bs4 import BeautifulSoup
+            
+            output_path = os.path.join(downloads_dir, f"{filename}.pdf")
+            doc = SimpleDocTemplate(output_path, pagesize=letter)
+            styles = getSampleStyleSheet()
+            story = []
+            
+            title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, spaceAfter=30)
+            story.append(Paragraph(title, title_style))
+            story.append(Spacer(1, 0.2*inch))
+            
+            soup = BeautifulSoup(content, 'html.parser')
+            for p in soup.find_all(['p', 'h1', 'h2', 'h3', 'li']):
+                text = p.get_text(strip=True)
+                if text:
+                    story.append(Paragraph(text, styles['BodyText']))
+                    story.append(Spacer(1, 0.1*inch))
+            
+            doc.build(story)
+            return jsonify({'success': True, 'filename': f"{filename}.pdf"})
+        
+        elif format_type == 'markdown':
+            from bs4 import BeautifulSoup
+            import html2text
+            
+            h = html2text.HTML2Text()
+            h.ignore_links = False
+            markdown = h.handle(content)
+            
+            output_path = os.path.join(downloads_dir, f"{filename}.md")
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(f"# {title}\n\n{markdown}")
+            
+            return jsonify({'success': True, 'filename': f"{filename}.md"})
+        
+        elif format_type == 'epub':
+            from ebooklib import epub
+            from bs4 import BeautifulSoup
+            
+            book = epub.EpubBook()
+            book.set_title(title)
+            book.set_language('pt')
+            
+            c1 = epub.EpubHtml(title='Conteúdo', file_name='content.xhtml', lang='pt')
+            c1.content = f'<html><body><h1>{title}</h1>{content}</body></html>'
+            book.add_item(c1)
+            
+            book.toc = (epub.Link('content.xhtml', title, 'content'),)
+            book.add_item(epub.EpubNcx())
+            book.add_item(epub.EpubNav())
+            book.spine = ['nav', c1]
+            
+            output_path = os.path.join(downloads_dir, f"{filename}.epub")
+            epub.write_epub(output_path, book)
+            
+            return jsonify({'success': True, 'filename': f"{filename}.epub"})
+        
+        return jsonify({'success': False, 'error': 'Formato não suportado'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route("/isolate", methods=["GET"], strict_slashes=False)
+def isolate():
+    try:
+        with open('templates/isolate.html', 'r', encoding='utf-8') as f:
+            return f.read()
+    except:
+        return "<h1>Erro ao carregar Isolador de Voz</h1>"
+
+@app.route("/isolate/process", methods=["POST"], strict_slashes=False)
+@app.route("/isolate/process", methods=["POST"], strict_slashes=False)
+def isolate_process():
+    temp_dir = None
+    try:
+        import subprocess
+        import sys
+        
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'Nenhum arquivo enviado'})
+        
+        file = request.files['file']
+        stem_type = request.form.get('stem', 'vocals')
+        
+        downloads_dir = str(Path.home() / "Downloads")
+        temp_dir = os.path.join(downloads_dir, f'temp_isolate_{int(time.time())}')
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        input_path = os.path.join(temp_dir, file.filename)
+        file.save(input_path)
+        
+        output_dir = os.path.join(temp_dir, 'output')
+        python_path = sys.executable
+        
+        # Executar demucs com backend soundfile
+        env = os.environ.copy()
+        env['TORCHAUDIO_BACKEND'] = 'soundfile'
+        
+        process = subprocess.Popen(
+            [python_path, '-m', 'demucs', '--two-stems', stem_type, '-o', output_dir, input_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            universal_newlines=True,
+            env=env
+        )
+        
+        output_lines = []
+        for line in process.stdout:
+            output_lines.append(line.strip())
+            if len(output_lines) > 50:
+                output_lines.pop(0)
+        
+        process.wait()
+        
+        if process.returncode != 0:
+            error_msg = '\n'.join(output_lines[-10:])
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+            return jsonify({'success': False, 'error': f'Erro no processamento:\n{error_msg}'})
+        
+        base_name = os.path.splitext(file.filename)[0]
+        model_folder = os.path.join(output_dir, 'htdemucs', base_name)
+        
+        if stem_type == 'vocals':
+            output_file = os.path.join(model_folder, 'vocals.wav')
+            final_name = f"{base_name}_voz.wav"
+        else:
+            output_file = os.path.join(model_folder, 'no_vocals.wav')
+            final_name = f"{base_name}_instrumental.wav"
+        
+        if not os.path.exists(output_file):
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+            return jsonify({'success': False, 'error': f'Arquivo não encontrado. Esperado: {output_file}'})
+        
+        final_path = os.path.join(downloads_dir, final_name)
+        counter = 1
+        while os.path.exists(final_path):
+            final_name = f"{base_name}_voz_{counter}.wav" if stem_type == 'vocals' else f"{base_name}_instrumental_{counter}.wav"
+            final_path = os.path.join(downloads_dir, final_name)
+            counter += 1
+        
+        shutil.move(output_file, final_path)
+        
+        if temp_dir and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+        
+        return jsonify({'success': True, 'filename': final_name})
+    except Exception as e:
+        if temp_dir and os.path.exists(temp_dir):
+            try:
+                shutil.rmtree(temp_dir)
+            except:
+                pass
+        return jsonify({'success': False, 'error': f'Erro: {str(e)}'})
+
+@app.route("/isolate/progress/<task_id>", methods=["GET"], strict_slashes=False)
+def isolate_progress(task_id):
+    progress_file = os.path.join(str(Path.home() / "Downloads"), f'progress_{task_id}.json')
+    if os.path.exists(progress_file):
+        with open(progress_file, 'r') as f:
+            return jsonify(json.load(f))
+    return jsonify({'progress': 0, 'eta': 'Calculando...'})
 
 if __name__ == "__main__":
     app.run(debug=True)
