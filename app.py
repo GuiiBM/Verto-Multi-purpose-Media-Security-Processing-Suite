@@ -325,6 +325,10 @@ MENU_HTML = """
       <div class="app-icon">🔒</div>
       <div class="app-name">Censor</div>
     </a>
+    <a href="/social" class="app">
+      <div class="app-icon">📱</div>
+      <div class="app-name">Social Preview</div>
+    </a>
   </div>
   <script>
     function updateTime() {
@@ -7202,6 +7206,37 @@ TRANSCRIBE_HTML = """
       color: #cbd5e1;
       font-size: 14px;
       cursor: pointer;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    input[type="file"]::file-selector-button {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-right: 16px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+    }
+    input[type="file"]::file-selector-button:hover {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
+    }
+    input[type="file"]:hover {
+      border-color: rgba(34, 197, 94, 0.5);
+      background: rgba(15, 23, 42, 0.8);
+      border-style: solid;
+    }
+    input[type="file"]:focus {
+      border-color: #22c55e;
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+      border-style: solid;
     }
     input[type="file"]:hover {
       border-color: rgba(34, 197, 94, 0.5);
@@ -8206,7 +8241,49 @@ STEALTH_HTML = """
       margin-bottom: 8px;
       color: #cbd5e1;
     }
-    input[type="file"], input[type="password"], textarea {
+    input[type="file"] {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px dashed rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s;
+      margin-bottom: 16px;
+    }
+    input[type="file"]::file-selector-button {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-right: 16px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    }
+    input[type="file"]::file-selector-button:hover {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+    }
+    input[type="file"]:hover {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(15, 23, 42, 0.8);
+      border-style: solid;
+    }
+    input[type="file"]:focus {
+      border-color: #ef4444;
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      border-style: solid;
+    }
+    input[type="password"], textarea {
       width: 100%;
       padding: 12px;
       border-radius: 12px;
@@ -8219,7 +8296,7 @@ STEALTH_HTML = """
       margin-bottom: 16px;
       font-family: inherit;
     }
-    input:focus, textarea:focus {
+    input[type="password"]:focus, textarea:focus {
       border-color: #ef4444;
       background: rgba(15, 23, 42, 0.95);
       box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
@@ -8713,6 +8790,14 @@ def censor():
             return f.read()
     except:
         return "<h1>Erro ao carregar Censor</h1>"
+
+@app.route("/social", methods=["GET"], strict_slashes=False)
+def social():
+    try:
+        with open('templates/social.html', 'r', encoding='utf-8') as f:
+            return f.read()
+    except:
+        return "<h1>Erro ao carregar Social Preview</h1>"
 
 if __name__ == "__main__":
     app.run(debug=True)
