@@ -1,113 +1,126 @@
-# 🎬 YouTube MP4 Downloader
+# Verto: Multi-purpose Media & Security Processing Suite
 
-Aplicação web para baixar vídeos do YouTube com seleção de qualidade.
+> Processamento 100% local. Dados sensíveis nunca saem da máquina do usuário.
 
-## 📱 Menu de Apps Integrado
+Suíte de 16 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
 
-**Interface estilo smartphone com navegação entre aplicativos!**
+---
 
-### Como usar:
-1. **Execute `python executaveis/INICIAR.py`** (ou `./executaveis/INSTALAR.py` na primeira vez)
-2. **Acesse `http://localhost:5000`**
-3. **Clique no app Verto** para acessar o conversor
-4. **Use a seta ← no canto superior esquerdo** para voltar ao menu
+## Por que local-first?
 
-### Recursos do Menu:
-- 🎬 **Verto** - Conversor de vídeos do YouTube (MP4/MP3/Thumbnails)
-- 📖 **Instruções** - Documentação completa de todos os apps
-- 📁 **Arquivos** - Conversor universal (150+ formatos)
-- 🎮 **PurpleFlix** - Streaming integrado
-- ⏰ **Tempo** - Relógio e calendário com feriados brasileiros
-- 📄 **PDFs** - Suite completa (dividir, converter, comprimir, girar, etc)
-- 🎨 **Transparência** - Remover fundo de imagens com IA
-- 🔲 **QR Code** - Gerador gratuito e permanente
-- 🗜️ **Compressor** - Redução de tamanho de arquivos
-- 🎤 **Transcrever** - Áudio para texto com IA
-- 👻 **Ghost Tool** - Removedor de metadados (150+ formatos)
-- 🕵️ **Stealth** - Esteganografia com criptografia AES-256
-- 🔒 **Censor** - Proteção de privacidade com IA (9 tipos de detecção)
-- 📱 **Social Preview** - Visualize posts em 24 formatos (Mobile/Desktop/Tablet)
-- 🧹 **Clean Reader** - Limpador de distrações com modo leitura
-- 🎤 **Isolador de Voz** - Separe vocais e instrumentais com IA (Demucs)
+Ferramentas que lidam com **esteganografia, remoção de metadados e separação de áudio com IA** não devem depender de servidores externos. Cada operação acontece inteiramente na máquina do usuário:
 
-## ✨ Novidade: Cálculo Automático de Tamanho
+- Nenhum arquivo é transmitido para terceiros
+- Nenhuma API key necessária
+- Funciona offline após instalação
+- Cleanup automático de arquivos temporários em todos os fluxos
 
-**Agora você vê o tamanho estimado de cada arquivo em tempo real!**
+---
 
-- 📊 Tamanho exibido para cada resolução (MP4)
-- 🎵 Tamanho para cada bitrate (MP3)
-- 🖼️ Tamanho das thumbnails (PNG/JPG)
-- ⚡ Atualização automática ao colar URL
+## Stack Técnico
 
-*Disponível apenas na versão local*
+| Camada                      | Tecnologia                                    |
+| --------------------------- | --------------------------------------------- |
+| Backend                     | Python 3 + Flask                              |
+| IA — Separação de Áudio | Demucs (Meta Research) via subprocess isolado |
+| IA — Remoção de Fundo    | rembg + ONNX Runtime (CPU)                    |
+| IA — Transcrição         | Whisper (OpenAI)                              |
+| Criptografia                | AES-256 (esteganografia)                      |
+| Download de Mídia          | yt-dlp                                        |
+| Manipulação de PDF        | PyPDF2 + img2pdf                              |
+| Detecção de Objetos       | YOLOv8 (Censor)                               |
+| Web Scraping                | BeautifulSoup4 + requests                     |
+| Frontend                    | HTML/CSS/JS puro (zero frameworks)            |
 
-## 🌐 Versão Web (Netlify)
+---
 
-**🚀 Deploy Instantâneo:** [Guia Completo](deploy-netlify.md)
+## Apps da Suíte
 
-1. **Faça upload da pasta `web/` para seu repositório**
-2. **Conecte ao Netlify**
-3. **Configure: Publish directory = `web`**
-4. **Deploy automático ativo!**
+| App                         | Categoria      | Detalhe Técnico                                                   |
+| --------------------------- | -------------- | ------------------------------------------------------------------ |
+| 🎬**Verto**           | Mídia         | Download MP4/MP3/Thumbnail com estimativa de tamanho em tempo real |
+| 🕵️**Stealth**       | Security       | Esteganografia LSB com criptografia AES-256 — anti-forensics      |
+| 👻**Ghost Tool**      | Anti-forensics | Remoção de metadados EXIF/ID3/XMP em 150+ formatos               |
+| 🔒**Censor**          | Privacy AI     | Detecção e censura de 9 tipos de dados sensíveis com YOLOv8     |
+| 🎤**Isolador de Voz** | AI Audio       | Separação vocal/instrumental com Demucs (htdemucs model)         |
+| 🎨**Transparência**  | AI Vision      | Remoção de fundo com rembg + ONNX Runtime                        |
+| 🎤**Transcrever**     | AI NLP         | Áudio para texto com Whisper                                      |
+| 📁**Arquivos**        | Conversão     | Conversor universal 150+ formatos                                  |
+| 📄**PDFs**            | Documentos     | Dividir, comprimir, girar, converter, mesclar                      |
+| 🔲**QR Code**         | Utilitário    | Gerador estático (URLs, Wi-Fi, vCard, PIX) sem rastreamento       |
+| 🗜️**Compressor**    | Utilitário    | Redução de tamanho com controle de qualidade                     |
+| 📱**Social Preview**  | Design         | Simulação de posts em 24 formatos Mobile/Desktop/Tablet          |
+| 🧹**Clean Reader**    | Produtividade  | Extração de conteúdo + modo leitura                             |
+| 🎮**PurpleFlix**      | Streaming      | Player integrado                                                   |
+| ⏰**Tempo**           | Utilitário    | Relógio + calendário com feriados brasileiros                    |
+| 📖**Instruções**    | Docs           | Documentação inline de todos os apps                             |
 
-## 💻 Versão Local
+---
 
-### Início Rápido (Recomendado)
-1. **Execute `python executaveis/INSTALAR.py`** (primeira vez)
-2. **Execute `python executaveis/INICIAR.py`**
-3. **Acesse `http://localhost:5000`**
-4. **Navegue entre os apps!**
+## Destaques de Implementação
 
-### Método Alternativo
-**Windows:** Execute `INSTALAR_DEPENDENCIAS.bat` e depois `INICIAR.bat`
-**Linux:** Execute `./INSTALAR_DEPENDENCIAS.sh` e depois `./INICIAR.sh`
+**Isolador de Voz (Demucs)**
 
-## 📁 Estrutura
+- Execução via `subprocess.Popen` com `communicate()` — bloqueante sem timeout
+- Variável `TORCHAUDIO_BACKEND=soundfile` injetada no ambiente do subprocess
+- Diretórios temporários com timestamp para evitar race conditions
+- Cleanup garantido em todos os caminhos de exceção via `try/finally`
+
+**Stealth (Esteganografia)**
+
+- Payload cifrado com AES-256 antes da inserção nos bits LSB
+- Suporta imagens PNG/BMP como carrier
+- Extração requer chave correta — sem chave, arquivo parece imagem normal
+
+**Ghost Tool (Anti-forensics)**
+
+- Remove metadados de 150+ formatos sem recodificar o conteúdo
+- Preserva integridade do arquivo — apenas headers/chunks de metadados são zerados
+
+**Censor (Privacy AI)**
+
+- YOLOv8 para detecção de rostos, placas, documentos e 6 outros tipos
+- Aplica blur ou pixelização configurável sobre as regiões detectadas
+
+---
+
+## Instalação
+
+```bash
+# Primeira vez
+python executaveis/INSTALAR.py
+
+# Iniciar
+python executaveis/INICIAR.py
+
+# Acessar
+http://localhost:5000
+```
+
+**Windows:** `INSTALAR_DEPENDENCIAS.bat` → `INICIAR.bat`
+**Linux:** `./INSTALAR_DEPENDENCIAS.sh` → `./INICIAR.sh`
+
+---
+
+## Estrutura
 
 ```
-├── app.py                   # Aplicação principal com menu integrado
-├── web/                     # Versão Web (Netlify)
-│   ├── index.html          # Interface web
-│   ├── app.js              # Lógica JavaScript
-│   ├── netlify.toml        # Config Netlify
-│   └── _headers            # Headers segurança
-├── executaveis/             # Scripts prontos para usar
-│   ├── INSTALAR.py         # Universal (Windows + Linux)
-│   ├── INICIAR.py          # Universal (Windows + Linux)
-│   ├── ATUALIZAR.py        # Universal (Windows + Linux)
-│   ├── INICIAR.bat         # Windows - Clique aqui
-│   ├── INICIAR.sh          # Linux - Execute aqui
-│   ├── INSTALAR_DEPENDENCIAS.bat  # Windows
-│   ├── INSTALAR_DEPENDENCIAS.sh   # Linux
-│   ├── ATUALIZAR_YT-DLP.bat # Windows
-│   └── ATUALIZAR_YT-DLP.sh  # Linux
-├── docs/                    # Documentação completa
-├── scripts/                 # Scripts auxiliares
-├── deploy-netlify.md        # Guia deploy Netlify
-└── downloads/              # Vídeos baixados
+├── app.py                        # Flask app — 50+ rotas, 16 apps
+├── executaveis/
+│   ├── INSTALAR.py               # Setup universal (Windows + Linux)
+│   ├── INICIAR.py                # Launcher universal
+│   └── ATUALIZAR.py              # Atualiza yt-dlp e dependências
+├── web/                          # Versão estática (Netlify)
+├── docs/                         # Documentação detalhada por app
+├── downloads/                    # Output local (gitignored)
+└── requirements.txt              # 22 dependências
 ```
 
-## 📖 Documentação
+---
 
-Leia `docs/PASSO_A_PASSO.md` para instruções detalhadas.
+## Segurança e Privacidade
 
-
-## 🔲 Gerador de QR Code
-
-**Contra-ataque aos geradores "gratuitos" que cobram por QR Codes dinâmicos!**
-
-### Funcionalidades:
-- ✅ **QR Codes Estáticos** - Nunca expiram
-- 🎨 **Customização Total** - Cores, tamanho, bordas
-- 🖼️ **Logo Central** - Adicione sua marca
-- 🔧 **Correção de Erro** - 4 níveis (7% a 30%)
-- 🚫 **Sem Marcas D'água** - 100% limpo
-
-### Tipos Suportados:
-1. **🔗 Links/URLs** - Qualquer endereço web
-2. **📶 Wi-Fi** - Compartilhe sua rede
-3. **👤 vCard** - Cartão de visita digital
-4. **💰 PIX** - Pagamentos instantâneos
-
-### Diferencial:
-Todos os QR Codes gerados são **estáticos e permanentes**. Não há planos mensais, não há expiração, não há rastreamento. Seu QR Code, suas regras!
+- Sem coleta de dados — zero telemetria
+- Sem dependência de APIs externas
+- Arquivos temporários removidos automaticamente após cada operação
+- `downloads/` e `venv/` excluídos do controle de versão via `.gitignore`
