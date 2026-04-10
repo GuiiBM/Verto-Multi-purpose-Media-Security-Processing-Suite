@@ -94,7 +94,7 @@ def main():
         "pikepdf",
         "reportlab",
         "PyMuPDF",
-        "rembg",
+        "rembg[cpu]",
         "numpy",
         "qrcode[pil]>=7.4.2",
         "segno>=1.6.0",

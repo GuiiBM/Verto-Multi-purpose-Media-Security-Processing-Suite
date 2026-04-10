@@ -5,7 +5,7 @@ Pillow
 pikepdf
 reportlab
 PyMuPDF
-rembg
+rembg[cpu]
 numpy
 qrcode[pil]
 segno
