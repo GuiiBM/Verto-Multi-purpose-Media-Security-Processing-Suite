@@ -42,7 +42,7 @@ def get_brazilian_holidays(year):
     # Feriados móveis baseados na Páscoa
     from datetime import timedelta
     
-    carnaval = easter - timedelta(days=47)
+    carnaval = easter - timedelta(days=48)
     carnaval_terca = easter - timedelta(days=47)
     sexta_santa = easter - timedelta(days=2)
     corpus_christi = easter + timedelta(days=60)

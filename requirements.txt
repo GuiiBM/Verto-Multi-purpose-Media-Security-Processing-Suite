@@ -1,9 +1,11 @@
 Flask>=2.3.3
-yt-dlp>=2024.1.0
+yt-dlp>=2026.8.19
 PyPDF2
 Pillow
+pillow-heif
 pikepdf
 reportlab
+weasyprint
 PyMuPDF
 rembg[cpu]
 numpy

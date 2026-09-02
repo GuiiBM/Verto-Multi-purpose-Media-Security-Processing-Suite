@@ -122,8 +122,8 @@
       flex-direction: column;
     }
     .card.holidays {
-      width: 400px;
-      max-height: 300px;
+      width: 420px;
+      max-height: 520px;
       overflow-y: auto;
       display: none;
     }
@@ -315,21 +315,76 @@
     .calendar-day.weekend {
       color: #ef4444;
     }
-    .calendar-day.holiday {
+    /* Cada categoria de data tem sua própria cor - feriado de verdade, ponto
+       facultativo, dia sem aula e data comemorativa não são a mesma coisa e
+       não deveriam parecer a mesma coisa no calendário. */
+    .calendar-day.holiday-nacional {
       background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
       border-color: rgba(239, 68, 68, 0.4);
       color: #ef4444;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-estadual {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.1));
+      border-color: rgba(249, 115, 22, 0.4);
+      color: #f97316;
       font-weight: 700;
     }
     .calendar-day.holiday-ubatuba {
       background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.1));
       border-color: rgba(234, 179, 8, 0.4);
       color: #eab308;
+      font-weight: 700;
     }
     .calendar-day.holiday-saosebastiao {
       background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(147, 51, 234, 0.1));
       border-color: rgba(168, 85, 247, 0.4);
       color: #a855f7;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-caraguatatuba {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(8, 145, 178, 0.1));
+      border-color: rgba(6, 182, 212, 0.4);
+      color: #06b6d4;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-ilhabela {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(219, 39, 119, 0.1));
+      border-color: rgba(236, 72, 153, 0.4);
+      color: #ec4899;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-facultativo {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1));
+      border-color: rgba(59, 130, 246, 0.4);
+      color: #60a5fa;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-fatec {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.1));
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #22c55e;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-comemorativa {
+      border-color: rgba(148, 163, 184, 0.5);
+      border-style: dashed;
+    }
+    .day-dots {
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2px;
+    }
+    .day-dots .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+    }
+    .calendar-day {
+      position: relative;
     }
     .calendar-day.selectable {
       cursor: pointer;
@@ -414,28 +469,52 @@
     }
     .holidays h3 {
       font-size: 18px;
-      color: #ef4444;
-      margin-bottom: 16px;
+      color: #f8fafc;
+      margin-bottom: 4px;
       font-weight: 700;
     }
+    .holidays .subtitle {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    /* Legenda das categorias - cada cor definida uma única vez e reaproveitada
+       via variável CSS tanto na legenda quanto nos itens da lista. */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+    .legend-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.08);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #cbd5e1;
+      white-space: nowrap;
+    }
+    .legend-chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cat-color);
+      box-shadow: 0 0 6px var(--cat-color);
+      flex-shrink: 0;
+    }
     .holiday-item {
-      padding: 12px;
+      padding: 12px 14px;
       margin-bottom: 8px;
       background: rgba(15, 23, 42, 0.6);
       border-radius: 12px;
-      border-left: 4px solid #ef4444;
-    }
-    .holiday-item.ubatuba {
-      border-left-color: #eab308;
-    }
-    .holiday-item.ubatuba .holiday-date {
-      color: #eab308;
-    }
-    .holiday-item.saosebastiao {
-      border-left-color: #a855f7;
-    }
-    .holiday-item.saosebastiao .holiday-date {
-      color: #a855f7;
+      border-left: 4px solid var(--cat-color);
     }
     .holiday-item:last-child {
       margin-bottom: 0;
@@ -443,19 +522,31 @@
     .holiday-date {
       font-size: 13px;
       font-weight: 700;
-      color: #ef4444;
+      color: var(--cat-color);
       margin-bottom: 4px;
     }
     .holiday-name {
       font-size: 14px;
-      color: #cbd5e1;
+      color: #f1f5f9;
       font-weight: 600;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
     }
     .holiday-type {
-      font-size: 11px;
-      color: #64748b;
-      font-weight: 500;
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--cat-color);
+      background: color-mix(in srgb, var(--cat-color) 16%, transparent);
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+    .holiday-desc {
+      font-size: 12.5px;
+      color: #94a3b8;
+      line-height: 1.5;
     }
     @media (max-width: 768px) {
       .digital-clock { font-size: 48px; }
@@ -512,6 +603,18 @@
     
     <div class="card holidays" id="holidays-card">
       <h3>🎉 Feriados e Datas Comemorativas</h3>
+      <p class="subtitle">Nacionais, estaduais, das cidades do Litoral Norte, pontos facultativos e dias sem aula - tudo calculado automaticamente a cada ano.</p>
+      <div class="legend">
+        <div class="legend-chip" style="--cat-color:#ef4444"><span class="dot"></span>Feriado Nacional</div>
+        <div class="legend-chip" style="--cat-color:#f97316"><span class="dot"></span>Feriado Estadual (SP)</div>
+        <div class="legend-chip" style="--cat-color:#a855f7"><span class="dot"></span>São Sebastião</div>
+        <div class="legend-chip" style="--cat-color:#eab308"><span class="dot"></span>Ubatuba</div>
+        <div class="legend-chip" style="--cat-color:#06b6d4"><span class="dot"></span>Caraguatatuba</div>
+        <div class="legend-chip" style="--cat-color:#ec4899"><span class="dot"></span>Ilhabela</div>
+        <div class="legend-chip" style="--cat-color:#3b82f6"><span class="dot"></span>Ponto Facultativo</div>
+        <div class="legend-chip" style="--cat-color:#22c55e"><span class="dot"></span>Sem Aula (Fatec/Escolas)</div>
+        <div class="legend-chip" style="--cat-color:#94a3b8"><span class="dot"></span>Data Comemorativa (tem aula/expediente normal)</div>
+      </div>
       <div id="holidays-list"></div>
     </div>
   </div>
@@ -521,39 +624,83 @@
     let currentYear = new Date().getFullYear();
     let viewMode = 'days';
     
+    // Cada categoria tem um rótulo (mostrado como badge na lista/legenda) e uma
+    // cor. CATEGORY_PRIORITY define qual cor "vence" no quadradinho do dia
+    // quando mais de uma categoria cai na mesma data (ex: feriado municipal e
+    // ponto facultativo da Fatec no mesmo dia).
+    const CATEGORIES = {
+      nacional:      { label: 'Feriado Nacional',         color: '#ef4444' },
+      estadual:      { label: 'Feriado Estadual (SP)',    color: '#f97316' },
+      saosebastiao:  { label: 'São Sebastião',            color: '#a855f7' },
+      ubatuba:       { label: 'Ubatuba',                  color: '#eab308' },
+      caraguatatuba: { label: 'Caraguatatuba',            color: '#06b6d4' },
+      ilhabela:      { label: 'Ilhabela',                 color: '#ec4899' },
+      fatec:         { label: 'Sem Aula (Fatec/Escolas)', color: '#22c55e' },
+      facultativo:   { label: 'Ponto Facultativo',        color: '#3b82f6' },
+      comemorativa:  { label: 'Data Comemorativa',        color: '#94a3b8' }
+    };
+    const CATEGORY_PRIORITY = ['nacional', 'estadual', 'saosebastiao', 'ubatuba', 'caraguatatuba', 'ilhabela', 'fatec', 'facultativo', 'comemorativa'];
+
     const holidays = {
+      // Dia/mês fixo, repete em qualquer ano.
       fixed: [
-        {day: 1, month: 1, name: 'Confraternização Universal', type: 'Nacional'},
-        {day: 20, month: 1, name: 'São Sebastião', type: 'Municipal - São Sebastião'},
-        {day: 3, month: 2, name: 'Aniversário de Ubatuba', type: 'Municipal - Ubatuba'},
-        {day: 14, month: 2, name: 'Dia dos Namorados', type: 'Comemorativa'},
-        {day: 8, month: 3, name: 'Dia Internacional da Mulher', type: 'Comemorativa'},
-        {day: 21, month: 4, name: 'Tiradentes', type: 'Nacional'},
-        {day: 1, month: 5, name: 'Dia do Trabalho', type: 'Nacional'},
-        {day: 13, month: 6, name: 'Dia dos Namorados (Santo Antônio)', type: 'Comemorativa'},
-        {day: 24, month: 6, name: 'São João', type: 'Comemorativa'},
-        {day: 9, month: 7, name: 'Revolução Constitucionalista', type: 'Estadual - SP'},
-        {day: 7, month: 9, name: 'Independência do Brasil', type: 'Nacional'},
-        {day: 12, month: 10, name: 'Nossa Senhora Aparecida', type: 'Nacional'},
-        {day: 28, month: 10, name: 'Dia do Servidor Público', type: 'Ponto Facultativo'},
-        {day: 31, month: 10, name: 'Halloween', type: 'Comemorativa'},
-        {day: 2, month: 11, name: 'Finados', type: 'Nacional'},
-        {day: 15, month: 11, name: 'Proclamação da República', type: 'Nacional'},
-        {day: 20, month: 11, name: 'Consciência Negra', type: 'Nacional'},
-        {day: 25, month: 12, name: 'Natal', type: 'Nacional'},
-        {day: 31, month: 12, name: 'Réveillon', type: 'Ponto Facultativo'}
+        {day: 1, month: 1, name: 'Confraternização Universal', type: 'nacional', desc: 'Feriado nacional de Ano Novo.'},
+        {day: 20, month: 1, name: 'São Sebastião (Padroeiro)', type: 'saosebastiao', desc: 'Feriado municipal de São Sebastião-SP em homenagem ao padroeiro da cidade.'},
+        {day: 2, month: 2, name: "N. Sra. D'Ajuda e Bonsucesso (Padroeira)", type: 'ilhabela', desc: 'Feriado municipal de Ilhabela-SP em homenagem à padroeira da cidade.'},
+        {day: 3, month: 2, name: 'Aniversário de Ubatuba', type: 'ubatuba', desc: 'Feriado municipal pela fundação de Ubatuba-SP.'},
+        {day: 14, month: 2, name: "Valentine's Day", type: 'comemorativa', desc: 'Data comemorativa internacional - não é o Dia dos Namorados brasileiro (esse é 12/06).'},
+        {day: 8, month: 3, name: 'Dia Internacional da Mulher', type: 'comemorativa', desc: 'Data comemorativa, sem alteração de expediente.'},
+        {day: 20, month: 4, name: 'Aniversário de Caraguatatuba', type: 'caraguatatuba', desc: 'Feriado municipal pela emancipação político-administrativa de Caraguatatuba-SP em 20/04/1857 (Lei Municipal nº 871/1972).'},
+        {day: 21, month: 4, name: 'Tiradentes', type: 'nacional', desc: 'Feriado nacional em homenagem a Joaquim José da Silva Xavier.'},
+        {day: 1, month: 5, name: 'Dia do Trabalho', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 12, month: 6, name: 'Dia dos Namorados', type: 'comemorativa', desc: 'Data comemorativa brasileira, véspera do Dia de Santo Antônio.'},
+        {day: 24, month: 6, name: 'São João', type: 'comemorativa', desc: 'Data comemorativa das festas juninas.'},
+        {day: 9, month: 7, name: 'Revolução Constitucionalista', type: 'estadual', desc: 'Feriado estadual em São Paulo, em memória à Revolução de 1932.'},
+        {day: 7, month: 9, name: 'Independência do Brasil', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 12, month: 10, name: 'Nossa Senhora Aparecida', type: 'nacional', desc: 'Feriado nacional, padroeira do Brasil.'},
+        {day: 15, month: 10, name: 'Dia do Professor', type: 'fatec', desc: 'Dia não letivo em escolas e faculdades (Decreto Federal nº 52.682/1963).'},
+        {day: 28, month: 10, name: 'Dia do Servidor Público', type: 'facultativo', desc: 'Ponto facultativo tradicional no funcionalismo público, incluindo Fatec/Centro Paula Souza.'},
+        {day: 31, month: 10, name: 'Halloween', type: 'comemorativa', desc: 'Data comemorativa, sem alteração de expediente no Brasil.'},
+        {day: 2, month: 11, name: 'Finados', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 15, month: 11, name: 'Proclamação da República', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 20, month: 11, name: 'Consciência Negra', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 24, month: 12, name: 'Véspera de Natal', type: 'facultativo', desc: 'Ponto facultativo tradicional no funcionalismo público a partir do meio-dia.'},
+        {day: 25, month: 12, name: 'Natal', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 31, month: 12, name: 'Véspera de Ano Novo', type: 'facultativo', desc: 'Ponto facultativo tradicional no funcionalismo público.'}
       ],
+
+      // Datas confirmadas só para anos específicos (decretos anuais, calendário
+      // acadêmico da Fatec, eleições...) - não dá pra calcular por fórmula
+      // porque dependem de decisão do governo/Fatec a cada ano. Só entram aqui
+      // anos com fonte oficial conferida; anos fora desta lista simplesmente não
+      // mostram esses extras (em vez de arriscar uma data inventada).
+      byYear: {
+        2026: [
+          {startDay: 14, startMonth: 2, endDay: 18, endMonth: 2, name: 'Recesso de Carnaval e Quarta de Cinzas', type: 'fatec', desc: 'Não haverá aula na Fatec (Calendário Acadêmico 2026 - CGESG/Centro Paula Souza): feriado e emenda de Carnaval e Quarta-feira de Cinzas.'},
+          {startDay: 3, startMonth: 4, endDay: 4, endMonth: 4, name: 'Emenda da Paixão de Cristo', type: 'fatec', desc: 'Não haverá aula na Fatec em 2026 (Calendário Acadêmico CGESG): feriado e emenda da Sexta-feira Santa.'},
+          {day: 20, month: 4, name: 'Emenda de Tiradentes (Fatec)', type: 'fatec', desc: 'Não haverá aula na Fatec em 2026 (Calendário Acadêmico CGESG): véspera de Tiradentes.'},
+          {day: 10, month: 7, name: 'Emenda da Revolução Constitucionalista', type: 'facultativo', desc: 'Ponto facultativo no funcionalismo estadual em 2026 (Decreto Estadual nº 70.273/2025).'},
+          {startDay: 10, startMonth: 7, endDay: 25, endMonth: 7, name: 'Recesso Escolar da Fatec', type: 'fatec', desc: 'Recesso entre os semestres letivos de 2026 (Calendário Acadêmico CGESG/Centro Paula Souza).'},
+          {startDay: 2, startMonth: 10, endDay: 4, endMonth: 10, name: 'Preparo e 1º turno das Eleições', type: 'fatec', desc: 'Fatec sem aula em 2026 para preparo do local de votação e 1º turno das Eleições Nacionais.'},
+          {startDay: 23, startMonth: 10, endDay: 25, endMonth: 10, name: 'Preparo e 2º turno das Eleições', type: 'fatec', desc: 'Fatec sem aula em 2026 para preparo do local de votação e 2º turno das Eleições Nacionais.'},
+          {startDay: 20, startMonth: 11, endDay: 21, endMonth: 11, name: 'Emenda da Consciência Negra', type: 'fatec', desc: 'Não haverá aula na Fatec em 2026 (Calendário Acadêmico CGESG): feriado e emenda da Consciência Negra.'}
+        ]
+      },
+
       movable: function(year) {
         const easter = this.getEaster(year);
+        const d = offset => new Date(easter.getTime() + offset * 86400000);
         const mothersDay = this.getSecondSunday(year, 4); // Maio
         const fathersDay = this.getSecondSunday(year, 7); // Agosto
         return [
-          {date: new Date(easter.getTime() - 47 * 86400000), name: 'Carnaval', type: 'Ponto Facultativo'},
-          {date: new Date(easter.getTime() - 2 * 86400000), name: 'Sexta-feira Santa', type: 'Nacional'},
-          {date: easter, name: 'Páscoa', type: 'Comemorativa'},
-          {date: new Date(easter.getTime() + 60 * 86400000), name: 'Corpus Christi', type: 'Ponto Facultativo'},
-          {date: mothersDay, name: 'Dia das Mães', type: 'Comemorativa'},
-          {date: fathersDay, name: 'Dia dos Pais', type: 'Comemorativa'}
+          {date: d(-48), name: 'Carnaval (Segunda-feira)', type: 'facultativo', desc: 'Ponto facultativo tradicional, dois dias antes da Quarta-feira de Cinzas.'},
+          {date: d(-47), name: 'Carnaval (Terça-feira)', type: 'facultativo', desc: 'Ponto facultativo tradicional, véspera da Quarta-feira de Cinzas.'},
+          {date: d(-46), name: 'Quarta-feira de Cinzas', type: 'facultativo', desc: 'Ponto facultativo tradicional até o meio-dia, início da Quaresma.'},
+          {date: d(-2), name: 'Sexta-feira Santa', type: 'nacional', desc: 'Feriado nacional cristão, dois dias antes da Páscoa.'},
+          {date: d(0), name: 'Páscoa', type: 'comemorativa', desc: 'Data comemorativa cristã, sem alteração de expediente.'},
+          {date: d(60), name: 'Corpus Christi', type: 'facultativo', desc: 'Ponto facultativo tradicional, 60 dias após a Páscoa.'},
+          {date: mothersDay, name: 'Dia das Mães', type: 'comemorativa', desc: 'Data comemorativa, segundo domingo de maio.'},
+          {date: fathersDay, name: 'Dia dos Pais', type: 'comemorativa', desc: 'Data comemorativa, segundo domingo de agosto.'}
         ];
       },
       getEaster: function(year) {
@@ -570,37 +717,86 @@
         const firstSunday = 1 + (7 - firstDay.getDay()) % 7;
         return new Date(year, month, firstSunday + 7);
       },
-      getForMonth: function(month, year) {
+
+      // Lista "humana" do ano inteiro: um item por evento (intervalos de vários
+      // dias, como o recesso da Fatec, aparecem como um item só com data de
+      // início e fim, não um item repetido por dia).
+      getAllForYear: function(year) {
         const result = [];
         this.fixed.forEach(h => {
-          if (h.month - 1 === month) {
-            result.push({day: h.day, name: h.name, type: h.type});
-          }
+          result.push({date: new Date(year, h.month - 1, h.day), endDate: null, name: h.name, type: h.type, desc: h.desc});
         });
         this.movable(year).forEach(h => {
-          if (h.date.getMonth() === month && h.date.getFullYear() === year) {
-            result.push({day: h.date.getDate(), name: h.name, type: h.type});
+          result.push({date: h.date, endDate: null, name: h.name, type: h.type, desc: h.desc});
+        });
+        (this.byYear[year] || []).forEach(h => {
+          if (h.startDay !== undefined) {
+            result.push({
+              date: new Date(year, h.startMonth - 1, h.startDay),
+              endDate: new Date(year, h.endMonth - 1, h.endDay),
+              name: h.name, type: h.type, desc: h.desc
+            });
+          } else {
+            result.push({date: new Date(year, h.month - 1, h.day), endDate: null, name: h.name, type: h.type, desc: h.desc});
           }
         });
-        return result.sort((a, b) => a.day - b.day);
+        result.sort((a, b) => a.date - b.date);
+        return result;
       },
       getForYear: function(year) {
-        const result = [];
-        this.fixed.forEach(h => {
-          result.push({day: h.day, month: h.month, name: h.name, type: h.type});
-        });
-        this.movable(year).forEach(h => {
-          result.push({day: h.date.getDate(), month: h.date.getMonth() + 1, name: h.name, type: h.type});
-        });
-        return result.sort((a, b) => a.month === b.month ? a.day - b.day : a.month - b.month);
+        return this.getAllForYear(year);
       },
-      isHoliday: function(day, month, year) {
-        return this.getForMonth(month, year).some(h => h.day === day);
+      getForMonth: function(month, year) {
+        return this.getAllForYear(year).filter(h => {
+          if (h.endDate) return h.date.getMonth() <= month && h.endDate.getMonth() >= month;
+          return h.date.getMonth() === month;
+        });
       },
-      getHolidayInfo: function(day, month, year) {
-        return this.getForMonth(month, year).find(h => h.day === day);
+      // Pode haver mais de um evento no mesmo dia (ex: feriado municipal e
+      // ponto facultativo da Fatec juntos) - por isso sempre retorna uma lista.
+      getForDay: function(day, month, year) {
+        const target = new Date(year, month, day);
+        return this.getAllForYear(year).filter(h => {
+          if (h.endDate) return target >= h.date && target <= h.endDate;
+          return h.date.getFullYear() === target.getFullYear() && h.date.getMonth() === target.getMonth() && h.date.getDate() === target.getDate();
+        });
+      },
+      getPrimaryType: function(day, month, year) {
+        const items = this.getForDay(day, month, year);
+        if (items.length === 0) return null;
+        let best = items[0].type, bestRank = CATEGORY_PRIORITY.indexOf(best);
+        items.forEach(h => {
+          const rank = CATEGORY_PRIORITY.indexOf(h.type);
+          if (rank < bestRank) { bestRank = rank; best = h.type; }
+        });
+        return best;
       }
     };
+
+    function formatDateLabel(h) {
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      if (h.endDate) {
+        if (h.date.getMonth() === h.endDate.getMonth()) {
+          return `${h.date.getDate()} a ${h.endDate.getDate()} de ${months[h.date.getMonth()]}`;
+        }
+        return `${h.date.getDate()} de ${months[h.date.getMonth()]} a ${h.endDate.getDate()} de ${months[h.endDate.getMonth()]}`;
+      }
+      return `${h.date.getDate()} de ${months[h.date.getMonth()]}`;
+    }
+
+    function renderHolidayItem(h) {
+      const item = document.createElement('div');
+      item.className = 'holiday-item';
+      const cat = CATEGORIES[h.type];
+      item.style.setProperty('--cat-color', cat.color);
+      item.innerHTML = `
+        <div class="holiday-date">${formatDateLabel(h)}</div>
+        <div class="holiday-type">${cat.label}</div>
+        <div class="holiday-name">${h.name}</div>
+        <div class="holiday-desc">${h.desc}</div>
+      `;
+      return item;
+    }
     
     function updateClock() {
       const now = new Date();
@@ -686,14 +882,29 @@
         day.className = 'calendar-day';
         const dayOfWeek = new Date(year, month, i).getDay();
         if (dayOfWeek === 0 || dayOfWeek === 6) day.classList.add('weekend');
-        const holidayInfo = holidays.getHolidayInfo(i, month, year);
-        if (holidayInfo) {
-          if (holidayInfo.type === 'Municipal - Ubatuba') day.classList.add('holiday-ubatuba');
-          else if (holidayInfo.type === 'Municipal - São Sebastião') day.classList.add('holiday-saosebastiao');
-          else day.classList.add('holiday');
+
+        const dayEvents = holidays.getForDay(i, month, year);
+        if (dayEvents.length > 0) {
+          const primary = holidays.getPrimaryType(i, month, year);
+          day.classList.add('holiday-' + primary);
+          // Se houver mais de uma categoria no mesmo dia, a cor de fundo mostra
+          // a de maior prioridade e um pontinho por baixo indica cada categoria
+          // extra - assim nenhuma informação fica escondida.
+          const extraTypes = [...new Set(dayEvents.map(h => h.type))].filter(t => t !== primary);
+          if (extraTypes.length > 0) {
+            const dots = document.createElement('div');
+            dots.className = 'day-dots';
+            extraTypes.forEach(t => {
+              const dot = document.createElement('div');
+              dot.className = 'dot';
+              dot.style.background = CATEGORIES[t].color;
+              dots.appendChild(dot);
+            });
+            day.appendChild(dots);
+          }
         }
         if (i === today) day.classList.add('today');
-        day.textContent = i;
+        day.appendChild(document.createTextNode(i));
         grid.appendChild(day);
       }
       
@@ -729,55 +940,31 @@
       const card = document.getElementById('holidays-card');
       const list = document.getElementById('holidays-list');
       const checkbox = document.getElementById('holiday-checkbox');
-      
+
       if (holidaysList.length === 0 || !checkbox.checked) {
         card.classList.remove('show');
         return;
       }
-      
+
       card.classList.add('show');
       list.innerHTML = '';
-      
-      holidaysList.forEach(h => {
-        const item = document.createElement('div');
-        item.className = 'holiday-item';
-        if (h.type === 'Municipal - Ubatuba') item.classList.add('ubatuba');
-        else if (h.type === 'Municipal - São Sebastião') item.classList.add('saosebastiao');
-        item.innerHTML = `
-          <div class="holiday-date">${h.day} de ${['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][currentMonth]}</div>
-          <div class="holiday-name">${h.name}</div>
-          <div class="holiday-type">${h.type}</div>
-        `;
-        list.appendChild(item);
-      });
+      holidaysList.forEach(h => list.appendChild(renderHolidayItem(h)));
     }
-    
+
     function showYearHolidays() {
       const holidaysList = holidays.getForYear(currentYear);
       const card = document.getElementById('holidays-card');
       const list = document.getElementById('holidays-list');
       const checkbox = document.getElementById('holiday-checkbox');
-      
+
       if (!checkbox.checked) {
         card.classList.remove('show');
         return;
       }
-      
+
       card.classList.add('show');
       list.innerHTML = '';
-      
-      holidaysList.forEach(h => {
-        const item = document.createElement('div');
-        item.className = 'holiday-item';
-        if (h.type === 'Municipal - Ubatuba') item.classList.add('ubatuba');
-        else if (h.type === 'Municipal - São Sebastião') item.classList.add('saosebastiao');
-        item.innerHTML = `
-          <div class="holiday-date">${h.day} de ${['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][h.month - 1]}</div>
-          <div class="holiday-name">${h.name}</div>
-          <div class="holiday-type">${h.type}</div>
-        `;
-        list.appendChild(item);
-      });
+      holidaysList.forEach(h => list.appendChild(renderHolidayItem(h)));
     }
     
     function navigate(delta) {

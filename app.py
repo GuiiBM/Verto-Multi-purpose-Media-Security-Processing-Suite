@@ -3,11 +3,22 @@ import yt_dlp
 import os
 import time
 import shutil
+import io
+import zipfile
+import tarfile
+import gzip
+import bz2
+import lzma
 from pathlib import Path
 import json
 try:
     from PIL import Image
 except:
+    pass
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except ImportError:
     pass
 
 from PDFs.pdfs_templates import PDFS_SPLIT_HTML, PDFS_CONVERT_HTML
@@ -1146,7 +1157,7 @@ def get_formats():
             "720p": "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720][ext=mp4]/best[height<=720]",
             "480p": "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480][ext=mp4]/best[height<=480]",
             "360p": "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360][ext=mp4]/best[height<=360]",
-            "worst": "worst[ext=mp4]/worst"
+            "worst": "worstvideo[ext=mp4]+worstaudio[ext=m4a]/worstvideo+worstaudio/worst[ext=mp4]/worst"
         }
         
         for quality, format_str in format_map.items():
@@ -1281,30 +1292,48 @@ def verto():
                             "preferredquality": audio_quality,
                         }]
                     }
-                elif format_type == "thumbnail":
-                    ydl_opts = {
-                        "skip_download": True,
-                        "writethumbnail": True,
-                        "outtmpl": os.path.join(downloads_dir, "%(title)s"),
-                        "noplaylist": True,
-                        "postprocessors": [{
-                            "key": "FFmpegThumbnailsConvertor",
-                            "format": "png"
-                        }],
-                        "prefer_ffmpeg": True
-                    }
-                elif format_type == "jpg":
-                    ydl_opts = {
-                        "skip_download": True,
-                        "writethumbnail": True,
-                        "outtmpl": os.path.join(downloads_dir, "%(title)s"),
-                        "noplaylist": True,
-                        "postprocessors": [{
-                            "key": "FFmpegThumbnailsConvertor",
-                            "format": "jpg"
-                        }],
-                        "prefer_ffmpeg": True
-                    }
+                elif format_type in ("thumbnail", "jpg"):
+                    # "writethumbnail" sempre baixa a única miniatura que o yt-dlp
+                    # escolhe por padrão, ignorando completamente o seletor de
+                    # qualidade (maxres/high/medium/default) da interface. Para
+                    # respeitar a escolha do usuário, olhamos a lista real de
+                    # miniaturas disponíveis e baixamos a que bate com a faixa de
+                    # resolução pedida.
+                    import requests as _requests
+
+                    with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl_probe:
+                        info = ydl_probe.extract_info(url, download=False)
+                    title = info.get('title', 'Video')
+
+                    thumbnails = [t for t in (info.get('thumbnails') or []) if t.get('url')]
+                    if not thumbnails:
+                        raise Exception("Nenhuma miniatura disponível para este vídeo.")
+                    thumbnails.sort(key=lambda t: t.get('width') or 0)
+
+                    if quality == 'maxres':
+                        chosen = thumbnails[-1]
+                    elif quality == 'high':
+                        candidates = [t for t in thumbnails if (t.get('width') or 0) >= 480]
+                        chosen = candidates[0] if candidates else thumbnails[-1]
+                    elif quality == 'medium':
+                        candidates = [t for t in thumbnails if 180 <= (t.get('width') or 0) < 480]
+                        chosen = candidates[-1] if candidates else thumbnails[len(thumbnails) // 2]
+                    else:
+                        chosen = thumbnails[0]
+
+                    resp = _requests.get(chosen['url'], timeout=30)
+                    resp.raise_for_status()
+
+                    ext = "png" if format_type == "thumbnail" else "jpg"
+                    from PIL import Image
+                    img = Image.open(io.BytesIO(resp.content)).convert('RGB')
+                    unique_filename = get_unique_filename(downloads_dir, title, ext)
+                    img.save(os.path.join(downloads_dir, unique_filename), format='PNG' if ext == 'png' else 'JPEG')
+
+                    if format_type == "thumbnail":
+                        status = f"✅ Thumbnail '{unique_filename}' salva em PNG na pasta Downloads!"
+                    else:
+                        status = f"✅ Thumbnail '{unique_filename}' salva em JPG na pasta Downloads!"
                 else:
                     format_map = {
                         "best": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best[ext=mp4]/best",
@@ -1315,7 +1344,7 @@ def verto():
                         "720p": "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720][ext=mp4]/best[height<=720]", 
                         "480p": "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480][ext=mp4]/best[height<=480]",
                         "360p": "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360][ext=mp4]/best[height<=360]",
-                        "worst": "worst[ext=mp4]/worst"
+                        "worst": "worstvideo[ext=mp4]+worstaudio[ext=m4a]/worstvideo+worstaudio/worst[ext=mp4]/worst"
                     }
                     ydl_opts = {
                         "format": format_map.get(quality, "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"),
@@ -1346,50 +1375,18 @@ def verto():
                 if format_type not in ["thumbnail", "jpg"]:
                     unique_filename = get_unique_filename(downloads_dir, title, ext)
                     ydl_opts["outtmpl"] = os.path.join(downloads_dir, unique_filename.replace(f".{ext}", "") + ".%(ext)s")
-                
-                # Baixar
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([url])
-                
-                # Para thumbnails, converter e renomear
-                if format_type in ["thumbnail", "jpg"]:
-                    with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
-                        info = ydl.extract_info(url, download=False)
-                        title = info.get('title', 'Video')
-                    
-                    # Procurar arquivo baixado
-                    for possible_ext in ['webp', 'png', 'jpg', 'jpeg']:
-                        temp_file = os.path.join(downloads_dir, f"{title}.{possible_ext}")
-                        if os.path.exists(temp_file):
-                            # Converter para formato correto
-                            try:
-                                from PIL import Image
-                                img = Image.open(temp_file)
-                                
-                                # Gerar nome único no formato correto
-                                unique_filename = get_unique_filename(downloads_dir, title, ext)
-                                final_file = os.path.join(downloads_dir, unique_filename)
-                                
-                                # Salvar no formato correto
-                                img.save(final_file, format='PNG' if ext == 'png' else 'JPEG')
-                                
-                                # Remover arquivo temporário
-                                os.remove(temp_file)
-                                break
-                            except:
-                                # Fallback: apenas renomear
-                                unique_filename = get_unique_filename(downloads_dir, title, ext)
-                                final_file = os.path.join(downloads_dir, unique_filename)
-                                os.rename(temp_file, final_file)
-                                break
-                    
+
+                    # Baixar
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([url])
+
+                # Thumbnail/jpg já foram baixados e salvos acima, com a resolução
+                # certa e status já definido - nada mais a fazer aqui para eles.
                 if format_type == "mp3":
                     quality_text = {'best': 'melhor qualidade', 'worst': 'menor arquivo'}.get(quality, f"{quality}kbps")
                     status = f"✅ '{unique_filename}' baixado em MP3 {quality_text} na pasta Downloads!"
-                elif format_type == "thumbnail":
-                    status = f"✅ Thumbnail '{unique_filename}' salva em PNG na pasta Downloads!"
-                elif format_type == "jpg":
-                    status = f"✅ Thumbnail '{unique_filename}' salva em JPG na pasta Downloads!"
+                elif format_type in ("thumbnail", "jpg"):
+                    pass
                 else:
                     quality_text = {
                         "best": "melhor qualidade",
@@ -1481,12 +1478,17 @@ def get_holidays(year):
         day = ((h + l - 7 * m + 114) % 31) + 1
         
         easter = datetime(year, month, day)
-        carnaval = easter - timedelta(days=47)
+        # Carnaval é observado na segunda E na terça-feira antes da Quarta de Cinzas
+        # (-48 e -47 dias a partir da Páscoa) - faltava a segunda-feira aqui, ao
+        # contrário do calendário de referência usado em /tempo.
+        carnaval_segunda = easter - timedelta(days=48)
+        carnaval_terca = easter - timedelta(days=47)
         sexta_santa = easter - timedelta(days=2)
         corpus = easter + timedelta(days=60)
-        
+
         mobile = [
-            {'date': carnaval.strftime('%Y-%m-%d'), 'name': 'Carnaval'},
+            {'date': carnaval_segunda.strftime('%Y-%m-%d'), 'name': 'Carnaval'},
+            {'date': carnaval_terca.strftime('%Y-%m-%d'), 'name': 'Carnaval'},
             {'date': sexta_santa.strftime('%Y-%m-%d'), 'name': 'Sexta-feira Santa'},
             {'date': corpus.strftime('%Y-%m-%d'), 'name': 'Corpus Christi'}
         ]
@@ -1574,7 +1576,13 @@ def instagram():
                                 media_list.append({'type': 'image', 'url': url.replace('\\u0026', '&'), 'shortcode': username})
                         
                         if not media_list:
-                            error = "Nenhuma mídia encontrada. Perfil pode ser privado ou sem posts."
+                            # O Instagram parou de embutir mídia em HTML estático para
+                            # quem não está logado - isso normalmente não é culpa do
+                            # perfil/post informado, é a plataforma bloqueando scraping
+                            # sem sessão autenticada.
+                            error = ("Não foi possível extrair mídia. O Instagram passou a exigir login "
+                                     "para acessar a maioria dos perfis/posts sem app oficial, então esta "
+                                     "ferramenta pode não funcionar mais para muitos conteúdos.")
                     except Exception as e:
                         error = f"Erro ao buscar perfil: {str(e)}"
                 
@@ -1596,7 +1604,12 @@ def instagram():
                             media_list.append({'type': 'image', 'url': url.replace('\\u0026', '&'), 'shortcode': shortcode})
                     
                     if not media_list:
-                        error = "Não foi possível extrair mídia."
+                        # Mesmo motivo do fetch por perfil: o Instagram exige login
+                        # para a maioria dos posts hoje em dia, não é um problema
+                        # com esse post/link em particular.
+                        error = ("Não foi possível extrair mídia. O Instagram passou a exigir login "
+                                 "para acessar a maioria dos posts sem app oficial, então esta "
+                                 "ferramenta pode não funcionar mais para muitos conteúdos.")
                 else:
                     error = "Entrada inválida."
                     
@@ -1668,14 +1681,13 @@ def pdfs_split():
                         if page_num < len(reader.pages):
                             writer.add_page(reader.pages[page_num])
                     
-                    output_name = split['name'] if split['name'] else f"{base_name}_parte"
-                    if not output_name.endswith('.pdf'):
-                        output_name += '.pdf'
-                    
+                    name_base = split['name'] if split['name'] else f"{base_name}_parte"
+                    output_name = name_base if name_base.endswith('.pdf') else f"{name_base}.pdf"
+
                     output_path = os.path.join(downloads_dir, output_name)
                     counter = 1
                     while os.path.exists(output_path):
-                        output_name = f"{split['name']}_{counter}.pdf"
+                        output_name = f"{name_base}_{counter}.pdf"
                         output_path = os.path.join(downloads_dir, output_name)
                         counter += 1
                     
@@ -1758,44 +1770,58 @@ def pdfs_compress():
             error = "Selecione um arquivo PDF válido."
         else:
             try:
-                from PyPDF2 import PdfReader, PdfWriter
-                
+                import subprocess
+
                 downloads_dir = str(Path.home() / "Downloads")
                 os.makedirs(downloads_dir, exist_ok=True)
-                
-                reader = PdfReader(file.stream)
-                writer = PdfWriter()
-                
-                for page in reader.pages:
-                    page.compress_content_streams()
-                    writer.add_page(page)
-                
-                quality_settings = {
-                    'low': ('/screen', 150),
-                    'medium': ('/ebook', 100),
-                    'high': ('/printer', 72)
-                }
-                
+
+                gs_setting = {
+                    'low': '/screen',
+                    'medium': '/ebook',
+                    'high': '/printer'
+                }.get(quality, '/ebook')
+
                 base_name = os.path.splitext(file.filename)[0]
                 output_filename = f"{base_name}_comprimido.pdf"
                 output_path = os.path.join(downloads_dir, output_filename)
-                
+
                 counter = 1
                 while os.path.exists(output_path):
                     output_filename = f"{base_name}_comprimido_{counter}.pdf"
                     output_path = os.path.join(downloads_dir, output_filename)
                     counter += 1
-                
-                with open(output_path, 'wb') as f:
-                    writer.write(f)
-                
-                original_size = len(file.read())
-                file.seek(0)
+
+                temp_input = os.path.join(downloads_dir, f"temp_{file.filename}")
+                file.save(temp_input)
+                original_size = os.path.getsize(temp_input)
+
+                try:
+                    result = subprocess.run([
+                        'gs', '-sDEVICE=pdfwrite', '-dCompatibilityLevel=1.4',
+                        f'-dPDFSETTINGS={gs_setting}', '-dNOPAUSE', '-dQUIET', '-dBATCH',
+                        f'-sOutputFile={output_path}', temp_input
+                    ], capture_output=True, timeout=120)
+
+                    if result.returncode != 0 or not os.path.exists(output_path):
+                        raise RuntimeError(result.stderr.decode('utf-8', errors='ignore').strip() or 'erro desconhecido do Ghostscript')
+                except (FileNotFoundError, RuntimeError):
+                    # Ghostscript não disponível: recorre à compressão básica de streams do PyPDF2
+                    from PyPDF2 import PdfReader, PdfWriter
+                    reader = PdfReader(temp_input)
+                    writer = PdfWriter()
+                    for page in reader.pages:
+                        page.compress_content_streams()
+                        writer.add_page(page)
+                    with open(output_path, 'wb') as f:
+                        writer.write(f)
+                finally:
+                    os.remove(temp_input)
+
                 compressed_size = os.path.getsize(output_path)
                 reduction = round((1 - compressed_size / original_size) * 100, 1)
-                
+
                 status = f"✅ '{output_filename}' criado! Redução: {reduction}%"
-            
+
             except ImportError:
                 error = "PyPDF2 não está instalado. Execute: pip install PyPDF2"
             except Exception as e:
@@ -1837,11 +1863,17 @@ def pdfs_rotate():
                         page.rotate(angle)
                         writer.add_page(page)
                 else:
+                    from PyPDF2.generic import NameObject, NumberObject
+                    # A UI de "páginas específicas" mostra botões de orientação final
+                    # (0°/90°/180°/270°), mas page.rotate() do PyPDF2 é relativo -
+                    # soma ao /Rotate que a página já tiver. Uma página já rotacionada
+                    # no PDF original acabava com uma orientação diferente da que o
+                    # botão clicado prometia. Setamos o /Rotate final diretamente.
                     rotations = json.loads(rotations_str)
                     for i, page in enumerate(reader.pages):
                         page_num = str(i + 1)
                         if page_num in rotations:
-                            page.rotate(rotations[page_num])
+                            page[NameObject("/Rotate")] = NumberObject(int(rotations[page_num]) % 360)
                         writer.add_page(page)
                 
                 base_name = os.path.splitext(file.filename)[0]
@@ -1976,9 +2008,13 @@ def pdfs_repair():
                     if not data.startswith(b'%PDF'):
                         data = b'%PDF-1.4\n' + data
                     
-                    # Adiciona EOF se estiver faltando
-                    if not data.endswith(b'%%EOF'):
-                        data = data + b'\n%%EOF'
+                    # Adiciona EOF se estiver faltando (ignorando espaços/quebras de
+                    # linha finais - muitos PDFs válidos terminam com "%%EOF\n", e
+                    # sem o rstrip() esse header era considerado "faltando" e um
+                    # segundo "%%EOF" era duplicado no arquivo, o que quebrava o
+                    # parser de xref do PyPDF2 mesmo em PDFs originalmente válidos)
+                    if not data.rstrip().endswith(b'%%EOF'):
+                        data = data.rstrip() + b'\n%%EOF'
                     
                     # Tenta encontrar e reconstruir xref table
                     if b'xref' not in data:
@@ -2300,6 +2336,12 @@ def pdfs_unlock_progress():
                         try:
                             import pikepdf
                             pdf = pikepdf.open(temp_path, password='')
+                            decrypted_path = temp_path + '.pikepdf_decrypted.pdf'
+                            pdf.save(decrypted_path)
+                            pdf.close()
+                            os.remove(temp_path)
+                            temp_path = decrypted_path
+                            reader = PdfReader(temp_path)
                             unlocked = True
                             found_password = 'pikepdf'
                         except:
@@ -2441,11 +2483,17 @@ def pdfs_unlock():
                             try:
                                 import pikepdf
                                 pdf = pikepdf.open(temp_path, password='')
+                                decrypted_path = temp_path + '.pikepdf_decrypted.pdf'
+                                pdf.save(decrypted_path)
+                                pdf.close()
+                                os.remove(temp_path)
+                                temp_path = decrypted_path
+                                reader = PdfReader(temp_path)
                                 unlocked = True
                                 found_password = 'pikepdf'
                             except:
                                 pass
-                        
+
                         if not unlocked:
                             try:
                                 result = subprocess.run(
@@ -2905,15 +2953,13 @@ def pdfs_merge():
                                     writer.add_page(reader.pages[page_num - 1])
                 
                 base_name = os.path.splitext(files[0].filename)[0]
-                if len(files) == 1:
-                    output_filename = f"{base_name}_organizado.pdf"
-                else:
-                    output_filename = "PDF_Mesclado.pdf"
+                name_stem = f"{base_name}_organizado" if len(files) == 1 else "PDF_Mesclado"
+                output_filename = f"{name_stem}.pdf"
                 output_path = os.path.join(downloads_dir, output_filename)
-                
+
                 counter = 1
                 while os.path.exists(output_path):
-                    output_filename = f"PDF_Mesclado_{counter}.pdf"
+                    output_filename = f"{name_stem}_{counter}.pdf"
                     output_path = os.path.join(downloads_dir, output_filename)
                     counter += 1
                 
@@ -2928,90 +2974,299 @@ def pdfs_merge():
     
     return render_template_string(PDFS_MERGE_HTML, status=status, error=error)
 
+class UnsupportedConversionError(Exception):
+    """Erro amigável quando o tipo de conversão pedido não é suportado de verdade."""
+    pass
+
+
+VIDEO_EXTS = ['3g2', '3gp', 'asf', 'avi', 'divx', 'dv', 'f4v', 'flv', 'm2ts', 'm2v',
+              'm4v', 'mjpeg', 'mkv', 'mod', 'mov', 'mp4', 'mpeg', 'mpg', 'mts', 'mxf',
+              'ogv', 'rm', 'rmvb', 'swf', 'tod', 'ts', 'vob', 'webm', 'wmv', 'wtv', 'xvid']
+
+AUDIO_EXTS = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'oga', 'wma', 'm4a', 'opus', 'aiff',
+              'ape', 'alac', 'ac3', 'dts', 'amr', 'au', 'mid', 'midi', 'mka', 'mp2',
+              'mpc', 'ra', 'spx', 'tta', 'voc', 'vqf', 'wv', '3ga', 'aa', 'aax', 'act',
+              'aif', 'aifc', 'caf', 'dss', 'dvf', 'gsm', 'iklax', 'ivs', 'm4b', 'm4p',
+              'mmf', 'msv', 'nmf', 'nsf', 'mogg', 'rf64', 'sln', 'vox', 'webm', '8svx', 'cda']
+
+# Formatos "pacote" (múltiplos arquivos): lemos/gravamos de verdade com zipfile/tarfile.
+ARCHIVE_BUNDLE_FORMATS = {'zip', 'tar', 'tar.gz', 'tgz', 'tar.bz2', 'tbz2', 'tar.xz', 'jar', 'apk', 'ipa'}
+# Formatos "fluxo único" (compressão de 1 arquivo): gzip/bz2/lzma da stdlib.
+ARCHIVE_STREAM_FORMATS = {'gz', 'bz2', 'xz'}
+# Extensões de entrada que reconhecemos como "é um arquivo compactado", mesmo quando
+# não sabemos gerar esse formato de saída (ex: .rar só conseguimos rejeitar com uma
+# mensagem clara, pois exigiria unrar/7z instalado no sistema).
+ARCHIVE_ALL_EXTS = ['7z', 'ace', 'alz', 'apk', 'arc', 'arj', 'cab', 'cpio', 'deb', 'gz',
+                     'bz2', 'xz', 'ipa', 'iso', 'dmg', 'pkg', 'jar', 'lha', 'rar', 'rpm',
+                     'tar', 'tbz2', 'tgz', 'zip']
+
+
+def _detect_file_category(filename, stream):
+    """Descobre a categoria real do arquivo (não confia só na extensão)."""
+    stream.seek(0)
+    try:
+        from PIL import Image
+        img = Image.open(stream)
+        img.load()
+        return 'image'
+    except Exception:
+        pass
+    finally:
+        stream.seek(0)
+
+    ext = os.path.splitext(filename)[1].lower().lstrip('.')
+    if ext in AUDIO_EXTS:
+        return 'audio'
+    if ext in VIDEO_EXTS:
+        return 'video'
+    if ext in ARCHIVE_ALL_EXTS or zipfile.is_zipfile(stream):
+        stream.seek(0)
+        return 'archive'
+    stream.seek(0)
+    try:
+        with tarfile.open(fileobj=stream):
+            return 'archive'
+    except Exception:
+        return 'unsupported'
+    finally:
+        stream.seek(0)
+
+
+def _downloads_output_path(desired_filename):
+    downloads_dir = str(Path.home() / "Downloads")
+    os.makedirs(downloads_dir, exist_ok=True)
+    base_name, ext = os.path.splitext(desired_filename)
+    output_path = os.path.join(downloads_dir, desired_filename)
+    counter = 1
+    while os.path.exists(output_path):
+        output_path = os.path.join(downloads_dir, f"{base_name}_{counter}{ext}")
+        counter += 1
+    return output_path
+
+
+def _convert_image_file(file_storage, output_format):
+    from PIL import Image
+
+    file_storage.stream.seek(0)
+    img = Image.open(file_storage.stream)
+
+    # "ENC" não é um formato de imagem: é o botão para o caso clássico de arquivo
+    # .enc do WhatsApp que na verdade já é uma imagem válida (JPEG/PNG) só com essa
+    # extensão trocada pelo app. Aqui tratamos como um pedido de saída em PNG normal,
+    # inclusive no nome do arquivo, para o resultado abrir em qualquer visualizador.
+    if output_format == 'enc':
+        output_format = 'png'
+
+    if output_format in ('jpg', 'jpeg') and img.mode in ('RGBA', 'LA', 'P'):
+        background = Image.new('RGB', img.size, (255, 255, 255))
+        if img.mode == 'P':
+            img = img.convert('RGBA')
+        background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+        img = background
+
+    original_name = os.path.splitext(file_storage.filename)[0]
+    output_path = _downloads_output_path(f"{original_name}_convertido.{output_format}")
+
+    try:
+        # Deixa o Pillow inferir o formato pela extensão do arquivo de saída - é o
+        # próprio Pillow (e plugins como o pillow-heif) que sabem mapear corretamente
+        # ".jpg"/".heic"/etc para o codec certo.
+        img.save(output_path)
+    except (KeyError, OSError, ValueError) as e:
+        raise UnsupportedConversionError(
+            f"O Pillow não sabe salvar imagens no formato '{output_format.upper()}' ({e})."
+        )
+
+    return os.path.basename(output_path)
+
+
+def _convert_media_file(file_storage, output_format):
+    import subprocess
+    import tempfile
+
+    input_ext = os.path.splitext(file_storage.filename)[1] or '.tmp'
+    tmp_in = tempfile.NamedTemporaryFile(suffix=input_ext, delete=False)
+    try:
+        file_storage.stream.seek(0)
+        shutil.copyfileobj(file_storage.stream, tmp_in)
+        tmp_in.close()
+
+        original_name = os.path.splitext(file_storage.filename)[0]
+        output_path = _downloads_output_path(f"{original_name}_convertido.{output_format}")
+
+        result = subprocess.run(
+            ['ffmpeg', '-y', '-i', tmp_in.name, output_path],
+            capture_output=True, timeout=600
+        )
+
+        if result.returncode != 0 or not os.path.exists(output_path):
+            if os.path.exists(output_path):
+                os.remove(output_path)
+            stderr_lines = result.stderr.decode('utf-8', errors='ignore').strip().splitlines()
+            detail = stderr_lines[-1] if stderr_lines else 'erro desconhecido do ffmpeg'
+            raise UnsupportedConversionError(
+                f"O ffmpeg não conseguiu converter para '.{output_format}': {detail}"
+            )
+    finally:
+        os.remove(tmp_in.name)
+
+    return os.path.basename(output_path)
+
+
+def _read_archive(stream):
+    """Lê o arquivo compactado e retorna ('bundle', [(nome, bytes), ...]) ou ('stream', bytes)."""
+    stream.seek(0)
+    if zipfile.is_zipfile(stream):
+        stream.seek(0)
+        entries = []
+        with zipfile.ZipFile(stream) as zf:
+            for info in zf.infolist():
+                if not info.is_dir():
+                    entries.append((info.filename, zf.read(info.filename)))
+        return 'bundle', entries
+
+    stream.seek(0)
+    try:
+        with tarfile.open(fileobj=stream) as tf:
+            entries = []
+            for member in tf.getmembers():
+                if member.isfile():
+                    extracted = tf.extractfile(member)
+                    if extracted:
+                        entries.append((member.name, extracted.read()))
+            return 'bundle', entries
+    except tarfile.ReadError:
+        pass
+
+    stream.seek(0)
+    raw = stream.read()
+    for decompress in (gzip.decompress, bz2.decompress, lzma.decompress):
+        try:
+            return 'stream', decompress(raw)
+        except Exception:
+            continue
+
+    raise UnsupportedConversionError(
+        "Este formato de arquivo compactado não é suportado (precisaria de uma "
+        "ferramenta externa como unrar ou 7z)."
+    )
+
+
+def _write_bundle_archive(entries, output_format):
+    buf = io.BytesIO()
+    if output_format in ('zip', 'jar', 'apk', 'ipa'):
+        with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for name, data in entries:
+                zf.writestr(name, data)
+    else:
+        tar_modes = {
+            'tar': 'w', 'tar.gz': 'w:gz', 'tgz': 'w:gz',
+            'tar.bz2': 'w:bz2', 'tbz2': 'w:bz2', 'tar.xz': 'w:xz',
+        }
+        mode = tar_modes.get(output_format)
+        if not mode:
+            raise UnsupportedConversionError(
+                f"Não é possível gerar um arquivo compactado no formato '{output_format}'."
+            )
+        with tarfile.open(fileobj=buf, mode=mode) as tf:
+            for name, data in entries:
+                info = tarfile.TarInfo(name=name)
+                info.size = len(data)
+                tf.addfile(info, io.BytesIO(data))
+    return buf.getvalue()
+
+
+def _convert_archive_file(file_storage, output_format):
+    file_storage.stream.seek(0)
+    kind, payload = _read_archive(file_storage.stream)
+
+    if output_format in ARCHIVE_STREAM_FORMATS:
+        if kind == 'stream':
+            raw = payload
+        else:
+            file_storage.stream.seek(0)
+            raw = file_storage.stream.read()
+        compressors = {'gz': gzip.compress, 'bz2': bz2.compress, 'xz': lzma.compress}
+        data = compressors[output_format](raw)
+    elif output_format in ARCHIVE_BUNDLE_FORMATS:
+        if kind == 'bundle':
+            entries = payload
+        else:
+            base_name = os.path.splitext(file_storage.filename)[0]
+            entries = [(base_name, payload)]
+        data = _write_bundle_archive(entries, output_format)
+    else:
+        raise UnsupportedConversionError(
+            f"Conversão para '.{output_format}' não é suportada (precisaria de uma "
+            "ferramenta externa como unrar, 7z ou dpkg)."
+        )
+
+    original_name = os.path.splitext(file_storage.filename)[0]
+    output_path = _downloads_output_path(f"{original_name}_convertido.{output_format}")
+    with open(output_path, 'wb') as f:
+        f.write(data)
+    return os.path.basename(output_path)
+
+
+def _convert_uploaded_file(file_storage, output_format):
+    category = _detect_file_category(file_storage.filename, file_storage.stream)
+    if category == 'image':
+        return _convert_image_file(file_storage, output_format)
+    if category in ('audio', 'video'):
+        return _convert_media_file(file_storage, output_format)
+    if category == 'archive':
+        return _convert_archive_file(file_storage, output_format)
+    raise UnsupportedConversionError(
+        "Este tipo de arquivo ainda não tem conversão real implementada nesta versão "
+        "(documentos, apresentações, ebooks, fontes, CAD e modelos 3D não são suportados)."
+    )
+
+
 @app.route("/files", methods=["GET", "POST"], strict_slashes=False)
 def files():
     status = None
     error = None
-    
+
     if request.method == "POST":
         if 'file' not in request.files:
             error = "Nenhum arquivo selecionado."
         else:
             file = request.files['file']
-            output_format = request.form.get('format', 'jpg')
-            
+            output_format = request.form.get('format', 'jpg').strip().lower()
+
             if file.filename == '':
                 error = "Nenhum arquivo selecionado."
             else:
                 try:
-                    from PIL import Image
-                except ImportError:
-                    error = "Pillow não está instalado. Execute: pip install Pillow"
-                    return render_template_string(FILES_HTML, status=status, error=error)
-                
-                try:
-                    # Ler arquivo
-                    img = Image.open(file.stream)
-                    
-                    # Converter ENC para PNG (ENC é tratado como formato encriptado/especial)
-                    if output_format.lower() == 'enc':
-                        # ENC será convertido para PNG com metadados especiais
-                        output_format = 'png'
-                    
-                    if output_format.lower() in ['jpg', 'jpeg'] and img.mode in ('RGBA', 'LA', 'P'):
-                        background = Image.new('RGB', img.size, (255, 255, 255))
-                        if img.mode == 'P':
-                            img = img.convert('RGBA')
-                        background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
-                        img = background
-                    
-                    # Salvar na pasta Downloads
-                    downloads_dir = str(Path.home() / "Downloads")
-                    os.makedirs(downloads_dir, exist_ok=True)
-                    
-                    # Nome do arquivo
-                    original_name = os.path.splitext(file.filename)[0]
-                    output_filename = f"{original_name}_convertido.{output_format}"
-                    output_path = os.path.join(downloads_dir, output_filename)
-                    
-                    # Verificar se já existe
-                    counter = 1
-                    while os.path.exists(output_path):
-                        output_filename = f"{original_name}_convertido_{counter}.{output_format}"
-                        output_path = os.path.join(downloads_dir, output_filename)
-                        counter += 1
-                    
-                    # Salvar
-                    img.save(output_path, format=output_format.upper())
+                    output_filename = _convert_uploaded_file(file, output_format)
                     status = f"✅ '{output_filename}' salvo na pasta Downloads!"
-                    
+                except UnsupportedConversionError as e:
+                    error = str(e)
                 except Exception as e:
                     error = f"Erro ao converter: {str(e)}"
-    
+
     return render_template_string(FILES_HTML, status=status, error=error)
+
 
 @app.route("/estimate_size", methods=["POST"])
 def estimate_size():
     try:
-        from PIL import Image
-        import io
-        
         if 'file' not in request.files:
             return jsonify({"success": False})
-        
+
         file = request.files['file']
         if file.filename == '':
             return jsonify({"success": False})
-        
-        # Detectar tipo de arquivo
-        file_ext = os.path.splitext(file.filename)[1].lower().replace('.', '')
-        
-        # Tentar abrir como imagem
-        try:
+
+        category = _detect_file_category(file.filename, file.stream)
+
+        if category == 'image':
+            from PIL import Image
+            file.stream.seek(0)
             img = Image.open(file.stream)
             width, height = img.size
             pixels = width * height
-            
+
             # Estimativas para todos os formatos de imagem
             sizes = {
                 'jpg': int(pixels * 0.15), 'jpeg': int(pixels * 0.15), 'jpe': int(pixels * 0.15),
@@ -3052,66 +3307,30 @@ def estimate_size():
                 'nrw': int(pixels * 1.5), 'srf': int(pixels * 1.5), 'x3f': int(pixels * 1.5),
                 'enc': int(pixels * 2.5)
             }
-            
+
             return jsonify({"success": True, "sizes": sizes, "type": "image"})
-        except:
-            pass
-        
-        # Se não for imagem, retornar formatos disponíveis por categoria
+
         file.stream.seek(0)
         file_size = len(file.stream.read())
-        
-        # Detectar categoria do arquivo
-        video_exts = ['3g2', '3gp', 'aaf', 'asf', 'av1', 'avchd', 'avi', 'cavs', 'divx', 'dv', 'f4v', 'flv', 'hevc', 'm2ts', 'm2v', 'm4v', 'mjpeg', 'mkv', 'mod', 'mov', 'mp4', 'mpeg', 'mpeg-2', 'mpg', 'mts', 'mxf', 'ogv', 'rm', 'rmvb', 'swf', 'tod', 'ts', 'vob', 'webm', 'wmv', 'wtv', 'xvid', 'h264', 'h265', 'vp8', 'vp9', 'theora', 'prores', 'dnxhd', 'cineform']
-        doc_exts = ['abw', 'aw', 'csv', 'dbk', 'djvu', 'doc', 'docm', 'docx', 'dot', 'dotm', 'dotx', 'html', 'htm', 'kwd', 'odt', 'oxps', 'pdf', 'rtf', 'sxw', 'txt', 'wps', 'xls', 'xlsx', 'xps', 'ods', 'ots', 'numbers', 'pages', 'key', 'tex', 'md', 'markdown', 'rst', 'adoc']
-        archive_exts = ['7z', 'ace', 'alz', 'arc', 'arj', 'cab', 'cpio', 'deb', 'jar', 'lha', 'rar', 'rpm', 'tar', 'tar.7z', 'tar.bz', 'tar.lz', 'tar.lzma', 'tar.lzo', 'tar.xz', 'tar.z', 'tbz2', 'tgz', 'zip', 'gz', 'bz2', 'xz', 'lz', 'lzma', 'z', 'iso', 'dmg', 'pkg', 'deb', 'rpm', 'apk', 'ipa']
-        presentation_exts = ['odp', 'pot', 'potm', 'potx', 'pps', 'ppsm', 'ppsx', 'ppt', 'pptm', 'pptx', 'sxi', 'sti', 'key']
-        ebook_exts = ['azw', 'azw3', 'azw4', 'epub', 'fb2', 'lrf', 'mobi', 'pdb', 'rb', 'snb', 'tcr', 'cbr', 'cbz', 'cb7', 'cbt', 'cba', 'lit', 'prc', 'opf', 'tr2', 'tr3']
-        font_exts = ['afm', 'bin', 'cff', 'cid', 'dfont', 'otf', 'pfa', 'pfb', 'ps', 'pt3', 'sfd', 't11', 't42', 'ttf', 'ufo', 'woff', 'woff2', 'eot', 'fon', 'fnt', 'bdf', 'pcf', 'snf']
-        audio_exts = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a', 'opus', 'aiff', 'ape', 'alac', 'ac3', 'dts', 'amr', 'au', 'mid', 'midi', 'mka', 'mp2', 'mpc', 'oga', 'ra', 'spx', 'tta', 'voc', 'vqf', 'wv', '3ga', 'aa', 'aax', 'act', 'aif', 'aifc', 'caf', 'dss', 'dvf', 'gsm', 'iklax', 'ivs', 'm4b', 'm4p', 'mmf', 'mpc', 'msv', 'nmf', 'nsf', 'oga', 'mogg', 'opus', 'ra', 'rm', 'raw', 'rf64', 'sln', 'tta', 'vox', 'wma', 'wv', 'webm', '8svx', 'cda']
-        cad_exts = ['dwg', 'dxf', 'dwf', 'dgn', 'iges', 'igs', 'step', 'stp', 'stl', 'obj', 'fbx', 'dae', '3ds', 'blend', 'skp', 'ifc', 'rvt', 'rfa', 'sat', 'sab', 'catpart', 'catproduct', 'prt', 'asm', 'sldprt', 'sldasm', 'slddrw']
-        model_3d_exts = ['3ds', 'obj', 'fbx', 'dae', 'blend', 'stl', 'ply', 'gltf', 'glb', 'usd', 'usda', 'usdc', 'usdz', 'x3d', 'wrl', 'vrml', 'ma', 'mb', 'max', 'c4d', 'lwo', 'lws', 'lxo', 'modo', 'zpr', 'ztl']
-        
-        sizes = {}
-        if file_ext in video_exts:
-            for ext in video_exts:
-                sizes[ext] = int(file_size * 0.8)
+
+        if category == 'video':
+            sizes = {ext: int(file_size * 0.8) for ext in VIDEO_EXTS}
             return jsonify({"success": True, "sizes": sizes, "type": "video"})
-        elif file_ext in doc_exts:
-            for ext in doc_exts:
-                sizes[ext] = int(file_size * 1.2)
-            return jsonify({"success": True, "sizes": sizes, "type": "document"})
-        elif file_ext in archive_exts:
-            for ext in archive_exts:
-                sizes[ext] = int(file_size * 0.9)
-            return jsonify({"success": True, "sizes": sizes, "type": "archive"})
-        elif file_ext in presentation_exts:
-            for ext in presentation_exts:
-                sizes[ext] = int(file_size * 1.1)
-            return jsonify({"success": True, "sizes": sizes, "type": "presentation"})
-        elif file_ext in ebook_exts:
-            for ext in ebook_exts:
-                sizes[ext] = int(file_size * 1.0)
-            return jsonify({"success": True, "sizes": sizes, "type": "ebook"})
-        elif file_ext in font_exts:
-            for ext in font_exts:
-                sizes[ext] = int(file_size * 1.0)
-            return jsonify({"success": True, "sizes": sizes, "type": "font"})
-        elif file_ext in audio_exts:
-            for ext in audio_exts:
-                sizes[ext] = int(file_size * 0.9)
+
+        if category == 'audio':
+            sizes = {ext: int(file_size * 0.9) for ext in AUDIO_EXTS}
             return jsonify({"success": True, "sizes": sizes, "type": "audio"})
-        elif file_ext in cad_exts:
-            for ext in cad_exts:
-                sizes[ext] = int(file_size * 1.0)
-            return jsonify({"success": True, "sizes": sizes, "type": "cad"})
-        elif file_ext in model_3d_exts:
-            for ext in model_3d_exts:
-                sizes[ext] = int(file_size * 1.0)
-            return jsonify({"success": True, "sizes": sizes, "type": "3d"})
-        
-        # Formato desconhecido - tentar como imagem
-        return jsonify({"success": False, "message": "Formato não suportado"})
+
+        if category == 'archive':
+            supported = sorted(ARCHIVE_BUNDLE_FORMATS | ARCHIVE_STREAM_FORMATS)
+            sizes = {ext: int(file_size * 0.9) for ext in supported}
+            return jsonify({"success": True, "sizes": sizes, "type": "archive"})
+
+        return jsonify({
+            "success": False,
+            "message": "Este tipo de arquivo ainda não é suportado para conversão "
+                        "(documentos, apresentações, ebooks, fontes, CAD e 3D)."
+        })
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
@@ -4271,6 +4490,13 @@ FILES_HTML = """
           
           updateSizeDisplay();
         } else {
+          formatSizes = {};
+          availableFormats = [];
+          formatItems.forEach(item => item.classList.remove('available', 'active'));
+          formatBtns.forEach(btn => {
+            btn.classList.add('unavailable');
+            btn.classList.remove('active');
+          });
           sizeText.textContent = result.message || 'Não foi possível calcular o tamanho';
         }
       } catch (error) {
@@ -6461,42 +6687,56 @@ def transparent():
         action = request.form.get('action', 'color')
         color = request.form.get('color', '#FFFFFF')
         tolerance = int(request.form.get('tolerance', 30))
-        
-        if file:
-            try:
-                from PIL import Image
-                import numpy as np
-                
-                img = Image.open(file.stream).convert('RGBA')
-                img_array = np.array(img)
-                
-                if action == 'auto':
-                    try:
-                        from rembg import remove
-                        import io
-                        img_bytes = io.BytesIO()
-                        img.save(img_bytes, format='PNG')
-                        img_bytes.seek(0)
-                        output = remove(img_bytes.read())
-                        img = Image.open(io.BytesIO(output))
-                    except:
-                        return jsonify({'success': False, 'error': 'Instale: pip install rembg'})
-                else:
-                    r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
-                    diff = np.abs(img_array[:,:,:3].astype(int) - [r,g,b])
-                    mask = np.all(diff < tolerance, axis=2)
-                    img_array[:,:,3] = np.where(mask, 0, 255)
-                    img = Image.fromarray(img_array, 'RGBA')
-                
-                downloads_dir = str(Path.home() / "Downloads")
-                os.makedirs(downloads_dir, exist_ok=True)
-                filename = f"transparent_{int(time.time())}.png"
-                img.save(os.path.join(downloads_dir, filename), 'PNG')
-                
-                return jsonify({'success': True, 'filename': filename})
-            except Exception as e:
-                return jsonify({'success': False, 'error': str(e)})
-    
+
+        if not file or not file.filename:
+            return jsonify({'success': False, 'error': 'Selecione uma imagem.'}), 400
+
+        try:
+            from PIL import Image
+            import numpy as np
+
+            img = Image.open(file.stream).convert('RGBA')
+            img_array = np.array(img)
+
+            if action == 'auto':
+                # ImportError (rembg não instalado) é um caso bem diferente de uma
+                # falha real durante a remoção (rede indisponível no primeiro
+                # download do modelo, erro do onnxruntime etc.) - misturar os dois
+                # num "except:" genérico mandava sempre a mesma mensagem de
+                # "instale o rembg" mesmo quando ele já está instalado e funcionando.
+                try:
+                    from rembg import remove
+                except ImportError:
+                    return jsonify({'success': False, 'error': 'Instale: pip install rembg'})
+                import io
+                img_bytes = io.BytesIO()
+                img.save(img_bytes, format='PNG')
+                img_bytes.seek(0)
+                output = remove(img_bytes.read())
+                img = Image.open(io.BytesIO(output))
+            else:
+                r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
+                diff = np.abs(img_array[:,:,:3].astype(int) - [r,g,b])
+                mask = np.all(diff < tolerance, axis=2)
+                img_array[:,:,3] = np.where(mask, 0, 255)
+                img = Image.fromarray(img_array, 'RGBA')
+
+            downloads_dir = str(Path.home() / "Downloads")
+            os.makedirs(downloads_dir, exist_ok=True)
+            # int(time.time()) só tem resolução de 1 segundo, e checar
+            # os.path.exists antes de salvar tem uma janela de corrida entre duas
+            # requisições concorrentes: as duas podem ver "não existe" e uma
+            # sobrescreve a outra silenciosamente, ambas reportando sucesso. Um
+            # sufixo aleatório curto elimina a colisão sem precisar de lock.
+            import uuid
+            filename = f"transparent_{int(time.time())}_{uuid.uuid4().hex[:8]}.png"
+            output_path = os.path.join(downloads_dir, filename)
+            img.save(output_path, 'PNG')
+
+            return jsonify({'success': True, 'filename': filename})
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)})
+
     return render_template_string(TRANSPARENT_HTML)
 
 
@@ -6666,6 +6906,69 @@ status.className=`status ${type}`;
 </body>
 </html>
 """
+def _pix_crc16(payload):
+    """CRC-16/CCITT-FALSE (poly 0x1021, init 0xFFFF) - o mesmo usado no BR Code do Pix."""
+    crc = 0xFFFF
+    for byte in payload.encode('utf-8'):
+        crc ^= byte << 8
+        for _ in range(8):
+            if crc & 0x8000:
+                crc = ((crc << 1) ^ 0x1021) & 0xFFFF
+            else:
+                crc = (crc << 1) & 0xFFFF
+    return format(crc, '04X')
+
+
+def _pix_tlv(field_id, value):
+    return f"{field_id}{len(value):02d}{value}"
+
+
+def _pix_sanitize(value, max_len):
+    import unicodedata
+    ascii_value = unicodedata.normalize('NFKD', value or '').encode('ascii', 'ignore').decode('ascii')
+    ascii_value = ''.join(ch for ch in ascii_value if 32 <= ord(ch) <= 126).strip()
+    return (ascii_value or 'NA')[:max_len]
+
+
+def build_pix_payload(pix_key, pix_name, pix_city, pix_value):
+    """Monta o payload EMV/BR Code do Pix (o mesmo formato usado no 'Pix Copia e Cola'),
+    seguindo o Manual de Padrões para Iniciação do Pix do Banco Central."""
+    pix_key = (pix_key or '').strip()
+    merchant_name = _pix_sanitize(pix_name, 25)
+    merchant_city = _pix_sanitize(pix_city, 15)
+
+    merchant_account_info = _pix_tlv('00', 'br.gov.bcb.pix') + _pix_tlv('01', pix_key)
+
+    payload = (
+        _pix_tlv('00', '01') +
+        _pix_tlv('26', merchant_account_info) +
+        _pix_tlv('52', '0000') +
+        _pix_tlv('53', '986')
+    )
+
+    raw_value = (pix_value or '').strip().replace(',', '.')
+    if raw_value:
+        try:
+            amount = float(raw_value)
+            if amount > 0:
+                payload += _pix_tlv('54', f"{amount:.2f}")
+        except ValueError:
+            pass
+
+    payload += _pix_tlv('58', 'BR')
+    payload += _pix_tlv('59', merchant_name)
+    payload += _pix_tlv('60', merchant_city)
+    payload += _pix_tlv('62', _pix_tlv('05', '***'))
+
+    payload_with_crc_id = payload + '6304'
+    return payload_with_crc_id + _pix_crc16(payload_with_crc_id)
+
+
+def _wifi_escape(value):
+    import re
+    return re.sub(r'([\\;,":])', r'\\\1', value or '')
+
+
 @app.route("/qrcode", methods=["GET", "POST"], strict_slashes=False)
 def qrcode_generator():
     status = None
@@ -6679,10 +6982,10 @@ def qrcode_generator():
             from io import BytesIO
             
             qr_type = request.form.get('type', 'url')
-            
+
             # Funções de extração automática
             import re
-            from urllib.parse import urlparse, parse_qs
+            from urllib.parse import quote
             
             def extract_youtube_id(url):
                 patterns = [
@@ -6734,7 +7037,7 @@ def qrcode_generator():
             elif qr_type == 'whatsapp':
                 number = request.form.get('whatsapp_number', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
                 message = request.form.get('whatsapp_message', '')
-                data = f"https://wa.me/{number}?text={message}" if message else f"https://wa.me/{number}"
+                data = f"https://wa.me/{number}?text={quote(message)}" if message else f"https://wa.me/{number}"
             elif qr_type == 'instagram':
                 user_input = request.form.get('instagram_user', '')
                 user = extract_instagram_user(user_input)
@@ -6779,7 +7082,6 @@ def qrcode_generator():
                 data = f"https://tiktok.com/@{user}"
             elif qr_type == 'telegram':
                 user = request.form.get('telegram_user', '')
-                telegram_type = request.form.get('telegram_type', 'user')
                 data = f"https://t.me/{user}"
             elif qr_type == 'spotify':
                 uri_input = request.form.get('spotify_uri', '')
@@ -6801,7 +7103,7 @@ def qrcode_generator():
                 ssid = request.form.get('ssid', '')
                 password = request.form.get('password', '')
                 security = request.form.get('security', 'WPA')
-                data = f"WIFI:T:{security};S:{ssid};P:{password};;"
+                data = f"WIFI:T:{security};S:{_wifi_escape(ssid)};P:{_wifi_escape(password)};;"
             elif qr_type == 'vcard':
                 name = request.form.get('name', '')
                 phone = request.form.get('phone', '')
@@ -6815,12 +7117,12 @@ def qrcode_generator():
                 pix_name = request.form.get('pix_name', '')
                 pix_city = request.form.get('pix_city', '')
                 pix_value = request.form.get('pix_value', '')
-                data = f"PIX:{pix_key}|{pix_name}|{pix_city}|{pix_value}"
+                data = build_pix_payload(pix_key, pix_name, pix_city, pix_value)
             elif qr_type == 'email':
                 email_to = request.form.get('email_to', '')
                 email_subject = request.form.get('email_subject', '')
                 email_body = request.form.get('email_body', '')
-                data = f"mailto:{email_to}?subject={email_subject}&body={email_body}"
+                data = f"mailto:{email_to}?subject={quote(email_subject)}&body={quote(email_body)}"
             elif qr_type == 'sms':
                 sms_number = request.form.get('sms_number', '')
                 sms_message = request.form.get('sms_message', '')
@@ -6837,12 +7139,20 @@ def qrcode_generator():
                 error = "Preencha os campos necessários"
             else:
                 # Configurações avançadas
-                error_correction = request.form.get('error_correction', 'M')
+                error_correction = request.form.get('error_correction', 'M').upper()
+                if error_correction not in ('L', 'M', 'Q', 'H'):
+                    error_correction = 'M'
                 box_size = int(request.form.get('box_size', 10))
                 border = int(request.form.get('border', 4))
                 fg_color = request.form.get('fg_color', '#000000')
                 bg_color = request.form.get('bg_color', '#FFFFFF')
-                
+
+                has_logo = 'logo' in request.files and request.files['logo'].filename
+                if has_logo:
+                    # Um logo no centro cobre parte dos módulos: força o nível mais alto
+                    # de correção de erro para o QR continuar lendo mesmo assim.
+                    error_correction = 'H'
+
                 # Criar QR Code
                 qr = qrcode.QRCode(
                     version=1,
@@ -6852,24 +7162,26 @@ def qrcode_generator():
                 )
                 qr.add_data(data)
                 qr.make(fit=True)
-                
-                img = qr.make_image(fill_color=fg_color, back_color=bg_color)
-                
+
+                img = qr.make_image(fill_color=fg_color, back_color=bg_color).convert('RGB')
+
                 # Adicionar logo se fornecido
-                if 'logo' in request.files and request.files['logo'].filename:
+                if has_logo:
                     try:
                         from PIL import Image
                         logo_file = request.files['logo']
-                        logo = Image.open(logo_file.stream)
-                        
+                        logo = Image.open(logo_file.stream).convert('RGBA')
+
                         # Redimensionar logo
                         qr_width, qr_height = img.size
                         logo_size = min(qr_width, qr_height) // 4
                         logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
-                        
+
                         # Posicionar logo no centro
                         logo_pos = ((qr_width - logo_size) // 2, (qr_height - logo_size) // 2)
-                        img.paste(logo, logo_pos)
+                        # Usa o próprio canal alfa do logo como máscara para respeitar
+                        # fundos transparentes em vez de colar um quadrado sólido.
+                        img.paste(logo, logo_pos, mask=logo)
                     except:
                         pass
                 
@@ -6912,14 +7224,15 @@ def compress():
         if not file or not file.filename:
             error = "Selecione um arquivo válido."
         else:
+            temp_input = None
             try:
                 from PIL import Image
                 import subprocess
                 import lzma
-                
+
                 downloads_dir = str(Path.home() / "Downloads")
                 os.makedirs(downloads_dir, exist_ok=True)
-                
+
                 original_name = os.path.splitext(file.filename)[0]
                 file_ext = os.path.splitext(file.filename)[1].lower()
                 
@@ -6984,40 +7297,49 @@ def compress():
                 
                 # Vídeos
                 elif file_ext in ['.mp4', '.avi', '.mkv', '.mov', '.webm', '.flv', '.wmv', '.m4v', '.mpg', '.mpeg']:
-                    # Determinar resolução e CRF
+                    # Determinar resolução, CRF e faixa de áudio de acordo com a qualidade
                     if quality <= 20:
                         scale = "scale=640:360"
                         crf = 35
+                        audio_bitrate, audio_channels = '48k', '1'
                     elif quality <= 40:
                         scale = "scale=854:480"
                         crf = 30
+                        audio_bitrate, audio_channels = '64k', '1'
                     elif quality <= 60:
                         scale = "scale=1280:720"
                         crf = 26
+                        audio_bitrate, audio_channels = '96k', '2'
                     elif quality <= 80:
                         scale = "scale=1920:1080"
                         crf = 23
+                        audio_bitrate, audio_channels = '128k', '2'
                     else:
                         scale = "scale=1920:1080"
                         crf = 20
-                    
+                        audio_bitrate, audio_channels = '192k', '2'
+
                     result = subprocess.run([
-                        'ffmpeg', '-i', temp_input, '-vf', scale, '-c:v', 'libx264', 
-                        '-crf', str(crf), '-preset', 'slow', '-c:a', 'aac', 
-                        '-b:a', '64k', '-ac', '1', output_path, '-y'
+                        'ffmpeg', '-y', '-i', temp_input, '-vf', scale, '-c:v', 'libx264',
+                        '-crf', str(crf), '-preset', 'slow', '-c:a', 'aac',
+                        '-b:a', audio_bitrate, '-ac', audio_channels, output_path
                     ], capture_output=True, timeout=600)
-                    
+
                     compressed = result.returncode == 0
-                
+
                 # Áudio
                 elif file_ext in ['.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a', '.wma']:
                     bitrate = max(32, int(quality * 1.28))
-                    
+                    # Só reduz para mono/baixa taxa de amostragem em qualidades bem baixas;
+                    # do contrário mantém estéreo, mesmo comprimindo o bitrate.
+                    sample_rate = '44100' if quality > 60 else ('32000' if quality > 30 else '22050')
+                    channels = '2' if quality > 30 else '1'
+
                     result = subprocess.run([
-                        'ffmpeg', '-i', temp_input, '-b:a', f'{bitrate}k', 
-                        '-ar', '22050', '-ac', '1', output_path, '-y'
+                        'ffmpeg', '-y', '-i', temp_input, '-b:a', f'{bitrate}k',
+                        '-ar', sample_rate, '-ac', channels, output_path
                     ], capture_output=True, timeout=300)
-                    
+
                     compressed = result.returncode == 0
                 
                 # PDFs
@@ -7035,7 +7357,7 @@ def compress():
                                     base_image = doc.extract_image(xref)
                                     image_bytes = base_image["image"]
                                     
-                                    img_pil = Image.open(BytesIO(image_bytes))
+                                    img_pil = Image.open(io.BytesIO(image_bytes))
                                     
                                     # Redimensionar imagem
                                     max_dim = 1024 if quality < 50 else 1920
@@ -7047,7 +7369,7 @@ def compress():
                                     if img_pil.mode in ('RGBA', 'LA', 'P'):
                                         img_pil = img_pil.convert('RGB')
                                     
-                                    img_buffer = BytesIO()
+                                    img_buffer = io.BytesIO()
                                     img_pil.save(img_buffer, format='JPEG', quality=max(30, quality), optimize=True)
                                     
                                     page.insert_image(page.rect, stream=img_buffer.getvalue())
@@ -7070,11 +7392,18 @@ def compress():
                 
                 # Outros arquivos - LZMA
                 else:
-                    with open(temp_input, 'rb') as f_in:
-                        with lzma.open(output_path + '.xz', 'wb', preset=9) as f_out:
-                            f_out.write(f_in.read())
-                    output_path = output_path + '.xz'
                     output_filename = output_filename + '.xz'
+                    output_path = output_path + '.xz'
+                    # A extensão .xz muda o nome final, então repete a checagem de
+                    # colisão para não sobrescrever um .xz de uma compressão anterior.
+                    counter = 1
+                    while os.path.exists(output_path):
+                        output_filename = f"{original_name}_compressed_{counter}{file_ext}.xz"
+                        output_path = os.path.join(downloads_dir, output_filename)
+                        counter += 1
+                    with open(temp_input, 'rb') as f_in:
+                        with lzma.open(output_path, 'wb', preset=9) as f_out:
+                            f_out.write(f_in.read())
                     compressed = True
                 
                 # Verificar se comprimiu
@@ -7096,16 +7425,16 @@ def compress():
                     error = "Erro ao comprimir arquivo"
                 
                 # Limpar arquivo temporário
-                if os.path.exists(temp_input):
+                if temp_input and os.path.exists(temp_input):
                     os.remove(temp_input)
-            
+
             except subprocess.TimeoutExpired:
                 error = "Timeout: arquivo muito grande"
-                if os.path.exists(temp_input):
+                if temp_input and os.path.exists(temp_input):
                     os.remove(temp_input)
             except Exception as e:
                 error = f"Erro: {str(e)}"
-                if os.path.exists(temp_input):
+                if temp_input and os.path.exists(temp_input):
                     os.remove(temp_input)
     
     try:
@@ -7431,24 +7760,15 @@ def transcribe():
                 
                 # Reconhecimento otimizado
                 recognizer = sr.Recognizer()
-                recognizer.energy_threshold = 2000
-                recognizer.dynamic_energy_threshold = True
-                recognizer.pause_threshold = 0.5
-                recognizer.phrase_threshold = 0.3
-                recognizer.non_speaking_duration = 0.3
-                
+
                 full_transcription = []
-                
+
                 with sr.AudioFile(temp_audio) as source:
-                    # Ajustar ruído
-                    recognizer.adjust_for_ambient_noise(source, duration=1)
-                    
                     audio_length = int(source.DURATION)
                     chunk_duration = 20  # Chunks menores = mais precisão
-                    
+
                     for i in range(0, audio_length, chunk_duration):
                         try:
-                            source.FRAME_OFFSET = int(i * source.SAMPLE_RATE)
                             chunk = recognizer.record(source, duration=min(chunk_duration, audio_length - i))
                             
                             # Tentar com show_all para pegar melhor resultado
@@ -7947,24 +8267,45 @@ def ghost_clean():
                          '.mj2', '.exr', '.hdr', '.tga', '.dds', '.pcx', '.ppm', '.pbm', '.pgm', '.pnm']
             
             if ext in image_exts:
+                is_animated = False
                 try:
-                    img = Image.open(temp_input)
-                    # Remover EXIF e criar imagem limpa
-                    data = list(img.getdata())
-                    img_clean = Image.new(img.mode, img.size)
-                    img_clean.putdata(data)
-                    if ext in ['.jpg', '.jpeg', '.jfif', '.jpe']:
-                        img_clean.save(output_file, 'JPEG', quality=95, optimize=True)
-                    elif ext == '.png':
-                        img_clean.save(output_file, 'PNG', optimize=True)
-                    else:
-                        img_clean.save(output_file)
-                    success = True
-                except:
-                    # Fallback: usar exiftool ou ffmpeg
-                    subprocess.run(['exiftool', '-all=', '-overwrite_original', temp_input], capture_output=True, timeout=30)
-                    shutil.move(temp_input, output_file)
-                    success = True
+                    with Image.open(temp_input) as probe:
+                        is_animated = getattr(probe, 'is_animated', False)
+                except Exception:
+                    pass
+
+                if is_animated:
+                    # getdata()/putdata() só reconstrói o frame atual - para GIF/WEBP
+                    # animados isso jogava fora todos os outros frames e a imagem
+                    # "limpa" virava uma imagem estática. O exiftool apaga os metadados
+                    # direto no arquivo, sem decodificar/recompor frames, então a
+                    # animação é preservada.
+                    try:
+                        subprocess.run(['exiftool', '-all=', '-overwrite_original', temp_input], capture_output=True, timeout=30)
+                        shutil.move(temp_input, output_file)
+                        success = True
+                    except Exception:
+                        shutil.copy2(temp_input, output_file)
+                        success = True
+                else:
+                    try:
+                        img = Image.open(temp_input)
+                        # Remover EXIF e criar imagem limpa
+                        data = list(img.getdata())
+                        img_clean = Image.new(img.mode, img.size)
+                        img_clean.putdata(data)
+                        if ext in ['.jpg', '.jpeg', '.jfif', '.jpe']:
+                            img_clean.save(output_file, 'JPEG', quality=95, optimize=True)
+                        elif ext == '.png':
+                            img_clean.save(output_file, 'PNG', optimize=True)
+                        else:
+                            img_clean.save(output_file)
+                        success = True
+                    except:
+                        # Fallback: usar exiftool ou ffmpeg
+                        subprocess.run(['exiftool', '-all=', '-overwrite_original', temp_input], capture_output=True, timeout=30)
+                        shutil.move(temp_input, output_file)
+                        success = True
             
             # PDFs
             elif ext == '.pdf':
@@ -7988,18 +8329,18 @@ def ghost_clean():
             elif ext in ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.wmv', '.m4v', '.mpg', '.mpeg', '.3gp', 
                         '.3g2', '.f4v', '.swf', '.vob', '.ogv', '.m2ts', '.mts', '.ts', '.divx', '.xvid', '.asf', 
                         '.rm', '.rmvb', '.dv', '.mxf', '.mod', '.tod']:
-                subprocess.run(['ffmpeg', '-i', temp_input, '-map_metadata', '-1', '-map_metadata:s:v', '-1', 
-                              '-map_metadata:s:a', '-1', '-codec', 'copy', '-y', output_file], 
+                ffmpeg_result = subprocess.run(['ffmpeg', '-i', temp_input, '-map_metadata', '-1', '-map_metadata:s:v', '-1',
+                              '-map_metadata:s:a', '-1', '-codec', 'copy', '-y', output_file],
                              capture_output=True, timeout=180)
-                success = True
-            
+                success = ffmpeg_result.returncode == 0
+
             # Áudios (40+ formatos)
-            elif ext in ['.mp3', '.wav', '.flac', '.m4a', '.aac', '.ogg', '.wma', '.opus', '.aiff', '.ape', '.alac', 
-                        '.ac3', '.dts', '.amr', '.au', '.mid', '.midi', '.mka', '.mp2', '.mpc', '.oga', '.ra', '.spx', 
+            elif ext in ['.mp3', '.wav', '.flac', '.m4a', '.aac', '.ogg', '.wma', '.opus', '.aiff', '.ape', '.alac',
+                        '.ac3', '.dts', '.amr', '.au', '.mid', '.midi', '.mka', '.mp2', '.mpc', '.oga', '.ra', '.spx',
                         '.tta', '.voc', '.wv', '.3ga', '.caf', '.gsm', '.m4b', '.m4p', '.oga', '.mogg']:
-                subprocess.run(['ffmpeg', '-i', temp_input, '-map_metadata', '-1', '-codec', 'copy', '-y', output_file], 
+                ffmpeg_result = subprocess.run(['ffmpeg', '-i', temp_input, '-map_metadata', '-1', '-codec', 'copy', '-y', output_file],
                              capture_output=True, timeout=120)
-                success = True
+                success = ffmpeg_result.returncode == 0
             
             # Documentos Office (DOCX, XLSX, PPTX)
             elif ext in ['.docx', '.xlsx', '.pptx', '.docm', '.xlsm', '.pptm']:
@@ -8008,11 +8349,32 @@ def ghost_clean():
                 os.makedirs(temp_dir, exist_ok=True)
                 with zipfile.ZipFile(temp_input, 'r') as zip_ref:
                     zip_ref.extractall(temp_dir)
-                # Remover metadados
-                for meta_dir in ['docProps', 'customXml']:
-                    meta_path = os.path.join(temp_dir, meta_dir)
-                    if os.path.exists(meta_path):
-                        shutil.rmtree(meta_path)
+                # Apagar a pasta docProps inteira deixava [Content_Types].xml e
+                # _rels/.rels com referências para arquivos que não existem mais -
+                # o pacote OOXML ficava estruturalmente inválido (Word abre em modo
+                # de reparo). Em vez de apagar, zeramos o conteúdo dos metadados
+                # (autor, empresa, datas, contagens etc.) mantendo os arquivos no lugar.
+                core_xml_path = os.path.join(temp_dir, 'docProps', 'core.xml')
+                if os.path.exists(core_xml_path):
+                    with open(core_xml_path, 'w', encoding='utf-8') as f:
+                        f.write(
+                            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+                            '<cp:coreProperties '
+                            'xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" '
+                            'xmlns:dc="http://purl.org/dc/elements/1.1/" '
+                            'xmlns:dcterms="http://purl.org/dc/terms/" '
+                            'xmlns:dcmitype="http://purl.org/dc/dcmitype/" '
+                            'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>'
+                        )
+                app_xml_path = os.path.join(temp_dir, 'docProps', 'app.xml')
+                if os.path.exists(app_xml_path):
+                    with open(app_xml_path, 'w', encoding='utf-8') as f:
+                        f.write(
+                            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+                            '<Properties '
+                            'xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" '
+                            'xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"/>'
+                        )
                 # Recriar arquivo
                 with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zip_out:
                     for root, dirs, files_in_dir in os.walk(temp_dir):
@@ -8094,11 +8456,18 @@ def ghost_clean():
             # Texto puro e código (20+ formatos)
             elif ext in ['.txt', '.md', '.csv', '.json', '.xml', '.html', '.css', '.js', '.py', '.java', '.cpp', 
                         '.c', '.h', '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.sql']:
-                # Ler e reescrever sem BOM ou metadados
-                with open(temp_input, 'r', encoding='utf-8', errors='ignore') as f:
-                    content = f.read()
-                with open(output_file, 'w', encoding='utf-8') as f:
-                    f.write(content)
+                # Decodificar como UTF-8 com errors='ignore' e regravar corrompia
+                # silenciosamente qualquer arquivo em outra codificação (ex: CSV do
+                # Excel em Latin-1 com acentos) - os bytes que não eram UTF-8 válido
+                # simplesmente desapareciam. Texto puro não carrega metadados de
+                # verdade, então só copiamos os bytes como estão, removendo um BOM
+                # UTF-8 no início se houver.
+                with open(temp_input, 'rb') as f:
+                    raw = f.read()
+                if raw.startswith(b'\xef\xbb\xbf'):
+                    raw = raw[3:]
+                with open(output_file, 'wb') as f:
+                    f.write(raw)
                 success = True
             
             # Fallback universal: exiftool
@@ -8497,7 +8866,12 @@ STEALTH_HTML = """
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'stealth_image.png';
+          // O servidor manda o nome/extensão reais no Content-Disposition (o
+          // arquivo pode ser vídeo/áudio/pdf, não só png) - usar sempre
+          // "stealth_image.png" salvava, por exemplo, um MP4 com extensão .png.
+          const disposition = response.headers.get('Content-Disposition') || '';
+          const match = disposition.match(/filename="?([^";]+)"?/);
+          a.download = match ? match[1] : 'stealth_image.png';
           document.body.appendChild(a);
           a.click();
           window.URL.revokeObjectURL(url);
@@ -8619,21 +8993,30 @@ def stealth_hide():
         if cover_ext in ['.jpg', '.jpeg', '.png', '.bmp', '.gif', '.webp', '.tiff', '.tif']:
             # LSB em imagens
             img = Image.open(io.BytesIO(cover_data))
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
+            # Forçar RGB sempre descartava a transparência de PNGs/GIFs com alpha,
+            # tornando uma imagem de capa transparente em opaca - o oposto de
+            # "discreto", que é a proposta de uma ferramenta de esteganografia.
+            # Os bits são gravados só em R/G/B, então dá para preservar o alfa
+            # original sem mexer no processo de extração (convert('RGB') em cima
+            # de RGBA só descarta o canal alfa, não altera os valores de R/G/B).
+            has_alpha = img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info)
+            img = img.convert('RGBA') if has_alpha else img.convert('RGB')
             pixels = list(img.getdata())
-            
+
             data_bits = ''.join(format(byte, '08b') for byte in full_data)
             max_bits = len(pixels) * 3
-            
+
             if len(data_bits) > max_bits - 32:
                 return jsonify({'error': 'Arquivo de cobertura muito pequeno'}), 400
-            
+
             new_pixels = []
             bit_index = 0
-            
+
             for pixel in pixels:
-                r, g, b = pixel
+                if has_alpha:
+                    r, g, b, a = pixel
+                else:
+                    r, g, b = pixel
                 if bit_index < len(data_bits):
                     r = (r & 0xFE) | int(data_bits[bit_index])
                     bit_index += 1
@@ -8643,16 +9026,15 @@ def stealth_hide():
                 if bit_index < len(data_bits):
                     b = (b & 0xFE) | int(data_bits[bit_index])
                     bit_index += 1
-                new_pixels.append((r, g, b))
-            
-            stego_img = Image.new('RGB', img.size)
+                new_pixels.append((r, g, b, a) if has_alpha else (r, g, b))
+
+            stego_img = Image.new('RGBA' if has_alpha else 'RGB', img.size)
             stego_img.putdata(new_pixels)
             output = io.BytesIO()
             stego_img.save(output, format='PNG')
             output.seek(0)
-            
-            # Manter extensão original se possível
-            output_ext = cover_ext if cover_ext in ['.png'] else '.png'
+
+            output_ext = '.png'
             return send_file(output, as_attachment=True, download_name=f'stealth{output_ext}')
         
         else:
@@ -8821,40 +9203,59 @@ def clean_extract():
     try:
         import requests
         from bs4 import BeautifulSoup
-        
+
         data = request.get_json()
         url = data.get('url', '').strip()
-        
+
         if not url:
             return jsonify({'success': False, 'error': 'URL inválida'})
-        
+
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
         response = requests.get(url, headers=headers, timeout=15)
-        
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Remover elementos indesejados
-        for tag in soup.find_all(['script', 'style', 'iframe', 'noscript', 'nav', 'header', 'footer', 'aside', 'form', 'button']):
-            tag.decompose()
-        
-        # Extrair título
-        title = soup.find('title')
-        title = title.get_text() if title else 'Artigo'
-        
-        # Extrair conteúdo principal
-        main_content = soup.find('article') or soup.find('main') or soup.find('div', class_=['content', 'post', 'article', 'entry']) or soup.find('body')
-        
-        if main_content:
-            # Limpar classes e IDs
-            for tag in main_content.find_all(True):
+        response.raise_for_status()
+
+        title = None
+        clean_html = None
+
+        # Usa o readability-lxml (já é dependência do projeto) para achar o conteúdo
+        # principal de verdade - é bem melhor que só pegar <article>/<main>/<body>,
+        # que na prática trazia menus, barras laterais e rodapé junto do texto.
+        try:
+            from readability import Document
+            doc = Document(response.text)
+            title = doc.title()
+            article_soup = BeautifulSoup(doc.summary(), 'html.parser')
+            for tag in article_soup.find_all(['script', 'style', 'iframe', 'noscript']):
+                tag.decompose()
+            for tag in article_soup.find_all(True):
                 tag.attrs = {k: v for k, v in tag.attrs.items() if k in ['href', 'src', 'alt']}
-            
-            clean_html = str(main_content)
-            text_only = main_content.get_text(separator='\n', strip=True)
-        else:
-            clean_html = '<p>Não foi possível extrair o conteúdo</p>'
+            if article_soup.get_text(strip=True):
+                clean_html = str(article_soup)
+        except Exception:
+            clean_html = None
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        if not title:
+            title_tag = soup.find('title')
+            title = title_tag.get_text() if title_tag else 'Artigo'
+
+        if not clean_html:
+            # Fallback para quando o readability não conseguir extrair nada.
+            for tag in soup.find_all(['script', 'style', 'iframe', 'noscript', 'nav', 'header', 'footer', 'aside', 'form', 'button']):
+                tag.decompose()
+            main_content = soup.find('article') or soup.find('main') or soup.find('div', class_=['content', 'post', 'article', 'entry']) or soup.find('body')
+            if main_content:
+                for tag in main_content.find_all(True):
+                    tag.attrs = {k: v for k, v in tag.attrs.items() if k in ['href', 'src', 'alt']}
+                clean_html = str(main_content)
+            else:
+                clean_html = '<p>Não foi possível extrair o conteúdo</p>'
+
+        text_only = BeautifulSoup(clean_html, 'html.parser').get_text(separator='\n', strip=True)
+        if not text_only:
             text_only = 'Não foi possível extrair o conteúdo'
-        
+
         return jsonify({
             'success': True,
             'title': title,
@@ -8953,7 +9354,6 @@ def isolate():
         return "<h1>Erro ao carregar Isolador de Voz</h1>"
 
 @app.route("/isolate/process", methods=["POST"], strict_slashes=False)
-@app.route("/isolate/process", methods=["POST"], strict_slashes=False)
 def isolate_process():
     temp_dir = None
     try:
@@ -8979,9 +9379,17 @@ def isolate_process():
         # Executar demucs com backend soundfile
         env = os.environ.copy()
         env['TORCHAUDIO_BACKEND'] = 'soundfile'
-        
+
+        # O demucs só sabe separar em torno de um stem real do modelo (vocals/drums/
+        # bass/other). "accompaniment" não existe para ele - por isso sempre separamos
+        # por "vocals" (que já gera vocals + no_vocals) e escolhemos qual dos dois
+        # arquivos entregar de acordo com o que o usuário pediu.
+        # Pedimos saída em --mp3: o demucs grava wav/flac via torchaudio, que em
+        # versões recentes exige o pacote opcional torchcodec (com build casada à
+        # CUDA da máquina) só para salvar o arquivo; o mp3 usa o encoder lameenc
+        # embutido no próprio demucs, sem essa dependência frágil.
         process = subprocess.Popen(
-            [python_path, '-m', 'demucs', '--two-stems', stem_type, '-o', output_dir, input_path],
+            [python_path, '-m', 'demucs', '--two-stems', 'vocals', '--mp3', '-o', output_dir, input_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -8989,30 +9397,30 @@ def isolate_process():
             universal_newlines=True,
             env=env
         )
-        
+
         output_lines = []
         for line in process.stdout:
             output_lines.append(line.strip())
             if len(output_lines) > 50:
                 output_lines.pop(0)
-        
+
         process.wait()
-        
+
         if process.returncode != 0:
             error_msg = '\n'.join(output_lines[-10:])
             if temp_dir and os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
             return jsonify({'success': False, 'error': f'Erro no processamento:\n{error_msg}'})
-        
+
         base_name = os.path.splitext(file.filename)[0]
         model_folder = os.path.join(output_dir, 'htdemucs', base_name)
-        
+
         if stem_type == 'vocals':
-            output_file = os.path.join(model_folder, 'vocals.wav')
-            final_name = f"{base_name}_voz.wav"
+            output_file = os.path.join(model_folder, 'vocals.mp3')
+            final_name = f"{base_name}_voz.mp3"
         else:
-            output_file = os.path.join(model_folder, 'no_vocals.wav')
-            final_name = f"{base_name}_instrumental.wav"
+            output_file = os.path.join(model_folder, 'no_vocals.mp3')
+            final_name = f"{base_name}_instrumental.mp3"
         
         if not os.path.exists(output_file):
             if temp_dir and os.path.exists(temp_dir):
@@ -9022,7 +9430,7 @@ def isolate_process():
         final_path = os.path.join(downloads_dir, final_name)
         counter = 1
         while os.path.exists(final_path):
-            final_name = f"{base_name}_voz_{counter}.wav" if stem_type == 'vocals' else f"{base_name}_instrumental_{counter}.wav"
+            final_name = f"{base_name}_voz_{counter}.mp3" if stem_type == 'vocals' else f"{base_name}_instrumental_{counter}.mp3"
             final_path = os.path.join(downloads_dir, final_name)
             counter += 1
         
