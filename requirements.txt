@@ -21,3 +21,6 @@ ebooklib
 lxml
 demucs
 soundfile
+python-docx
+python-pptx
+openpyxl

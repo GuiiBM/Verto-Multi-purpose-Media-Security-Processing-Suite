@@ -22,6 +22,8 @@ except ImportError:
     pass
 
 from PDFs.pdfs_templates import PDFS_SPLIT_HTML, PDFS_CONVERT_HTML
+from Office.office_templates import OFFICE_HUB_HTML, OFFICE_CONVERT_HTML, OFFICE_REPAIR_HTML
+from Office import office_engine
 
 app = Flask(__name__)
 
@@ -308,6 +310,10 @@ MENU_HTML = """
         </div>
       </div>
       <div class="app-name">PDFs</div>
+    </a>
+    <a href="/office" class="app">
+      <div class="app-icon">🗃️</div>
+      <div class="app-name">Office</div>
     </a>
     <a href="/transparent" class="app">
       <div class="app-icon">🎨</div>
@@ -1503,6 +1509,60 @@ def get_holidays(year):
 @app.route("/pdfs", strict_slashes=False)
 def pdfs():
     return render_template_string(PDFS_HTML)
+
+@app.route("/office", strict_slashes=False)
+def office():
+    return render_template_string(OFFICE_HUB_HTML)
+
+@app.route("/office/convert", methods=["GET", "POST"], strict_slashes=False)
+def office_convert():
+    if request.method == "GET":
+        return render_template_string(OFFICE_CONVERT_HTML)
+
+    file = request.files.get('file')
+    output_format = request.form.get('format', 'pdf')
+    try:
+        dpi = int(request.form.get('dpi', 200))
+    except (TypeError, ValueError):
+        dpi = 200
+
+    if not file or not file.filename:
+        return jsonify({'success': False, 'error': 'Selecione um arquivo.'})
+
+    try:
+        saved_files = office_engine.convert_office_file(file, output_format, dpi=dpi)
+        if len(saved_files) == 1:
+            message = f"'{saved_files[0]}' salvo na pasta Downloads!"
+        else:
+            message = f"{len(saved_files)} arquivos salvos na pasta Downloads!"
+        return jsonify({'success': True, 'message': message, 'files': saved_files})
+    except office_engine.OfficeError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro ao converter: {str(e)}'})
+
+@app.route("/office/repair", methods=["GET", "POST"], strict_slashes=False)
+def office_repair():
+    if request.method == "GET":
+        return render_template_string(OFFICE_REPAIR_HTML)
+
+    file = request.files.get('file')
+
+    if not file or not file.filename:
+        return jsonify({'success': False, 'error': 'Selecione um arquivo.'})
+
+    try:
+        output_filename, notes = office_engine.repair_office_file(file)
+        return jsonify({
+            'success': True,
+            'message': f"'{output_filename}' recuperado e salvo na pasta Downloads!",
+            'filename': output_filename,
+            'notes': notes,
+        })
+    except office_engine.OfficeError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro ao reparar: {str(e)}'})
 
 @app.route("/musica", strict_slashes=False)
 def musica():

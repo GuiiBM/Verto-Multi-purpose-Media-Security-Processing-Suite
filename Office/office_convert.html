@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Converter Office</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(59, 130, 246, 0.4); color: #3b82f6; transform: translateX(-6px); }
+    .back-button.locked { pointer-events: none; opacity: 0.4; }
+    .logo {
+      font-size: 48px; font-weight: 900;
+      background: linear-gradient(135deg, #3b82f6 0%, #22c55e 50%, #f97316 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 15px; margin-bottom: 40px; text-align: center; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 40px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      max-width: 800px; margin: 0 auto;
+      transition: border-color 0.3s;
+    }
+    h1 { font-size: 28px; color: #f8fafc; margin-bottom: 10px; }
+    p.subtitle { font-size: 14px; color: #94a3b8; margin-bottom: 32px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #cbd5e1; }
+    input[type="file"] { display: none; }
+    fieldset { border: none; padding: 0; margin: 0; }
+    fieldset:disabled .file-upload-area { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+    fieldset:disabled .format-btn { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+    fieldset:disabled select { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+    .file-upload-area {
+      width: 100%; padding: 40px; border-radius: 12px;
+      border: 2px dashed rgba(59, 130, 246, 0.3); background: rgba(15, 23, 42, 0.6);
+      text-align: center; cursor: pointer; transition: all 0.3s;
+    }
+    .file-upload-area:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(15, 23, 42, 0.8); }
+    .file-upload-area.dragover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+    .upload-icon { font-size: 48px; margin-bottom: 16px; }
+    .upload-text { color: #cbd5e1; font-size: 14px; margin-bottom: 8px; }
+    .upload-hint { color: #64748b; font-size: 12px; }
+    .file-selected {
+      margin-top: 12px; padding: 12px; background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px;
+      display: none; align-items: center; gap: 10px;
+    }
+    .file-selected.show { display: flex; }
+    .file-selected-name { flex: 1; font-size: 13px; color: #cbd5e1; font-weight: 500; }
+    .file-selected-size { font-size: 12px; color: #64748b; }
+    .format-category { margin: 24px 0; }
+    .category-title {
+      font-size: 14px; font-weight: 600; color: #94a3b8; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .format-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+    .format-btn {
+      padding: 14px 8px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer;
+      text-align: center; font-size: 12px; transition: all 0.3s; font-weight: 600;
+    }
+    .format-btn:hover { border-color: rgba(59, 130, 246, 0.3); transform: translateY(-2px); }
+    .format-btn.active {
+      border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); color: #60a5fa;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.2);
+    }
+    .format-icon { font-size: 24px; margin-bottom: 6px; }
+    .dpi-row { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+    .dpi-row select {
+      background: rgba(15, 23, 42, 0.8); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px; padding: 8px 12px; font-size: 13px; font-family: 'Inter', sans-serif;
+    }
+    button[type="submit"] {
+      margin-top: 24px; width: 100%; padding: 14px; border: none; border-radius: 999px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;
+      transition: all 0.3s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    button[type="submit"]:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35); }
+    button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-spinner {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2.5px solid rgba(255,255,255,0.35); border-top-color: #fff;
+      animation: spin 0.7s linear infinite; display: none;
+    }
+    button[type="submit"]:disabled .btn-spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- progress ---- */
+    .progress-wrap { margin-top: 28px; display: none; }
+    .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+    .progress-stage { font-size: 13px; font-weight: 600; color: #cbd5e1; }
+    .progress-percent { font-size: 22px; font-weight: 800; color: #60a5fa; font-variant-numeric: tabular-nums; }
+    .progress-track {
+      width: 100%; height: 16px; border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15);
+      overflow: hidden; position: relative;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .progress-fill {
+      height: 100%; width: 0%; border-radius: 999px;
+      background: linear-gradient(135deg, #3b82f6, #22c55e);
+      transition: width 0.35s ease;
+      position: relative; overflow: hidden;
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.6);
+    }
+    .progress-fill::after {
+      content: ''; position: absolute; inset: 0;
+      background-image: linear-gradient(45deg, rgba(255,255,255,0.18) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.18) 75%, transparent 75%, transparent);
+      background-size: 28px 28px;
+      animation: stripes 0.9s linear infinite;
+    }
+    .progress-fill.done { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 0 14px rgba(34, 197, 94, 0.6); }
+    .progress-fill.done::after { animation: none; opacity: 0; }
+    @keyframes stripes { from { background-position: 0 0; } to { background-position: 28px 0; } }
+    .progress-meta { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #64748b; }
+    .progress-meta b { color: #94a3b8; }
+
+    .status { margin-top: 16px; font-size: 13px; padding: 14px; border-radius: 12px; text-align: left; white-space: pre-line; line-height: 1.6; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+  </style>
+</head>
+<body>
+  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/office'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🔄 CONVERTER OFFICE</div>
+  <div class="tagline">Word, Excel, PowerPoint, ODF, PDF e imagens - via LibreOffice</div>
+
+  <div class="card" id="card">
+    <h1>Selecione o arquivo</h1>
+    <p class="subtitle">Envie um documento, planilha, apresentação ou PDF</p>
+
+    <form id="convert-form" onsubmit="return submitConvert(event)">
+      <fieldset id="fieldset">
+        <label>Arquivo</label>
+        <div class="file-upload-area" id="upload-area" onclick="document.getElementById('file').click()">
+          <div class="upload-icon">📎</div>
+          <div class="upload-text">Clique ou arraste o arquivo aqui</div>
+          <div class="upload-hint">doc, docx, odt, rtf, xls, xlsx, ods, csv, ppt, pptx, odp, pdf</div>
+        </div>
+        <input type="file" id="file" name="file" required>
+
+        <div class="file-selected" id="file-selected">
+          <div class="file-selected-name" id="file-name"></div>
+          <div class="file-selected-size" id="file-size"></div>
+        </div>
+
+        <label style="margin-top: 24px;">Formato de saída</label>
+
+        <div class="format-category">
+          <div class="category-title">📝 Documentos</div>
+          <div class="format-grid">
+            <div class="format-btn active" onclick="setFormat('pdf', event)"><div class="format-icon">🗎</div>PDF</div>
+            <div class="format-btn" onclick="setFormat('docx', event)"><div class="format-icon">📝</div>DOCX</div>
+            <div class="format-btn" onclick="setFormat('odt', event)"><div class="format-icon">📄</div>ODT</div>
+            <div class="format-btn" onclick="setFormat('rtf', event)"><div class="format-icon">📄</div>RTF</div>
+            <div class="format-btn" onclick="setFormat('txt', event)"><div class="format-icon">📃</div>TXT</div>
+          </div>
+        </div>
+
+        <div class="format-category">
+          <div class="category-title">📊 Planilhas</div>
+          <div class="format-grid">
+            <div class="format-btn" onclick="setFormat('xlsx', event)"><div class="format-icon">📊</div>XLSX</div>
+            <div class="format-btn" onclick="setFormat('ods', event)"><div class="format-icon">📊</div>ODS</div>
+            <div class="format-btn" onclick="setFormat('csv', event)"><div class="format-icon">📋</div>CSV</div>
+          </div>
+        </div>
+
+        <div class="format-category">
+          <div class="category-title">📽️ Apresentações</div>
+          <div class="format-grid">
+            <div class="format-btn" onclick="setFormat('pptx', event)"><div class="format-icon">📽️</div>PPTX</div>
+            <div class="format-btn" onclick="setFormat('odp', event)"><div class="format-icon">📽️</div>ODP</div>
+          </div>
+        </div>
+
+        <div class="format-category">
+          <div class="category-title">🖼️ Imagens (uma por página/slide)</div>
+          <div class="format-grid">
+            <div class="format-btn" onclick="setFormat('png', event)"><div class="format-icon">🖼️</div>PNG</div>
+            <div class="format-btn" onclick="setFormat('jpg', event)"><div class="format-icon">📷</div>JPG</div>
+          </div>
+        </div>
+
+        <div class="dpi-row" id="dpi-row" style="display:none;">
+          <label style="margin:0;">Qualidade da imagem:</label>
+          <select name="dpi" id="dpi-select">
+            <option value="150">150 DPI (rápido)</option>
+            <option value="200" selected>200 DPI (recomendado)</option>
+            <option value="300">300 DPI (alta qualidade)</option>
+          </select>
+        </div>
+
+        <input type="hidden" name="format" id="format" value="pdf">
+      </fieldset>
+
+      <button type="submit" id="submit-btn">
+        <span class="btn-spinner"></span>
+        <span id="submit-label">🔄 Converter</span>
+      </button>
+    </form>
+
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-stage" id="progress-stage">Preparando...</span>
+        <span class="progress-percent" id="progress-percent">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-meta">
+        <span id="progress-elapsed"><b>0s</b> decorridos</span>
+        <span id="progress-eta">estimando tempo...</span>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    let busy = false;
+    let progressTimer = null;
+
+    const fileInput = document.getElementById('file');
+    const uploadArea = document.getElementById('upload-area');
+    const fileSelected = document.getElementById('file-selected');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const dpiRow = document.getElementById('dpi-row');
+    const fieldset = document.getElementById('fieldset');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitLabel = document.getElementById('submit-label');
+    const backButton = document.getElementById('back-button');
+    const progressWrap = document.getElementById('progress-wrap');
+    const progressStage = document.getElementById('progress-stage');
+    const progressPercent = document.getElementById('progress-percent');
+    const progressFill = document.getElementById('progress-fill');
+    const progressElapsed = document.getElementById('progress-elapsed');
+    const progressEta = document.getElementById('progress-eta');
+    const statusBox = document.getElementById('status');
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        fileName.textContent = e.target.files[0].name;
+        fileSize.textContent = formatBytes(e.target.files[0].size);
+        fileSelected.classList.add('show');
+      }
+    });
+
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      if (busy) return;
+      fileInput.files = e.dataTransfer.files;
+      if (e.dataTransfer.files.length > 0) {
+        fileName.textContent = e.dataTransfer.files[0].name;
+        fileSize.textContent = formatBytes(e.dataTransfer.files[0].size);
+        fileSelected.classList.add('show');
+      }
+    });
+
+    function setFormat(format, evt) {
+      if (busy) return;
+      document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+      evt.target.closest('.format-btn').classList.add('active');
+      document.getElementById('format').value = format;
+      dpiRow.style.display = (format === 'png' || format === 'jpg') ? 'flex' : 'none';
+    }
+
+    // Estimativa de duração com base no tamanho do arquivo e no tipo de saída -
+    // o LibreOffice não expõe progresso granular em modo headless, então a barra
+    // avança de forma prevista e é corrigida (salta para 100%) assim que a
+    // resposta real do servidor chega.
+    function estimateSeconds(fileBytes, format) {
+      const mb = fileBytes / (1024 * 1024);
+      const perMb = (format === 'png' || format === 'jpg') ? 3.5 : 2.0;
+      return Math.max(5, 6 + mb * perMb);
+    }
+
+    function setLocked(locked) {
+      busy = locked;
+      fieldset.disabled = locked;
+      submitBtn.disabled = locked;
+      backButton.classList.toggle('locked', locked);
+      submitLabel.textContent = locked ? 'Convertendo...' : '🔄 Converter';
+    }
+
+    function startProgress(estimateSec, stageLabel) {
+      statusBox.classList.remove('show');
+      progressWrap.style.display = 'block';
+      progressFill.classList.remove('done');
+      progressFill.style.width = '0%';
+      progressPercent.textContent = '0%';
+      progressStage.textContent = stageLabel;
+      const start = Date.now();
+      progressTimer = setInterval(() => {
+        const elapsed = (Date.now() - start) / 1000;
+        const frac = Math.min(elapsed / estimateSec, 0.94);
+        progressFill.style.width = (frac * 100).toFixed(0) + '%';
+        progressPercent.textContent = Math.round(frac * 100) + '%';
+        progressElapsed.innerHTML = `<b>${elapsed.toFixed(0)}s</b> decorridos`;
+        const remaining = Math.max(estimateSec - elapsed, 0);
+        progressEta.textContent = remaining > 0.5 ? `~${remaining.toFixed(0)}s restantes` : 'Quase lá...';
+        if (frac >= 0.94) progressStage.textContent = 'Finalizando...';
+      }, 150);
+    }
+
+    function finishProgress(ok) {
+      clearInterval(progressTimer);
+      progressFill.classList.toggle('done', ok);
+      progressFill.style.width = '100%';
+      progressPercent.textContent = '100%';
+      progressEta.textContent = 'Concluído';
+      progressStage.textContent = ok ? 'Concluído!' : 'Erro no processamento';
+      setTimeout(() => { progressWrap.style.display = 'none'; }, ok ? 700 : 1200);
+    }
+
+    function showResult(ok, message) {
+      statusBox.className = 'status show ' + (ok ? 'ok' : 'err');
+      statusBox.textContent = (ok ? '✅ ' : '❌ ') + message;
+    }
+
+    async function submitConvert(evt) {
+      evt.preventDefault();
+      if (busy) return false;
+      if (!fileInput.files.length) { showResult(false, 'Selecione um arquivo.'); return false; }
+
+      const file = fileInput.files[0];
+      const format = document.getElementById('format').value;
+      const dpi = document.getElementById('dpi-select').value;
+
+      setLocked(true);
+      startProgress(estimateSeconds(file.size, format), 'Convertendo com o LibreOffice...');
+
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('format', format);
+      fd.append('dpi', dpi);
+
+      try {
+        const res = await fetch('/office/convert', { method: 'POST', body: fd });
+        const data = await res.json();
+        finishProgress(!!data.success);
+        showResult(!!data.success, data.success ? data.message : data.error);
+      } catch (err) {
+        finishProgress(false);
+        showResult(false, 'Erro de rede: ' + err.message);
+      } finally {
+        setLocked(false);
+      }
+      return false;
+    }
+  </script>
+</body>
+</html>

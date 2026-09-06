@@ -2,7 +2,7 @@
 
 > Processamento 100% local. Dados sensíveis nunca saem da máquina do usuário.
 
-Suíte de 16 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
+Suíte de 17 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
 
 ---
 
@@ -28,6 +28,7 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | Criptografia                | AES-256 (esteganografia)                      |
 | Download de Mídia          | yt-dlp                                        |
 | Manipulação de PDF        | PyPDF2 + img2pdf                              |
+| Office (Word/Excel/PPT)     | LibreOffice headless + python-docx/pptx/openpyxl |
 | Detecção de Objetos       | YOLOv8 (Censor)                               |
 | Web Scraping                | BeautifulSoup4 + requests                     |
 | Frontend                    | HTML/CSS/JS puro (zero frameworks)            |
@@ -47,6 +48,7 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | 🎤**Transcrever**     | AI NLP         | Áudio para texto com Whisper                                      |
 | 📁**Arquivos**        | Conversão     | Conversor universal 150+ formatos                                  |
 | 📄**PDFs**            | Documentos     | Dividir, comprimir, girar, converter, mesclar                      |
+| 🗃️**Office**          | Documentos     | Converte e repara Word/Excel/PowerPoint — recuperação em 5 níveis, incluindo extensão trocada |
 | 🔲**QR Code**         | Utilitário    | Gerador estático (URLs, Wi-Fi, vCard, PIX) sem rastreamento       |
 | 🗜️**Compressor**    | Utilitário    | Redução de tamanho com controle de qualidade                     |
 | 📱**Social Preview**  | Design         | Simulação de posts em 24 formatos Mobile/Desktop/Tablet          |
@@ -71,6 +73,13 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 - Payload cifrado com AES-256 antes da inserção nos bits LSB
 - Suporta imagens PNG/BMP como carrier
 - Extração requer chave correta — sem chave, arquivo parece imagem normal
+
+**Office (Conversão e Reparo)**
+
+- Conversão via LibreOffice headless (`soffice --convert-to`) — o mesmo motor de renderização do LibreOffice desenha o texto, então acentuação e fontes nunca quebram
+- Exportação para imagem (ex: PPTX → PNG) faz um passo intermediário por PDF e rasteriza cada página com PyMuPDF, evitando redesenhar texto manualmente
+- Reparo em cascata de 5 níveis: detecção do formato real pelo conteúdo (corrige extensão trocada, ex: um `.xlsx` que na verdade é um `.docx`), reconstrução tolerante do contêiner ZIP, validação com biblioteca nativa, reparo via LibreOffice e, por último, recuperação bruta de texto
+- Cada chamada ao LibreOffice roda em um perfil de usuário isolado (`-env:UserInstallation`) com timeout, evitando travamentos por lock entre conversões
 
 **Ghost Tool (Anti-forensics)**
 
@@ -105,7 +114,8 @@ http://localhost:5000
 ## Estrutura
 
 ```
-├── app.py                        # Flask app — 50+ rotas, 16 apps
+├── app.py                        # Flask app — 50+ rotas, 17 apps
+├── Office/                       # Conversor e reparador de Word/Excel/PowerPoint
 ├── executaveis/
 │   ├── INSTALAR.py               # Setup universal (Windows + Linux)
 │   ├── INICIAR.py                # Launcher universal
