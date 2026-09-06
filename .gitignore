@@ -1,7 +1,27 @@
+# Ambiente virtual Python
 venv/
+env/
+.venv/
+
+# Cache e bytecode Python
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+
+# Dependências e downloads baixados em cada máquina
 downloads/
+ffmpeg.zip
+ffmpeg-master-latest*/
+ffmpeg.exe
+
+# Artefatos residuais de instalação (ex.: "=2.3.3" criados por redirecionamento de shell)
+=*.*
+
+# Logs e configuração local
 *.log
 .env
+
+# Editor/SO
+.DS_Store
+.vscode/

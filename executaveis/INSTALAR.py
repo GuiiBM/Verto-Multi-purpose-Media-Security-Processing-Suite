@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 import sys
 import platform
 import subprocess
@@ -9,6 +10,61 @@ import urllib.request
 import zipfile
 import tarfile
 import shutil
+import time
+
+def format_eta(seconds):
+    seconds = max(0, int(seconds))
+    horas, resto = divmod(seconds, 3600)
+    minutos, segundos = divmod(resto, 60)
+    if horas:
+        return f"{horas}h{minutos:02d}m{segundos:02d}s"
+    if minutos:
+        return f"{minutos}m{segundos:02d}s"
+    return f"{segundos}s"
+
+def print_progress_bar(current, total, start_time, prefix="Progresso geral", bar_length=30):
+    fraction = min(current / total, 1.0) if total else 1.0
+    filled = int(bar_length * fraction)
+    bar = "█" * filled + "░" * (bar_length - filled)
+    elapsed = time.time() - start_time
+    if current > 0:
+        eta_text = format_eta((elapsed / current) * (total - current))
+    else:
+        eta_text = "calculando..."
+    percent = int(fraction * 100)
+    line = f"\r{prefix}: |{bar}| {percent}% ({current}/{total}) - Tempo restante estimado: {eta_text}   "
+    sys.stdout.write(line)
+    sys.stdout.flush()
+    if current >= total:
+        sys.stdout.write("\n")
+
+def make_download_progress_hook(start_time, label="Baixando"):
+    def hook(block_num, block_size, total_size):
+        downloaded = block_num * block_size
+        elapsed = time.time() - start_time
+        bar_length = 30
+
+        if total_size > 0:
+            fraction = min(downloaded / total_size, 1.0)
+            filled = int(bar_length * fraction)
+            bar = "█" * filled + "░" * (bar_length - filled)
+            percent = int(fraction * 100)
+            speed = downloaded / elapsed if elapsed > 0 else 0
+            remaining = (total_size - downloaded) / speed if speed > 0 else 0
+            eta_text = format_eta(remaining)
+            speed_mb = speed / (1024 * 1024)
+            downloaded_mb = downloaded / (1024 * 1024)
+            total_mb = total_size / (1024 * 1024)
+            line = (f"\r{label}: |{bar}| {percent}% "
+                     f"({downloaded_mb:.1f}/{total_mb:.1f} MB) - "
+                     f"{speed_mb:.1f} MB/s - ETA: {eta_text}   ")
+        else:
+            downloaded_mb = downloaded / (1024 * 1024)
+            line = f"\r{label}: {downloaded_mb:.1f} MB baixados...   "
+
+        sys.stdout.write(line)
+        sys.stdout.flush()
+    return hook
 
 def print_colored(text, color="white"):
     colors = {
@@ -41,8 +97,8 @@ def main():
     system = platform.system()
     print_colored(f"Sistema detectado: {system}", "green")
     
-    # [1/5] Verificar Python
-    print_colored("\n[1/5] Verificando Python...", "yellow")
+    # [1/6] Verificar Python
+    print_colored("\n[1/6] Verificando Python...", "yellow")
     python_cmd = "python" if system == "Windows" else "python3"
     
     success, output, _ = run_command(f"{python_cmd} --version")
@@ -58,8 +114,8 @@ def main():
     version = output.strip().split()[1]
     print_colored(f"Python {version} encontrado!", "green")
     
-    # [2/5] Criar ambiente virtual
-    print_colored("\n[2/5] Criando ambiente virtual...", "yellow")
+    # [2/6] Criar ambiente virtual
+    print_colored("\n[2/6] Criando ambiente virtual...", "yellow")
     if os.path.exists("venv"):
         shutil.rmtree("venv")
     
@@ -79,12 +135,12 @@ def main():
         pip_cmd = "venv/bin/pip"
         python_venv = "venv/bin/python"
     
-    # [3/5] Atualizar pip
-    print_colored("\n[3/5] Atualizando pip...", "yellow")
+    # [3/6] Atualizar pip
+    print_colored("\n[3/6] Atualizando pip...", "yellow")
     run_command(f"{python_venv} -m pip install --upgrade pip --quiet")
-    
-    # [4/5] Instalar dependências Python
-    print_colored("\n[4/8] Instalando dependências Python...", "yellow")
+
+    # [4/6] Instalar dependências Python
+    print_colored("\n[4/6] Instalando dependências Python...", "yellow")
     
     packages = [
         "Flask>=2.3.3",
@@ -108,28 +164,41 @@ def main():
         "ebooklib",
         "lxml",
         "demucs",
-        "soundfile"
+        "soundfile",
+        "python-docx",
+        "python-pptx",
+        "openpyxl"
     ]
     
+    total_etapas = len(packages) + 2  # pacotes + FFmpeg + LibreOffice
+    etapa_atual = 0
+    inicio_instalacao = time.time()
+
     for i, package in enumerate(packages, 1):
         print_colored(f"  [{i}/{len(packages)}] Instalando {package.split('>=')[0]}...", "white")
-        success, _, _ = run_command(f"{pip_cmd} install {package} --quiet")
+        success, _, _ = run_command(f'{pip_cmd} install "{package}" --quiet')
         if not success:
             print_colored(f"  [AVISO] Falha ao instalar {package}", "yellow")
         else:
             print_colored(f"  ✓ {package.split('>=')[0]} instalado", "green")
+        etapa_atual += 1
+        print_progress_bar(etapa_atual, total_etapas, inicio_instalacao)
+
+    print_colored("Dependências Python instaladas!", "green")
     
-    print_colored("\nDependências Python instaladas!", "green")
-    
-    # [5/5] Instalar FFmpeg
-    print_colored("\n[5/8] Instalando FFmpeg...", "yellow")
+    # [5/6] Instalar FFmpeg
+    print_colored("\n[5/6] Instalando FFmpeg...", "yellow")
     
     if system == "Windows":
         # Windows - baixar FFmpeg
         try:
             print_colored("Baixando FFmpeg para Windows...", "white")
             url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
-            urllib.request.urlretrieve(url, "ffmpeg.zip")
+            urllib.request.urlretrieve(
+                url, "ffmpeg.zip",
+                reporthook=make_download_progress_hook(time.time(), "  Download FFmpeg")
+            )
+            print()
             
             with zipfile.ZipFile("ffmpeg.zip", 'r') as zip_ref:
                 zip_ref.extractall(".")
@@ -175,7 +244,47 @@ def main():
                 print_colored("FFmpeg instalado com sucesso!", "green")
             else:
                 print_colored("[AVISO] FFmpeg não foi instalado", "yellow")
-    
+
+    etapa_atual += 1
+    print_progress_bar(etapa_atual, total_etapas, inicio_instalacao)
+
+    # [6/6] Instalar LibreOffice (motor de conversão do app Office)
+    print_colored("\n[6/6] Instalando LibreOffice...", "yellow")
+
+    if shutil.which("soffice") or shutil.which("libreoffice"):
+        print_colored("LibreOffice já está instalado!", "green")
+    elif system == "Windows":
+        print_colored("[AVISO] Baixe e instale o LibreOffice manualmente em:", "yellow")
+        print_colored("        https://www.libreoffice.org/download/download/", "white")
+        print_colored("        (necessário para o app Office converter/reparar arquivos)", "yellow")
+    else:
+        print_colored("Instalando LibreOffice...", "white")
+        if shutil.which("apt"):
+            success, _, _ = run_command("sudo apt update && sudo apt install -y libreoffice")
+        elif shutil.which("yum"):
+            success, _, _ = run_command("sudo yum install -y libreoffice")
+        elif shutil.which("dnf"):
+            success, _, _ = run_command("sudo dnf install -y libreoffice")
+        elif shutil.which("pacman"):
+            success, _, _ = run_command("sudo pacman -S --noconfirm libreoffice-fresh")
+        else:
+            print_colored("[AVISO] Instale o LibreOffice manualmente", "yellow")
+            success = False
+
+        if success and (shutil.which("soffice") or shutil.which("libreoffice")):
+            print_colored("LibreOffice instalado com sucesso!", "green")
+        else:
+            print_colored("[AVISO] LibreOffice não foi instalado (app Office ficará indisponível)", "yellow")
+
+    etapa_atual += 1
+    print_progress_bar(etapa_atual, total_etapas, inicio_instalacao)
+    print_colored(f"Tempo total de instalação: {format_eta(time.time() - inicio_instalacao)}", "white")
+
+    # Limpar arquivos residuais (ex.: "=2.3.3") que podem sobrar de instalações antigas
+    for item in os.listdir("."):
+        if os.path.isfile(item) and re.fullmatch(r"=[\d.]+", item):
+            os.remove(item)
+
     print_colored("\n========================================", "green")
     print_colored("    INSTALAÇÃO CONCLUÍDA COM SUCESSO!", "green")
     print_colored("========================================", "green")
