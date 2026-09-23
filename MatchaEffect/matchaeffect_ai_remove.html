@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Efeito Matcha por IA — Remover</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(139, 195, 74, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(139, 195, 74, 0.4); color: #8bc34a; transform: translateX(-6px); }
+    .back-button.locked { pointer-events: none; opacity: 0.4; }
+    .logo {
+      font-size: 36px; font-weight: 900;
+      background: linear-gradient(135deg, #8bc34a 0%, #cddc39 50%, #558b2f 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 20px; text-align: center; }
+    .mode-toggle { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .mode-btn {
+      padding: 10px 22px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.2s;
+    }
+    .mode-btn.active { border-color: #8bc34a; background: rgba(139, 195, 74, 0.15); color: #c5e1a5; box-shadow: 0 0 16px rgba(139, 195, 74, 0.2); }
+    .banner {
+      max-width: 760px; margin: 0 auto 24px; padding: 14px 18px; border-radius: 14px;
+      font-size: 12.5px; line-height: 1.7; white-space: pre-line; display: none;
+    }
+    .banner.show { display: block; }
+    .banner.err { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .banner.warn { background: rgba(245, 158, 11, 0.1); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .banner.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .panel { display: none; }
+    .panel.show { display: block; }
+    .info-card {
+      max-width: 640px; margin: 0 auto; background: rgba(15, 23, 42, 0.4); border-radius: 24px;
+      padding: 32px; border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      text-align: center;
+    }
+    .info-card .icon { font-size: 40px; margin-bottom: 14px; }
+    .info-card h3 { font-size: 17px; color: #f8fafc; margin-bottom: 12px; }
+    .info-card p { font-size: 13.5px; color: #94a3b8; line-height: 1.8; margin-bottom: 18px; }
+    .info-card a.link-btn {
+      display: inline-block; padding: 12px 22px; border-radius: 10px; text-decoration: none;
+      background: linear-gradient(135deg, #8bc34a, #558b2f); color: white; font-weight: 700; font-size: 13px;
+    }
+    .layout { display: flex; gap: 20px; max-width: 1180px; margin: 0 auto; flex-wrap: wrap; align-items: flex-start; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+    }
+    .stage-col { flex: 1 1 560px; min-width: 320px; }
+    .panel-col { flex: 0 0 320px; min-width: 300px; display: flex; flex-direction: column; gap: 16px; }
+    .dropzone {
+      border: 2px dashed rgba(139, 195, 74, 0.3); border-radius: 16px; padding: 34px 20px;
+      text-align: center; cursor: pointer; transition: all 0.25s; color: #94a3b8; font-size: 13px;
+    }
+    .dropzone:hover, .dropzone.drag { border-color: #8bc34a; background: rgba(139, 195, 74, 0.05); color: #cbd5e1; }
+    .dropzone b { color: #f8fafc; display: block; font-size: 15px; margin-bottom: 6px; }
+    input[type="file"] { display: none; }
+    .compare { display: none; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px; }
+    .compare.show { display: grid; }
+    .compare-col { text-align: center; }
+    .compare-col .cap { font-size: 11.5px; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .compare-col img { width: 100%; border-radius: 12px; background: #000; display: block; }
+    .progress-wrap { margin-top: 16px; display: none; }
+    .progress-wrap.show { display: block; }
+    .progress-msg { font-size: 12.5px; color: #94a3b8; margin-bottom: 8px; display: flex; justify-content: space-between; gap: 10px; }
+    .spinner {
+      width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(139, 195, 74, 0.25);
+      border-top-color: #8bc34a; display: inline-block; animation: spin 0.8s linear infinite; margin-right: 6px; vertical-align: -2px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
+    button.action {
+      padding: 12px 18px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 700; transition: all 0.25s; display: flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #8bc34a, #558b2f); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 195, 74, 0.35); }
+    .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+    button.action:disabled { opacity: 0.45; cursor: not-allowed; }
+    .section-title { font-size: 13px; font-weight: 700; color: #f8fafc; margin-bottom: 12px; }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .field-label b { color: #cbd5e1; font-weight: 600; }
+    .field-hint { font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.5; }
+    input[type="range"] { width: 100%; accent-color: #8bc34a; }
+    input[type="text"] {
+      width: 100%; padding: 9px 11px; border-radius: 10px; background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 13px; font-family: inherit; outline: none;
+    }
+    .status { margin-top: 16px; font-size: 13px; padding: 12px 14px; border-radius: 12px; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .note { font-size: 11.5px; color: #64748b; line-height: 1.6; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/matchaeffect'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🍵 Efeito Matcha por IA — Remover</div>
+  <div class="tagline">Uma difusão generativa não tem "desfazer" matemático — por isso há duas formas de remover, escolha a sua</div>
+
+  <div class="mode-toggle">
+    <div class="mode-btn active" data-panel="exact" onclick="setPanel('exact')">🔁 Restaurar original exato</div>
+    <div class="mode-btn" data-panel="ai" onclick="setPanel('ai')">🤖 Reconstrução por IA (aproximada)</div>
+  </div>
+
+  <div class="panel show" id="panel-exact">
+    <div class="info-card">
+      <div class="icon">🔁</div>
+      <h3>Restaurar o original exato</h3>
+      <p>
+        Como a IA generativa redesenha a imagem a partir de ruído, não existe um cálculo que
+        "desfaça" isso e recupere os pixels originais — o único jeito de ter o original exato
+        de volta é <b>já ter guardado o arquivo</b>.
+        <br><br>
+        Por isso, na ferramenta <b>Adicionar com IA</b>, sua foto original nunca sai do navegador
+        e fica sempre disponível para baixar junto com o resultado gerado — os dois botões de
+        download aparecem lado a lado depois de cada geração.
+        <br><br>
+        Se você ainda tem o arquivo original guardado (no computador, na galeria do celular, etc.),
+        é isso: ele já é a restauração exata, sem precisar processar nada aqui.
+      </p>
+      <a class="link-btn" href="/matchaeffect/ai/add">🍵 Ir para "Adicionar com IA"</a>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-ai">
+    <div class="banner" id="capability-banner"></div>
+    <div class="banner show warn">⚠️ Isto é uma <b>nova geração por IA</b> tentando reconstruir uma foto "normal" a partir de uma imagem já com efeito matcha (de qualquer origem, inclusive do TikTok/CapCut) — o resultado é sempre uma aproximação, nunca os pixels originais exatos.</div>
+
+    <div class="layout">
+      <div class="card stage-col">
+        <div class="dropzone" id="dropzone">
+          <b>Arraste a foto com efeito matcha aqui ou clique para escolher</b>
+          JPG, PNG, WEBP — a imagem nunca sai do seu navegador/máquina (o modelo roda localmente)
+          <input type="file" id="file-input" accept="image/*">
+        </div>
+
+        <div class="compare" id="compare">
+          <div class="compare-col">
+            <div class="cap">Com efeito matcha</div>
+            <img id="original-img" alt="Com efeito">
+          </div>
+          <div class="compare-col">
+            <div class="cap">🤖 Reconstrução por IA</div>
+            <img id="result-img" alt="Resultado">
+          </div>
+        </div>
+
+        <div class="progress-wrap" id="progress-wrap">
+          <div class="progress-msg"><span><span class="spinner"></span><span id="progress-text">Gerando...</span></span><span id="progress-elapsed">0s</span></div>
+        </div>
+
+        <div class="toolbar">
+          <button class="action btn-primary" id="generate-btn" onclick="generate()" disabled>🤖 Reconstruir sem efeito (IA)</button>
+          <button class="action btn-secondary" id="download-result-btn" onclick="downloadResult()" disabled>⬇️ Baixar reconstrução</button>
+        </div>
+
+        <div class="status" id="status"></div>
+      </div>
+
+      <div class="panel-col">
+        <div class="card">
+          <div class="section-title">⚙️ Parâmetros (img2img)</div>
+          <div class="field">
+            <div class="field-label">Força da reconstrução <b id="denoise-val">0.45</b></div>
+            <input type="range" id="denoise" min="0.25" max="0.70" step="0.01" value="0.45">
+            <div class="field-hint">Mais baixo preserva mais detalhes originais; mais alto se afasta mais do efeito matcha, mas se aproxima menos da foto real.</div>
+          </div>
+          <div class="field">
+            <div class="field-label">ControlNet Weight <b id="control-val">0.70</b></div>
+            <input type="range" id="control" min="0.3" max="1.0" step="0.01" value="0.70">
+            <div class="field-hint">Mantém a IA fiel às linhas de rosto/silhueta da imagem enviada.</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Sampling Steps <b id="steps-val">20</b></div>
+            <input type="range" id="steps" min="10" max="35" step="1" value="20">
+          </div>
+          <div class="field">
+            <div class="field-label">CFG Scale <b id="cfg-val">7.0</b></div>
+            <input type="range" id="cfg" min="3" max="12" step="0.5" value="7.0">
+          </div>
+          <div class="field">
+            <div class="field-label">Seed (opcional)</div>
+            <input type="text" id="seed" placeholder="vazio = aleatório" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let busy = false;
+    let originalFile = null;
+    let originalUrl = null;
+    let resultDataUrl = null;
+    let pollTimer = null;
+    let startedAt = 0;
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const compare = document.getElementById('compare');
+    const originalImg = document.getElementById('original-img');
+    const resultImg = document.getElementById('result-img');
+    const generateBtn = document.getElementById('generate-btn');
+    const downloadResultBtn = document.getElementById('download-result-btn');
+    const statusBox = document.getElementById('status');
+    const backButton = document.getElementById('back-button');
+    const capabilityBanner = document.getElementById('capability-banner');
+    const progressWrap = document.getElementById('progress-wrap');
+    const progressText = document.getElementById('progress-text');
+    const progressElapsed = document.getElementById('progress-elapsed');
+
+    function setPanel(name) {
+      if (busy) return;
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.panel === name));
+      document.getElementById('panel-exact').classList.toggle('show', name === 'exact');
+      document.getElementById('panel-ai').classList.toggle('show', name === 'ai');
+      if (name === 'ai') checkCapabilities();
+    }
+
+    ['denoise', 'control'].forEach(id => {
+      const el = document.getElementById(id);
+      const out = document.getElementById(id + '-val');
+      el.addEventListener('input', () => { out.textContent = parseFloat(el.value).toFixed(2); });
+    });
+    document.getElementById('steps').addEventListener('input', e => {
+      document.getElementById('steps-val').textContent = e.target.value;
+    });
+    document.getElementById('cfg').addEventListener('input', e => {
+      document.getElementById('cfg-val').textContent = parseFloat(e.target.value).toFixed(1);
+    });
+
+    function showResult(type, message) {
+      statusBox.className = 'status show ' + type;
+      statusBox.textContent = message;
+    }
+
+    let capsChecked = false;
+    async function checkCapabilities() {
+      if (capsChecked) return;
+      capsChecked = true;
+      try {
+        const res = await fetch('/matchaeffect/ai/capabilities');
+        const data = await res.json();
+        if (!data.available) {
+          capabilityBanner.className = 'banner show err';
+          capabilityBanner.textContent = '❌ ' + data.install_message;
+          generateBtn.disabled = true;
+        } else if (!data.gpu) {
+          capabilityBanner.className = 'banner show warn';
+          capabilityBanner.textContent = '⚠️ Nenhuma GPU NVIDIA detectada — a geração roda na CPU e pode levar vários minutos por imagem, especialmente na primeira vez (carregamento do modelo).';
+        } else {
+          capabilityBanner.className = 'banner show ok';
+          capabilityBanner.textContent = '✅ GPU detectada — geração deve ser rápida (segundos por imagem).';
+        }
+      } catch (e) {
+        capabilityBanner.className = 'banner show err';
+        capabilityBanner.textContent = '❌ Não foi possível verificar os recursos de IA no servidor local.';
+      }
+    }
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      if (busy) return;
+      if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) loadImage(e.target.files[0]); });
+
+    function loadImage(file) {
+      originalFile = file;
+      if (originalUrl) URL.revokeObjectURL(originalUrl);
+      originalUrl = URL.createObjectURL(file);
+      originalImg.src = originalUrl;
+      resultImg.src = '';
+      resultDataUrl = null;
+      compare.classList.add('show');
+      generateBtn.disabled = false;
+      downloadResultBtn.disabled = true;
+      statusBox.classList.remove('show');
+    }
+
+    async function generate() {
+      if (!originalFile || busy) return;
+      busy = true;
+      generateBtn.disabled = true;
+      downloadResultBtn.disabled = true;
+      backButton.classList.add('locked');
+      statusBox.classList.remove('show');
+      progressWrap.classList.add('show');
+      progressText.textContent = 'Enviando imagem...';
+      startedAt = Date.now();
+      pollTimer = setInterval(() => {
+        progressElapsed.textContent = Math.round((Date.now() - startedAt) / 1000) + 's';
+      }, 500);
+
+      try {
+        const form = new FormData();
+        form.append('file', originalFile);
+        form.append('mode', 'remove');
+        form.append('denoising_strength', document.getElementById('denoise').value);
+        form.append('control_weight', document.getElementById('control').value);
+        form.append('steps', document.getElementById('steps').value);
+        form.append('cfg', document.getElementById('cfg').value);
+        const seed = document.getElementById('seed').value.trim();
+        if (seed) form.append('seed', seed);
+
+        const startRes = await fetch('/matchaeffect/ai/jobs', { method: 'POST', body: form });
+        const startData = await startRes.json();
+        if (!startData.success) throw new Error(startData.error || 'Falha ao iniciar a geração.');
+
+        const jobId = startData.job_id;
+        let job;
+        while (true) {
+          await new Promise(r => setTimeout(r, 2000));
+          const statusRes = await fetch(`/matchaeffect/ai/jobs/${jobId}`);
+          job = await statusRes.json();
+          if (!job.success) throw new Error(job.error || 'Job não encontrado.');
+          progressText.textContent = job.message || 'Processando...';
+          if (job.status === 'done' || job.status === 'error') break;
+        }
+
+        if (job.status === 'error') throw new Error(job.message || 'Erro desconhecido.');
+
+        resultDataUrl = 'data:image/png;base64,' + job.image_b64;
+        resultImg.src = resultDataUrl;
+        downloadResultBtn.disabled = false;
+        showResult('ok', `✅ Reconstrução gerada por IA em ${job.elapsed ?? '?'}s — lembre-se: é uma aproximação, não o arquivo original.`);
+      } catch (e) {
+        showResult('err', '❌ ' + e.message);
+      } finally {
+        clearInterval(pollTimer);
+        progressWrap.classList.remove('show');
+        busy = false;
+        generateBtn.disabled = false;
+        backButton.classList.remove('locked');
+      }
+    }
+
+    function downloadResult() {
+      if (!resultDataUrl) return;
+      const a = document.createElement('a');
+      a.href = resultDataUrl;
+      a.download = 'reconstrucao-sem-matcha-ia.png';
+      a.click();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plágio Interno</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(239, 68, 68, 0.4); color: #ef4444; transform: translateX(-6px); }
+    .logo {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #8b5cf6 50%, #3b82f6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .layout { display: grid; grid-template-columns: 340px 1fr; gap: 20px; max-width: 1350px; margin: 0 auto; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+    }
+    h2 { font-size: 15px; color: #f8fafc; margin-bottom: 16px; }
+    .upload-area {
+      padding: 26px 16px; border-radius: 14px;
+      border: 2px dashed rgba(239, 68, 68, 0.3); background: rgba(15, 23, 42, 0.6);
+      text-align: center; cursor: pointer; transition: all 0.3s;
+    }
+    .upload-area:hover, .upload-area.dragover { border-color: #ef4444; background: rgba(239, 68, 68, 0.08); }
+    .upload-icon { font-size: 32px; margin-bottom: 8px; }
+    .upload-text { color: #cbd5e1; font-size: 12.5px; }
+    .upload-hint { color: #64748b; font-size: 11px; margin-top: 4px; }
+    input[type="file"] { display: none; }
+    .doc-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
+    .doc-item {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px;
+      background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.12); font-size: 12px;
+    }
+    .doc-item .name { flex: 1; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .doc-item .remove { cursor: pointer; color: #f87171; font-weight: 700; }
+    .doc-item .status { color: #64748b; font-size: 10px; }
+    button.action {
+      width: 100%; padding: 13px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #ef4444, #8b5cf6);
+      color: white; transition: all 0.25s; margin-top: 18px;
+    }
+    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.35); }
+    button.action:disabled { opacity: 0.5; cursor: not-allowed; }
+    textarea {
+      width: 100%; height: 220px; resize: vertical;
+      background: rgba(6, 10, 22, 0.8); color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px;
+      padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; margin-bottom: 16px;
+    }
+    .summary-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .summary-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .summary-row .name { width: 160px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .summary-bar-track { flex: 1; height: 8px; background: rgba(148, 163, 184, 0.1); border-radius: 4px; overflow: hidden; }
+    .summary-bar-fill { height: 100%; background: linear-gradient(90deg, #eab308, #ef4444); }
+    .summary-pct { width: 48px; text-align: right; color: #94a3b8; font-variant-numeric: tabular-nums; }
+    .highlight-title { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+    .highlight-box {
+      background: rgba(6, 10, 22, 0.8); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px;
+      padding: 18px; font-size: 14px; line-height: 2; max-height: 400px; overflow-y: auto;
+    }
+    .match { background: rgba(239, 68, 68, 0.25); border-radius: 4px; padding: 1px 2px; }
+    .empty-hint { color: #64748b; font-size: 13px; padding: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/aiguard'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">📋 Plágio Interno</div>
+  <div class="tagline">Compare o texto atual com sua própria base de documentos, localmente</div>
+
+  <div class="layout">
+    <div class="card">
+      <h2>Base de comparação</h2>
+      <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">Clique ou arraste arquivos</div>
+        <div class="upload-hint">TXT, PDF ou DOCX</div>
+      </div>
+      <input type="file" id="file-input" accept=".txt,.pdf,.docx" multiple>
+      <div class="doc-list" id="doc-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Texto atual</h2>
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+        <div class="btn-secondary" style="width:auto; margin-top:0; padding:7px 12px; font-size:11.5px;" onclick="document.getElementById('current-file-input').click()">📁 Carregar arquivo</div>
+        <input type="file" id="current-file-input" accept=".txt,.pdf,.docx" style="display:none;">
+        <span id="current-char-count" style="font-size:11px; color:#64748b; margin-left:auto;"></span>
+      </div>
+      <textarea id="input" placeholder="Cole ou carregue o texto que deseja verificar — sem limite de tamanho..." oninput="updateCurrentCharCount()"></textarea>
+      <button class="action" onclick="checkPlagiarism()" id="check-btn">📋 Verificar duplicidade</button>
+
+      <div style="margin-top:24px;">
+        <div class="highlight-title">Similaridade por documento</div>
+        <div class="summary-list" id="summary-list"><div class="empty-hint">Carregue documentos e verifique para ver os resultados...</div></div>
+
+        <div class="highlight-title">Trechos possivelmente duplicados</div>
+        <div class="highlight-box" id="highlight-box"><div class="empty-hint">-</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    let docs = []; // { id, name, text, status }
+    let idCounter = 0;
+
+    const fileInput = document.getElementById('file-input');
+    const uploadArea = document.getElementById('upload-area');
+    const docList = document.getElementById('doc-list');
+    const checkBtn = document.getElementById('check-btn');
+
+    function updateCurrentCharCount() {
+      const text = document.getElementById('input').value;
+      const words = (text.match(/\S+/g) || []).length;
+      document.getElementById('current-char-count').textContent = text ? `${words.toLocaleString()} palavras · ${text.length.toLocaleString()} caracteres` : '';
+    }
+
+    document.getElementById('current-file-input').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        document.getElementById('input').value = await extractText(file);
+        updateCurrentCharCount();
+      } catch (err) {
+        alert('Erro ao ler arquivo: ' + err.message);
+      }
+    });
+
+    async function extractText(file) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'txt') return await file.text();
+      if (ext === 'pdf') {
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(it => it.str).join(' ') + '\n';
+        }
+        return text;
+      }
+      if (ext === 'docx') {
+        const buf = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer: buf });
+        return result.value;
+      }
+      throw new Error('Formato não suportado');
+    }
+
+    function renderDocList() {
+      docList.innerHTML = docs.map(d => `
+        <div class="doc-item">
+          <span class="name">${d.name}</span>
+          <span class="status">${d.status}</span>
+          <span class="remove" onclick="removeDoc(${d.id})">✕</span>
+        </div>
+      `).join('');
+    }
+
+    function removeDoc(id) {
+      docs = docs.filter(d => d.id !== id);
+      renderDocList();
+    }
+
+    async function addFiles(fileList) {
+      for (const file of Array.from(fileList)) {
+        const id = idCounter++;
+        const item = { id, name: file.name, text: '', status: 'Lendo...' };
+        docs.push(item);
+        renderDocList();
+        try {
+          item.text = await extractText(file);
+          item.status = `${item.text.split(/\s+/).filter(Boolean).length} palavras`;
+        } catch (e) {
+          item.status = 'Erro: ' + e.message;
+        }
+        renderDocList();
+      }
+    }
+
+    fileInput.addEventListener('change', e => addFiles(e.target.files));
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      addFiles(e.dataTransfer.files);
+    });
+
+    function normalizeWords(text) {
+      return (text.toLowerCase().match(/[a-zà-ú0-9]+/g) || []);
+    }
+
+    function shingleSet(words, n) {
+      const set = new Set();
+      for (let i = 0; i <= words.length - n; i++) set.add(words.slice(i, i + n).join(' '));
+      return set;
+    }
+
+    function jaccard(a, b) {
+      if (!a.size || !b.size) return 0;
+      let inter = 0;
+      a.forEach(x => { if (b.has(x)) inter++; });
+      const union = a.size + b.size - inter;
+      return union ? inter / union : 0;
+    }
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function tick() { return new Promise(r => setTimeout(r, 0)); }
+
+    async function checkPlagiarism() {
+      const rawText = document.getElementById('input').value.trim();
+      const summaryList = document.getElementById('summary-list');
+      const highlightBox = document.getElementById('highlight-box');
+      const validDocs = docs.filter(d => d.text);
+
+      if (!rawText || !validDocs.length) {
+        summaryList.innerHTML = '<div class="empty-hint">Carregue ao menos um documento e cole um texto para verificar.</div>';
+        highlightBox.innerHTML = '<div class="empty-hint">-</div>';
+        return;
+      }
+
+      checkBtn.disabled = true;
+      checkBtn.textContent = '📋 Verificando...';
+      highlightBox.innerHTML = '<div class="empty-hint">Comparando com a base local — sem limite de tamanho, isso pode levar um instante para textos grandes...</div>';
+      await tick();
+
+      const N = 8;
+      const currentTokens = (rawText.match(/\S+/g) || []);
+      const currentNorm = normalizeWords(rawText);
+      const currentShingles = shingleSet(currentNorm, N);
+
+      const results = validDocs.map(d => {
+        const docShingles = shingleSet(normalizeWords(d.text), N);
+        return { name: d.name, score: jaccard(currentShingles, docShingles), shingles: docShingles };
+      }).sort((a, b) => b.score - a.score);
+
+      summaryList.innerHTML = results.map(r => `
+        <div class="summary-row">
+          <span class="name">${r.name}</span>
+          <div class="summary-bar-track"><div class="summary-bar-fill" style="width:${(r.score * 100).toFixed(1)}%"></div></div>
+          <span class="summary-pct">${(r.score * 100).toFixed(1)}%</span>
+        </div>
+      `).join('');
+      await tick();
+
+      // marca cada janela de N palavras (normalizada) do texto atual que aparece em algum documento,
+      // processado em lotes para não travar a aba em textos muito longos
+      const matched = new Array(currentNorm.length).fill(false);
+      const CHUNK = 15000;
+      for (let start = 0; start <= currentNorm.length - N; start += CHUNK) {
+        const end = Math.min(start + CHUNK, currentNorm.length - N + 1);
+        for (let i = start; i < end; i++) {
+          const window = currentNorm.slice(i, i + N).join(' ');
+          if (results.some(r => r.shingles.has(window))) {
+            for (let k = i; k < i + N; k++) matched[k] = true;
+          }
+        }
+        if (end < currentNorm.length - N + 1) await tick();
+      }
+
+      // mapeia tokens originais (com pontuação) na mesma ordem para renderizar destacado
+      let html = '';
+      let normIdx = 0;
+      currentTokens.forEach(tok => {
+        const cleaned = tok.toLowerCase().replace(/[^a-zà-ú0-9]/g, '');
+        const isMatch = cleaned && normIdx < matched.length && matched[normIdx];
+        if (cleaned) normIdx++;
+        html += isMatch ? `<span class="match">${esc(tok)}</span> ` : `${esc(tok)} `;
+      });
+      highlightBox.innerHTML = html.trim() || '<div class="empty-hint">-</div>';
+
+      checkBtn.disabled = false;
+      checkBtn.textContent = '📋 Verificar duplicidade';
+    }
+  </script>
+</body>
+</html>

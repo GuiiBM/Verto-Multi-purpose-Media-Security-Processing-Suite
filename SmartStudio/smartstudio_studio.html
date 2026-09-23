@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estúdio de Gravação & Teleprompter</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(244, 63, 94, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(244, 63, 94, 0.4); color: #f43f5e; transform: translateX(-6px); }
+    .logo {
+      font-size: 38px; font-weight: 900;
+      background: linear-gradient(135deg, #f43f5e 0%, #d946ef 50%, #6366f1 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 28px; text-align: center; }
+    .layout {
+      display: flex; gap: 20px; max-width: 1180px; margin: 0 auto; flex-wrap: wrap; align-items: flex-start;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+    }
+    .stage-col { flex: 1 1 620px; min-width: 320px; }
+    .panel-col { flex: 0 0 340px; min-width: 300px; display: flex; flex-direction: column; gap: 16px; }
+    .stage {
+      width: 100%; aspect-ratio: 16/9; background: #05070f;
+      border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 16px;
+      position: relative; overflow: hidden;
+    }
+    .stage video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .stage.no-camera video { display: none; }
+    .stage .placeholder {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      color: #475569; font-size: 13px; text-align: center; padding: 20px;
+    }
+    .teleprompter {
+      position: absolute; inset: 0; overflow-y: auto; padding: 16px 24px;
+      background: rgba(0,0,0,0.35); scroll-behavior: auto;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .teleprompter.mirrored { transform: scaleX(-1); }
+    .teleprompter[contenteditable="true"] { cursor: text; }
+    .teleprompter-text {
+      color: #f8fafc; font-weight: 700; text-align: center; line-height: 1.5;
+      max-width: 90%; text-shadow: 0 2px 12px rgba(0,0,0,0.8); outline: none; white-space: pre-wrap;
+    }
+    .teleprompter-line {
+      position: absolute; left: 0; right: 0; top: 50%; height: 2px;
+      background: rgba(244, 63, 94, 0.6); pointer-events: none;
+    }
+    .rec-badge {
+      position: absolute; top: 12px; left: 12px; background: rgba(239, 68, 68, 0.9); color: white;
+      font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px; display: none;
+      align-items: center; gap: 6px; z-index: 5;
+    }
+    .rec-badge.show { display: flex; }
+    .rec-dot { width: 7px; height: 7px; border-radius: 50%; background: white; animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: 0.2; } }
+    .timer {
+      position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: #cbd5e1;
+      font-size: 11px; padding: 5px 10px; border-radius: 999px; font-variant-numeric: tabular-nums; z-index: 5;
+    }
+    .meter-wrap { margin-top: 14px; }
+    .meter-label { font-size: 11px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .meter-track { width: 100%; height: 8px; border-radius: 999px; background: rgba(15,23,42,0.9); border: 1px solid rgba(148,163,184,0.15); overflow: hidden; }
+    .meter-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); transition: width 0.08s linear; }
+    .controls-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
+    button.action {
+      padding: 12px 18px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 700; transition: all 0.25s; display: flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #f43f5e, #d946ef); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(217, 70, 239, 0.35); }
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+    .btn-flag { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    button.action:disabled { opacity: 0.4; cursor: not-allowed; }
+    .section-title { font-size: 13px; font-weight: 700; color: #f8fafc; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .field-label b { color: #cbd5e1; font-weight: 600; }
+    input[type="range"] { width: 100%; accent-color: #d946ef; }
+    textarea.script-input {
+      width: 100%; min-height: 90px; resize: vertical; padding: 10px 12px; border-radius: 10px;
+      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #e2e8f0; font-size: 13px; font-family: inherit; outline: none;
+    }
+    textarea.script-input:focus { border-color: #d946ef; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: #cbd5e1; padding: 8px 0; }
+    .toggle-row input[type="checkbox"] { accent-color: #d946ef; width: 16px; height: 16px; }
+    .divider { border-top: 1px solid rgba(148, 163, 184, 0.1); margin: 14px 0; }
+    .markers-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+    .marker-item {
+      display: flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.1); border-radius: 8px; padding: 6px 8px;
+    }
+    .marker-time { font-size: 11px; color: #fbbf24; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+    .marker-item input {
+      flex: 1; background: transparent; border: none; color: #e2e8f0; font-size: 12px; outline: none;
+    }
+    .marker-item .marker-del { cursor: pointer; color: #64748b; font-size: 13px; flex-shrink: 0; }
+    .marker-item .marker-del:hover { color: #ef4444; }
+    .markers-empty { font-size: 12px; color: #475569; text-align: center; padding: 10px; }
+    .status { margin-top: 14px; font-size: 13px; padding: 12px 14px; border-radius: 12px; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .status.info { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/smartstudio'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🎙️ Estúdio de Gravação & Teleprompter</div>
+  <div class="tagline">Grave voz, podcast ou vídeo com teleprompter e tratamento de áudio em tempo real</div>
+
+  <div class="layout">
+    <div class="card stage-col">
+      <div class="stage no-camera" id="stage">
+        <div class="placeholder" id="placeholder">Clique em "Ligar câmera/mic" para começar</div>
+        <video id="live-video" autoplay muted playsinline></video>
+        <div class="teleprompter" id="teleprompter" contenteditable="true" spellcheck="false"><div class="teleprompter-text" id="teleprompter-text">Cole ou escreva seu roteiro aqui. Ele vai rolar automaticamente na velocidade escolhida abaixo, para você ler direto na tela enquanto grava.</div></div>
+        <div class="teleprompter-line" id="teleprompter-line" style="display:none;"></div>
+        <div class="rec-badge" id="rec-badge"><div class="rec-dot"></div>GRAVANDO</div>
+        <div class="timer" id="timer" style="display:none;">00:00</div>
+      </div>
+
+      <div class="meter-wrap">
+        <div class="meter-label"><span>Nível de entrada</span><span id="meter-pct">0%</span></div>
+        <div class="meter-track"><div class="meter-fill" id="meter-fill"></div></div>
+      </div>
+
+      <div class="controls-row">
+        <button class="action btn-primary" id="setup-btn" onclick="setupMedia()">🎛️ Ligar câmera/mic</button>
+        <button class="action btn-primary" id="start-btn" onclick="startRecording()" disabled>⏺️ Gravar</button>
+        <button class="action btn-danger" id="stop-btn" onclick="stopRecording()" disabled>⏹️ Parar</button>
+        <button class="action btn-flag" id="flag-btn" onclick="addMarker()" disabled>🚩 Marcar</button>
+        <button class="action btn-secondary" id="download-btn" onclick="downloadRecording()" disabled>⬇️ Baixar gravação</button>
+      </div>
+
+      <div class="status" id="status"></div>
+    </div>
+
+    <div class="panel-col">
+      <div class="card">
+        <div class="section-title">📜 Teleprompter</div>
+        <div class="field">
+          <div class="field-label">Velocidade <b id="speed-val">40px/s</b></div>
+          <input type="range" id="speed" min="5" max="150" value="40">
+        </div>
+        <div class="field">
+          <div class="field-label">Tamanho da fonte <b id="fontsize-val">28px</b></div>
+          <input type="range" id="fontsize" min="14" max="64" value="28">
+        </div>
+        <div class="toggle-row"><span>Espelhar texto (vidro de teleprompter)</span><input type="checkbox" id="mirror-toggle"></div>
+        <div class="toggle-row"><span>Mostrar linha guia central</span><input type="checkbox" id="guideline-toggle"></div>
+        <div class="controls-row" style="margin-top:8px;">
+          <button class="action btn-secondary" id="scroll-toggle-btn" onclick="toggleScroll()">▶️ Rolar</button>
+          <button class="action btn-secondary" onclick="resetScroll()">⏮️ Reiniciar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">🎚️ Filtros de Áudio</div>
+        <div class="toggle-row"><span>Redução de ruído</span><input type="checkbox" id="noise-toggle" checked></div>
+        <div class="toggle-row"><span>Compressor de áudio</span><input type="checkbox" id="comp-toggle" checked></div>
+        <div class="toggle-row"><span>Ganho automático (AGC)</span><input type="checkbox" id="agc-toggle" checked></div>
+        <div class="field" style="margin-top:10px;">
+          <div class="field-label">Ganho manual <b id="gain-val">1.0x</b></div>
+          <input type="range" id="gain" min="0" max="300" value="100">
+        </div>
+        <div class="divider"></div>
+        <div class="field">
+          <div class="field-label">Graves (EQ) <b id="eq-low-val">0 dB</b></div>
+          <input type="range" id="eq-low" min="-15" max="15" value="0">
+        </div>
+        <div class="field">
+          <div class="field-label">Médios (EQ) <b id="eq-mid-val">0 dB</b></div>
+          <input type="range" id="eq-mid" min="-15" max="15" value="0">
+        </div>
+        <div class="field">
+          <div class="field-label">Agudos (EQ) <b id="eq-high-val">0 dB</b></div>
+          <input type="range" id="eq-high" min="-15" max="15" value="0">
+        </div>
+        <div class="divider"></div>
+        <div class="toggle-row"><span>Incluir câmera na gravação</span><input type="checkbox" id="camera-toggle" checked></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">🚩 Marcadores</div>
+        <div class="markers-list" id="markers-list">
+          <div class="markers-empty" id="markers-empty">Nenhum marcador ainda. Grave e clique em "Marcar" para destacar pontos importantes.</div>
+        </div>
+        <div class="controls-row" style="margin-top:10px;">
+          <button class="action btn-secondary" id="export-markers-btn" onclick="exportMarkers()" disabled>⬇️ Baixar marcadores (.txt)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let mediaStream = null;
+    let audioCtx = null, sourceNode = null, highpass = null, lowpass = null;
+    let eqLow = null, eqMid = null, eqHigh = null, compressor = null, gainNode = null;
+    let analyser = null, destNode = null;
+    let mediaRecorder = null, recordedChunks = [], recordedBlob = null;
+    let timerInterval = null, elapsedSec = 0, recordStartTime = 0;
+    let markers = [];
+    let scrollRAF = null, scrolling = false, lastFrameTime = 0;
+    let agcInterval = null;
+
+    const liveVideo = document.getElementById('live-video');
+    const placeholder = document.getElementById('placeholder');
+    const stage = document.getElementById('stage');
+    const teleprompter = document.getElementById('teleprompter');
+    const recBadge = document.getElementById('rec-badge');
+    const timerEl = document.getElementById('timer');
+    const setupBtn = document.getElementById('setup-btn');
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const flagBtn = document.getElementById('flag-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const exportMarkersBtn = document.getElementById('export-markers-btn');
+    const statusBox = document.getElementById('status');
+    const meterFill = document.getElementById('meter-fill');
+    const meterPct = document.getElementById('meter-pct');
+
+    function showResult(type, message) {
+      statusBox.className = 'status show ' + type;
+      statusBox.textContent = message;
+    }
+
+    function formatTime(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(Math.floor(sec % 60)).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    // ---------- Teleprompter ----------
+    document.getElementById('speed').addEventListener('input', e => {
+      document.getElementById('speed-val').textContent = e.target.value + 'px/s';
+    });
+    document.getElementById('fontsize').addEventListener('input', e => {
+      document.getElementById('fontsize-val').textContent = e.target.value + 'px';
+      document.getElementById('teleprompter-text').style.fontSize = e.target.value + 'px';
+    });
+    document.getElementById('mirror-toggle').addEventListener('change', e => {
+      teleprompter.classList.toggle('mirrored', e.target.checked);
+    });
+    document.getElementById('guideline-toggle').addEventListener('change', e => {
+      document.getElementById('teleprompter-line').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    function toggleScroll() {
+      scrolling = !scrolling;
+      document.getElementById('scroll-toggle-btn').textContent = scrolling ? '⏸️ Pausar' : '▶️ Rolar';
+      if (scrolling) {
+        lastFrameTime = performance.now();
+        scrollRAF = requestAnimationFrame(scrollStep);
+      } else if (scrollRAF) {
+        cancelAnimationFrame(scrollRAF);
+      }
+    }
+    function scrollStep(now) {
+      const dt = (now - lastFrameTime) / 1000;
+      lastFrameTime = now;
+      const speed = parseFloat(document.getElementById('speed').value);
+      teleprompter.scrollTop += speed * dt;
+      if (scrolling) scrollRAF = requestAnimationFrame(scrollStep);
+    }
+    function resetScroll() {
+      teleprompter.scrollTop = 0;
+      if (scrolling) toggleScroll();
+    }
+
+    // ---------- Audio/video setup ----------
+    async function setupMedia() {
+      try {
+        const wantCamera = document.getElementById('camera-toggle').checked;
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false },
+          video: wantCamera ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
+        });
+
+        stage.classList.toggle('no-camera', !wantCamera);
+        if (wantCamera) {
+          placeholder.style.display = 'none';
+          liveVideo.srcObject = mediaStream;
+        }
+
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        sourceNode = audioCtx.createMediaStreamSource(mediaStream);
+
+        highpass = audioCtx.createBiquadFilter();
+        highpass.type = 'highpass';
+        highpass.frequency.value = 90;
+
+        lowpass = audioCtx.createBiquadFilter();
+        lowpass.type = 'lowpass';
+        lowpass.frequency.value = 9000;
+
+        eqLow = audioCtx.createBiquadFilter();
+        eqLow.type = 'lowshelf';
+        eqLow.frequency.value = 250;
+
+        eqMid = audioCtx.createBiquadFilter();
+        eqMid.type = 'peaking';
+        eqMid.frequency.value = 1500;
+        eqMid.Q.value = 0.8;
+
+        eqHigh = audioCtx.createBiquadFilter();
+        eqHigh.type = 'highshelf';
+        eqHigh.frequency.value = 4000;
+
+        compressor = audioCtx.createDynamicsCompressor();
+
+        gainNode = audioCtx.createGain();
+        gainNode.gain.value = parseFloat(document.getElementById('gain').value) / 100;
+
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 512;
+
+        destNode = audioCtx.createMediaStreamDestination();
+
+        sourceNode.connect(highpass).connect(lowpass).connect(eqLow).connect(eqMid)
+          .connect(eqHigh).connect(compressor).connect(gainNode).connect(analyser).connect(destNode);
+
+        applyFilterSettings();
+        startMeter();
+        startAgcLoop();
+
+        setupBtn.disabled = true;
+        startBtn.disabled = false;
+        statusBox.classList.remove('show');
+        showResult('ok', '✅ Câmera/microfone prontos. Ajuste os filtros e clique em "Gravar".');
+      } catch (e) {
+        showResult('err', '❌ Não foi possível acessar câmera/microfone: ' + e.message);
+      }
+    }
+
+    function applyFilterSettings() {
+      const noiseOn = document.getElementById('noise-toggle').checked;
+      highpass.frequency.value = noiseOn ? 90 : 20;
+      lowpass.frequency.value = noiseOn ? 9000 : 20000;
+
+      const compOn = document.getElementById('comp-toggle').checked;
+      compressor.threshold.value = compOn ? -24 : 0;
+      compressor.knee.value = compOn ? 20 : 0;
+      compressor.ratio.value = compOn ? 4 : 1;
+      compressor.attack.value = 0.01;
+      compressor.release.value = 0.2;
+
+      eqLow.gain.value = parseFloat(document.getElementById('eq-low').value);
+      eqMid.gain.value = parseFloat(document.getElementById('eq-mid').value);
+      eqHigh.gain.value = parseFloat(document.getElementById('eq-high').value);
+    }
+
+    ['noise-toggle', 'comp-toggle'].forEach(id => {
+      document.getElementById(id).addEventListener('change', () => { if (audioCtx) applyFilterSettings(); });
+    });
+    ['eq-low', 'eq-mid', 'eq-high'].forEach(id => {
+      document.getElementById(id).addEventListener('input', e => {
+        document.getElementById(id + '-val').textContent = e.target.value + ' dB';
+        if (audioCtx) applyFilterSettings();
+      });
+    });
+    document.getElementById('gain').addEventListener('input', e => {
+      const g = parseFloat(e.target.value) / 100;
+      document.getElementById('gain-val').textContent = g.toFixed(1) + 'x';
+      if (gainNode && !document.getElementById('agc-toggle').checked) gainNode.gain.value = g;
+    });
+    document.getElementById('agc-toggle').addEventListener('change', e => {
+      document.getElementById('gain').disabled = e.target.checked;
+    });
+
+    function startMeter() {
+      const data = new Uint8Array(analyser.fftSize);
+      function loop() {
+        if (!analyser) return;
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+          const v = (data[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / data.length);
+        const pct = Math.min(100, Math.round(rms * 220));
+        meterFill.style.width = pct + '%';
+        meterPct.textContent = pct + '%';
+        requestAnimationFrame(loop);
+      }
+      loop();
+    }
+
+    function startAgcLoop() {
+      const data = new Uint8Array(analyser.fftSize);
+      const TARGET = 0.18;
+      agcInterval = setInterval(() => {
+        if (!document.getElementById('agc-toggle').checked || !analyser || !gainNode) return;
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+          const v = (data[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / data.length);
+        if (rms < 0.005) return;
+        const error = TARGET / rms;
+        let newGain = gainNode.gain.value * (1 + (error - 1) * 0.15);
+        newGain = Math.max(0.3, Math.min(4, newGain));
+        gainNode.gain.value = newGain;
+      }, 150);
+    }
+
+    // ---------- Recording ----------
+    function startRecording() {
+      if (!mediaStream || !destNode) return;
+      const wantCamera = document.getElementById('camera-toggle').checked && mediaStream.getVideoTracks().length > 0;
+
+      const recordStream = new MediaStream();
+      destNode.stream.getAudioTracks().forEach(t => recordStream.addTrack(t));
+      if (wantCamera) mediaStream.getVideoTracks().forEach(t => recordStream.addTrack(t));
+
+      const mimeCandidates = wantCamera
+        ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+        : ['audio/webm;codecs=opus', 'audio/webm'];
+      const mimeType = mimeCandidates.find(m => MediaRecorder.isTypeSupported(m)) || (wantCamera ? 'video/webm' : 'audio/webm');
+
+      recordedChunks = [];
+      mediaRecorder = new MediaRecorder(recordStream, { mimeType });
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        recordedBlob = new Blob(recordedChunks, { type: wantCamera ? 'video/webm' : 'audio/webm' });
+        if (wantCamera) {
+          liveVideo.srcObject = null;
+          liveVideo.src = URL.createObjectURL(recordedBlob);
+          liveVideo.muted = false;
+          liveVideo.controls = true;
+          liveVideo.play().catch(() => {});
+        }
+        downloadBtn.disabled = false;
+        showResult('ok', '✅ Gravação concluída! Baixe o arquivo ou abra o Editor de Corte para tratar o áudio.');
+      };
+
+      markers = [];
+      renderMarkers();
+      recordStartTime = performance.now();
+      mediaRecorder.start();
+      elapsedSec = 0;
+      timerEl.textContent = '00:00';
+      timerEl.style.display = 'block';
+      recBadge.classList.add('show');
+      timerInterval = setInterval(() => {
+        elapsedSec++;
+        timerEl.textContent = formatTime(elapsedSec);
+      }, 1000);
+
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      flagBtn.disabled = false;
+      downloadBtn.disabled = true;
+      exportMarkersBtn.disabled = true;
+      statusBox.classList.remove('show');
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      clearInterval(timerInterval);
+      recBadge.classList.remove('show');
+      timerEl.style.display = 'none';
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      flagBtn.disabled = true;
+      if (markers.length > 0) exportMarkersBtn.disabled = false;
+    }
+
+    function downloadRecording() {
+      if (!recordedBlob) return;
+      const ext = recordedBlob.type.includes('video') ? 'webm' : 'webm';
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(recordedBlob);
+      a.download = 'gravacao.' + ext;
+      a.click();
+    }
+
+    // ---------- Markers ----------
+    function addMarker() {
+      const elapsed = (performance.now() - recordStartTime) / 1000;
+      markers.push({ time: elapsed, label: `Marcador ${markers.length + 1}` });
+      renderMarkers();
+    }
+
+    function renderMarkers() {
+      const list = document.getElementById('markers-list');
+      const empty = document.getElementById('markers-empty');
+      list.querySelectorAll('.marker-item').forEach(el => el.remove());
+      if (markers.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      markers.forEach((m, i) => {
+        const row = document.createElement('div');
+        row.className = 'marker-item';
+        row.innerHTML = `
+          <span class="marker-time">${formatTime(m.time)}</span>
+          <input type="text" value="${m.label.replace(/"/g, '&quot;')}" data-idx="${i}">
+          <span class="marker-del" data-idx="${i}">✕</span>
+        `;
+        list.appendChild(row);
+      });
+      list.querySelectorAll('input[data-idx]').forEach(inp => {
+        inp.addEventListener('input', e => { markers[parseInt(e.target.dataset.idx, 10)].label = e.target.value; });
+      });
+      list.querySelectorAll('.marker-del').forEach(btn => {
+        btn.addEventListener('click', e => {
+          markers.splice(parseInt(e.target.dataset.idx, 10), 1);
+          renderMarkers();
+        });
+      });
+    }
+
+    function exportMarkers() {
+      if (markers.length === 0) return;
+      const lines = markers.map(m => `${formatTime(m.time)} - ${m.label}`).join('\n');
+      const blob = new Blob([lines], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'marcadores.txt';
+      a.click();
+    }
+  </script>
+</body>
+</html>

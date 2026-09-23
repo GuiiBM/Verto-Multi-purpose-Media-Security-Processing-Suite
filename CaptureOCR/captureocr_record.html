@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gravador de Tela & GIF</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(249, 115, 22, 0.4); color: #f97316; transform: translateX(-6px); }
+    .logo {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(135deg, #f97316 0%, #f59e0b 50%, #ef4444 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 36px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      max-width: 900px; margin: 0 auto;
+    }
+    .stage {
+      width: 100%; aspect-ratio: 16/9; background: rgba(6, 10, 22, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 16px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
+    }
+    .stage video { width: 100%; height: 100%; object-fit: contain; }
+    .stage .placeholder { color: #475569; font-size: 14px; text-align: center; padding: 20px; }
+    .rec-badge {
+      position: absolute; top: 14px; left: 14px; background: rgba(239, 68, 68, 0.9); color: white;
+      font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px; display: none;
+      align-items: center; gap: 6px;
+    }
+    .rec-badge.show { display: flex; }
+    .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: white; animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: 0.2; } }
+    .timer { position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,0.6); color: #cbd5e1; font-size: 12px; padding: 6px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; display: none; }
+    .timer.show { display: block; }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 24px; }
+    button.action {
+      padding: 13px 24px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; transition: all 0.25s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35); }
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+    button.action:disabled { opacity: 0.4; cursor: not-allowed; }
+    .options-row { display: flex; gap: 20px; justify-content: center; margin-top: 20px; flex-wrap: wrap; font-size: 12.5px; color: #94a3b8; }
+    .options-row label { display: flex; align-items: center; gap: 6px; }
+    .options-row input[type="checkbox"] { accent-color: #f97316; }
+    .options-row select {
+      padding: 6px 10px; border-radius: 8px; background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 12px;
+    }
+    .progress-wrap { margin-top: 20px; display: none; }
+    .progress-wrap.show { display: block; }
+    .progress-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #f97316, #f59e0b); transition: width 0.2s ease; }
+    .status { margin-top: 16px; font-size: 13px; padding: 14px; border-radius: 12px; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .status.info { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/captureocr'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🎥 Gravador de Tela & GIF</div>
+  <div class="tagline">Capture uma aba ou a tela inteira e exporte como vídeo ou GIF</div>
+
+  <div class="card">
+    <div class="stage" id="stage">
+      <div class="placeholder" id="placeholder">Clique em "Iniciar gravação" e escolha a tela, janela ou aba para capturar</div>
+      <video id="live-video" autoplay muted style="display:none;"></video>
+      <div class="rec-badge" id="rec-badge"><div class="rec-dot"></div>GRAVANDO</div>
+      <div class="timer" id="timer">00:00</div>
+    </div>
+
+    <div class="options-row">
+      <label><input type="checkbox" id="opt-audio"> Incluir áudio do sistema (se suportado)</label>
+      <label>Qualidade GIF: <select id="gif-fps"><option value="5">5 fps (leve)</option><option value="10" selected>10 fps</option><option value="15">15 fps</option></select></label>
+    </div>
+
+    <div class="controls">
+      <button class="action btn-primary" id="start-btn" onclick="startRecording()">🎥 Iniciar gravação</button>
+      <button class="action btn-danger" id="stop-btn" onclick="stopRecording()" disabled>⏹️ Parar</button>
+      <button class="action btn-secondary" id="download-video-btn" onclick="downloadVideo()" disabled>⬇️ Baixar WEBM</button>
+      <button class="action btn-secondary" id="gif-btn" onclick="convertToGif()" disabled>🎞️ Converter para GIF</button>
+    </div>
+
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-label"><span id="progress-label-text">Gerando GIF...</span><span id="progress-pct">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordedBlob = null;
+    let stream = null;
+    let timerInterval = null;
+    let elapsedSec = 0;
+
+    const liveVideo = document.getElementById('live-video');
+    const placeholder = document.getElementById('placeholder');
+    const recBadge = document.getElementById('rec-badge');
+    const timerEl = document.getElementById('timer');
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const downloadVideoBtn = document.getElementById('download-video-btn');
+    const gifBtn = document.getElementById('gif-btn');
+    const statusBox = document.getElementById('status');
+
+    function showResult(type, message) {
+      statusBox.className = 'status show ' + type;
+      statusBox.textContent = message;
+    }
+
+    function formatTime(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    async function startRecording() {
+      try {
+        const wantAudio = document.getElementById('opt-audio').checked;
+        stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: wantAudio });
+
+        placeholder.style.display = 'none';
+        liveVideo.style.display = 'block';
+        liveVideo.srcObject = stream;
+
+        recordedChunks = [];
+        const mimeCandidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+        const mimeType = mimeCandidates.find(m => MediaRecorder.isTypeSupported(m)) || 'video/webm';
+        mediaRecorder = new MediaRecorder(stream, { mimeType });
+
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
+          liveVideo.srcObject = null;
+          liveVideo.src = URL.createObjectURL(recordedBlob);
+          liveVideo.muted = false;
+          liveVideo.controls = true;
+          liveVideo.play().catch(() => {});
+          downloadVideoBtn.disabled = false;
+          gifBtn.disabled = false;
+          showResult('ok', '✅ Gravação concluída! Baixe o WEBM ou converta para GIF.');
+        };
+
+        stream.getVideoTracks()[0].addEventListener('ended', () => stopRecording());
+
+        mediaRecorder.start();
+        elapsedSec = 0;
+        timerEl.textContent = '00:00';
+        recBadge.classList.add('show');
+        timerEl.classList.add('show');
+        timerInterval = setInterval(() => { elapsedSec++; timerEl.textContent = formatTime(elapsedSec); }, 1000);
+
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        downloadVideoBtn.disabled = true;
+        gifBtn.disabled = true;
+        statusBox.classList.remove('show');
+      } catch (e) {
+        showResult('err', '❌ Não foi possível iniciar a captura: ' + e.message);
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      clearInterval(timerInterval);
+      recBadge.classList.remove('show');
+      timerEl.classList.remove('show');
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    function downloadVideo() {
+      if (!recordedBlob) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(recordedBlob);
+      a.download = 'gravacao.webm';
+      a.click();
+    }
+
+    async function convertToGif() {
+      if (!recordedBlob) return;
+      gifBtn.disabled = true;
+      const progressWrap = document.getElementById('progress-wrap');
+      const progressFill = document.getElementById('progress-fill');
+      const progressPct = document.getElementById('progress-pct');
+      document.getElementById('progress-label-text').textContent = 'Extraindo quadros...';
+      progressWrap.classList.add('show');
+      progressFill.style.width = '0%';
+      progressPct.textContent = '0%';
+
+      try {
+        const fps = parseInt(document.getElementById('gif-fps').value, 10);
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(recordedBlob);
+        video.muted = true;
+        await new Promise((resolve, reject) => {
+          video.onloadedmetadata = resolve;
+          video.onerror = reject;
+        });
+
+        const MAX_DURATION = 20; // segundos, para manter o GIF em tamanho razoável
+        const duration = Math.min(video.duration || 5, MAX_DURATION);
+        const scale = Math.min(1, 640 / video.videoWidth);
+        const w = Math.round(video.videoWidth * scale);
+        const h = Math.round(video.videoHeight * scale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+
+        const gif = new GIF({
+          workers: 2,
+          quality: 10,
+          width: w,
+          height: h,
+          workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+        });
+
+        const frameInterval = 1 / fps;
+        const totalFrames = Math.floor(duration / frameInterval);
+
+        for (let i = 0; i < totalFrames; i++) {
+          const t = i * frameInterval;
+          await new Promise(resolve => {
+            video.onseeked = resolve;
+            video.currentTime = t;
+          });
+          ctx.drawImage(video, 0, 0, w, h);
+          gif.addFrame(ctx, { copy: true, delay: Math.round(frameInterval * 1000) });
+          const pct = Math.round((i / totalFrames) * 50);
+          progressFill.style.width = pct + '%';
+          progressPct.textContent = pct + '%';
+        }
+
+        document.getElementById('progress-label-text').textContent = 'Codificando GIF...';
+        gif.on('progress', p => {
+          const pct = 50 + Math.round(p * 50);
+          progressFill.style.width = pct + '%';
+          progressPct.textContent = pct + '%';
+        });
+        gif.on('finished', blob => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'gravacao.gif';
+          a.click();
+          progressWrap.classList.remove('show');
+          gifBtn.disabled = false;
+          showResult('ok', '✅ GIF gerado e baixado!' + (video.duration > MAX_DURATION ? ` (limitado aos primeiros ${MAX_DURATION}s para manter o arquivo leve)` : ''));
+        });
+        gif.render();
+      } catch (e) {
+        progressWrap.classList.remove('show');
+        gifBtn.disabled = false;
+        showResult('err', '❌ Erro ao gerar GIF: ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html>

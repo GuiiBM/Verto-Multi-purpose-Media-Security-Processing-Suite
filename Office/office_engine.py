@@ -399,6 +399,39 @@ def rebuild_document_from_text(texts, family, output_path):
         raise OfficeError("Formato desconhecido para recriar o documento.")
 
 
+def _remove_empty_columns(ws):
+    """Remove colunas de uma planilha que não têm nenhum valor real, mesmo que o
+    openpyxl reporte um max_column muito maior por causa de formatação/estilo
+    residual em células nunca preenchidas (o clássico caso de "milhões de
+    colunas vazias" que sobra depois de copiar/colar ou aplicar estilo em
+    excesso). Usa ws._cells diretamente em vez de varrer a grade densa inteira
+    (min_row..max_row x min_col..max_col), porque essa grade pode ter bilhões
+    de posições fantasmas enquanto só existem poucas células reais."""
+    used_cols = {col for (_row, col), cell in ws._cells.items() if cell.value not in (None, '')}
+    max_col = ws.max_column or 0
+    empty_cols = [c for c in range(1, max_col + 1) if c not in used_cols]
+    for col_idx in reversed(empty_cols):
+        ws.delete_cols(col_idx, 1)
+    return len(empty_cols)
+
+
+def _cleanup_spreadsheet_columns(path, family, notes):
+    """Pós-processamento opcional (nível de reparo já concluído): abre a
+    planilha resultante e remove colunas vazias sem sentido, para reduzir o
+    tamanho do arquivo e facilitar a manutenção."""
+    if family != 'spreadsheet':
+        return
+    try:
+        from openpyxl import load_workbook
+        wb = load_workbook(path)
+        removed = sum(_remove_empty_columns(ws) for ws in wb.worksheets)
+        if removed:
+            wb.save(path)
+            notes.append(f"🧹 {removed} coluna(s) vazia(s) removida(s) para otimizar o arquivo.")
+    except Exception as e:
+        notes.append(f"ℹ️ Não foi possível limpar colunas vazias: {e}")
+
+
 def try_native_open_and_resave(path, family, outdir, base_name):
     """Nível 3: valida abrindo com a biblioteca nativa e resalva (o round-trip
     já normaliza boa parte dos problemas estruturais residuais)."""
@@ -507,8 +540,10 @@ def convert_office_file(file_storage, output_format, dpi=200):
 # API pública: reparo/recuperação
 # ---------------------------------------------------------------------------
 
-def repair_office_file(file_storage):
-    """Cascata de 5 níveis de recuperação. Retorna (nome_arquivo_salvo, notas)."""
+def repair_office_file(file_storage, cleanup_columns=False):
+    """Cascata de 5 níveis de recuperação. Retorna (nome_arquivo_salvo, notas).
+    Se cleanup_columns for True, planilhas Excel também passam por uma limpeza
+    de colunas vazias sem sentido antes de serem salvas em Downloads."""
     filename = file_storage.filename
     claimed_ext = os.path.splitext(filename)[1].lower().lstrip('.')
     base_name = os.path.splitext(filename)[0] or "arquivo"
@@ -582,6 +617,8 @@ def repair_office_file(file_storage):
                 if result:
                     out_path, summary = result
                     notes.append(f"✅ Reparado com a biblioteca nativa. {summary}")
+                    if cleanup_columns:
+                        _cleanup_spreadsheet_columns(out_path, family, notes)
                     final_path = _downloads_output_path(os.path.basename(out_path))
                     shutil.copy(out_path, final_path)
                     return os.path.basename(final_path), notes
@@ -598,6 +635,8 @@ def repair_office_file(file_storage):
                         "🔧 Recuperado pelo motor de importação do LibreOffice, que "
                         "tolera corrupções que as bibliotecas nativas rejeitam."
                     )
+                    if cleanup_columns:
+                        _cleanup_spreadsheet_columns(produced, family, notes)
                     final_path = _downloads_output_path(f"{base_name}_reparado.{target_ext}")
                     shutil.copy(produced, final_path)
                     return os.path.basename(final_path), notes

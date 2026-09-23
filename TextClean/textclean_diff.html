@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Diff</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.2.0/diff.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(34, 197, 94, 0.4); color: #22c55e; transform: translateX(-6px); }
+    .logo {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(135deg, #22c55e 0%, #14b8a6 50%, #3b82f6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 32px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      max-width: 1400px; margin: 0 auto;
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; justify-content: space-between; }
+    .toggle-group { display: flex; gap: 8px; }
+    .toggle-btn {
+      padding: 9px 16px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer; font-size: 12.5px; font-weight: 600;
+    }
+    .toggle-btn.active { border-color: #22c55e; background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+    button.action {
+      padding: 11px 22px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 700; background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white; transition: all 0.25s;
+    }
+    button.action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(34, 197, 94, 0.35); }
+    .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media (max-width: 900px) { .panes { grid-template-columns: 1fr; } }
+    .pane-label { font-size: 12px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    textarea {
+      width: 100%; height: 220px; resize: vertical;
+      background: rgba(6, 10, 22, 0.8); color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px;
+      padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+    }
+    textarea:focus { outline: none; border-color: rgba(34, 197, 94, 0.4); }
+    .stats-bar { display: flex; gap: 20px; margin-bottom: 16px; font-size: 12.5px; color: #94a3b8; flex-wrap: wrap; }
+    .stats-bar b { color: #cbd5e1; }
+    .stats-bar .added { color: #4ade80; }
+    .stats-bar .removed { color: #f87171; }
+    .result-wrap {
+      background: rgba(6, 10, 22, 0.8); border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 14px; padding: 4px; overflow: auto; max-height: 600px;
+    }
+    .result-inline { padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.9; white-space: pre-wrap; word-break: break-word; }
+    .result-side { display: grid; grid-template-columns: 1fr 1fr; }
+    .result-col { padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.9; white-space: pre-wrap; word-break: break-word; }
+    .result-col.left { border-right: 1px solid rgba(148, 163, 184, 0.1); }
+    .diff-add { background: rgba(34, 197, 94, 0.22); color: #86efac; border-radius: 3px; }
+    .diff-del { background: rgba(239, 68, 68, 0.22); color: #fca5a5; border-radius: 3px; text-decoration: line-through; text-decoration-color: rgba(252,165,165,0.5); }
+    .diff-line-add { background: rgba(34, 197, 94, 0.12); display: block; border-left: 3px solid #22c55e; padding-left: 8px; }
+    .diff-line-del { background: rgba(239, 68, 68, 0.12); display: block; border-left: 3px solid #ef4444; padding-left: 8px; }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/textclean'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🔀 Text Diff</div>
+  <div class="tagline">Compare dois textos e veja exatamente o que mudou</div>
+
+  <div class="card">
+    <div class="panes">
+      <div>
+        <div class="pane-label">Original</div>
+        <textarea id="text-a" placeholder="Cole o texto original..." spellcheck="false"></textarea>
+      </div>
+      <div>
+        <div class="pane-label">Modificado</div>
+        <textarea id="text-b" placeholder="Cole o texto modificado..." spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="toggle-group" id="view-toggle">
+        <div class="toggle-btn active" data-view="side" onclick="setView('side')">Lado a lado</div>
+        <div class="toggle-btn" data-view="inline" onclick="setView('inline')">Inline</div>
+      </div>
+      <div class="toggle-group" id="gran-toggle">
+        <div class="toggle-btn" data-gran="chars">Caractere</div>
+        <div class="toggle-btn active" data-gran="words">Palavra</div>
+        <div class="toggle-btn" data-gran="lines">Linha</div>
+      </div>
+      <button class="action" onclick="runDiff()">🔀 Comparar</button>
+    </div>
+
+    <div class="stats-bar" id="stats-bar"></div>
+
+    <div class="result-wrap">
+      <div id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentView = 'side';
+    let currentGran = 'words';
+
+    function setView(v) {
+      currentView = v;
+      document.querySelectorAll('#view-toggle .toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+      runDiff();
+    }
+    function setGran(g) {
+      currentGran = g;
+      document.querySelectorAll('#gran-toggle .toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.gran === g));
+      runDiff();
+    }
+    document.querySelectorAll('#gran-toggle .toggle-btn').forEach(b => b.addEventListener('click', () => setGran(b.dataset.gran)));
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function diffParts(a, b) {
+      if (currentGran === 'chars') return Diff.diffChars(a, b);
+      if (currentGran === 'lines') return Diff.diffLines(a, b);
+      return Diff.diffWords(a, b);
+    }
+
+    function renderInline(parts) {
+      let html = '';
+      parts.forEach(part => {
+        const text = esc(part.value);
+        if (part.added) html += `<span class="diff-add">${text}</span>`;
+        else if (part.removed) html += `<span class="diff-del">${text}</span>`;
+        else html += text;
+      });
+      return html;
+    }
+
+    function renderSide(parts) {
+      let left = '', right = '';
+      parts.forEach(part => {
+        const text = esc(part.value);
+        if (part.added) right += `<span class="diff-add">${text}</span>`;
+        else if (part.removed) left += `<span class="diff-del">${text}</span>`;
+        else { left += text; right += text; }
+      });
+      return `<div class="result-side"><div class="result-col left">${left}</div><div class="result-col">${right}</div></div>`;
+    }
+
+    function computeStats(parts) {
+      let added = 0, removed = 0;
+      parts.forEach(p => {
+        const unit = currentGran === 'chars' ? p.value.length
+          : currentGran === 'lines' ? p.value.split('\n').filter(l => l.length || true).length
+          : (p.value.match(/\S+/g) || []).length;
+        if (p.added) added += unit;
+        else if (p.removed) removed += unit;
+      });
+      const unitLabel = currentGran === 'chars' ? 'caracteres' : currentGran === 'lines' ? 'linhas' : 'palavras';
+      return `<span><b>${added + removed}</b> alterações</span><span class="added">+${added} ${unitLabel}</span><span class="removed">-${removed} ${unitLabel}</span>`;
+    }
+
+    function runDiff() {
+      const a = document.getElementById('text-a').value;
+      const b = document.getElementById('text-b').value;
+      const parts = diffParts(a, b);
+      const resultEl = document.getElementById('result');
+      if (currentView === 'inline') {
+        resultEl.innerHTML = `<div class="result-inline">${renderInline(parts)}</div>`;
+      } else {
+        resultEl.innerHTML = renderSide(parts);
+      }
+      document.getElementById('stats-bar').innerHTML = computeStats(parts);
+    }
+  </script>
+</body>
+</html>

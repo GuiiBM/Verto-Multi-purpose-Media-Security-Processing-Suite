@@ -25,3 +25,4 @@ ffmpeg.exe
 # Editor/SO
 .DS_Store
 .vscode/
+InstaSaver/.doc_ids.json

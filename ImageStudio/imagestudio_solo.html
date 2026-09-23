@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor Individual</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(168, 85, 247, 0.4); color: #a855f7; transform: translateX(-6px); }
+    .logo {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #3b82f6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 28px; text-align: center; }
+    .layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; align-items: start; }
+    @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+    }
+    h2 { font-size: 14px; color: #f8fafc; margin-bottom: 14px; }
+    h3.section { font-size: 11.5px; color: #a855f7; margin: 18px 0 10px; text-transform: uppercase; letter-spacing: 0.6px; }
+    h3.section:first-child { margin-top: 0; }
+    label.small { display: block; font-size: 11.5px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; margin-top: 12px; }
+    label.small:first-child { margin-top: 0; }
+    .range-row { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; accent-color: #a855f7; }
+    .range-val { font-size: 11.5px; color: #cbd5e1; min-width: 38px; text-align: right; }
+    input[type="text"], input[type="number"], input[type="color"], select {
+      width: 100%; padding: 8px 10px; border-radius: 9px;
+      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #e2e8f0; font-family: 'Inter', sans-serif; font-size: 12.5px;
+    }
+    input[type="color"] { padding: 4px; height: 34px; }
+    .dims-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .check-row { display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: #94a3b8; margin-top: 10px; }
+    .check-row input { accent-color: #a855f7; }
+    .ratio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .ratio-btn {
+      padding: 8px 4px; border-radius: 9px; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer;
+      text-align: center; font-size: 11px; font-weight: 600; transition: all 0.2s;
+    }
+    .ratio-btn.active { border-color: #a855f7; background: rgba(168, 85, 247, 0.15); color: #d8b4fe; }
+    .tabs-mini { display: flex; gap: 6px; }
+    .tab-mini {
+      flex: 1; text-align: center; padding: 7px; border-radius: 9px; cursor: pointer;
+      border: 1px solid rgba(148, 163, 184, 0.2); background: rgba(15, 23, 42, 0.6);
+      color: #94a3b8; font-size: 11px; font-weight: 700;
+    }
+    .tab-mini.active { border-color: #a855f7; background: rgba(168, 85, 247, 0.15); color: #d8b4fe; }
+    .pos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .pos-btn {
+      aspect-ratio: 1; border-radius: 7px; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .pos-btn .dot { width: 6px; height: 6px; border-radius: 50%; background: #64748b; }
+    .pos-btn.active { border-color: #a855f7; background: rgba(168, 85, 247, 0.15); }
+    .pos-btn.active .dot { background: #d8b4fe; }
+    .upload-area {
+      margin-top: 16px; padding: 20px 12px; border-radius: 14px;
+      border: 2px dashed rgba(168, 85, 247, 0.3); background: rgba(15, 23, 42, 0.6);
+      text-align: center; cursor: pointer; transition: all 0.3s;
+    }
+    .upload-area:hover, .upload-area.dragover { border-color: #a855f7; background: rgba(168, 85, 247, 0.08); }
+    .upload-icon { font-size: 30px; margin-bottom: 6px; }
+    .upload-text { color: #cbd5e1; font-size: 12px; }
+    .upload-hint { color: #64748b; font-size: 10.5px; margin-top: 3px; }
+    input[type="file"] { display: none; }
+    button.action {
+      width: 100%; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 13.5px; font-weight: 700; background: linear-gradient(135deg, #a855f7, #ec4899);
+      color: white; transition: all 0.25s; margin-top: 16px;
+    }
+    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35); }
+    button.action:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      width: 100%; margin-top: 8px; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 700;
+      background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .btn-secondary:hover { background: rgba(148, 163, 184, 0.2); }
+    .btn-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* --- filmstrip --- */
+    .filmstrip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; }
+    .film-thumb {
+      position: relative; flex: 0 0 auto; width: 56px; height: 56px; border-radius: 10px; overflow: hidden;
+      border: 2px solid rgba(148, 163, 184, 0.15); cursor: pointer; background: rgba(6,10,22,0.8);
+    }
+    .film-thumb.active { border-color: #a855f7; }
+    .film-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .film-thumb .remove {
+      position: absolute; top: 1px; right: 1px; width: 16px; height: 16px; border-radius: 50%;
+      background: rgba(0,0,0,0.65); color: #fca5a5; display: flex; align-items: center; justify-content: center; font-size: 10px;
+    }
+    .film-add {
+      flex: 0 0 auto; width: 56px; height: 56px; border-radius: 10px; border: 2px dashed rgba(148, 163, 184, 0.25);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; color: #94a3b8; font-size: 20px;
+    }
+    .film-add:hover { border-color: #a855f7; color: #a855f7; }
+
+    /* --- stage --- */
+    .view-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+    .toggle-btn {
+      padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer; font-size: 12.5px; font-weight: 600;
+    }
+    .toggle-btn.active { border-color: #a855f7; background: rgba(168, 85, 247, 0.15); color: #d8b4fe; }
+    .stage-outer {
+      display: flex; align-items: center; justify-content: center; min-height: 460px;
+      background: repeating-conic-gradient(#111827 0% 25%, #0a0f1e 0% 50%) 50% / 24px 24px;
+      border-radius: 16px; border: 1px solid rgba(148, 163, 184, 0.1); overflow: hidden; position: relative;
+    }
+    .stage-wrap { position: relative; user-select: none; }
+    .stage-wrap img { display: block; max-width: none; }
+    .crop-box {
+      position: absolute; border: 1.5px solid #fff;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+      cursor: move;
+    }
+    .crop-handle {
+      position: absolute; width: 14px; height: 14px; background: #a855f7; border: 2px solid #fff;
+      border-radius: 50%; transform: translate(-50%, -50%);
+    }
+    .crop-handle.nw { top: 0; left: 0; cursor: nwse-resize; }
+    .crop-handle.ne { top: 0; left: 100%; cursor: nesw-resize; }
+    .crop-handle.sw { top: 100%; left: 0; cursor: nesw-resize; }
+    .crop-handle.se { top: 100%; left: 100%; cursor: nwse-resize; }
+    .wm-preview {
+      position: absolute; pointer-events: none; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.6); white-space: nowrap; overflow: hidden;
+    }
+    .wm-preview img { width: 100%; height: 100%; object-fit: contain; }
+    .empty-stage { color: #475569; font-size: 13px; text-align: center; padding: 40px; }
+
+    /* --- compare --- */
+    .compare-wrap { position: relative; max-width: 100%; max-height: 640px; overflow: hidden; border-radius: 8px; }
+    .compare-wrap > canvas { display: block; }
+    .compare-after { position: absolute; top: 0; left: 0; overflow: hidden; }
+    .compare-after canvas { display: block; max-width: none; }
+    .compare-divider { position: absolute; top: 0; bottom: 0; width: 3px; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,0.5); pointer-events: none; }
+    .compare-divider::after {
+      content: '⇔'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 32px; height: 32px; background: #fff; color: #111; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 14px;
+    }
+    .compare-slider { width: 100%; margin-top: 16px; accent-color: #a855f7; }
+    .compare-labels { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 6px; }
+
+    .status { margin-top: 14px; font-size: 12.5px; padding: 12px; border-radius: 10px; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .meta-row { display: flex; justify-content: space-between; font-size: 11.5px; color: #64748b; margin-top: 10px; }
+    .meta-row b { color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/imagestudio'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🖼️ Editor Individual</div>
+  <div class="tagline">Ajuste fino de uma imagem por vez — corte manual, filtros e download direto, sem ZIP</div>
+
+  <div class="layout">
+    <div class="card">
+      <h2>Imagens carregadas</h2>
+      <div class="filmstrip" id="filmstrip">
+        <div class="film-add" id="film-add" onclick="document.getElementById('file-input').click()">+</div>
+      </div>
+      <input type="file" id="file-input" accept="image/*" multiple>
+      <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">Clique ou arraste imagens</div>
+        <div class="upload-hint">Edite uma de cada vez — sem limite prático de quantidade</div>
+      </div>
+
+      <h3 class="section">Corte</h3>
+      <div class="ratio-grid">
+        <div class="ratio-btn active" data-ratio="free" onclick="setAspect('free')">Livre</div>
+        <div class="ratio-btn" data-ratio="1:1" onclick="setAspect('1:1')">1:1</div>
+        <div class="ratio-btn" data-ratio="16:9" onclick="setAspect('16:9')">16:9</div>
+        <div class="ratio-btn" data-ratio="4:3" onclick="setAspect('4:3')">4:3</div>
+        <div class="ratio-btn" data-ratio="3:2" onclick="setAspect('3:2')">3:2</div>
+        <div class="ratio-btn" data-ratio="9:16" onclick="setAspect('9:16')">9:16</div>
+      </div>
+      <button class="btn-secondary" onclick="resetCrop()">↺ Redefinir seleção</button>
+
+      <h3 class="section">Redimensionar saída</h3>
+      <div class="check-row"><input type="checkbox" id="resize-enabled" onchange="toggleResize()"> Definir tamanho de saída</div>
+      <div class="dims-row" id="resize-dims" style="display:none; margin-top:10px;">
+        <input type="number" id="out-width" placeholder="Largura">
+        <input type="number" id="out-height" placeholder="Altura">
+      </div>
+      <div class="check-row" id="resize-lock-row" style="display:none;"><input type="checkbox" id="resize-lock" checked> Manter proporção do corte</div>
+
+      <h3 class="section">Ajustes</h3>
+      <label class="small">Brilho</label>
+      <div class="range-row"><input type="range" id="brightness" min="0" max="200" value="100" oninput="onFilterInput()"><span class="range-val" id="brightness-val">100%</span></div>
+      <label class="small">Contraste</label>
+      <div class="range-row"><input type="range" id="contrast" min="0" max="200" value="100" oninput="onFilterInput()"><span class="range-val" id="contrast-val">100%</span></div>
+      <label class="small">Saturação</label>
+      <div class="range-row"><input type="range" id="saturation" min="0" max="200" value="100" oninput="onFilterInput()"><span class="range-val" id="saturation-val">100%</span></div>
+      <label class="small">Nitidez</label>
+      <div class="range-row"><input type="range" id="sharpness" min="0" max="100" value="0" oninput="onFilterInput()"><span class="range-val" id="sharpness-val">0%</span></div>
+
+      <h3 class="section">Marca d'Água</h3>
+      <div class="tabs-mini">
+        <div class="tab-mini active" data-wm="none" onclick="setWatermarkMode('none')">Nenhuma</div>
+        <div class="tab-mini" data-wm="text" onclick="setWatermarkMode('text')">Texto</div>
+        <div class="tab-mini" data-wm="logo" onclick="setWatermarkMode('logo')">Logo</div>
+      </div>
+      <div id="wm-text-opts" style="display:none;">
+        <label class="small">Texto</label>
+        <input type="text" id="wm-text" value="© Minha Marca" oninput="onFilterInput()">
+        <label class="small">Cor</label>
+        <input type="color" id="wm-color" value="#ffffff" oninput="onFilterInput()">
+      </div>
+      <div id="wm-logo-opts" style="display:none;">
+        <label class="small">Imagem do logo</label>
+        <input type="file" id="wm-logo-input" accept="image/*" onchange="handleLogoUpload(event)">
+        <div class="btn-secondary" style="text-align:center;" onclick="document.getElementById('wm-logo-input').click()">📎 Escolher logo</div>
+      </div>
+      <div id="wm-common-opts" style="display:none;">
+        <label class="small">Posição</label>
+        <div class="pos-grid" id="pos-grid"></div>
+        <label class="small">Tamanho</label>
+        <div class="range-row"><input type="range" id="wm-scale" min="5" max="50" value="18" oninput="onFilterInput()"><span class="range-val" id="wm-scale-val">18%</span></div>
+        <label class="small">Opacidade</label>
+        <div class="range-row"><input type="range" id="wm-opacity" min="10" max="100" value="70" oninput="onFilterInput()"><span class="range-val" id="wm-opacity-val">70%</span></div>
+      </div>
+
+      <h3 class="section">Exportar</h3>
+      <label class="small">Formato</label>
+      <select id="out-format">
+        <option value="image/jpeg">JPG</option>
+        <option value="image/png">PNG</option>
+        <option value="image/webp">WEBP</option>
+      </select>
+      <label class="small">Qualidade</label>
+      <div class="range-row"><input type="range" id="quality" min="10" max="100" value="90"><span class="range-val" id="quality-val">90%</span></div>
+
+      <button class="action" id="download-btn" onclick="downloadCurrent()" disabled>⬇️ Baixar esta imagem</button>
+      <div class="btn-row2">
+        <button class="btn-secondary" onclick="copyCurrent()">📋 Copiar</button>
+        <button class="btn-secondary" onclick="resetAll()">🗑️ Limpar tudo</button>
+      </div>
+
+      <div class="status" id="status"></div>
+    </div>
+
+    <div class="card">
+      <div class="view-toggle">
+        <div class="toggle-btn active" data-view="edit" onclick="setView('edit')">✂️ Editar</div>
+        <div class="toggle-btn" data-view="compare" onclick="setView('compare')">🔍 Comparar antes/depois</div>
+      </div>
+
+      <div id="edit-view">
+        <div class="stage-outer" id="stage-outer">
+          <div class="empty-stage" id="empty-stage">Carregue uma imagem para começar a editar</div>
+        </div>
+      </div>
+
+      <div id="compare-view" style="display:none;">
+        <div class="stage-outer" id="compare-outer" style="flex-direction:column; padding:20px;">
+          <div class="empty-stage" id="compare-empty">Carregue uma imagem e clique em "Atualizar prévia"</div>
+        </div>
+      </div>
+
+      <div class="meta-row" id="meta-row"></div>
+    </div>
+  </div>
+
+  <script>
+    let images = []; // { id, file, name, url, imgEl, crop: {x,y,w,h} in natural px }
+    let activeId = null;
+    let idCounter = 0;
+    let aspectLock = null; // null = free, or number (w/h)
+    let watermarkMode = 'none';
+    let watermarkPos = 'br';
+    let logoImg = null;
+    let currentView = 'edit';
+    let compareTimer = null;
+
+    let dragState = null; // { mode: 'move'|'resize', handle, startX, startY, startCrop, scale, dispW, dispH }
+
+    const fileInput = document.getElementById('file-input');
+    const uploadArea = document.getElementById('upload-area');
+    const filmstrip = document.getElementById('filmstrip');
+    const filmAdd = document.getElementById('film-add');
+    const stageOuter = document.getElementById('stage-outer');
+    const downloadBtn = document.getElementById('download-btn');
+    const statusBox = document.getElementById('status');
+
+    const POSITIONS = ['tl','tc','tr','ml','mc','mr','bl','bc','br'];
+    document.getElementById('pos-grid').innerHTML = POSITIONS.map(p =>
+      `<div class="pos-btn ${p==='br'?'active':''}" data-pos="${p}" onclick="setWatermarkPos('${p}')"><div class="dot"></div></div>`
+    ).join('');
+
+    document.querySelectorAll('input[type=range]').forEach(r => {
+      r.addEventListener('input', () => {
+        const valEl = document.getElementById(r.id + '-val');
+        if (valEl) valEl.textContent = r.value + '%';
+      });
+    });
+
+    function showResult(ok, message) {
+      statusBox.className = 'status show ' + (ok ? 'ok' : 'err');
+      statusBox.textContent = (ok ? '✅ ' : '❌ ') + message;
+    }
+
+    // ---------- upload / filmstrip ----------
+
+    function loadImageEl(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    async function addFiles(fileList) {
+      const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+      for (const file of files) {
+        const id = idCounter++;
+        const url = URL.createObjectURL(file);
+        const imgEl = await loadImageEl(url);
+        images.push({ id, file, name: file.name, url, imgEl, crop: fullCropRect(imgEl) });
+      }
+      renderFilmstrip();
+      if (activeId === null && images.length) selectImage(images[0].id);
+    }
+
+    fileInput.addEventListener('change', e => addFiles(e.target.files));
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      addFiles(e.dataTransfer.files);
+    });
+
+    function fullCropRect(imgEl) {
+      return { x: 0, y: 0, w: imgEl.naturalWidth, h: imgEl.naturalHeight };
+    }
+
+    function renderFilmstrip() {
+      filmstrip.querySelectorAll('.film-thumb').forEach(el => el.remove());
+      images.forEach(img => {
+        const el = document.createElement('div');
+        el.className = 'film-thumb' + (img.id === activeId ? ' active' : '');
+        el.innerHTML = `<img src="${img.url}"><div class="remove" onclick="event.stopPropagation();removeImage(${img.id})">✕</div>`;
+        el.onclick = () => selectImage(img.id);
+        filmstrip.insertBefore(el, filmAdd);
+      });
+    }
+
+    function removeImage(id) {
+      images = images.filter(i => i.id !== id);
+      if (activeId === id) activeId = images.length ? images[0].id : null;
+      renderFilmstrip();
+      if (activeId !== null) selectImage(activeId); else renderStage();
+    }
+
+    function resetAll() {
+      images = [];
+      activeId = null;
+      renderFilmstrip();
+      renderStage();
+      downloadBtn.disabled = true;
+      document.getElementById('meta-row').textContent = '';
+      statusBox.classList.remove('show');
+    }
+
+    function selectImage(id) {
+      activeId = id;
+      renderFilmstrip();
+      downloadBtn.disabled = false;
+      renderStage();
+      if (currentView === 'compare') scheduleComparePreview(true);
+    }
+
+    function getActive() { return images.find(i => i.id === activeId); }
+
+    // ---------- crop stage rendering ----------
+
+    function renderStage() {
+      const item = getActive();
+      if (!item) {
+        stageOuter.innerHTML = '<div class="empty-stage" id="empty-stage">Carregue uma imagem para começar a editar</div>';
+        document.getElementById('meta-row').textContent = '';
+        return;
+      }
+
+      const maxW = Math.min(stageOuter.clientWidth - 40 || 640, 700);
+      const maxH = 560;
+      const nw = item.imgEl.naturalWidth, nh = item.imgEl.naturalHeight;
+      const scale = Math.min(maxW / nw, maxH / nh, 1);
+      const dispW = Math.round(nw * scale), dispH = Math.round(nh * scale);
+
+      stageOuter.innerHTML = `
+        <div class="stage-wrap" id="stage-wrap" style="width:${dispW}px;height:${dispH}px;">
+          <img id="stage-img" src="${item.url}" style="width:${dispW}px;height:${dispH}px;filter:${cssFilterString()};">
+          <div class="crop-box" id="crop-box">
+            <div class="wm-preview" id="wm-preview"></div>
+            <div class="crop-handle nw" data-handle="nw"></div>
+            <div class="crop-handle ne" data-handle="ne"></div>
+            <div class="crop-handle sw" data-handle="sw"></div>
+            <div class="crop-handle se" data-handle="se"></div>
+          </div>
+        </div>
+      `;
+
+      const cropBox = document.getElementById('crop-box');
+      cropBox.dataset.scale = scale;
+      cropBox.dataset.dispW = dispW;
+      cropBox.dataset.dispH = dispH;
+
+      updateCropBoxUI();
+      attachCropHandlers(dispW, dispH, scale);
+      updateMeta();
+    }
+
+    function cssFilterString() {
+      const brightness = document.getElementById('brightness').value;
+      const contrast = document.getElementById('contrast').value;
+      const saturation = document.getElementById('saturation').value;
+      return `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+    }
+
+    function updateCropBoxUI() {
+      const item = getActive();
+      const cropBox = document.getElementById('crop-box');
+      if (!item || !cropBox) return;
+      const scale = parseFloat(cropBox.dataset.scale);
+      const c = item.crop;
+      cropBox.style.left = (c.x * scale) + 'px';
+      cropBox.style.top = (c.y * scale) + 'px';
+      cropBox.style.width = (c.w * scale) + 'px';
+      cropBox.style.height = (c.h * scale) + 'px';
+      const img = document.getElementById('stage-img');
+      if (img) img.style.filter = cssFilterString();
+      updateWatermarkPreview(c.w * scale, c.h * scale);
+      updateMeta();
+    }
+
+    function updateWatermarkPreview(boxDispW, boxDispH) {
+      const wmEl = document.getElementById('wm-preview');
+      if (!wmEl) return;
+      if (watermarkMode === 'none') { wmEl.innerHTML = ''; return; }
+      const scalePct = parseInt(document.getElementById('wm-scale').value);
+      const opacity = parseInt(document.getElementById('wm-opacity').value) / 100;
+      const margin = Math.max(4, boxDispW * 0.02);
+      let elW, elH, content;
+      if (watermarkMode === 'text') {
+        const text = document.getElementById('wm-text').value || '';
+        const color = document.getElementById('wm-color').value;
+        const fontSize = Math.max(8, boxDispW * scalePct / 100 * 0.22);
+        content = `<span style="font-size:${fontSize}px;color:${color};opacity:${opacity};">${text.replace(/</g,'&lt;')}</span>`;
+        elW = boxDispW; elH = fontSize * 1.4;
+      } else if (watermarkMode === 'logo' && logoImg) {
+        elW = boxDispW * scalePct / 100;
+        elH = elW * (logoImg.naturalHeight / logoImg.naturalWidth);
+        content = `<img src="${logoImg.src}" style="opacity:${opacity};">`;
+      } else {
+        wmEl.innerHTML = '';
+        return;
+      }
+      const [x, y] = wmCoords(boxDispW, boxDispH, elW, elH, watermarkPos, margin);
+      wmEl.style.left = x + 'px';
+      wmEl.style.top = y + 'px';
+      wmEl.style.width = elW + 'px';
+      wmEl.style.height = elH + 'px';
+      wmEl.innerHTML = content;
+    }
+
+    function wmCoords(canvasW, canvasH, boxW, boxH, pos, margin) {
+      const map = {
+        tl: [margin, margin], tc: [(canvasW - boxW) / 2, margin], tr: [canvasW - boxW - margin, margin],
+        ml: [margin, (canvasH - boxH) / 2], mc: [(canvasW - boxW) / 2, (canvasH - boxH) / 2], mr: [canvasW - boxW - margin, (canvasH - boxH) / 2],
+        bl: [margin, canvasH - boxH - margin], bc: [(canvasW - boxW) / 2, canvasH - boxH - margin], br: [canvasW - boxW - margin, canvasH - boxH - margin]
+      };
+      return map[pos] || map.br;
+    }
+
+    function updateMeta() {
+      const item = getActive();
+      const meta = document.getElementById('meta-row');
+      if (!item) { meta.textContent = ''; return; }
+      meta.innerHTML = `<span><b>${item.name}</b></span><span>Corte: <b>${Math.round(item.crop.w)}×${Math.round(item.crop.h)}px</b></span>`;
+    }
+
+    // ---------- crop interaction ----------
+
+    function attachCropHandlers(dispW, dispH, scale) {
+      const cropBox = document.getElementById('crop-box');
+      const stageWrap = document.getElementById('stage-wrap');
+
+      cropBox.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('crop-handle')) return;
+        startDrag(e, 'move', null, dispW, dispH, scale);
+      });
+      cropBox.querySelectorAll('.crop-handle').forEach(h => {
+        h.addEventListener('mousedown', e => {
+          e.stopPropagation();
+          startDrag(e, 'resize', h.dataset.handle, dispW, dispH, scale);
+        });
+      });
+    }
+
+    function startDrag(e, mode, handle, dispW, dispH, scale) {
+      e.preventDefault();
+      const item = getActive();
+      dragState = {
+        mode, handle, startClientX: e.clientX, startClientY: e.clientY,
+        startCrop: { ...item.crop }, dispW, dispH, scale
+      };
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', onDragEnd);
+    }
+
+    function onDragMove(e) {
+      if (!dragState) return;
+      const item = getActive();
+      if (!item) return;
+      const { mode, handle, startClientX, startClientY, startCrop, dispW, dispH, scale } = dragState;
+      const dxNat = (e.clientX - startClientX) / scale;
+      const dyNat = (e.clientY - startClientY) / scale;
+      const natW = dispW / scale, natH = dispH / scale;
+      let c = { ...startCrop };
+
+      if (mode === 'move') {
+        c.x = clamp(startCrop.x + dxNat, 0, natW - startCrop.w);
+        c.y = clamp(startCrop.y + dyNat, 0, natH - startCrop.h);
+      } else {
+        const minSize = 24 / scale;
+        let { x, y, w, h } = startCrop;
+        let x2 = x + w, y2 = y + h;
+        if (handle.includes('w')) x = clamp(x + dxNat, 0, x2 - minSize);
+        if (handle.includes('e')) x2 = clamp(x2 + dxNat, x + minSize, natW);
+        if (handle.includes('n')) y = clamp(y + dyNat, 0, y2 - minSize);
+        if (handle.includes('s')) y2 = clamp(y2 + dyNat, y + minSize, natH);
+
+        if (aspectLock) {
+          const anchorX = handle.includes('w') ? x2 : x;
+          const anchorY = handle.includes('n') ? y2 : y;
+          let w2 = x2 - x, h2 = y2 - y;
+          if (Math.abs(w2 - startCrop.w) > Math.abs(h2 - startCrop.h)) {
+            h2 = w2 / aspectLock;
+          } else {
+            w2 = h2 * aspectLock;
+          }
+          if (handle.includes('w')) x = anchorX - w2; else x2 = anchorX + w2;
+          if (handle.includes('n')) y = anchorY - h2; else y2 = anchorY + h2;
+          x = clamp(x, 0, natW); x2 = clamp(x2, 0, natW);
+          y = clamp(y, 0, natH); y2 = clamp(y2, 0, natH);
+        }
+        c = { x, y, w: x2 - x, h: y2 - y };
+      }
+
+      item.crop = c;
+      updateCropBoxUI();
+    }
+
+    function onDragEnd() {
+      dragState = null;
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('mouseup', onDragEnd);
+      if (currentView === 'compare') scheduleComparePreview();
+    }
+
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    function setAspect(ratioKey) {
+      document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio === ratioKey));
+      const item = getActive();
+      if (ratioKey === 'free') { aspectLock = null; return; }
+      const [rw, rh] = ratioKey.split(':').map(Number);
+      aspectLock = rw / rh;
+      if (!item) return;
+      const natW = item.imgEl.naturalWidth, natH = item.imgEl.naturalHeight;
+      let w = natW, h = w / aspectLock;
+      if (h > natH) { h = natH; w = h * aspectLock; }
+      item.crop = { x: (natW - w) / 2, y: (natH - h) / 2, w, h };
+      updateCropBoxUI();
+    }
+
+    function resetCrop() {
+      const item = getActive();
+      if (!item) return;
+      item.crop = fullCropRect(item.imgEl);
+      document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio === 'free'));
+      aspectLock = null;
+      updateCropBoxUI();
+    }
+
+    // ---------- filters / watermark ----------
+
+    function onFilterInput() {
+      updateCropBoxUI();
+      if (currentView === 'compare') scheduleComparePreview();
+    }
+
+    function setWatermarkMode(mode) {
+      watermarkMode = mode;
+      document.querySelectorAll('.tab-mini').forEach(t => t.classList.toggle('active', t.dataset.wm === mode));
+      document.getElementById('wm-text-opts').style.display = mode === 'text' ? 'block' : 'none';
+      document.getElementById('wm-logo-opts').style.display = mode === 'logo' ? 'block' : 'none';
+      document.getElementById('wm-common-opts').style.display = mode === 'none' ? 'none' : 'block';
+      onFilterInput();
+    }
+
+    function setWatermarkPos(p) {
+      watermarkPos = p;
+      document.querySelectorAll('.pos-btn').forEach(b => b.classList.toggle('active', b.dataset.pos === p));
+      onFilterInput();
+    }
+
+    function handleLogoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => { logoImg = img; onFilterInput(); };
+      img.src = URL.createObjectURL(file);
+    }
+
+    function toggleResize() {
+      const on = document.getElementById('resize-enabled').checked;
+      document.getElementById('resize-dims').style.display = on ? 'grid' : 'none';
+      document.getElementById('resize-lock-row').style.display = on ? 'flex' : 'none';
+    }
+
+    document.getElementById('out-width').addEventListener('input', () => {
+      if (!document.getElementById('resize-lock').checked) return;
+      const item = getActive();
+      if (!item) return;
+      const ratio = item.crop.w / item.crop.h;
+      const w = parseFloat(document.getElementById('out-width').value);
+      if (w) document.getElementById('out-height').value = Math.round(w / ratio);
+    });
+    document.getElementById('out-height').addEventListener('input', () => {
+      if (!document.getElementById('resize-lock').checked) return;
+      const item = getActive();
+      if (!item) return;
+      const ratio = item.crop.w / item.crop.h;
+      const h = parseFloat(document.getElementById('out-height').value);
+      if (h) document.getElementById('out-width').value = Math.round(h * ratio);
+    });
+
+    // ---------- rendering pipeline (shared by download + compare) ----------
+
+    function sharpenImageData(imageData, amount) {
+      if (amount <= 0) return imageData;
+      const w = imageData.width, h = imageData.height;
+      const src = imageData.data;
+      const out = new Uint8ClampedArray(src.length);
+      const a = amount / 100;
+      const kernel = [0, -a, 0, -a, 1 + 4 * a, -a, 0, -a, 0];
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          for (let c = 0; c < 3; c++) {
+            let sum = 0, k = 0;
+            for (let ky = -1; ky <= 1; ky++) {
+              for (let kx = -1; kx <= 1; kx++) {
+                const yy = Math.min(h - 1, Math.max(0, y + ky));
+                const xx = Math.min(w - 1, Math.max(0, x + kx));
+                sum += src[(yy * w + xx) * 4 + c] * kernel[k++];
+              }
+            }
+            out[(y * w + x) * 4 + c] = sum;
+          }
+          out[(y * w + x) * 4 + 3] = src[(y * w + x) * 4 + 3];
+        }
+      }
+      return new ImageData(out, w, h);
+    }
+
+    function outputDims(item) {
+      const enabled = document.getElementById('resize-enabled').checked;
+      if (!enabled) return { w: Math.round(item.crop.w), h: Math.round(item.crop.h) };
+      const w = parseInt(document.getElementById('out-width').value) || Math.round(item.crop.w);
+      const h = parseInt(document.getElementById('out-height').value) || Math.round(item.crop.h);
+      return { w, h };
+    }
+
+    function renderCanvas(item, { withFilters }) {
+      const { w: outW, h: outH } = outputDims(item);
+      const canvas = document.createElement('canvas');
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext('2d');
+
+      if (withFilters) ctx.filter = cssFilterString();
+      ctx.drawImage(item.imgEl, item.crop.x, item.crop.y, item.crop.w, item.crop.h, 0, 0, outW, outH);
+      ctx.filter = 'none';
+
+      if (withFilters) {
+        const sharpness = parseInt(document.getElementById('sharpness').value);
+        if (sharpness > 0) {
+          const data = ctx.getImageData(0, 0, outW, outH);
+          ctx.putImageData(sharpenImageData(data, sharpness), 0, 0);
+        }
+        drawWatermarkOnCanvas(ctx, outW, outH);
+      }
+
+      return canvas;
+    }
+
+    function drawWatermarkOnCanvas(ctx, w, h) {
+      if (watermarkMode === 'none') return;
+      const scalePct = parseInt(document.getElementById('wm-scale').value);
+      const opacity = parseInt(document.getElementById('wm-opacity').value) / 100;
+      const margin = Math.round(w * 0.02);
+      if (watermarkMode === 'text') {
+        const text = document.getElementById('wm-text').value || '';
+        const color = document.getElementById('wm-color').value;
+        const fontSize = Math.max(10, Math.round(w * scalePct / 100 * 0.22));
+        ctx.font = `bold ${fontSize}px Inter, sans-serif`;
+        const metrics = ctx.measureText(text);
+        const [x, y] = wmCoords(w, h, metrics.width, fontSize, watermarkPos, margin);
+        ctx.globalAlpha = opacity;
+        ctx.fillStyle = color;
+        ctx.fillText(text, x, y + fontSize * 0.8);
+        ctx.globalAlpha = 1;
+      } else if (watermarkMode === 'logo' && logoImg) {
+        const boxW = w * scalePct / 100;
+        const boxH = boxW * (logoImg.naturalHeight / logoImg.naturalWidth);
+        const [x, y] = wmCoords(w, h, boxW, boxH, watermarkPos, margin);
+        ctx.globalAlpha = opacity;
+        ctx.drawImage(logoImg, x, y, boxW, boxH);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function canvasToBlob(canvas, type, quality) {
+      return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+    }
+
+    // ---------- compare view ----------
+
+    function setView(view) {
+      currentView = view;
+      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+      document.getElementById('edit-view').style.display = view === 'edit' ? 'block' : 'none';
+      document.getElementById('compare-view').style.display = view === 'compare' ? 'block' : 'none';
+      if (view === 'compare') scheduleComparePreview(true);
+    }
+
+    function scheduleComparePreview(immediate) {
+      clearTimeout(compareTimer);
+      compareTimer = setTimeout(renderComparePreview, immediate ? 0 : 200);
+    }
+
+    async function renderComparePreview() {
+      const item = getActive();
+      const outer = document.getElementById('compare-outer');
+      if (!item) {
+        outer.innerHTML = '<div class="empty-stage" id="compare-empty">Carregue uma imagem e clique em "Atualizar prévia"</div>';
+        return;
+      }
+      outer.innerHTML = '<div class="empty-stage">Renderizando prévia...</div>';
+      await new Promise(r => setTimeout(r, 20));
+
+      const beforeCanvas = renderCanvas(item, { withFilters: false });
+      const afterCanvas = renderCanvas(item, { withFilters: true });
+      const w = beforeCanvas.width, h = beforeCanvas.height;
+      const maxW = 760;
+      const dispScale = Math.min(1, maxW / w);
+      const dispW = Math.round(w * dispScale), dispH = Math.round(h * dispScale);
+
+      outer.innerHTML = `
+        <div>
+          <div class="compare-wrap" id="compare-wrap" style="width:${dispW}px;height:${dispH}px;">
+            <canvas id="before-canvas" width="${dispW}" height="${dispH}" style="width:${dispW}px;height:${dispH}px;"></canvas>
+            <div class="compare-after" id="compare-after" style="width:50%;height:${dispH}px;">
+              <canvas id="after-canvas" width="${dispW}" height="${dispH}" style="width:${dispW}px;height:${dispH}px;"></canvas>
+            </div>
+            <div class="compare-divider" id="compare-divider" style="left:50%;"></div>
+          </div>
+          <input type="range" class="compare-slider" id="compare-slider" min="0" max="100" value="50">
+          <div class="compare-labels"><span>Antes (só corte)</span><span>Depois (com ajustes)</span></div>
+        </div>
+      `;
+      document.getElementById('before-canvas').getContext('2d').drawImage(beforeCanvas, 0, 0, dispW, dispH);
+      document.getElementById('after-canvas').getContext('2d').drawImage(afterCanvas, 0, 0, dispW, dispH);
+
+      const slider = document.getElementById('compare-slider');
+      slider.addEventListener('input', () => {
+        const pct = slider.value;
+        document.getElementById('compare-after').style.width = pct + '%';
+        document.getElementById('compare-divider').style.left = pct + '%';
+      });
+    }
+
+    // ---------- download / copy ----------
+
+    async function downloadCurrent() {
+      const item = getActive();
+      if (!item) return;
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = 'Gerando...';
+      try {
+        const format = document.getElementById('out-format').value;
+        const quality = parseInt(document.getElementById('quality').value) / 100;
+        const canvas = renderCanvas(item, { withFilters: true });
+        const blob = await canvasToBlob(canvas, format, quality);
+        const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[format];
+        const base = item.name.replace(/\.[^.]+$/, '');
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${base}-editado.${ext}`;
+        a.click();
+        showResult(true, `'${base}-editado.${ext}' baixado — sem ZIP, arquivo único.`);
+      } catch (e) {
+        showResult(false, 'Erro ao gerar imagem: ' + e.message);
+      } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = '⬇️ Baixar esta imagem';
+      }
+    }
+
+    async function copyCurrent() {
+      const item = getActive();
+      if (!item) return;
+      try {
+        const canvas = renderCanvas(item, { withFilters: true });
+        const blob = await canvasToBlob(canvas, 'image/png');
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showResult(true, 'Imagem copiada para a área de transferência!');
+      } catch (e) {
+        showResult(false, 'Não foi possível copiar (recurso pode não ser suportado neste navegador).');
+      }
+    }
+
+    window.addEventListener('resize', () => { if (getActive()) renderStage(); });
+  </script>
+</body>
+</html>

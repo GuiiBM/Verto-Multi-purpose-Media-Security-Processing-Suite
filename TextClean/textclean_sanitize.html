@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sanitizador de Texto</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(34, 197, 94, 0.4); color: #22c55e; transform: translateX(-6px); }
+    .logo {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(135deg, #22c55e 0%, #14b8a6 50%, #3b82f6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; max-width: 1350px; margin: 0 auto; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+    }
+    h2 { font-size: 15px; color: #f8fafc; margin-bottom: 4px; }
+    h3.section { font-size: 12px; color: #22c55e; margin: 18px 0 10px; text-transform: uppercase; letter-spacing: 0.6px; }
+    h3.section:first-child { margin-top: 0; }
+    .op-btn {
+      display: block; width: 100%; text-align: left; padding: 10px 14px; margin-bottom: 8px;
+      border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.15); background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1; cursor: pointer; font-size: 12.5px; font-weight: 600; transition: all 0.2s;
+    }
+    .op-btn:hover { border-color: rgba(34, 197, 94, 0.4); background: rgba(34, 197, 94, 0.08); }
+    .check-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #94a3b8; margin-bottom: 10px; }
+    .check-row input { accent-color: #22c55e; }
+    textarea {
+      width: 100%; height: 560px; resize: vertical;
+      background: rgba(6, 10, 22, 0.8); color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px;
+      padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+    }
+    textarea:focus { outline: none; border-color: rgba(34, 197, 94, 0.4); }
+    .toolbar-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .btn-secondary {
+      padding: 9px 16px; border-radius: 10px; cursor: pointer; font-size: 12.5px; font-weight: 700;
+      background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .btn-secondary:hover { background: rgba(148, 163, 184, 0.2); }
+    .toolbar-btns { display: flex; gap: 8px; }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/textclean'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🧽 Sanitizador de Texto</div>
+  <div class="tagline">Limpe, ordene e transforme texto em um clique — as operações se aplicam em sequência</div>
+
+  <div class="layout">
+    <div class="card">
+      <h3 class="section">Linhas</h3>
+      <div class="check-row"><input type="checkbox" id="case-insensitive"> Ignorar maiúsc./minúsc.</div>
+      <button class="op-btn" onclick="removeDuplicates()">🗑️ Remover linhas duplicadas</button>
+      <button class="op-btn" onclick="removeEmptyLines()">🚫 Remover linhas vazias</button>
+      <button class="op-btn" onclick="sortLines('alpha-asc')">🔤 Ordenar A→Z</button>
+      <button class="op-btn" onclick="sortLines('alpha-desc')">🔤 Ordenar Z→A</button>
+      <button class="op-btn" onclick="sortLines('num-asc')">🔢 Ordenar numérico ↑</button>
+      <button class="op-btn" onclick="sortLines('num-desc')">🔢 Ordenar numérico ↓</button>
+      <button class="op-btn" onclick="reverseLines()">🔄 Inverter ordem</button>
+
+      <h3 class="section">Espaços</h3>
+      <button class="op-btn" onclick="trimLines()">✂️ Aparar espaços das bordas</button>
+      <button class="op-btn" onclick="collapseSpaces()">🧹 Remover espaços duplos</button>
+      <button class="op-btn" onclick="joinLines()">➡️ Juntar quebras de linha</button>
+
+      <h3 class="section">Maiúsculas / Minúsculas</h3>
+      <button class="op-btn" onclick="applyCase('upper')">🔠 UPPERCASE</button>
+      <button class="op-btn" onclick="applyCase('lower')">🔡 lowercase</button>
+      <button class="op-btn" onclick="applyCase('title')">🔤 Title Case</button>
+      <button class="op-btn" onclick="applyCase('camel')">🐫 camelCase</button>
+      <button class="op-btn" onclick="applyCase('slug')">🔗 slug-case</button>
+    </div>
+
+    <div class="card">
+      <div class="toolbar-top">
+        <h2 style="margin:0;">Texto</h2>
+        <div class="toolbar-btns">
+          <button class="btn-secondary" onclick="undo()">↩️ Desfazer</button>
+          <button class="btn-secondary" onclick="copyText()">📋 Copiar</button>
+          <button class="btn-secondary" onclick="downloadText()">⬇️ Baixar</button>
+          <button class="btn-secondary" onclick="clearText()">🗑️ Limpar</button>
+        </div>
+      </div>
+      <textarea id="editor" placeholder="Cole seu texto aqui..." spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    let history = [];
+
+    function pushHistory() {
+      history.push(editor.value);
+      if (history.length > 20) history.shift();
+    }
+    function undo() {
+      if (history.length) editor.value = history.pop();
+    }
+    function getLines() { return editor.value.split('\n'); }
+    function setLines(lines) { editor.value = lines.join('\n'); }
+
+    function removeDuplicates() {
+      pushHistory();
+      const ci = document.getElementById('case-insensitive').checked;
+      const seen = new Set();
+      const out = getLines().filter(line => {
+        const key = ci ? line.toLowerCase() : line;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      setLines(out);
+    }
+
+    function removeEmptyLines() {
+      pushHistory();
+      setLines(getLines().filter(l => l.trim().length > 0));
+    }
+
+    function sortLines(mode) {
+      pushHistory();
+      const ci = document.getElementById('case-insensitive').checked;
+      let lines = getLines();
+      if (mode === 'alpha-asc') lines.sort((a, b) => (ci ? a.toLowerCase().localeCompare(b.toLowerCase()) : a.localeCompare(b)));
+      else if (mode === 'alpha-desc') lines.sort((a, b) => (ci ? b.toLowerCase().localeCompare(a.toLowerCase()) : b.localeCompare(a)));
+      else if (mode === 'num-asc') lines.sort((a, b) => (parseFloat(a) || 0) - (parseFloat(b) || 0));
+      else if (mode === 'num-desc') lines.sort((a, b) => (parseFloat(b) || 0) - (parseFloat(a) || 0));
+      setLines(lines);
+    }
+
+    function reverseLines() {
+      pushHistory();
+      setLines(getLines().reverse());
+    }
+
+    function trimLines() {
+      pushHistory();
+      setLines(getLines().map(l => l.trim()));
+    }
+
+    function collapseSpaces() {
+      pushHistory();
+      setLines(getLines().map(l => l.replace(/[ \t]+/g, ' ')));
+    }
+
+    function joinLines() {
+      pushHistory();
+      editor.value = getLines().filter(l => l.trim().length).join(' ');
+    }
+
+    function toTitleCase(s) {
+      return s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+    }
+    function toCamelCase(s) {
+      return s
+        .replace(/[^a-zA-Z0-9À-ÿ\s]+/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join('');
+    }
+    function toSlugCase(s) {
+      return s
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/[\s_]+/g, '-')
+        .replace(/-+/g, '-');
+    }
+
+    function applyCase(mode) {
+      pushHistory();
+      const text = editor.value;
+      if (mode === 'upper') editor.value = text.toUpperCase();
+      else if (mode === 'lower') editor.value = text.toLowerCase();
+      else if (mode === 'title') editor.value = toTitleCase(text);
+      else if (mode === 'camel') editor.value = toCamelCase(text);
+      else if (mode === 'slug') editor.value = toSlugCase(text);
+    }
+
+    function copyText() { if (editor.value) navigator.clipboard.writeText(editor.value); }
+    function downloadText() {
+      if (!editor.value) return;
+      const blob = new Blob([editor.value], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'texto-sanitizado.txt';
+      a.click();
+    }
+    function clearText() { pushHistory(); editor.value = ''; }
+  </script>
+</body>
+</html>

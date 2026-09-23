@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adicionar Efeito Matcha (Vídeo)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(139, 195, 74, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(139, 195, 74, 0.4); color: #8bc34a; transform: translateX(-6px); }
+    .back-button.locked { pointer-events: none; opacity: 0.4; }
+    .logo {
+      font-size: 36px; font-weight: 900;
+      background: linear-gradient(135deg, #8bc34a 0%, #cddc39 50%, #558b2f 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 28px; text-align: center; }
+    .layout { display: flex; gap: 20px; max-width: 1180px; margin: 0 auto; flex-wrap: wrap; align-items: flex-start; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+    }
+    .stage-col { flex: 1 1 600px; min-width: 320px; }
+    .panel-col { flex: 0 0 320px; min-width: 300px; display: flex; flex-direction: column; gap: 16px; }
+    .dropzone {
+      border: 2px dashed rgba(139, 195, 74, 0.3); border-radius: 16px; padding: 34px 20px;
+      text-align: center; cursor: pointer; transition: all 0.25s; color: #94a3b8; font-size: 13px;
+    }
+    .dropzone:hover, .dropzone.drag { border-color: #8bc34a; background: rgba(139, 195, 74, 0.05); color: #cbd5e1; }
+    .dropzone b { color: #f8fafc; display: block; font-size: 15px; margin-bottom: 6px; }
+    .player-wrap { display: none; }
+    .player-wrap.show { display: block; }
+    video { width: 100%; max-height: 320px; display: block; background: #000; border-radius: 12px; }
+    .preview-label { font-size: 12px; color: #94a3b8; margin: 14px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    #preview-canvas { width: 100%; max-height: 320px; display: block; background: #000; border-radius: 12px; }
+    .progress-wrap { margin-top: 16px; display: none; }
+    .progress-wrap.show { display: block; }
+    .progress-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #8bc34a, #558b2f); transition: width 0.2s ease; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
+    button.action {
+      padding: 12px 18px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 700; transition: all 0.25s; display: flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #8bc34a, #558b2f); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 195, 74, 0.35); }
+    .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+    button.action:disabled { opacity: 0.45; cursor: not-allowed; }
+    .section-title { font-size: 13px; font-weight: 700; color: #f8fafc; margin-bottom: 12px; }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .field-label b { color: #cbd5e1; font-weight: 600; }
+    input[type="range"] { width: 100%; accent-color: #8bc34a; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: #cbd5e1; padding: 7px 0; }
+    .toggle-row input[type="checkbox"] { accent-color: #8bc34a; width: 16px; height: 16px; }
+    .status { margin-top: 16px; font-size: 13px; padding: 12px 14px; border-radius: 12px; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .status.info { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .note { font-size: 11.5px; color: #64748b; line-height: 1.6; margin-top: 4px; }
+    .format-badge {
+      display: none; margin-top: 12px; font-size: 12px; padding: 8px 12px; border-radius: 10px;
+      background: rgba(139, 195, 74, 0.1); color: #c5e1a5; border: 1px solid rgba(139, 195, 74, 0.25);
+    }
+    .format-badge.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/matchaeffect'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🍵 Efeito Matcha em Vídeo</div>
+  <div class="tagline">Renderiza o vídeo, quadro a quadro, com o tom verde/hazy do matcha — 100% no navegador</div>
+
+  <div class="layout">
+    <div class="card stage-col">
+      <div class="dropzone" id="dropzone">
+        <b>Arraste um vídeo aqui ou clique para escolher</b>
+        MP4, WEBM, MOV — o vídeo nunca sai do seu navegador
+        <input type="file" id="file-input" accept="video/*" style="display:none;">
+      </div>
+      <div class="player-wrap" id="player-wrap">
+        <video id="source-video" controls muted playsinline></video>
+        <div class="preview-label">🍵 Prévia com efeito</div>
+        <canvas id="preview-canvas"></canvas>
+      </div>
+
+      <div class="format-badge" id="format-badge"></div>
+
+      <div class="progress-wrap" id="progress-wrap">
+        <div class="progress-label"><span>Renderizando vídeo com efeito matcha...</span><span id="progress-pct">0%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="action btn-primary" id="render-btn" onclick="renderMatchaVideo()" disabled>🍵 Renderizar com efeito</button>
+        <button class="action btn-secondary" id="download-btn" onclick="downloadRendered()" disabled>⬇️ Baixar vídeo</button>
+      </div>
+
+      <div class="status" id="status"></div>
+      <div class="note">A renderização acontece em tempo real (dura aproximadamente o tempo do vídeo original). Saída em WEBM.</div>
+    </div>
+
+    <div class="panel-col">
+      <div class="card">
+        <div class="section-title">🍵 Efeito Matcha</div>
+        <div class="field">
+          <div class="field-label">Intensidade <b id="intensity-val">70%</b></div>
+          <input type="range" id="intensity" min="0" max="100" value="70">
+        </div>
+        <div class="toggle-row"><span>🌫️ Haze / vinheta</span><input type="checkbox" id="vignette" checked></div>
+        <div class="toggle-row"><span>🎞️ Grão</span><input type="checkbox" id="grain" checked></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let busy = false;
+    let videoFile = null;
+    let renderedBlob = null;
+    let previewRAF = null;
+    let noiseTileCanvas = null;
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const playerWrap = document.getElementById('player-wrap');
+    const video = document.getElementById('source-video');
+    const previewCanvas = document.getElementById('preview-canvas');
+    const previewCtx = previewCanvas.getContext('2d');
+    const statusBox = document.getElementById('status');
+    const renderBtn = document.getElementById('render-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const backButton = document.getElementById('back-button');
+
+    document.getElementById('intensity').addEventListener('input', e => {
+      document.getElementById('intensity-val').textContent = e.target.value + '%';
+    });
+
+    function showResult(type, message) {
+      statusBox.className = 'status show ' + type;
+      statusBox.textContent = message;
+    }
+
+    // Classifica a proporção (w/h) contra as proporções mais comuns de vídeo,
+    // para deixar claro (e conferível) se o vídeo é vertical, horizontal etc.
+    function describeAspect(w, h) {
+      const ratio = w / h;
+      const common = [
+        { label: '9:16 vertical', value: 9 / 16 },
+        { label: '16:9 horizontal', value: 16 / 9 },
+        { label: '1:1 quadrado', value: 1 },
+        { label: '4:5 vertical', value: 4 / 5 },
+        { label: '4:3 horizontal', value: 4 / 3 },
+        { label: '3:4 vertical', value: 3 / 4 },
+      ];
+      let best = null, bestDiff = Infinity;
+      common.forEach(c => {
+        const diff = Math.abs(c.value - ratio);
+        if (diff < bestDiff) { bestDiff = diff; best = c; }
+      });
+      const label = bestDiff < 0.02 ? best.label : `proporção ${ratio.toFixed(3)}:1`;
+      return `${w}×${h} (${label})`;
+    }
+
+    function updateFormatBadge(w, h) {
+      const badge = document.getElementById('format-badge');
+      badge.className = 'format-badge show';
+      badge.textContent = `📐 Formato detectado: ${describeAspect(w, h)} — o vídeo renderizado sai nesse mesmo formato.`;
+    }
+
+    // Carrega um blob de vídeo renderizado num <video> oculto só para ler as
+    // dimensões reais de saída e confirmar que baterem com o original (ver
+    // verificação após a renderização).
+    function loadBlobVideoDimensions(blob) {
+      return new Promise((resolve, reject) => {
+        const v = document.createElement('video');
+        v.preload = 'metadata';
+        v.muted = true;
+        const url = URL.createObjectURL(blob);
+        v.src = url;
+        v.onloadedmetadata = () => {
+          const dims = { w: v.videoWidth, h: v.videoHeight };
+          URL.revokeObjectURL(url);
+          resolve(dims);
+        };
+        v.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Não foi possível ler as dimensões do vídeo renderizado.'));
+        };
+      });
+    }
+
+    // ---------- Video loading ----------
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      if (busy) return;
+      if (e.dataTransfer.files[0]) loadVideo(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) loadVideo(e.target.files[0]); });
+
+    function loadVideo(file) {
+      videoFile = file;
+      video.src = URL.createObjectURL(file);
+      dropzone.style.display = 'none';
+      playerWrap.classList.add('show');
+      renderBtn.disabled = false;
+      downloadBtn.disabled = true;
+      renderedBlob = null;
+      statusBox.classList.remove('show');
+      video.addEventListener('loadedmetadata', () => {
+        previewCanvas.width = video.videoWidth;
+        previewCanvas.height = video.videoHeight;
+        updateFormatBadge(video.videoWidth, video.videoHeight);
+        startPreviewLoop();
+      }, { once: true });
+    }
+
+    function getNoiseTile() {
+      if (noiseTileCanvas) return noiseTileCanvas;
+      const size = 128;
+      const c = document.createElement('canvas');
+      c.width = size; c.height = size;
+      const cx = c.getContext('2d');
+      const data = cx.createImageData(size, size);
+      for (let i = 0; i < data.data.length; i += 4) {
+        const v = Math.floor(Math.random() * 255);
+        data.data[i] = v; data.data[i + 1] = v; data.data[i + 2] = v; data.data[i + 3] = 255;
+      }
+      cx.putImageData(data, 0, 0);
+      noiseTileCanvas = c;
+      return c;
+    }
+
+    // Mesma receita usada nas fotos: tom esverdeado quente (sepia + hue-rotate),
+    // haze e grão opcionais, combinados ao quadro original via intensidade.
+    function buildMatchaLayer(source, w, h, vignetteOn, grainOn) {
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.filter = 'sepia(35%) hue-rotate(60deg) saturate(150%) contrast(108%) brightness(102%)';
+      ctx.drawImage(source, 0, 0, w, h);
+      ctx.filter = 'none';
+
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.fillStyle = 'rgba(124, 179, 66, 0.14)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = 'source-over';
+
+      if (vignetteOn) {
+        const grad = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.72);
+        grad.addColorStop(0, 'rgba(0,0,0,0)');
+        grad.addColorStop(1, 'rgba(20, 35, 10, 0.35)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      if (grainOn) {
+        const pattern = ctx.createPattern(getNoiseTile(), 'repeat');
+        ctx.save();
+        ctx.globalAlpha = 0.10;
+        ctx.globalCompositeOperation = 'overlay';
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, w, h);
+        ctx.restore();
+      }
+
+      return canvas;
+    }
+
+    function drawMatchaFrame(ctx, source, w, h) {
+      const intensity = parseInt(document.getElementById('intensity').value) / 100;
+      const vignetteOn = document.getElementById('vignette').checked;
+      const grainOn = document.getElementById('grain').checked;
+      ctx.drawImage(source, 0, 0, w, h);
+      if (intensity > 0) {
+        const layer = buildMatchaLayer(source, w, h, vignetteOn, grainOn);
+        ctx.globalAlpha = intensity;
+        ctx.drawImage(layer, 0, 0, w, h);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function startPreviewLoop() {
+      function loop() {
+        if (video.videoWidth > 0) {
+          drawMatchaFrame(previewCtx, video, previewCanvas.width, previewCanvas.height);
+        }
+        previewRAF = requestAnimationFrame(loop);
+      }
+      loop();
+    }
+
+    // ---------- Render / export ----------
+    async function renderMatchaVideo() {
+      if (!videoFile || busy) return;
+      busy = true;
+      renderBtn.disabled = true;
+      downloadBtn.disabled = true;
+      backButton.classList.add('locked');
+      renderedBlob = null;
+      document.getElementById('progress-wrap').classList.add('show');
+      document.getElementById('progress-fill').style.width = '0%';
+      document.getElementById('progress-pct').textContent = '0%';
+
+      try {
+        const sourceW = video.videoWidth, sourceH = video.videoHeight;
+        const canvas = document.createElement('canvas');
+        canvas.width = sourceW;
+        canvas.height = sourceH;
+        const ctx = canvas.getContext('2d');
+
+        const canvasStream = canvas.captureStream(30);
+        const mediaStream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
+        const audioTracks = mediaStream.getAudioTracks();
+        const combined = new MediaStream([...canvasStream.getVideoTracks(), ...audioTracks]);
+
+        const mimeCandidates = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+        const mimeType = mimeCandidates.find(m => MediaRecorder.isTypeSupported(m)) || 'video/webm';
+        const recorder = new MediaRecorder(combined, { mimeType });
+        const chunks = [];
+        recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+        const finished = new Promise(resolve => {
+          recorder.onstop = () => {
+            renderedBlob = new Blob(chunks, { type: 'video/webm' });
+            resolve();
+          };
+        });
+
+        video.pause();
+        video.currentTime = 0;
+        await new Promise(r => { video.onseeked = r; });
+
+        let drawing = true;
+        function drawLoop() {
+          if (!drawing) return;
+          drawMatchaFrame(ctx, video, canvas.width, canvas.height);
+          const pct = Math.min(100, Math.round((video.currentTime / video.duration) * 100));
+          document.getElementById('progress-fill').style.width = pct + '%';
+          document.getElementById('progress-pct').textContent = pct + '%';
+          requestAnimationFrame(drawLoop);
+        }
+
+        video.onended = () => {
+          drawing = false;
+          recorder.stop();
+        };
+
+        recorder.start();
+        await video.play();
+        drawLoop();
+
+        await finished;
+        document.getElementById('progress-wrap').classList.remove('show');
+
+        // Verificação de formato: confere se o vídeo renderizado realmente
+        // saiu com a mesma resolução/proporção do original antes de liberar
+        // o download — nunca um 9:16 virando 16:9 (ou vice-versa) sem avisar.
+        try {
+          const outDims = await loadBlobVideoDimensions(renderedBlob);
+          if (outDims.w === sourceW && outDims.h === sourceH) {
+            downloadBtn.disabled = false;
+            showResult('ok', `✅ Vídeo renderizado com o efeito matcha, formato preservado: ${describeAspect(outDims.w, outDims.h)}. Clique em "Baixar vídeo".`);
+          } else {
+            downloadBtn.disabled = true;
+            showResult('err', `⚠️ O vídeo renderizado saiu em ${outDims.w}×${outDims.h}, diferente do original (${sourceW}×${sourceH}). Download bloqueado — tente novamente.`);
+          }
+        } catch (verifyErr) {
+          // Não foi possível confirmar automaticamente; ainda libera o
+          // download, já que o canvas de renderização já usava as dimensões
+          // do vídeo original (sourceW/sourceH).
+          downloadBtn.disabled = false;
+          showResult('ok', '✅ Vídeo renderizado com o efeito matcha! (Não foi possível confirmar o formato automaticamente — confira antes de usar.) Clique em "Baixar vídeo".');
+        }
+      } catch (e) {
+        document.getElementById('progress-wrap').classList.remove('show');
+        showResult('err', '❌ Erro ao renderizar: ' + e.message);
+      } finally {
+        busy = false;
+        renderBtn.disabled = false;
+        backButton.classList.remove('locked');
+      }
+    }
+
+    function downloadRendered() {
+      if (!renderedBlob) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(renderedBlob);
+      a.download = 'video-com-efeito-matcha.webm';
+      a.click();
+    }
+  </script>
+</body>
+</html>

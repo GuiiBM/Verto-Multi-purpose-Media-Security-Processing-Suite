@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beautifier / Minifier</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-html.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sql-formatter@15.4.2/dist/sql-formatter.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/terser@5.31.0/dist/bundle.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(59, 130, 246, 0.4); color: #3b82f6; transform: translateX(-6px); }
+    .logo {
+      font-size: 44px; font-weight: 900;
+      background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 50%, #22c55e 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 32px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      max-width: 1300px; margin: 0 auto;
+    }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .tab {
+      padding: 10px 18px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer;
+      font-size: 13px; font-weight: 600; transition: all 0.25s;
+    }
+    .tab:hover { border-color: rgba(59, 130, 246, 0.4); }
+    .tab.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.15); color: #60a5fa; box-shadow: 0 0 16px rgba(59, 130, 246, 0.2); }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    button.action {
+      padding: 11px 20px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 700; transition: all 0.25s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35); }
+    .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+    .btn-secondary:hover { background: rgba(148, 163, 184, 0.2); }
+    .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .panes { grid-template-columns: 1fr; } }
+    .pane-label { font-size: 12px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    textarea {
+      width: 100%; height: 480px; resize: vertical;
+      background: rgba(6, 10, 22, 0.8); color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px;
+      padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+    }
+    textarea:focus { outline: none; border-color: rgba(59, 130, 246, 0.4); }
+    .error-box {
+      margin-top: 12px; padding: 12px 14px; border-radius: 10px; font-size: 13px;
+      background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);
+      display: none;
+    }
+    .error-box.show { display: block; }
+    .stats-row { margin-top: 12px; font-size: 12px; color: #64748b; }
+    .stats-row b { color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/devdata'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🧹 Beautifier / Minifier</div>
+  <div class="tagline">JSON · XML · SQL · HTML · CSS · JavaScript — tudo processado localmente</div>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" data-lang="json" onclick="setLang('json')">JSON</div>
+      <div class="tab" data-lang="xml" onclick="setLang('xml')">XML</div>
+      <div class="tab" data-lang="sql" onclick="setLang('sql')">SQL</div>
+      <div class="tab" data-lang="html" onclick="setLang('html')">HTML</div>
+      <div class="tab" data-lang="css" onclick="setLang('css')">CSS</div>
+      <div class="tab" data-lang="js" onclick="setLang('js')">JavaScript</div>
+    </div>
+
+    <div class="toolbar">
+      <button class="action btn-primary" onclick="beautify()">✨ Beautificar</button>
+      <button class="action btn-primary" onclick="minify()">📦 Minificar</button>
+      <button class="action btn-secondary" onclick="copyOutput()">📋 Copiar</button>
+      <button class="action btn-secondary" onclick="downloadOutput()">⬇️ Baixar</button>
+      <button class="action btn-secondary" onclick="clearAll()">🗑️ Limpar</button>
+      <button class="action btn-secondary" onclick="loadSample()">📄 Exemplo</button>
+    </div>
+
+    <div class="panes">
+      <div>
+        <div class="pane-label">Entrada</div>
+        <textarea id="input" placeholder="Cole seu código aqui..." spellcheck="false"></textarea>
+      </div>
+      <div>
+        <div class="pane-label">Saída</div>
+        <textarea id="output" placeholder="O resultado aparece aqui..." spellcheck="false" readonly></textarea>
+      </div>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+    <div class="stats-row" id="stats-row"></div>
+  </div>
+
+  <script>
+    let currentLang = 'json';
+
+    const SAMPLES = {
+      json: '{"nome":"Ana Souza","idade":29,"ativo":true,"tags":["admin","dev"],"endereco":{"cidade":"São Paulo","cep":"01310-100"}}',
+      xml: '<pessoa><nome>Ana Souza</nome><idade>29</idade><enderecos><endereco tipo="casa"><cidade>São Paulo</cidade></endereco></enderecos></pessoa>',
+      sql: "SELECT u.id, u.nome, o.total FROM usuarios u INNER JOIN pedidos o ON o.usuario_id = u.id WHERE o.status = 'pago' AND o.total > 100 ORDER BY o.total DESC LIMIT 20;",
+      html: '<div class="card"><h1>Título</h1><p>Um parágrafo com <b>texto</b> em negrito.</p><ul><li>Item 1</li><li>Item 2</li></ul></div>',
+      css: '.card{background:#0a0f1e;border-radius:20px;padding:24px}.card:hover{transform:translateY(-4px)}',
+      js: "function soma(a,b){return a+b;}\nconst pessoas=[{nome:'Ana',idade:29}];\npessoas.forEach(p=>console.log(p.nome));"
+    };
+
+    function setLang(lang) {
+      currentLang = lang;
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.lang === lang));
+      hideError();
+    }
+
+    function showError(msg) {
+      const box = document.getElementById('error-box');
+      box.textContent = '❌ ' + msg;
+      box.classList.add('show');
+    }
+    function hideError() { document.getElementById('error-box').classList.remove('show'); }
+
+    function updateStats(before, after) {
+      const stats = document.getElementById('stats-row');
+      if (before === undefined) { stats.textContent = ''; return; }
+      const diff = before - after;
+      const pct = before > 0 ? ((diff / before) * 100).toFixed(1) : 0;
+      stats.innerHTML = `<b>${before.toLocaleString()}</b> → <b>${after.toLocaleString()}</b> caracteres` +
+        (diff > 0 ? ` (${pct}% menor)` : diff < 0 ? ` (${Math.abs(pct)}% maior)` : '');
+    }
+
+    function formatXML(xml, indent) {
+      xml = xml.replace(/>\s*</g, '><').trim();
+      let formatted = '';
+      let pad = 0;
+      const nodes = xml.split(/(?=<)/g);
+      nodes.forEach(node => {
+        if (!node.trim()) return;
+        if (node.match(/^<\/\w/)) {
+          pad = Math.max(pad - 1, 0);
+          formatted += ' '.repeat(pad * indent) + node.trim() + '\n';
+        } else if (node.match(/^<\w[^>]*[^\/]>$/) && !node.match(/<\?/) && !node.match(/<!--/)) {
+          formatted += ' '.repeat(pad * indent) + node.trim() + '\n';
+          pad++;
+        } else {
+          formatted += ' '.repeat(pad * indent) + node.trim() + '\n';
+        }
+      });
+      return formatted.trim();
+    }
+
+    function minifyXML(xml) {
+      return xml.replace(/<!--[\s\S]*?-->/g, '').replace(/>\s+</g, '><').trim();
+    }
+
+    function minifyCSS(css) {
+      return css
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/\s*([{}:;,])\s*/g, '$1')
+        .replace(/;}/g, '}')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function minifyHTML(html) {
+      return html
+        .replace(/<!--[\s\S]*?-->/g, '')
+        .replace(/>\s+</g, '><')
+        .replace(/\n\s*/g, '')
+        .trim();
+    }
+
+    async function minifyJS(code) {
+      if (window.Terser) {
+        const result = await Terser.minify(code);
+        if (result.error) throw result.error;
+        return result.code;
+      }
+      return code.replace(/\/\/.*$/gm, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function beautify() {
+      hideError();
+      const input = document.getElementById('input').value;
+      if (!input.trim()) return;
+      try {
+        let out = '';
+        switch (currentLang) {
+          case 'json':
+            out = JSON.stringify(JSON.parse(input), null, 2);
+            break;
+          case 'xml':
+            out = formatXML(input, 2);
+            break;
+          case 'sql':
+            out = window.sqlFormatter ? sqlFormatter.format(input, { language: 'sql' }) : input;
+            break;
+          case 'html':
+            out = html_beautify(input, { indent_size: 2, wrap_line_length: 0 });
+            break;
+          case 'css':
+            out = css_beautify(input, { indent_size: 2 });
+            break;
+          case 'js':
+            out = js_beautify(input, { indent_size: 2 });
+            break;
+        }
+        document.getElementById('output').value = out;
+        updateStats(input.length, out.length);
+      } catch (e) {
+        showError('Não foi possível formatar: ' + e.message);
+      }
+    }
+
+    async function minify() {
+      hideError();
+      const input = document.getElementById('input').value;
+      if (!input.trim()) return;
+      try {
+        let out = '';
+        switch (currentLang) {
+          case 'json':
+            out = JSON.stringify(JSON.parse(input));
+            break;
+          case 'xml':
+            out = minifyXML(input);
+            break;
+          case 'sql':
+            out = input.replace(/--.*$/gm, '').replace(/\s+/g, ' ').trim();
+            break;
+          case 'html':
+            out = minifyHTML(input);
+            break;
+          case 'css':
+            out = minifyCSS(input);
+            break;
+          case 'js':
+            out = await minifyJS(input);
+            break;
+        }
+        document.getElementById('output').value = out;
+        updateStats(input.length, out.length);
+      } catch (e) {
+        showError('Não foi possível minificar: ' + e.message);
+      }
+    }
+
+    function copyOutput() {
+      const out = document.getElementById('output');
+      if (!out.value) return;
+      navigator.clipboard.writeText(out.value);
+    }
+
+    function downloadOutput() {
+      const out = document.getElementById('output').value;
+      if (!out) return;
+      const ext = { json: 'json', xml: 'xml', sql: 'sql', html: 'html', css: 'css', js: 'js' }[currentLang];
+      const blob = new Blob([out], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'resultado.' + ext;
+      a.click();
+    }
+
+    function clearAll() {
+      document.getElementById('input').value = '';
+      document.getElementById('output').value = '';
+      updateStats();
+      hideError();
+    }
+
+    function loadSample() {
+      document.getElementById('input').value = SAMPLES[currentLang] || '';
+    }
+  </script>
+</body>
+</html>

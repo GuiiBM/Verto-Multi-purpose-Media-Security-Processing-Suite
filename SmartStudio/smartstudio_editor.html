@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor de Corte & Waveform</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(244, 63, 94, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(244, 63, 94, 0.4); color: #f43f5e; transform: translateX(-6px); }
+    .logo {
+      font-size: 38px; font-weight: 900;
+      background: linear-gradient(135deg, #f43f5e 0%, #d946ef 50%, #6366f1 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 28px; text-align: center; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      max-width: 980px; margin: 0 auto;
+    }
+    .dropzone {
+      border: 2px dashed rgba(148, 163, 184, 0.25); border-radius: 16px; padding: 40px 20px;
+      text-align: center; cursor: pointer; transition: all 0.25s; color: #94a3b8; font-size: 13px;
+    }
+    .dropzone:hover, .dropzone.drag { border-color: #d946ef; background: rgba(217, 70, 239, 0.05); color: #cbd5e1; }
+    .dropzone b { color: #f8fafc; display: block; font-size: 16px; margin-bottom: 8px; }
+    .editor-body { display: none; }
+    .editor-body.show { display: block; }
+    .waveform-wrap { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid rgba(148, 163, 184, 0.15); background: #05070f; }
+    #waveform { width: 100%; height: 160px; display: block; cursor: crosshair; }
+    .time-labels { display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .controls-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+    button.action {
+      padding: 11px 16px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 12.5px; font-weight: 700; transition: all 0.25s; display: flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #f43f5e, #d946ef); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(217, 70, 239, 0.35); }
+    .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    button.action:disabled { opacity: 0.4; cursor: not-allowed; }
+    .sel-info { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 10px; }
+    .sel-info b { color: #d946ef; }
+    .markers-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .marker-chip {
+      display: flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; border-radius: 999px;
+      padding: 5px 10px; font-size: 11px; cursor: pointer;
+    }
+    .marker-chip .marker-del { color: #94a3b8; }
+    .marker-chip .marker-del:hover { color: #ef4444; }
+    .status { margin-top: 16px; font-size: 13px; padding: 12px 14px; border-radius: 12px; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .status.info { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .section-title { font-size: 13px; font-weight: 700; color: #f8fafc; margin: 20px 0 10px; }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/smartstudio'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🌊 Editor de Corte & Waveform</div>
+  <div class="tagline">Corte silêncios, recorte trechos e junte gravações direto na forma de onda</div>
+
+  <div class="card">
+    <div class="dropzone" id="dropzone">
+      <b>Arraste um áudio aqui ou clique para escolher</b>
+      MP3, WAV, OGG, WEBM, M4A — o processamento acontece 100% no seu navegador
+      <input type="file" id="file-input" accept="audio/*,video/*" style="display:none;">
+    </div>
+
+    <div class="editor-body" id="editor-body">
+      <div class="waveform-wrap">
+        <canvas id="waveform"></canvas>
+      </div>
+      <div class="time-labels"><span id="time-current">00:00.0</span><span id="time-total">00:00.0</span></div>
+      <div class="sel-info" id="sel-info">Arraste sobre a forma de onda para selecionar um trecho</div>
+
+      <div class="controls-row">
+        <button class="action btn-primary" id="play-btn" onclick="togglePlay()">▶️ Reproduzir</button>
+        <button class="action btn-secondary" onclick="stopPlayback()">⏹️ Parar</button>
+        <button class="action btn-secondary" id="marker-btn" onclick="addMarkerAtPlayhead()">🚩 Marcar aqui</button>
+      </div>
+
+      <div class="section-title">Edição</div>
+      <div class="controls-row">
+        <button class="action btn-secondary" id="trim-btn" onclick="trimToSelection()" disabled>✂️ Recortar seleção</button>
+        <button class="action btn-secondary" id="delete-btn" onclick="deleteSelection()" disabled>🗑️ Remover seleção</button>
+        <button class="action btn-secondary" onclick="autoTrimSilence()">🤫 Cortar silêncios automaticamente</button>
+        <button class="action btn-secondary" onclick="document.getElementById('join-input').click()">🔗 Juntar com outro arquivo</button>
+        <input type="file" id="join-input" accept="audio/*,video/*" style="display:none;">
+        <button class="action btn-secondary" id="undo-btn" onclick="undo()" disabled>↩️ Desfazer</button>
+      </div>
+
+      <div class="section-title">Exportar</div>
+      <div class="controls-row">
+        <button class="action btn-primary" onclick="exportWav()">⬇️ Exportar como WAV</button>
+        <button class="action btn-danger" onclick="resetEditor()">🗙 Carregar outro arquivo</button>
+      </div>
+
+      <div class="markers-list" id="markers-list"></div>
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let buffer = null;
+    let history = [];
+    let sourceNode = null;
+    let isPlaying = false;
+    let playbackStartCtxTime = 0, playbackStartOffset = 0;
+    let playhead = 0;
+    let selStart = null, selEnd = null;
+    let markers = [];
+    let rafId = null;
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const joinInput = document.getElementById('join-input');
+    const editorBody = document.getElementById('editor-body');
+    const canvas = document.getElementById('waveform');
+    const ctx2d = canvas.getContext('2d');
+    const statusBox = document.getElementById('status');
+    const playBtn = document.getElementById('play-btn');
+    const trimBtn = document.getElementById('trim-btn');
+    const deleteBtn = document.getElementById('delete-btn');
+    const undoBtn = document.getElementById('undo-btn');
+    const selInfo = document.getElementById('sel-info');
+
+    function showResult(type, message) {
+      statusBox.className = 'status show ' + type;
+      statusBox.textContent = message;
+    }
+
+    function formatTime(sec) {
+      if (!isFinite(sec) || sec < 0) sec = 0;
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = (sec % 60).toFixed(1).padStart(4, '0');
+      return `${m}:${s}`;
+    }
+
+    // ---------- File loading ----------
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+    joinInput.addEventListener('change', async e => {
+      if (e.target.files[0]) await joinFile(e.target.files[0]);
+      joinInput.value = '';
+    });
+
+    async function decodeFile(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      return await audioCtx.decodeAudioData(arrayBuffer);
+    }
+
+    async function loadFile(file) {
+      try {
+        showResult('info', '⏳ Carregando e decodificando áudio...');
+        buffer = await decodeFile(file);
+        history = [];
+        markers = [];
+        selStart = null; selEnd = null;
+        playhead = 0;
+        dropzone.style.display = 'none';
+        editorBody.classList.add('show');
+        resizeCanvas();
+        drawWaveform();
+        renderMarkers();
+        statusBox.classList.remove('show');
+      } catch (e) {
+        showResult('err', '❌ Não foi possível decodificar este arquivo: ' + e.message);
+      }
+    }
+
+    function resetEditor() {
+      stopPlayback();
+      buffer = null;
+      dropzone.style.display = 'block';
+      editorBody.classList.remove('show');
+      fileInput.value = '';
+    }
+
+    // ---------- Waveform drawing ----------
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = Math.max(300, Math.floor(rect.width));
+      canvas.height = 160;
+    }
+    window.addEventListener('resize', () => { if (buffer) { resizeCanvas(); drawWaveform(); } });
+
+    function drawWaveform() {
+      const w = canvas.width, h = canvas.height, mid = h / 2;
+      ctx2d.clearRect(0, 0, w, h);
+      ctx2d.fillStyle = '#05070f';
+      ctx2d.fillRect(0, 0, w, h);
+
+      const data = buffer.getChannelData(0);
+      const samplesPerPx = data.length / w;
+      ctx2d.strokeStyle = '#d946ef';
+      ctx2d.lineWidth = 1;
+      ctx2d.beginPath();
+      for (let x = 0; x < w; x++) {
+        const start = Math.floor(x * samplesPerPx);
+        const end = Math.min(data.length, Math.floor((x + 1) * samplesPerPx) + 1);
+        let min = 1, max = -1;
+        for (let i = start; i < end; i++) {
+          const v = data[i];
+          if (v < min) min = v;
+          if (v > max) max = v;
+        }
+        if (start >= end) { min = 0; max = 0; }
+        ctx2d.moveTo(x, mid + min * mid * 0.95);
+        ctx2d.lineTo(x, mid + max * mid * 0.95);
+      }
+      ctx2d.stroke();
+
+      // selection overlay
+      if (selStart !== null && selEnd !== null) {
+        const x1 = (Math.min(selStart, selEnd) / buffer.duration) * w;
+        const x2 = (Math.max(selStart, selEnd) / buffer.duration) * w;
+        ctx2d.fillStyle = 'rgba(217, 70, 239, 0.2)';
+        ctx2d.fillRect(x1, 0, x2 - x1, h);
+        ctx2d.strokeStyle = 'rgba(217, 70, 239, 0.8)';
+        ctx2d.strokeRect(x1, 0, x2 - x1, h);
+      }
+
+      // playhead
+      const px = (playhead / buffer.duration) * w;
+      ctx2d.strokeStyle = '#f8fafc';
+      ctx2d.beginPath();
+      ctx2d.moveTo(px, 0);
+      ctx2d.lineTo(px, h);
+      ctx2d.stroke();
+
+      // markers
+      ctx2d.fillStyle = '#fbbf24';
+      markers.forEach(m => {
+        const mx = (m.time / buffer.duration) * w;
+        ctx2d.beginPath();
+        ctx2d.moveTo(mx, 0);
+        ctx2d.lineTo(mx + 6, 8);
+        ctx2d.lineTo(mx, 16);
+        ctx2d.closePath();
+        ctx2d.fill();
+      });
+
+      document.getElementById('time-current').textContent = formatTime(playhead);
+      document.getElementById('time-total').textContent = formatTime(buffer.duration);
+      trimBtn.disabled = selStart === null;
+      deleteBtn.disabled = selStart === null;
+      selInfo.textContent = selStart === null
+        ? 'Arraste sobre a forma de onda para selecionar um trecho'
+        : `Seleção: ${formatTime(Math.min(selStart, selEnd))} — ${formatTime(Math.max(selStart, selEnd))}`;
+    }
+
+    // ---------- Selection / seek ----------
+    let dragging = false;
+    canvas.addEventListener('mousedown', e => {
+      const t = xToTime(e);
+      dragging = true;
+      selStart = t;
+      selEnd = t;
+      drawWaveform();
+    });
+    canvas.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      selEnd = xToTime(e);
+      drawWaveform();
+    });
+    window.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      if (selStart !== null && Math.abs(selEnd - selStart) < 0.05) {
+        // treat as a simple seek click
+        playhead = selStart;
+        selStart = null; selEnd = null;
+        seekTo(playhead);
+      }
+      drawWaveform();
+    });
+    function xToTime(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+      return (x / rect.width) * buffer.duration;
+    }
+
+    // ---------- Playback ----------
+    function togglePlay() { isPlaying ? pausePlayback() : startPlayback(); }
+
+    function startPlayback() {
+      if (!buffer) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      sourceNode = audioCtx.createBufferSource();
+      sourceNode.buffer = buffer;
+      sourceNode.connect(audioCtx.destination);
+      playbackStartOffset = playhead >= buffer.duration ? 0 : playhead;
+      playbackStartCtxTime = audioCtx.currentTime;
+      sourceNode.start(0, playbackStartOffset);
+      sourceNode.onended = () => { if (isPlaying) stopPlayback(); };
+      isPlaying = true;
+      playBtn.textContent = '⏸️ Pausar';
+      tick();
+    }
+
+    function pausePlayback() {
+      if (sourceNode) { sourceNode.onended = null; sourceNode.stop(); sourceNode = null; }
+      playhead = playbackStartOffset + (audioCtx.currentTime - playbackStartCtxTime);
+      isPlaying = false;
+      playBtn.textContent = '▶️ Reproduzir';
+      cancelAnimationFrame(rafId);
+      drawWaveform();
+    }
+
+    function stopPlayback() {
+      if (sourceNode) { sourceNode.onended = null; try { sourceNode.stop(); } catch (e) {} sourceNode = null; }
+      isPlaying = false;
+      playBtn.textContent = '▶️ Reproduzir';
+      playhead = 0;
+      cancelAnimationFrame(rafId);
+      if (buffer) drawWaveform();
+    }
+
+    function seekTo(t) {
+      const wasPlaying = isPlaying;
+      if (sourceNode) { sourceNode.onended = null; try { sourceNode.stop(); } catch (e) {} sourceNode = null; }
+      isPlaying = false;
+      cancelAnimationFrame(rafId);
+      playhead = Math.max(0, Math.min(buffer.duration, t));
+      if (wasPlaying) startPlayback();
+    }
+
+    function tick() {
+      if (!isPlaying) return;
+      playhead = playbackStartOffset + (audioCtx.currentTime - playbackStartCtxTime);
+      if (playhead >= buffer.duration) { stopPlayback(); return; }
+      drawWaveform();
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function addMarkerAtPlayhead() {
+      if (!buffer) return;
+      markers.push({ time: playhead, label: `Marcador ${markers.length + 1}` });
+      markers.sort((a, b) => a.time - b.time);
+      renderMarkers();
+      drawWaveform();
+    }
+
+    function renderMarkers() {
+      const list = document.getElementById('markers-list');
+      list.innerHTML = '';
+      markers.forEach((m, i) => {
+        const chip = document.createElement('div');
+        chip.className = 'marker-chip';
+        chip.innerHTML = `<span>${formatTime(m.time)}</span><span class="marker-del" data-idx="${i}">✕</span>`;
+        chip.addEventListener('click', ev => {
+          if (ev.target.classList.contains('marker-del')) return;
+          seekTo(m.time);
+        });
+        chip.querySelector('.marker-del').addEventListener('click', () => {
+          markers.splice(i, 1);
+          renderMarkers();
+          drawWaveform();
+        });
+        list.appendChild(chip);
+      });
+    }
+
+    // ---------- History / undo ----------
+    function pushHistory() {
+      history.push(buffer);
+      if (history.length > 15) history.shift();
+      undoBtn.disabled = false;
+    }
+    function undo() {
+      if (history.length === 0) return;
+      buffer = history.pop();
+      selStart = null; selEnd = null;
+      playhead = Math.min(playhead, buffer.duration);
+      undoBtn.disabled = history.length === 0;
+      drawWaveform();
+    }
+
+    // ---------- Editing operations ----------
+    function sliceBuffer(buf, startSec, endSec) {
+      const sr = buf.sampleRate;
+      const startSample = Math.max(0, Math.floor(startSec * sr));
+      const endSample = Math.min(buf.length, Math.floor(endSec * sr));
+      const len = Math.max(0, endSample - startSample);
+      const result = audioCtx.createBuffer(buf.numberOfChannels, Math.max(1, len), sr);
+      for (let c = 0; c < buf.numberOfChannels; c++) {
+        result.getChannelData(c).set(buf.getChannelData(c).subarray(startSample, endSample));
+      }
+      return result;
+    }
+
+    function concatBuffers(a, b) {
+      const numChannels = a.numberOfChannels;
+      const result = audioCtx.createBuffer(numChannels, a.length + b.length, a.sampleRate);
+      for (let c = 0; c < numChannels; c++) {
+        const data = result.getChannelData(c);
+        data.set(a.getChannelData(c), 0);
+        data.set(b.getChannelData(Math.min(c, b.numberOfChannels - 1)), a.length);
+      }
+      return result;
+    }
+
+    async function normalizeBuffer(buf, targetSampleRate, targetChannels) {
+      if (buf.sampleRate === targetSampleRate && buf.numberOfChannels === targetChannels) return buf;
+      const offlineCtx = new OfflineAudioContext(targetChannels, Math.ceil(buf.duration * targetSampleRate), targetSampleRate);
+      const src = offlineCtx.createBufferSource();
+      src.buffer = buf;
+      src.connect(offlineCtx.destination);
+      src.start();
+      return await offlineCtx.startRendering();
+    }
+
+    function trimToSelection() {
+      if (selStart === null) return;
+      pushHistory();
+      const s = Math.min(selStart, selEnd), e = Math.max(selStart, selEnd);
+      buffer = sliceBuffer(buffer, s, e);
+      selStart = null; selEnd = null;
+      playhead = 0;
+      drawWaveform();
+      showResult('ok', '✅ Áudio recortado para a seleção.');
+    }
+
+    function deleteSelection() {
+      if (selStart === null) return;
+      pushHistory();
+      const s = Math.min(selStart, selEnd), e = Math.max(selStart, selEnd);
+      const before = sliceBuffer(buffer, 0, s);
+      const after = sliceBuffer(buffer, e, buffer.duration);
+      buffer = concatBuffers(before, after);
+      selStart = null; selEnd = null;
+      playhead = Math.min(playhead, buffer.duration);
+      drawWaveform();
+      showResult('ok', '✅ Trecho selecionado removido.');
+    }
+
+    async function joinFile(file) {
+      try {
+        showResult('info', '⏳ Decodificando arquivo a juntar...');
+        let otherBuffer = await decodeFile(file);
+        otherBuffer = await normalizeBuffer(otherBuffer, buffer.sampleRate, buffer.numberOfChannels);
+        pushHistory();
+        buffer = concatBuffers(buffer, otherBuffer);
+        drawWaveform();
+        showResult('ok', '✅ Arquivos juntados com sucesso.');
+      } catch (e) {
+        showResult('err', '❌ Não foi possível juntar o arquivo: ' + e.message);
+      }
+    }
+
+    function autoTrimSilence() {
+      if (!buffer) return;
+      pushHistory();
+      const THRESHOLD_DB = -40;
+      const MIN_SILENCE_MS = 400;
+      const KEEP_MS = 200;
+      const sr = buffer.sampleRate;
+      const windowSize = Math.max(1, Math.floor(sr * 0.02));
+      const threshold = Math.pow(10, THRESHOLD_DB / 20);
+      const data = buffer.getChannelData(0);
+      const total = buffer.length;
+
+      // classify windows as silent/non-silent
+      const flags = [];
+      for (let i = 0; i < total; i += windowSize) {
+        let sum = 0, count = 0;
+        const end = Math.min(total, i + windowSize);
+        for (let j = i; j < end; j++) { sum += data[j] * data[j]; count++; }
+        flags.push({ start: i, end, silent: Math.sqrt(sum / count) < threshold });
+      }
+
+      // merge into runs
+      const runs = [];
+      flags.forEach(f => {
+        const last = runs[runs.length - 1];
+        if (last && last.silent === f.silent) { last.end = f.end; }
+        else runs.push({ start: f.start, end: f.end, silent: f.silent });
+      });
+
+      const minSilenceSamples = Math.floor(sr * (MIN_SILENCE_MS / 1000));
+      const keepSamples = Math.floor(sr * (KEEP_MS / 1000));
+      const segments = [];
+      runs.forEach(run => {
+        if (run.silent && (run.end - run.start) >= minSilenceSamples) {
+          segments.push({ start: run.start, end: Math.min(run.end, run.start + keepSamples) });
+        } else {
+          segments.push({ start: run.start, end: run.end });
+        }
+      });
+
+      const totalLen = segments.reduce((acc, s) => acc + (s.end - s.start), 0);
+      const result = audioCtx.createBuffer(buffer.numberOfChannels, Math.max(1, totalLen), sr);
+      for (let c = 0; c < buffer.numberOfChannels; c++) {
+        const src = buffer.getChannelData(c);
+        const dst = result.getChannelData(c);
+        let offset = 0;
+        segments.forEach(s => {
+          dst.set(src.subarray(s.start, s.end), offset);
+          offset += (s.end - s.start);
+        });
+      }
+
+      const removedSec = (buffer.length - totalLen) / sr;
+      buffer = result;
+      selStart = null; selEnd = null;
+      playhead = 0;
+      drawWaveform();
+      showResult('ok', `✅ Silêncios cortados — ${removedSec.toFixed(1)}s removidos.`);
+    }
+
+    // ---------- Export ----------
+    function bufferToWavBlob(buf) {
+      const numChannels = buf.numberOfChannels;
+      const sampleRate = buf.sampleRate;
+      const numFrames = buf.length;
+      const blockAlign = numChannels * 2;
+      const dataSize = numFrames * blockAlign;
+      const arrayBuffer = new ArrayBuffer(44 + dataSize);
+      const view = new DataView(arrayBuffer);
+      function writeString(offset, str) { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); }
+      writeString(0, 'RIFF');
+      view.setUint32(4, 36 + dataSize, true);
+      writeString(8, 'WAVE');
+      writeString(12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, numChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * blockAlign, true);
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, 16, true);
+      writeString(36, 'data');
+      view.setUint32(40, dataSize, true);
+
+      const channelData = [];
+      for (let c = 0; c < numChannels; c++) channelData.push(buf.getChannelData(c));
+      let offset = 44;
+      for (let i = 0; i < numFrames; i++) {
+        for (let c = 0; c < numChannels; c++) {
+          let sample = Math.max(-1, Math.min(1, channelData[c][i]));
+          sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+          view.setInt16(offset, sample, true);
+          offset += 2;
+        }
+      }
+      return new Blob([view], { type: 'audio/wav' });
+    }
+
+    function exportWav() {
+      if (!buffer) return;
+      const blob = bufferToWavBlob(buffer);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'edicao.wav';
+      a.click();
+      showResult('ok', '✅ WAV exportado!');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversor de Formatos</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-html.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(59, 130, 246, 0.4); color: #3b82f6; transform: translateX(-6px); }
+    .logo {
+      font-size: 44px; font-weight: 900;
+      background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 50%, #22c55e 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 32px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      max-width: 1300px; margin: 0 auto;
+    }
+    .format-row { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+    select {
+      padding: 12px 16px; border-radius: 10px; background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 14px; font-weight: 700;
+      font-family: 'Inter', sans-serif;
+    }
+    .swap-btn {
+      width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #60a5fa; cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center; transition: all 0.25s;
+    }
+    .swap-btn:hover { transform: rotate(180deg); border-color: #3b82f6; }
+    .toolbar { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+    button.action {
+      padding: 11px 22px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 700; transition: all 0.25s;
+    }
+    .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35); }
+    .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+    .btn-secondary:hover { background: rgba(148, 163, 184, 0.2); }
+    .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .panes { grid-template-columns: 1fr; } }
+    .pane-label { font-size: 12px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    textarea {
+      width: 100%; height: 460px; resize: vertical;
+      background: rgba(6, 10, 22, 0.8); color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px;
+      padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+    }
+    textarea:focus { outline: none; border-color: rgba(59, 130, 246, 0.4); }
+    .error-box {
+      margin-top: 12px; padding: 12px 14px; border-radius: 10px; font-size: 13px;
+      background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);
+      display: none;
+    }
+    .error-box.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/devdata'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🔁 Conversor de Formatos</div>
+  <div class="tagline">JSON ↔ CSV ↔ YAML ↔ XML — direto no navegador</div>
+
+  <div class="card">
+    <div class="format-row">
+      <select id="from-fmt">
+        <option value="json">JSON</option>
+        <option value="csv">CSV</option>
+        <option value="yaml">YAML</option>
+        <option value="xml">XML</option>
+      </select>
+      <div class="swap-btn" onclick="swapFormats()">⇄</div>
+      <select id="to-fmt">
+        <option value="csv">CSV</option>
+        <option value="json">JSON</option>
+        <option value="yaml">YAML</option>
+        <option value="xml">XML</option>
+      </select>
+    </div>
+
+    <div class="toolbar">
+      <button class="action btn-primary" onclick="convert()">🔁 Converter</button>
+      <button class="action btn-secondary" onclick="copyOutput()">📋 Copiar</button>
+      <button class="action btn-secondary" onclick="downloadOutput()">⬇️ Baixar</button>
+      <button class="action btn-secondary" onclick="loadSample()">📄 Exemplo</button>
+    </div>
+
+    <div class="panes">
+      <div>
+        <div class="pane-label">Entrada</div>
+        <textarea id="input" placeholder="Cole seus dados aqui..." spellcheck="false"></textarea>
+      </div>
+      <div>
+        <div class="pane-label">Saída</div>
+        <textarea id="output" placeholder="O resultado aparece aqui..." spellcheck="false" readonly></textarea>
+      </div>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+  </div>
+
+  <script>
+    const SAMPLE_JSON = JSON.stringify([
+      { nome: 'Ana Souza', idade: 29, cidade: 'São Paulo' },
+      { nome: 'Bruno Lima', idade: 34, cidade: 'Rio de Janeiro' }
+    ], null, 2);
+
+    function showError(msg) {
+      const box = document.getElementById('error-box');
+      box.textContent = '❌ ' + msg;
+      box.classList.add('show');
+    }
+    function hideError() { document.getElementById('error-box').classList.remove('show'); }
+
+    function swapFormats() {
+      const from = document.getElementById('from-fmt');
+      const to = document.getElementById('to-fmt');
+      const tmp = from.value;
+      from.value = to.value;
+      to.value = tmp;
+      const tmpText = document.getElementById('input').value;
+      document.getElementById('input').value = document.getElementById('output').value;
+      document.getElementById('output').value = tmpText;
+    }
+
+    // --- Parsers para dados tabulares (array de objetos) como formato intermediário ---
+
+    function parseXMLToRows(xmlStr) {
+      const doc = new DOMParser().parseFromString(xmlStr, 'text/xml');
+      const err = doc.querySelector('parsererror');
+      if (err) throw new Error('XML inválido');
+      const root = doc.documentElement;
+      const items = Array.from(root.children).length ? Array.from(root.children) : [root];
+      return items.map(item => {
+        const obj = {};
+        Array.from(item.children).forEach(child => { obj[child.tagName] = child.textContent; });
+        if (!item.children.length) return item.textContent;
+        return obj;
+      });
+    }
+
+    function rowsToXML(rows, rootTag = 'items', itemTag = 'item') {
+      const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const arr = Array.isArray(rows) ? rows : [rows];
+      let xml = `<${rootTag}>\n`;
+      arr.forEach(row => {
+        xml += `  <${itemTag}>\n`;
+        if (typeof row === 'object' && row !== null) {
+          Object.entries(row).forEach(([k, v]) => { xml += `    <${k}>${esc(v)}</${k}>\n`; });
+        } else {
+          xml = xml.replace(`<${itemTag}>\n`, `<${itemTag}>${esc(row)}`);
+        }
+        xml += `  </${itemTag}>\n`;
+      });
+      xml += `</${rootTag}>`;
+      return xml;
+    }
+
+    function toRows(data) {
+      return Array.isArray(data) ? data : [data];
+    }
+
+    function parseInput(fmt, text) {
+      switch (fmt) {
+        case 'json': return JSON.parse(text);
+        case 'yaml': return jsyaml.load(text);
+        case 'csv': {
+          const res = Papa.parse(text.trim(), { header: true, dynamicTyping: true, skipEmptyLines: true });
+          if (res.errors.length) throw new Error(res.errors[0].message);
+          return res.data;
+        }
+        case 'xml': return parseXMLToRows(text);
+      }
+    }
+
+    function serializeOutput(fmt, data) {
+      const rows = toRows(data);
+      switch (fmt) {
+        case 'json': return JSON.stringify(data, null, 2);
+        case 'yaml': return jsyaml.dump(data);
+        case 'csv': return Papa.unparse(rows);
+        case 'xml': return rowsToXML(rows);
+      }
+    }
+
+    function convert() {
+      hideError();
+      const from = document.getElementById('from-fmt').value;
+      const to = document.getElementById('to-fmt').value;
+      const input = document.getElementById('input').value;
+      if (!input.trim()) return;
+      try {
+        const data = parseInput(from, input);
+        const out = serializeOutput(to, data);
+        document.getElementById('output').value = out;
+      } catch (e) {
+        showError('Falha na conversão: ' + e.message);
+      }
+    }
+
+    function copyOutput() {
+      const out = document.getElementById('output');
+      if (out.value) navigator.clipboard.writeText(out.value);
+    }
+
+    function downloadOutput() {
+      const out = document.getElementById('output').value;
+      if (!out) return;
+      const to = document.getElementById('to-fmt').value;
+      const blob = new Blob([out], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'convertido.' + to;
+      a.click();
+    }
+
+    function loadSample() {
+      document.getElementById('from-fmt').value = 'json';
+      document.getElementById('input').value = SAMPLE_JSON;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adicionar Efeito Matcha</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(139, 195, 74, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(139, 195, 74, 0.4); color: #8bc34a; transform: translateX(-6px); }
+    .back-button.locked { pointer-events: none; opacity: 0.4; }
+    .logo {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(135deg, #8bc34a 0%, #cddc39 50%, #558b2f 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 20px; text-align: center; }
+    .mode-toggle { display: flex; gap: 8px; justify-content: center; margin-bottom: 28px; }
+    .mode-btn {
+      padding: 10px 22px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.2s;
+    }
+    .mode-btn.active { border-color: #8bc34a; background: rgba(139, 195, 74, 0.15); color: #c5e1a5; box-shadow: 0 0 16px rgba(139, 195, 74, 0.2); }
+    .layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; max-width: 1350px; margin: 0 auto; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+    }
+    h2 { font-size: 15px; color: #f8fafc; margin-bottom: 16px; }
+    h3.section { font-size: 12px; color: #8bc34a; margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 0.6px; }
+    label.small { display: block; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; margin-top: 14px; }
+    label.small:first-child { margin-top: 0; }
+    .range-row { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; accent-color: #8bc34a; }
+    .range-val { font-size: 12px; color: #cbd5e1; min-width: 40px; text-align: right; }
+    select {
+      width: 100%; padding: 9px 12px; border-radius: 10px;
+      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #e2e8f0; font-family: 'Inter', sans-serif; font-size: 13px;
+    }
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border-radius: 10px; background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.15); margin-top: 10px;
+    }
+    .toggle-row span { font-size: 13px; color: #cbd5e1; font-weight: 600; }
+    input[type="checkbox"] { width: 18px; height: 18px; accent-color: #8bc34a; cursor: pointer; }
+    .upload-area {
+      margin-top: 16px; padding: 22px; border-radius: 14px;
+      border: 2px dashed rgba(139, 195, 74, 0.3); background: rgba(15, 23, 42, 0.6);
+      text-align: center; cursor: pointer; transition: all 0.3s;
+    }
+    .upload-area:hover, .upload-area.dragover { border-color: #8bc34a; background: rgba(139, 195, 74, 0.08); }
+    .upload-icon { font-size: 32px; margin-bottom: 8px; }
+    .upload-text { color: #cbd5e1; font-size: 12.5px; }
+    input[type="file"] { display: none; }
+    button.action {
+      width: 100%; padding: 13px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #8bc34a, #558b2f);
+      color: white; transition: all 0.25s; margin-top: 20px;
+    }
+    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 195, 74, 0.35); }
+    button.action:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      width: 100%; margin-top: 10px; padding: 11px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700;
+      background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .count-badge { font-size: 12px; color: #64748b; }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;
+      max-height: 680px; overflow-y: auto; padding-right: 4px;
+    }
+    .thumb {
+      position: relative; border-radius: 12px; overflow: hidden; border: 1px solid rgba(148, 163, 184, 0.15);
+      background: rgba(6, 10, 22, 0.8); aspect-ratio: 1;
+    }
+    .thumb canvas, .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .grid.individual-mode { grid-template-columns: 1fr; max-height: none; }
+    .grid.individual-mode .thumb {
+      aspect-ratio: auto; height: 620px;
+      background: repeating-conic-gradient(#111827 0% 25%, #0a0f1e 0% 50%) 50% / 24px 24px;
+    }
+    .grid.individual-mode .thumb canvas { object-fit: contain; }
+    .thumb .remove {
+      position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(0,0,0,0.6); color: #fca5a5; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 12px; font-weight: 700;
+    }
+    .empty-state { text-align: center; color: #64748b; font-size: 13px; padding: 80px 20px; }
+    .status { margin-top: 16px; font-size: 13px; padding: 14px; border-radius: 12px; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+  </style>
+</head>
+<body>
+  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/matchaeffect'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🍵 Adicionar Efeito Matcha</div>
+  <div class="tagline">Arraste a intensidade para 0% a qualquer momento para remover o efeito antes de baixar</div>
+  <div class="mode-toggle">
+    <div class="mode-btn active" data-mode="batch" onclick="setMode('batch')">🗂️ Em lote (até 100 → ZIP)</div>
+    <div class="mode-btn" data-mode="individual" onclick="setMode('individual')">🖼️ Individual (1 imagem → download direto)</div>
+  </div>
+
+  <div class="layout">
+    <div class="card">
+      <h2>Efeito Matcha</h2>
+      <label class="small">Intensidade (0% = sem efeito / removido)</label>
+      <div class="range-row"><input type="range" id="intensity" min="0" max="100" value="70" oninput="updatePreview()"><span class="range-val" id="intensity-val">70%</span></div>
+
+      <h3 class="section">Extras</h3>
+      <div class="toggle-row">
+        <span>🌫️ Haze / vinheta</span>
+        <input type="checkbox" id="vignette" checked onchange="updatePreview()">
+      </div>
+      <div class="toggle-row">
+        <span>🎞️ Grão</span>
+        <input type="checkbox" id="grain" checked onchange="updatePreview()">
+      </div>
+
+      <h3 class="section">Imagens</h3>
+      <label class="small">Formato de saída</label>
+      <select id="out-format">
+        <option value="image/jpeg">JPG</option>
+        <option value="image/png">PNG</option>
+        <option value="image/webp">WEBP</option>
+      </select>
+
+      <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text" id="upload-text">Clique ou arraste até 100 imagens</div>
+      </div>
+      <input type="file" id="file-input" accept="image/*" multiple>
+
+      <button class="action" id="process-btn" onclick="processAll()" disabled>🍵 Aplicar e baixar ZIP</button>
+      <button class="btn-secondary" onclick="clearImages()">🗑️ Limpar tudo</button>
+
+      <div class="status" id="status"></div>
+    </div>
+
+    <div class="card">
+      <div class="preview-header">
+        <h2 style="margin:0;">Prévia</h2>
+        <span class="count-badge" id="count-badge">0 / 100</span>
+      </div>
+      <div class="grid" id="grid">
+        <div class="empty-state" id="empty-state">Nenhuma imagem carregada ainda</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let busy = false;
+    let mode = 'batch'; // 'batch' | 'individual'
+    let images = []; // { file, url, id, imgEl }
+    let idCounter = 0;
+    let noiseTileCanvas = null;
+
+    const fileInput = document.getElementById('file-input');
+    const uploadArea = document.getElementById('upload-area');
+    const uploadText = document.getElementById('upload-text');
+    const grid = document.getElementById('grid');
+    const emptyState = document.getElementById('empty-state');
+    const countBadge = document.getElementById('count-badge');
+    const processBtn = document.getElementById('process-btn');
+    const statusBox = document.getElementById('status');
+    const backButton = document.getElementById('back-button');
+
+    function setMode(m) {
+      if (busy) return;
+      mode = m;
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+      uploadText.textContent = m === 'individual' ? 'Clique ou arraste 1 imagem' : 'Clique ou arraste até 100 imagens';
+      grid.classList.toggle('individual-mode', m === 'individual');
+      if (m === 'individual' && images.length > 1) {
+        images.slice(1).forEach(img => URL.revokeObjectURL(img.url));
+        images = images.slice(0, 1);
+      }
+      renderGrid();
+    }
+
+    document.getElementById('intensity').addEventListener('input', e => {
+      document.getElementById('intensity-val').textContent = e.target.value + '%';
+    });
+
+    function addFiles(fileList) {
+      const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+      if (!files.length) return;
+      if (mode === 'individual') {
+        images.forEach(img => URL.revokeObjectURL(img.url));
+        images = [];
+        const file = files[0];
+        images.push({ file, url: URL.createObjectURL(file), id: idCounter++, imgEl: null });
+      } else {
+        const remaining = 100 - images.length;
+        files.slice(0, remaining).forEach(file => {
+          images.push({ file, url: URL.createObjectURL(file), id: idCounter++, imgEl: null });
+        });
+      }
+      renderGrid();
+    }
+
+    fileInput.addEventListener('change', e => addFiles(e.target.files));
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      if (busy) return;
+      addFiles(e.dataTransfer.files);
+    });
+
+    function removeImage(id) {
+      images = images.filter(img => img.id !== id);
+      renderGrid();
+    }
+
+    function renderGrid() {
+      countBadge.textContent = mode === 'individual' ? `${images.length} / 1` : `${images.length} / 100`;
+      processBtn.disabled = images.length === 0;
+      processBtn.textContent = mode === 'individual' ? '🍵 Baixar imagem' : '🍵 Aplicar e baixar ZIP';
+      if (!images.length) {
+        grid.innerHTML = '';
+        grid.appendChild(emptyState);
+        return;
+      }
+      grid.innerHTML = images.map(img => `
+        <div class="thumb" id="thumb-${img.id}">
+          <canvas data-id="${img.id}"></canvas>
+          <div class="remove" onclick="removeImage(${img.id})">✕</div>
+        </div>
+      `).join('');
+      updatePreview();
+    }
+
+    function loadImageEl(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    function getNoiseTile() {
+      if (noiseTileCanvas) return noiseTileCanvas;
+      const size = 128;
+      const c = document.createElement('canvas');
+      c.width = size; c.height = size;
+      const cx = c.getContext('2d');
+      const data = cx.createImageData(size, size);
+      for (let i = 0; i < data.data.length; i += 4) {
+        const v = Math.floor(Math.random() * 255);
+        data.data[i] = v; data.data[i + 1] = v; data.data[i + 2] = v; data.data[i + 3] = 255;
+      }
+      cx.putImageData(data, 0, 0);
+      noiseTileCanvas = c;
+      return c;
+    }
+
+    // Monta a versão 100% "matcha" da imagem: tom esverdeado quente (sepia + hue-rotate),
+    // leve haze e grão opcionais. É combinada com o original via intensidade em renderToCanvas.
+    function buildMatchaLayer(imgEl, w, h, vignetteOn, grainOn) {
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.filter = 'sepia(35%) hue-rotate(60deg) saturate(150%) contrast(108%) brightness(102%)';
+      ctx.drawImage(imgEl, 0, 0, w, h);
+      ctx.filter = 'none';
+
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.fillStyle = 'rgba(124, 179, 66, 0.14)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = 'source-over';
+
+      if (vignetteOn) {
+        const grad = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.72);
+        grad.addColorStop(0, 'rgba(0,0,0,0)');
+        grad.addColorStop(1, 'rgba(20, 35, 10, 0.35)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      if (grainOn) {
+        const pattern = ctx.createPattern(getNoiseTile(), 'repeat');
+        ctx.save();
+        ctx.globalAlpha = 0.10;
+        ctx.globalCompositeOperation = 'overlay';
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, w, h);
+        ctx.restore();
+      }
+
+      return canvas;
+    }
+
+    function renderToCanvas(imgEl, canvas) {
+      const intensity = parseInt(document.getElementById('intensity').value) / 100;
+      const vignetteOn = document.getElementById('vignette').checked;
+      const grainOn = document.getElementById('grain').checked;
+
+      const w = imgEl.naturalWidth, h = imgEl.naturalHeight;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imgEl, 0, 0, w, h);
+
+      if (intensity > 0) {
+        const matchaLayer = buildMatchaLayer(imgEl, w, h, vignetteOn, grainOn);
+        ctx.globalAlpha = intensity;
+        ctx.drawImage(matchaLayer, 0, 0, w, h);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    async function updatePreview() {
+      for (const img of images) {
+        if (!img.imgEl) img.imgEl = await loadImageEl(img.url);
+        const canvas = document.querySelector(`canvas[data-id="${img.id}"]`);
+        if (canvas) renderToCanvas(img.imgEl, canvas);
+      }
+    }
+
+    function clearImages() {
+      images.forEach(img => URL.revokeObjectURL(img.url));
+      images = [];
+      renderGrid();
+      statusBox.classList.remove('show');
+    }
+
+    function canvasToBlob(canvas, type, quality) {
+      return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+    }
+
+    function setLocked(locked) {
+      busy = locked;
+      processBtn.disabled = locked || images.length === 0;
+      backButton.classList.toggle('locked', locked);
+    }
+
+    function showResult(ok, message) {
+      statusBox.className = 'status show ' + (ok ? 'ok' : 'err');
+      statusBox.textContent = (ok ? '✅ ' : '❌ ') + message;
+    }
+
+    async function processAll() {
+      if (busy || !images.length) return;
+      if (mode === 'individual') return processIndividual();
+
+      setLocked(true);
+      processBtn.textContent = 'Processando...';
+      const format = document.getElementById('out-format').value;
+      const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[format];
+
+      try {
+        const zip = new JSZip();
+        const usedNames = new Set();
+        for (const item of images) {
+          if (!item.imgEl) item.imgEl = await loadImageEl(item.url);
+          const canvas = document.createElement('canvas');
+          renderToCanvas(item.imgEl, canvas);
+          const blob = await canvasToBlob(canvas, format, 0.92);
+          let base = item.file.name.replace(/\.[^.]+$/, '');
+          let name = `${base}-matcha.${ext}`;
+          let n = 1;
+          while (usedNames.has(name)) { name = `${base}-matcha_${n++}.${ext}`; }
+          usedNames.add(name);
+          zip.file(name, blob);
+        }
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(zipBlob);
+        a.download = 'efeito-matcha.zip';
+        a.click();
+        showResult(true, `${images.length} imagem(ns) com efeito matcha baixada(s) em ZIP!`);
+      } catch (e) {
+        showResult(false, 'Erro ao processar: ' + e.message);
+      } finally {
+        setLocked(false);
+        processBtn.textContent = '🍵 Aplicar e baixar ZIP';
+      }
+    }
+
+    async function processIndividual() {
+      setLocked(true);
+      processBtn.textContent = 'Processando...';
+      const format = document.getElementById('out-format').value;
+      const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[format];
+
+      try {
+        const item = images[0];
+        if (!item.imgEl) item.imgEl = await loadImageEl(item.url);
+        const canvas = document.createElement('canvas');
+        renderToCanvas(item.imgEl, canvas);
+        const blob = await canvasToBlob(canvas, format, 0.92);
+        const base = item.file.name.replace(/\.[^.]+$/, '');
+        const name = `${base}-matcha.${ext}`;
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        a.click();
+        showResult(true, `'${name}' baixada — arquivo único, sem ZIP.`);
+      } catch (e) {
+        showResult(false, 'Erro ao processar: ' + e.message);
+      } finally {
+        setLocked(false);
+        processBtn.textContent = '🍵 Baixar imagem';
+      }
+    }
+  </script>
+</body>
+</html>

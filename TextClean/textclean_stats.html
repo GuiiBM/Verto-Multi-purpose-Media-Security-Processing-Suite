@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contador Estatístico</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(34, 197, 94, 0.4); color: #22c55e; transform: translateX(-6px); }
+    .logo {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(135deg, #22c55e 0%, #14b8a6 50%, #3b82f6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; max-width: 1300px; margin: 0 auto; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+    }
+    h2 { font-size: 15px; color: #f8fafc; margin-bottom: 16px; }
+    textarea {
+      width: 100%; height: 560px; resize: vertical;
+      background: rgba(6, 10, 22, 0.8); color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px;
+      padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+    }
+    textarea:focus { outline: none; border-color: rgba(34, 197, 94, 0.4); }
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .metric { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.12); border-radius: 12px; padding: 14px; }
+    .metric .value { font-size: 22px; font-weight: 800; color: #4ade80; font-variant-numeric: tabular-nums; }
+    .metric .label { font-size: 11px; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .density-title { font-size: 12px; color: #22c55e; text-transform: uppercase; letter-spacing: 0.6px; margin: 20px 0 10px; }
+    .density-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.08); font-size: 13px; }
+    .density-row .word { color: #cbd5e1; }
+    .density-row .count { color: #64748b; font-variant-numeric: tabular-nums; }
+    .bar-track { flex: 1; height: 6px; background: rgba(148, 163, 184, 0.1); border-radius: 4px; margin: 0 10px; overflow: hidden; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #14b8a6); }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/textclean'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">📊 Contador Estatístico</div>
+  <div class="tagline">Palavras, caracteres, tempo de leitura e densidade — atualizado em tempo real</div>
+
+  <div class="layout">
+    <div class="card">
+      <h2>Texto</h2>
+      <textarea id="editor" placeholder="Cole ou digite seu texto aqui..." oninput="update()"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>Métricas</h2>
+      <div class="metrics-grid">
+        <div class="metric"><div class="value" id="m-words">0</div><div class="label">Palavras</div></div>
+        <div class="metric"><div class="value" id="m-chars">0</div><div class="label">Caracteres</div></div>
+        <div class="metric"><div class="value" id="m-chars-ns">0</div><div class="label">Sem espaços</div></div>
+        <div class="metric"><div class="value" id="m-sentences">0</div><div class="label">Frases</div></div>
+        <div class="metric"><div class="value" id="m-paragraphs">0</div><div class="label">Parágrafos</div></div>
+        <div class="metric"><div class="value" id="m-reading">0 min</div><div class="label">Leitura (200 ppm)</div></div>
+      </div>
+
+      <div class="density-title">Palavras mais frequentes</div>
+      <div id="density-list" style="font-size:13px;color:#64748b;">Digite algo para ver a densidade de palavras...</div>
+    </div>
+  </div>
+
+  <script>
+    const STOPWORDS = new Set(['de','a','o','que','e','do','da','em','um','uma','os','as','para','com','não','por','mais','se','na','no','ao','ele','ela','das','dos','como','mas','foi','ao','ele','são','à','seu','sua','ou','quando','muito','há','nos','já','está','eu','também','só','pelo','pela','até','isso','ela','entre','depois','sem','mesmo','aos','the','and','of','to','in','a','is','it','for','on','with','as','this','that']);
+
+    function update() {
+      const text = document.getElementById('editor').value;
+      const words = (text.match(/\S+/g) || []);
+      const chars = text.length;
+      const charsNoSpace = text.replace(/\s/g, '').length;
+      const sentences = (text.match(/[.!?]+(\s|$)/g) || []).length || (text.trim() ? 1 : 0);
+      const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length).length;
+      const readingMin = Math.max(1, Math.ceil(words.length / 200));
+
+      document.getElementById('m-words').textContent = words.length.toLocaleString();
+      document.getElementById('m-chars').textContent = chars.toLocaleString();
+      document.getElementById('m-chars-ns').textContent = charsNoSpace.toLocaleString();
+      document.getElementById('m-sentences').textContent = sentences.toLocaleString();
+      document.getElementById('m-paragraphs').textContent = paragraphs.toLocaleString();
+      document.getElementById('m-reading').textContent = (words.length ? `${readingMin} min` : '0 min');
+
+      const freq = {};
+      words.forEach(w => {
+        const clean = w.toLowerCase().replace(/[^\wà-úÀ-Ú]/g, '');
+        if (!clean || STOPWORDS.has(clean) || clean.length < 3) return;
+        freq[clean] = (freq[clean] || 0) + 1;
+      });
+      const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 12);
+      const densityList = document.getElementById('density-list');
+      if (!sorted.length) {
+        densityList.textContent = 'Digite algo para ver a densidade de palavras...';
+      } else {
+        const max = sorted[0][1];
+        densityList.innerHTML = sorted.map(([word, count]) => `
+          <div class="density-row">
+            <span class="word">${word}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${(count / max) * 100}%"></div></div>
+            <span class="count">${count}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    update();
+  </script>
+</body>
+</html>

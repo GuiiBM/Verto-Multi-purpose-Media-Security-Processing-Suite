@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detector de IA</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(239, 68, 68, 0.4); color: #ef4444; transform: translateX(-6px); }
+    .back-button.locked { pointer-events: none; opacity: 0.4; }
+    .logo {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #8b5cf6 50%, #3b82f6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; max-width: 1400px; margin: 0 auto; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+    }
+    h2 { font-size: 15px; color: #f8fafc; margin-bottom: 16px; }
+    .input-toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+    .file-btn {
+      padding: 8px 14px; border-radius: 9px; cursor: pointer; font-size: 12px; font-weight: 700;
+      background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .file-btn:hover { background: rgba(148, 163, 184, 0.2); }
+    input[type="file"] { display: none; }
+    .char-count { font-size: 11.5px; color: #64748b; margin-left: auto; }
+    textarea {
+      width: 100%; height: 340px; resize: vertical;
+      background: rgba(6, 10, 22, 0.8); color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px;
+      padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+    }
+    textarea:focus { outline: none; border-color: rgba(239, 68, 68, 0.4); }
+    button.action {
+      padding: 12px 26px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white; transition: all 0.25s; margin-top: 16px;
+    }
+    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(239, 68, 68, 0.35); }
+    button.action:disabled { opacity: 0.6; cursor: not-allowed; }
+    .progress-wrap { margin-top: 14px; display: none; }
+    .progress-wrap.show { display: block; }
+    .progress-label { font-size: 11.5px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .progress-track { width: 100%; height: 8px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #ef4444, #8b5cf6); transition: width 0.15s ease; }
+    .heatmap-title { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.6px; margin: 24px 0 12px; display: flex; justify-content: space-between; align-items: center; }
+    .heatmap-title .hint { text-transform: none; letter-spacing: 0; font-size: 11px; color: #475569; }
+    .heatmap {
+      background: rgba(6, 10, 22, 0.8); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px;
+      padding: 18px; font-size: 14px; line-height: 2.1; max-height: 520px; overflow-y: auto;
+    }
+    .sent { padding: 2px 4px; border-radius: 4px; cursor: default; }
+    .sent.green { background: rgba(34, 197, 94, 0.12); }
+    .sent.yellow { background: rgba(234, 179, 8, 0.18); }
+    .sent.red { background: rgba(239, 68, 68, 0.2); }
+    .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: #94a3b8; }
+    .legend span { display: flex; align-items: center; gap: 6px; }
+    .legend .dot { width: 10px; height: 10px; border-radius: 3px; }
+    .dot.green { background: #22c55e; } .dot.yellow { background: #eab308; } .dot.red { background: #ef4444; }
+    .score-wrap { text-align: center; margin-bottom: 20px; }
+    .score-value { font-size: 46px; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .score-label { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+    .metric-group-title { font-size: 11px; color: #ef4444; text-transform: uppercase; letter-spacing: 0.6px; margin: 16px 0 4px; }
+    .metric-group-title:first-child { margin-top: 0; }
+    .metric-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.08); font-size: 12.5px; }
+    .metric-row .k { color: #94a3b8; }
+    .metric-row .v { color: #cbd5e1; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .disclaimer { margin-top: 18px; font-size: 11.5px; color: #64748b; line-height: 1.6; background: rgba(148,163,184,0.06); border-radius: 10px; padding: 12px; }
+  </style>
+</head>
+<body>
+  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/aiguard'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🔍 Detector de IA</div>
+  <div class="tagline">Estimativa heurística local — sem limite de tamanho de texto, processado em lotes para não travar o navegador</div>
+
+  <div class="layout">
+    <div class="card">
+      <h2>Texto</h2>
+      <div class="input-toolbar">
+        <div class="file-btn" onclick="document.getElementById('file-input').click()">📁 Carregar arquivo (TXT/PDF/DOCX)</div>
+        <input type="file" id="file-input" accept=".txt,.pdf,.docx">
+        <span class="char-count" id="char-count"></span>
+      </div>
+      <textarea id="input" placeholder="Cole ou carregue o texto que deseja analisar — capítulos, artigos inteiros, sem limite prático de tamanho..." oninput="updateCharCount()"></textarea>
+      <button class="action" id="analyze-btn" onclick="analyze()">🔍 Analisar</button>
+
+      <div class="progress-wrap" id="progress-wrap">
+        <div class="progress-label"><span id="progress-stage">Processando...</span><span id="progress-pct">0%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+
+      <div class="heatmap-title"><span>Mapa de calor por frase</span><span class="hint" id="heatmap-hint"></span></div>
+      <div class="heatmap" id="heatmap">Analise um texto para ver o mapa de calor...</div>
+      <div class="legend">
+        <span><div class="dot green"></div>Humana</span>
+        <span><div class="dot yellow"></div>Suspeita</span>
+        <span><div class="dot red"></div>Alta prob. de IA</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="score-wrap">
+        <div class="score-value" id="score-value" style="color:#94a3b8;">--</div>
+        <div class="score-label" id="score-label">Nenhuma análise ainda</div>
+      </div>
+
+      <div class="metric-group-title">Volume</div>
+      <div class="metric-row"><span class="k">Palavras</span><span class="v" id="m-words">-</span></div>
+      <div class="metric-row"><span class="k">Frases analisadas</span><span class="v" id="m-sentences">-</span></div>
+
+      <div class="metric-group-title">Uniformidade (burstiness)</div>
+      <div class="metric-row"><span class="k">Comprimento médio de frase</span><span class="v" id="m-avglen">-</span></div>
+      <div class="metric-row"><span class="k">Variação de comprimento</span><span class="v" id="m-burst">-</span></div>
+      <div class="metric-row"><span class="k">Variação de tamanho de palavra</span><span class="v" id="m-wordlen">-</span></div>
+
+      <div class="metric-group-title">Repetição</div>
+      <div class="metric-row"><span class="k">Diversidade de vocabulário</span><span class="v" id="m-diversity">-</span></div>
+      <div class="metric-row"><span class="k">Repetição de bigramas</span><span class="v" id="m-bigram">-</span></div>
+      <div class="metric-row"><span class="k">Aberturas de frase repetidas</span><span class="v" id="m-opener">-</span></div>
+      <div class="metric-row"><span class="k">Conectores típicos de LLM</span><span class="v" id="m-cliches">-</span></div>
+
+      <div class="disclaimer">
+        Estimativa estatística local (burstiness, repetição de n-gramas e vocabulário, conectores comuns em
+        LLMs), sem uso de modelos de IA online e sem limite de tamanho de texto. Trate como indício, não como
+        prova — textos humanos muito formais também podem pontuar alto, e textos de IA bem revisados podem
+        pontuar baixo.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let busy = false;
+
+    const CLICHES = [
+      'além disso', 'portanto', 'em suma', 'é importante notar', 'vale ressaltar', 'dessa forma',
+      'nesse sentido', 'por fim', 'em conclusão', 'não obstante', 'de modo geral', 'é fundamental destacar',
+      'ao longo deste', 'em última análise', 'cabe destacar', 'diante do exposto', 'é crucial', 'em resumo',
+      'no entanto', 'é válido ressaltar', 'sob essa ótica', 'nesse cenário', 'de forma geral',
+      'furthermore', 'moreover', 'in conclusion', 'it is important to note', "it's worth noting",
+      'in summary', 'overall', 'additionally', 'on the other hand', 'as a result', 'in today\'s world',
+      'in the realm of', 'delve into', 'navigate the', 'landscape of', 'tapestry of', 'testament to',
+      'plays a crucial role', 'it is essential to', 'in essence', 'it is worth noting', 'when it comes to'
+    ];
+
+    const STOPWORDS = new Set(['de','a','o','que','e','do','da','em','um','uma','os','as','para','com','não','por','mais','se','na','no','ao','das','dos','como','mas','foi','são','seu','sua','ou','the','and','of','to','in','is','it','for','on','with','as','this','that']);
+
+    const fileInput = document.getElementById('file-input');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const backButton = document.getElementById('back-button');
+    const progressWrap = document.getElementById('progress-wrap');
+    const progressStage = document.getElementById('progress-stage');
+    const progressPct = document.getElementById('progress-pct');
+    const progressFill = document.getElementById('progress-fill');
+
+    function updateCharCount() {
+      const text = document.getElementById('input').value;
+      const words = (text.match(/\S+/g) || []).length;
+      document.getElementById('char-count').textContent = text ? `${words.toLocaleString()} palavras · ${text.length.toLocaleString()} caracteres` : '';
+    }
+
+    async function extractText(file) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'txt') return await file.text();
+      if (ext === 'pdf') {
+        if (pdfjsLib.GlobalWorkerOptions.workerSrc === '') {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(it => it.str).join(' ') + '\n';
+        }
+        return text;
+      }
+      if (ext === 'docx') {
+        const buf = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer: buf });
+        return result.value;
+      }
+      throw new Error('Formato não suportado');
+    }
+
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    fileInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        document.getElementById('input').value = await extractText(file);
+        updateCharCount();
+      } catch (err) {
+        alert('Erro ao ler arquivo: ' + err.message);
+      }
+    });
+
+    function splitSentences(text) {
+      return text.replace(/\n+/g, ' ').split(/(?<=[.!?])\s+(?=[A-ZÀ-Ú0-9])/g).map(s => s.trim()).filter(Boolean);
+    }
+
+    function wordCount(s) { return (s.match(/\S+/g) || []).length; }
+    function mean(arr) { return arr.reduce((a, b) => a + b, 0) / (arr.length || 1); }
+    function stddev(arr) {
+      const m = mean(arr);
+      return Math.sqrt(mean(arr.map(v => (v - m) ** 2)));
+    }
+    function avgWordLen(s) {
+      const words = s.match(/[a-zà-ú0-9]+/gi) || [];
+      return words.length ? words.reduce((a, w) => a + w.length, 0) / words.length : 0;
+    }
+    function sentenceOpener(s) {
+      const words = (s.toLowerCase().match(/[a-zà-ú0-9]+/g) || []).slice(0, 2);
+      return words.join(' ');
+    }
+    function bigrams(words) {
+      const out = [];
+      for (let i = 0; i < words.length - 1; i++) out.push(words[i] + ' ' + words[i + 1]);
+      return out;
+    }
+
+    function setLocked(locked) {
+      busy = locked;
+      analyzeBtn.disabled = locked;
+      backButton.classList.toggle('locked', locked);
+    }
+
+    async function analyze() {
+      if (busy) return;
+      const text = document.getElementById('input').value.trim();
+      const heatmap = document.getElementById('heatmap');
+      if (!text) { heatmap.textContent = 'Analise um texto para ver o mapa de calor...'; return; }
+
+      setLocked(true);
+      progressWrap.classList.add('show');
+      progressStage.textContent = 'Dividindo em frases...';
+      progressFill.style.width = '2%';
+      progressPct.textContent = '2%';
+      await tick();
+
+      const sentences = splitSentences(text);
+      if (!sentences.length) {
+        heatmap.textContent = 'Não foi possível dividir o texto em frases.';
+        setLocked(false);
+        progressWrap.classList.remove('show');
+        return;
+      }
+
+      const lengths = sentences.map(wordCount);
+      const avgLen = mean(lengths);
+      const std = stddev(lengths);
+      const burstiness = std / (avgLen || 1);
+
+      const wordLens = sentences.map(avgWordLen);
+      const avgWordLenDoc = mean(wordLens);
+      const wordLenStd = stddev(wordLens);
+
+      progressStage.textContent = 'Calculando vocabulário e n-gramas...';
+      progressFill.style.width = '10%';
+      await tick();
+
+      const allWords = (text.toLowerCase().match(/[a-zà-ú0-9]+/g) || []);
+      const uniqueWords = new Set(allWords);
+      const diversity = allWords.length ? uniqueWords.size / allWords.length : 1;
+
+      const lowerText = text.toLowerCase();
+      let clicheHits = 0;
+      CLICHES.forEach(c => { if (lowerText.includes(c)) clicheHits++; });
+
+      const freq = {};
+      allWords.forEach(w => { if (!STOPWORDS.has(w) && w.length > 3) freq[w] = (freq[w] || 0) + 1; });
+
+      const bigramFreq = {};
+      const allBigrams = bigrams(allWords);
+      allBigrams.forEach(b => { bigramFreq[b] = (bigramFreq[b] || 0) + 1; });
+      const repeatedBigrams = allBigrams.filter(b => bigramFreq[b] > 1).length;
+      const bigramRepeatRatio = allBigrams.length ? repeatedBigrams / allBigrams.length : 0;
+
+      const openerFreq = {};
+      sentences.forEach(s => {
+        const op = sentenceOpener(s);
+        if (op) openerFreq[op] = (openerFreq[op] || 0) + 1;
+      });
+      const repeatedOpenerSentences = sentences.filter(s => openerFreq[sentenceOpener(s)] >= 3).length;
+      const openerRepeatRatio = sentences.length ? repeatedOpenerSentences / sentences.length : 0;
+
+      progressStage.textContent = 'Pontuando frases...';
+      await tick();
+
+      const CHUNK = 400;
+      const sentenceScores = [];
+      for (let start = 0; start < sentences.length; start += CHUNK) {
+        const end = Math.min(start + CHUNK, sentences.length);
+        for (let i = start; i < end; i++) {
+          const s = sentences[i];
+          const len = lengths[i];
+          const normDeviation = std > 0 ? Math.min(1, Math.abs(len - avgLen) / (std * 2)) : 0;
+          const uniformityScore = 1 - normDeviation;
+
+          const wLenDeviation = wordLenStd > 0 ? Math.min(1, Math.abs(wordLens[i] - avgWordLenDoc) / (wordLenStd * 2)) : 0;
+          const wordLenUniformity = 1 - wLenDeviation;
+
+          const sLower = s.toLowerCase();
+          const clicheInSentence = CLICHES.some(c => sLower.includes(c)) ? 1 : 0;
+
+          const sWordsAll = sLower.match(/[a-zà-ú0-9]+/g) || [];
+          const sWords = sWordsAll.filter(w => !STOPWORDS.has(w) && w.length > 3);
+          const repeatedRatio = sWords.length ? sWords.filter(w => freq[w] > 2).length / sWords.length : 0;
+
+          const sBigrams = bigrams(sWordsAll);
+          const sBigramRepeat = sBigrams.length ? sBigrams.filter(b => bigramFreq[b] > 1).length / sBigrams.length : 0;
+
+          const openerRepeat = openerFreq[sentenceOpener(s)] >= 3 ? 1 : 0;
+
+          const score = Math.min(1,
+            0.20 * uniformityScore +
+            0.10 * wordLenUniformity +
+            0.20 * clicheInSentence +
+            0.20 * repeatedRatio +
+            0.15 * openerRepeat +
+            0.15 * sBigramRepeat
+          );
+          sentenceScores.push({ text: s, score });
+        }
+        const pct = 15 + Math.round((end / sentences.length) * 70);
+        progressFill.style.width = pct + '%';
+        progressPct.textContent = pct + '%';
+        if (end < sentences.length) await tick();
+      }
+
+      progressStage.textContent = 'Renderizando mapa de calor...';
+      progressFill.style.width = '92%';
+      progressPct.textContent = '92%';
+      await tick();
+
+      const overallScore = mean(sentenceScores.map(s => s.score));
+      const pct = Math.round(overallScore * 100);
+
+      const scoreValue = document.getElementById('score-value');
+      const scoreLabel = document.getElementById('score-label');
+      scoreValue.textContent = pct + '%';
+      if (pct < 35) { scoreValue.style.color = '#4ade80'; scoreLabel.textContent = 'Provavelmente humano'; }
+      else if (pct < 65) { scoreValue.style.color = '#eab308'; scoreLabel.textContent = 'Padrões suspeitos'; }
+      else { scoreValue.style.color = '#f87171'; scoreLabel.textContent = 'Alta probabilidade de IA'; }
+
+      document.getElementById('m-words').textContent = allWords.length.toLocaleString();
+      document.getElementById('m-sentences').textContent = sentences.length.toLocaleString();
+      document.getElementById('m-avglen').textContent = avgLen.toFixed(1) + ' palavras';
+      document.getElementById('m-burst').textContent = burstiness.toFixed(2);
+      document.getElementById('m-wordlen').textContent = wordLenStd.toFixed(2);
+      document.getElementById('m-diversity').textContent = (diversity * 100).toFixed(0) + '%';
+      document.getElementById('m-bigram').textContent = (bigramRepeatRatio * 100).toFixed(0) + '%';
+      document.getElementById('m-opener').textContent = (openerRepeatRatio * 100).toFixed(0) + '%';
+      document.getElementById('m-cliches').textContent = clicheHits;
+      document.getElementById('heatmap-hint').textContent = `${sentences.length.toLocaleString()} frases`;
+
+      heatmap.innerHTML = sentenceScores.map(s => {
+        const cls = s.score < 0.35 ? 'green' : s.score < 0.65 ? 'yellow' : 'red';
+        return `<span class="sent ${cls}" title="Score: ${(s.score * 100).toFixed(0)}%">${escHtml(s.text)}</span>`;
+      }).join(' ');
+
+      progressFill.style.width = '100%';
+      progressPct.textContent = '100%';
+      progressStage.textContent = 'Concluído!';
+      setTimeout(() => progressWrap.classList.remove('show'), 500);
+      setLocked(false);
+    }
+
+    function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function tick() { return new Promise(r => setTimeout(r, 0)); }
+  </script>
+</body>
+</html>

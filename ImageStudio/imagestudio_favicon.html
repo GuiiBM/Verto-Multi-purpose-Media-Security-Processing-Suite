@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Favicon</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(168, 85, 247, 0.4); color: #a855f7; transform: translateX(-6px); }
+    .logo {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #3b82f6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 36px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      max-width: 760px; margin: 0 auto;
+    }
+    .upload-area {
+      padding: 40px; border-radius: 14px;
+      border: 2px dashed rgba(168, 85, 247, 0.3); background: rgba(15, 23, 42, 0.6);
+      text-align: center; cursor: pointer; transition: all 0.3s;
+    }
+    .upload-area:hover, .upload-area.dragover { border-color: #a855f7; background: rgba(168, 85, 247, 0.08); }
+    .upload-icon { font-size: 44px; margin-bottom: 12px; }
+    .upload-text { color: #cbd5e1; font-size: 14px; margin-bottom: 6px; }
+    .upload-hint { color: #64748b; font-size: 12px; }
+    input[type="file"] { display: none; }
+    .preview-row { display: flex; align-items: center; gap: 20px; margin-top: 24px; display: none; }
+    .preview-row.show { display: flex; }
+    .preview-row img { width: 100px; height: 100px; object-fit: contain; border-radius: 12px; background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 16px 16px; }
+    .sizes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 12px; margin-top: 24px; }
+    .size-chip {
+      background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 12px;
+      padding: 12px; text-align: center;
+    }
+    .size-chip canvas { width: 100%; aspect-ratio: 1; image-rendering: pixelated; background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 12px 12px; border-radius: 6px; }
+    .size-chip .label { font-size: 11px; color: #94a3b8; margin-top: 6px; font-weight: 600; }
+    button.action {
+      width: 100%; padding: 14px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #a855f7, #ec4899);
+      color: white; transition: all 0.25s; margin-top: 26px;
+    }
+    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35); }
+    button.action:disabled { opacity: 0.5; cursor: not-allowed; }
+    .snippet {
+      margin-top: 20px; background: rgba(6, 10, 22, 0.8); border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: #86efac; white-space: pre-wrap; word-break: break-word; display: none;
+    }
+    .snippet.show { display: block; }
+    .status { margin-top: 16px; font-size: 13px; padding: 14px; border-radius: 12px; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/imagestudio'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🔖 Gerador de Favicon</div>
+  <div class="tagline">Uma imagem, todos os tamanhos de ícone para web e apps</div>
+
+  <div class="card">
+    <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+      <div class="upload-icon">🖼️</div>
+      <div class="upload-text">Clique ou arraste uma imagem quadrada</div>
+      <div class="upload-hint">PNG, JPG ou WEBP — de preferência com fundo transparente</div>
+    </div>
+    <input type="file" id="file-input" accept="image/*">
+
+    <div class="preview-row" id="preview-row">
+      <img id="preview-img">
+      <div>
+        <div style="font-size:13px;color:#cbd5e1;font-weight:600;" id="preview-name"></div>
+        <div style="font-size:12px;color:#64748b;" id="preview-dims"></div>
+      </div>
+    </div>
+
+    <div class="sizes-grid" id="sizes-grid"></div>
+
+    <button class="action" id="process-btn" onclick="generateAll()" disabled>🔖 Gerar e baixar ZIP</button>
+
+    <div class="snippet" id="snippet"></div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const SIZES = [16, 32, 48, 96, 120, 152, 167, 180, 192, 256, 512];
+    const ICO_SIZES = [16, 32, 48];
+    let sourceImg = null;
+
+    const sizesGrid = document.getElementById('sizes-grid');
+    sizesGrid.innerHTML = SIZES.map(s => `
+      <div class="size-chip">
+        <canvas data-size="${s}" width="${s}" height="${s}"></canvas>
+        <div class="label">${s}×${s}</div>
+      </div>
+    `).join('');
+
+    const fileInput = document.getElementById('file-input');
+    const uploadArea = document.getElementById('upload-area');
+    const processBtn = document.getElementById('process-btn');
+    const statusBox = document.getElementById('status');
+
+    function handleFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const img = new Image();
+      img.onload = () => {
+        sourceImg = img;
+        document.getElementById('preview-img').src = img.src;
+        document.getElementById('preview-name').textContent = file.name;
+        document.getElementById('preview-dims').textContent = `${img.naturalWidth} × ${img.naturalHeight}px`;
+        document.getElementById('preview-row').classList.add('show');
+        renderAllSizes();
+        processBtn.disabled = false;
+      };
+      img.src = URL.createObjectURL(file);
+    }
+
+    fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      handleFile(e.dataTransfer.files[0]);
+    });
+
+    function renderSquare(img, size) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const srcW = img.naturalWidth, srcH = img.naturalHeight;
+      const s = Math.min(srcW, srcH);
+      const sx = (srcW - s) / 2, sy = (srcH - s) / 2;
+      ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+      return canvas;
+    }
+
+    function renderAllSizes() {
+      SIZES.forEach(size => {
+        const target = document.querySelector(`canvas[data-size="${size}"]`);
+        const rendered = renderSquare(sourceImg, size);
+        target.getContext('2d').drawImage(rendered, 0, 0);
+      });
+    }
+
+    function canvasToBlob(canvas, type = 'image/png') {
+      return new Promise(resolve => canvas.toBlob(resolve, type));
+    }
+
+    async function buildICO(sizes) {
+      const pngBuffers = [];
+      for (const size of sizes) {
+        const canvas = renderSquare(sourceImg, size);
+        const blob = await canvasToBlob(canvas, 'image/png');
+        pngBuffers.push(new Uint8Array(await blob.arrayBuffer()));
+      }
+      const headerSize = 6 + 16 * sizes.length;
+      let totalSize = headerSize;
+      pngBuffers.forEach(buf => totalSize += buf.length);
+
+      const out = new Uint8Array(totalSize);
+      const view = new DataView(out.buffer);
+      view.setUint16(0, 0, true);
+      view.setUint16(2, 1, true);
+      view.setUint16(4, sizes.length, true);
+
+      let offset = headerSize;
+      sizes.forEach((size, i) => {
+        const entryOffset = 6 + i * 16;
+        const dim = size >= 256 ? 0 : size;
+        out[entryOffset] = dim;
+        out[entryOffset + 1] = dim;
+        out[entryOffset + 2] = 0;
+        out[entryOffset + 3] = 0;
+        view.setUint16(entryOffset + 4, 1, true);
+        view.setUint16(entryOffset + 6, 32, true);
+        view.setUint32(entryOffset + 8, pngBuffers[i].length, true);
+        view.setUint32(entryOffset + 12, offset, true);
+        out.set(pngBuffers[i], offset);
+        offset += pngBuffers[i].length;
+      });
+
+      return new Blob([out], { type: 'image/x-icon' });
+    }
+
+    function buildSnippet() {
+      return `<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
+<meta name="msapplication-TileImage" content="/mstile-150x150.png">`;
+    }
+
+    function showResult(ok, message) {
+      statusBox.className = 'status show ' + (ok ? 'ok' : 'err');
+      statusBox.textContent = (ok ? '✅ ' : '❌ ') + message;
+    }
+
+    async function generateAll() {
+      if (!sourceImg) return;
+      processBtn.disabled = true;
+      processBtn.textContent = 'Gerando...';
+      try {
+        const zip = new JSZip();
+        for (const size of SIZES) {
+          const canvas = renderSquare(sourceImg, size);
+          const blob = await canvasToBlob(canvas, 'image/png');
+          zip.file(`favicon-${size}x${size}.png`, blob);
+        }
+        const icoBlob = await buildICO(ICO_SIZES);
+        zip.file('favicon.ico', icoBlob);
+
+        const apple = await canvasToBlob(renderSquare(sourceImg, 180), 'image/png');
+        zip.file('apple-touch-icon.png', apple);
+        const android192 = await canvasToBlob(renderSquare(sourceImg, 192), 'image/png');
+        zip.file('android-chrome-192x192.png', android192);
+        const android512 = await canvasToBlob(renderSquare(sourceImg, 512), 'image/png');
+        zip.file('android-chrome-512x512.png', android512);
+        const mstile = await canvasToBlob(renderSquare(sourceImg, 152), 'image/png');
+        zip.file('mstile-150x150.png', mstile);
+
+        zip.file('favicon-16x16.png', await canvasToBlob(renderSquare(sourceImg, 16)));
+        zip.file('favicon-32x32.png', await canvasToBlob(renderSquare(sourceImg, 32)));
+        zip.file('html-snippet.txt', buildSnippet());
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(zipBlob);
+        a.download = 'favicons.zip';
+        a.click();
+
+        const snippet = document.getElementById('snippet');
+        snippet.textContent = buildSnippet();
+        snippet.classList.add('show');
+
+        showResult(true, 'Favicons gerados e baixados em ZIP!');
+      } catch (e) {
+        showResult(false, 'Erro ao gerar favicons: ' + e.message);
+      } finally {
+        processBtn.disabled = false;
+        processBtn.textContent = '🔖 Gerar e baixar ZIP';
+      }
+    }
+  </script>
+</body>
+</html>

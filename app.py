@@ -24,8 +24,101 @@ except ImportError:
 from PDFs.pdfs_templates import PDFS_SPLIT_HTML, PDFS_CONVERT_HTML
 from Office.office_templates import OFFICE_HUB_HTML, OFFICE_CONVERT_HTML, OFFICE_REPAIR_HTML
 from Office import office_engine
+from DevData.devdata_templates import (
+    DEVDATA_HUB_HTML, DEVDATA_FORMAT_HTML, DEVDATA_MOCK_HTML,
+    DEVDATA_CONVERT_HTML, DEVDATA_ENCODE_HTML,
+)
+from ImageStudio.imagestudio_templates import (
+    IMAGESTUDIO_HUB_HTML, IMAGESTUDIO_SOLO_HTML, IMAGESTUDIO_RESIZE_HTML,
+    IMAGESTUDIO_FILTERS_HTML, IMAGESTUDIO_FAVICON_HTML,
+)
+from TextClean.textclean_templates import (
+    TEXTCLEAN_HUB_HTML, TEXTCLEAN_DIFF_HTML, TEXTCLEAN_SANITIZE_HTML, TEXTCLEAN_STATS_HTML,
+)
+from CaptureOCR.captureocr_templates import (
+    CAPTUREOCR_HUB_HTML, CAPTUREOCR_OCR_HTML, CAPTUREOCR_RECORD_HTML,
+)
+from AIGuard.aiguard_templates import (
+    AIGUARD_HUB_HTML, AIGUARD_DETECT_HTML, AIGUARD_HUMANIZE_HTML, AIGUARD_PLAGIARISM_HTML,
+)
+from SmartStudio.smartstudio_templates import (
+    SMARTSTUDIO_HUB_HTML, SMARTSTUDIO_STUDIO_HTML, SMARTSTUDIO_EDITOR_HTML,
+)
+from SubtitleLab.subtitlelab_templates import (
+    SUBTITLELAB_HUB_HTML, SUBTITLELAB_EDITOR_HTML, SUBTITLELAB_BURN_HTML,
+)
+from SubtitleLab import subtitlelab_engine
+from MatchaEffect.matchaeffect_templates import (
+    MATCHAEFFECT_HUB_HTML, MATCHAEFFECT_ADD_HTML, MATCHAEFFECT_REMOVE_HTML,
+    MATCHAEFFECT_VIDEO_ADD_HTML, MATCHAEFFECT_VIDEO_REMOVE_HTML,
+    MATCHAEFFECT_AI_ADD_HTML, MATCHAEFFECT_AI_REMOVE_HTML, MATCHAEFFECT_AI_VIDEO_HTML,
+    MATCHAEFFECT_AI_VIDEO_REMOVE_HTML,
+)
+from MatchaEffect import matchaeffect_ai_engine
+from InstaSaver.instasaver_templates import INSTASAVER_HTML
+from InstaSaver import instasaver_engine
 
 app = Flask(__name__)
+
+# Desde meados de 2026 o YouTube passou a exigir a resolução de um desafio em
+# JavaScript para liberar a maioria dos formatos de vídeo/áudio. Sem um
+# runtime JS habilitado, o yt-dlp falha silenciosamente e reporta erros
+# genéricos como "This video is not available" mesmo em vídeos perfeitamente
+# disponíveis. O pacote yt-dlp-ejs traz o script resolvedor embutido (sem
+# precisar baixar nada da internet a cada chamada); só falta um runtime JS
+# (deno/node/bun/quickjs) para executá-lo - usamos o que já estiver instalado
+# no sistema, ou o Deno baixado pelo INSTALAR.py na pasta do app.
+def _detect_js_runtimes():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    runtimes = {}
+    for name in ("deno", "node", "bun", "quickjs"):
+        bundled = os.path.join(base_dir, f"{name}.exe" if os.name == "nt" else name)
+        path = bundled if os.path.isfile(bundled) else shutil.which(name)
+        if path:
+            runtimes[name] = {"path": path}
+    return runtimes
+
+
+YTDLP_JS_RUNTIMES = _detect_js_runtimes()
+# Se nenhum runtime JS local for encontrado, ainda tentamos buscar o script
+# resolvedor direto do GitHub como último recurso (precisa de internet).
+YTDLP_REMOTE_COMPONENTS = [] if YTDLP_JS_RUNTIMES else ["ejs:github"]
+
+
+def with_js_runtime(opts):
+    """Adiciona o runtime JS (e o fallback remoto) a um dict de opções do yt-dlp."""
+    if YTDLP_JS_RUNTIMES:
+        opts["js_runtimes"] = YTDLP_JS_RUNTIMES
+    if YTDLP_REMOTE_COMPONENTS:
+        opts["remote_components"] = YTDLP_REMOTE_COMPONENTS
+    return opts
+
+
+def yt_dlp_opts(**extra):
+    """Opções padrão (silenciosas) para consultas rápidas ao YouTube, já com
+    o runtime JS habilitado."""
+    opts = with_js_runtime({"quiet": True, "no_warnings": True})
+    opts.update(extra)
+    return opts
+
+
+def friendly_yt_dlp_error(exc):
+    """Traduz os erros mais comuns do yt-dlp para mensagens compreensíveis."""
+    msg = str(exc)
+    lower = msg.lower()
+    if "private video" in lower:
+        return "Este vídeo é privado e não pode ser baixado."
+    if "sign in to confirm" in lower and "age" in lower:
+        return "Este vídeo tem restrição de idade e exige login para ser baixado."
+    if "members-only" in lower or "join this channel" in lower:
+        return "Este vídeo é exclusivo para membros do canal e não pode ser baixado."
+    if "copyright" in lower:
+        return "Este vídeo foi removido por motivo de direitos autorais."
+    if ("live event" in lower and "start" in lower) or "premiere" in lower:
+        return "Esta transmissão ainda não começou."
+    if "unavailable" in lower or "not available" in lower or "removed" in lower:
+        return "Este vídeo não está disponível (pode ter sido removido, tornado privado ou bloqueado na sua região)."
+    return msg
 
 MENU_HTML = """
 <!DOCTYPE html>
@@ -354,6 +447,42 @@ MENU_HTML = """
     <a href="/isolate" class="app">
       <div class="app-icon">🎤</div>
       <div class="app-name">Isolador de Voz</div>
+    </a>
+    <a href="/devdata" class="app">
+      <div class="app-icon">🧰</div>
+      <div class="app-name">Dev/Data</div>
+    </a>
+    <a href="/imagestudio" class="app">
+      <div class="app-icon">🖌️</div>
+      <div class="app-name">Image Studio</div>
+    </a>
+    <a href="/textclean" class="app">
+      <div class="app-icon">🔀</div>
+      <div class="app-name">Text Clean & Diff</div>
+    </a>
+    <a href="/captureocr" class="app">
+      <div class="app-icon">🔍</div>
+      <div class="app-name">Capture & OCR</div>
+    </a>
+    <a href="/aiguard" class="app">
+      <div class="app-icon">🛡️</div>
+      <div class="app-name">AI Guard & Diff</div>
+    </a>
+    <a href="/smartstudio" class="app">
+      <div class="app-icon">🎙️</div>
+      <div class="app-name">Smart Studio</div>
+    </a>
+    <a href="/subtitlelab" class="app">
+      <div class="app-icon">📝</div>
+      <div class="app-name">Subtitle Lab</div>
+    </a>
+    <a href="/matchaeffect" class="app">
+      <div class="app-icon">🍵</div>
+      <div class="app-name">Matcha Effect</div>
+    </a>
+    <a href="/instasaver" class="app">
+      <div class="app-icon">📸</div>
+      <div class="app-name">InstaSaver</div>
     </a>
   </div>
   <script>
@@ -1125,8 +1254,7 @@ def preview():
         return jsonify({"success": False})
     
     try:
-        ydl_opts = {"quiet": True, "no_warnings": True}
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(yt_dlp_opts()) as ydl:
             info = ydl.extract_info(url, download=False)
             duration = info.get('duration', 0)
             minutes = duration // 60
@@ -1168,12 +1296,7 @@ def get_formats():
         
         for quality, format_str in format_map.items():
             try:
-                ydl_opts = {
-                    "quiet": True,
-                    "no_warnings": True,
-                    "format": format_str,
-                    "skip_download": True
-                }
+                ydl_opts = yt_dlp_opts(format=format_str, skip_download=True)
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(url, download=False)
                     duration = info.get('duration', 0)
@@ -1201,7 +1324,7 @@ def get_formats():
         
         # Thumbnails - estimar baseado nas resoluções
         try:
-            ydl_opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+            ydl_opts = yt_dlp_opts(skip_download=True)
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
                 thumbnails = info.get('thumbnails', [])
@@ -1288,7 +1411,7 @@ def verto():
                         audio_quality = '0' if quality == 'best' else '9'
                     else:
                         audio_quality = quality
-                    ydl_opts = {
+                    ydl_opts = with_js_runtime({
                         "format": "bestaudio/best",
                         "outtmpl": os.path.join(downloads_dir, "%(title)s.%(ext)s"),
                         "noplaylist": True,
@@ -1297,7 +1420,7 @@ def verto():
                             "preferredcodec": "mp3",
                             "preferredquality": audio_quality,
                         }]
-                    }
+                    })
                 elif format_type in ("thumbnail", "jpg"):
                     # "writethumbnail" sempre baixa a única miniatura que o yt-dlp
                     # escolhe por padrão, ignorando completamente o seletor de
@@ -1307,7 +1430,7 @@ def verto():
                     # resolução pedida.
                     import requests as _requests
 
-                    with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl_probe:
+                    with yt_dlp.YoutubeDL(yt_dlp_opts()) as ydl_probe:
                         info = ydl_probe.extract_info(url, download=False)
                     title = info.get('title', 'Video')
 
@@ -1352,18 +1475,18 @@ def verto():
                         "360p": "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360][ext=mp4]/best[height<=360]",
                         "worst": "worstvideo[ext=mp4]+worstaudio[ext=m4a]/worstvideo+worstaudio/worst[ext=mp4]/worst"
                     }
-                    ydl_opts = {
+                    ydl_opts = with_js_runtime({
                         "format": format_map.get(quality, "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"),
                         "outtmpl": os.path.join(downloads_dir, "%(title)s.%(ext)s"),
                         "noplaylist": True,
                         "merge_output_format": "mp4",
                         "prefer_free_formats": False,
                         "format_sort": ["res", "ext:mp4", "codec:h264"],
-                    }
-                
+                    })
+
                 # Obter título e extensão
                 if format_type not in ["thumbnail", "jpg"]:
-                    with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
+                    with yt_dlp.YoutubeDL(yt_dlp_opts()) as ydl:
                         info = ydl.extract_info(url, download=False)
                         title = info.get('title', 'Video')
                 
@@ -1408,7 +1531,7 @@ def verto():
                     status = f"✅ '{unique_filename}' baixado em {quality_text} na pasta Downloads!"
                 
             except yt_dlp.DownloadError as e:
-                error = f"Erro no download: {str(e)}"
+                error = f"Erro no download: {friendly_yt_dlp_error(e)}"
             except Exception as e:
                 error = f"Erro inesperado: {str(e)}"
 
@@ -1506,6 +1629,11 @@ def get_holidays(year):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+def _is_pdf_filename(filename):
+    """Checa a extensão .pdf sem diferenciar maiúsculas/minúsculas (ex: 'Documento.PDF')."""
+    return bool(filename) and filename.lower().endswith('.pdf')
+
+
 @app.route("/pdfs", strict_slashes=False)
 def pdfs():
     return render_template_string(PDFS_HTML)
@@ -1547,12 +1675,13 @@ def office_repair():
         return render_template_string(OFFICE_REPAIR_HTML)
 
     file = request.files.get('file')
+    cleanup_columns = request.form.get('cleanup_columns') in ('1', 'true', 'on', 'yes')
 
     if not file or not file.filename:
         return jsonify({'success': False, 'error': 'Selecione um arquivo.'})
 
     try:
-        output_filename, notes = office_engine.repair_office_file(file)
+        output_filename, notes = office_engine.repair_office_file(file, cleanup_columns=cleanup_columns)
         return jsonify({
             'success': True,
             'message': f"'{output_filename}' recuperado e salvo na pasta Downloads!",
@@ -1563,6 +1692,343 @@ def office_repair():
         return jsonify({'success': False, 'error': str(e)})
     except Exception as e:
         return jsonify({'success': False, 'error': f'Erro ao reparar: {str(e)}'})
+
+# --- Dev/Data: ferramentas de formatação, dados mock, conversão e encode/decode ---
+# Todas processadas 100% no navegador (JS) - sem rotas de upload/processamento no backend.
+
+@app.route("/devdata", strict_slashes=False)
+def devdata():
+    return render_template_string(DEVDATA_HUB_HTML())
+
+@app.route("/devdata/format", strict_slashes=False)
+def devdata_format():
+    return render_template_string(DEVDATA_FORMAT_HTML())
+
+@app.route("/devdata/mock", strict_slashes=False)
+def devdata_mock():
+    return render_template_string(DEVDATA_MOCK_HTML())
+
+@app.route("/devdata/convert", strict_slashes=False)
+def devdata_convert():
+    return render_template_string(DEVDATA_CONVERT_HTML())
+
+@app.route("/devdata/encode", strict_slashes=False)
+def devdata_encode():
+    return render_template_string(DEVDATA_ENCODE_HTML())
+
+# --- Image Studio: crop/resize, filtros/marca d'água e favicon em lote ---
+# Processamento via Canvas no navegador - imagens nunca sobem para o servidor.
+
+@app.route("/imagestudio", strict_slashes=False)
+def imagestudio():
+    return render_template_string(IMAGESTUDIO_HUB_HTML())
+
+@app.route("/imagestudio/solo", strict_slashes=False)
+def imagestudio_solo():
+    return render_template_string(IMAGESTUDIO_SOLO_HTML())
+
+@app.route("/imagestudio/resize", strict_slashes=False)
+def imagestudio_resize():
+    return render_template_string(IMAGESTUDIO_RESIZE_HTML())
+
+@app.route("/imagestudio/filters", strict_slashes=False)
+def imagestudio_filters():
+    return render_template_string(IMAGESTUDIO_FILTERS_HTML())
+
+@app.route("/imagestudio/favicon", strict_slashes=False)
+def imagestudio_favicon():
+    return render_template_string(IMAGESTUDIO_FAVICON_HTML())
+
+# --- Text Clean & Diff: diff, sanitizador e contador estatístico ---
+
+@app.route("/textclean", strict_slashes=False)
+def textclean():
+    return render_template_string(TEXTCLEAN_HUB_HTML())
+
+@app.route("/textclean/diff", strict_slashes=False)
+def textclean_diff():
+    return render_template_string(TEXTCLEAN_DIFF_HTML())
+
+@app.route("/textclean/sanitize", strict_slashes=False)
+def textclean_sanitize():
+    return render_template_string(TEXTCLEAN_SANITIZE_HTML())
+
+@app.route("/textclean/stats", strict_slashes=False)
+def textclean_stats():
+    return render_template_string(TEXTCLEAN_STATS_HTML())
+
+# --- Capture & OCR: OCR local (Tesseract.js) e gravador de tela/GIF ---
+
+@app.route("/captureocr", strict_slashes=False)
+def captureocr():
+    return render_template_string(CAPTUREOCR_HUB_HTML())
+
+@app.route("/captureocr/ocr", strict_slashes=False)
+def captureocr_ocr():
+    return render_template_string(CAPTUREOCR_OCR_HTML())
+
+@app.route("/captureocr/record", strict_slashes=False)
+def captureocr_record():
+    return render_template_string(CAPTUREOCR_RECORD_HTML())
+
+# --- AI Guard & Diff: detector heurístico de IA, reescritor/diff e plágio interno ---
+
+@app.route("/aiguard", strict_slashes=False)
+def aiguard():
+    return render_template_string(AIGUARD_HUB_HTML())
+
+@app.route("/aiguard/detect", strict_slashes=False)
+def aiguard_detect():
+    return render_template_string(AIGUARD_DETECT_HTML())
+
+@app.route("/aiguard/humanize", strict_slashes=False)
+def aiguard_humanize():
+    return render_template_string(AIGUARD_HUMANIZE_HTML())
+
+@app.route("/aiguard/plagiarism", strict_slashes=False)
+def aiguard_plagiarism():
+    return render_template_string(AIGUARD_PLAGIARISM_HTML())
+
+# --- Smart Studio: gravador, teleprompter e editor de corte/waveform ---
+# Câmera, microfone e todo o tratamento de áudio (Web Audio API) rodam no navegador.
+
+@app.route("/smartstudio", strict_slashes=False)
+def smartstudio():
+    return render_template_string(SMARTSTUDIO_HUB_HTML())
+
+@app.route("/smartstudio/studio", strict_slashes=False)
+def smartstudio_studio():
+    return render_template_string(SMARTSTUDIO_STUDIO_HTML())
+
+@app.route("/smartstudio/editor", strict_slashes=False)
+def smartstudio_editor():
+    return render_template_string(SMARTSTUDIO_EDITOR_HTML())
+
+# --- Subtitle Lab: transcrição/timeline e burn-in de legendas (SRT/VTT) ---
+# Timeline, sincronizador de delay e burn-in rodam 100% no navegador; a
+# transcrição automática reaproveita o motor de reconhecimento de voz do
+# servidor local (mesmo mecanismo do app de transcrição).
+
+@app.route("/subtitlelab", strict_slashes=False)
+def subtitlelab():
+    return render_template_string(SUBTITLELAB_HUB_HTML())
+
+@app.route("/subtitlelab/editor", strict_slashes=False)
+def subtitlelab_editor():
+    return render_template_string(SUBTITLELAB_EDITOR_HTML())
+
+@app.route("/subtitlelab/burn", strict_slashes=False)
+def subtitlelab_burn():
+    return render_template_string(SUBTITLELAB_BURN_HTML())
+
+@app.route("/subtitlelab/transcribe", methods=["POST"], strict_slashes=False)
+def subtitlelab_transcribe():
+    file = request.files.get('file')
+    try:
+        segments = subtitlelab_engine.transcribe_to_segments(file)
+        return jsonify({'success': True, 'segments': segments})
+    except subtitlelab_engine.SubtitleLabError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro ao transcrever: {str(e)}'})
+
+# --- Matcha Effect: aplicar/remover o filtro verde e "hazy" que viralizou ---
+# Tudo roda via Canvas no navegador; a remoção é uma correção heurística de
+# cor (rebalanceamento de canal), não uma reversão exata de qualquer edição.
+
+@app.route("/matchaeffect", strict_slashes=False)
+def matchaeffect():
+    return render_template_string(MATCHAEFFECT_HUB_HTML())
+
+@app.route("/matchaeffect/add", strict_slashes=False)
+def matchaeffect_add():
+    return render_template_string(MATCHAEFFECT_ADD_HTML())
+
+@app.route("/matchaeffect/remove", strict_slashes=False)
+def matchaeffect_remove():
+    return render_template_string(MATCHAEFFECT_REMOVE_HTML())
+
+@app.route("/matchaeffect/video/add", strict_slashes=False)
+def matchaeffect_video_add():
+    return render_template_string(MATCHAEFFECT_VIDEO_ADD_HTML())
+
+@app.route("/matchaeffect/video/remove", strict_slashes=False)
+def matchaeffect_video_remove():
+    return render_template_string(MATCHAEFFECT_VIDEO_REMOVE_HTML())
+
+# --- Matcha Effect por IA: Stable Diffusion (img2img) + ControlNet SoftEdge ---
+# Dependências pesadas (torch/diffusers/controlnet_aux) são opcionais e só são
+# importadas dentro de matchaeffect_ai_engine quando um job é executado — ver
+# MatchaEffect/requirements_ai.txt. A geração roda em thread de fundo e o
+# front-end consulta o progresso via polling (mesmo padrão do /isolate/progress).
+
+@app.route("/matchaeffect/ai/add", strict_slashes=False)
+def matchaeffect_ai_add():
+    return render_template_string(MATCHAEFFECT_AI_ADD_HTML())
+
+@app.route("/matchaeffect/ai/remove", strict_slashes=False)
+def matchaeffect_ai_remove():
+    return render_template_string(MATCHAEFFECT_AI_REMOVE_HTML())
+
+@app.route("/matchaeffect/ai/video", strict_slashes=False)
+def matchaeffect_ai_video():
+    return render_template_string(MATCHAEFFECT_AI_VIDEO_HTML())
+
+@app.route("/matchaeffect/ai/video/remove", strict_slashes=False)
+def matchaeffect_ai_video_remove():
+    return render_template_string(MATCHAEFFECT_AI_VIDEO_REMOVE_HTML())
+
+@app.route("/matchaeffect/ai/capabilities", methods=["GET"], strict_slashes=False)
+def matchaeffect_ai_capabilities():
+    available = matchaeffect_ai_engine.is_available()
+    return jsonify({
+        'available': available,
+        'gpu': matchaeffect_ai_engine.has_cuda() if available else False,
+        'install_message': None if available else matchaeffect_ai_engine.install_instructions(),
+    })
+
+@app.route("/matchaeffect/ai/jobs", methods=["POST"], strict_slashes=False)
+def matchaeffect_ai_start_job():
+    if not matchaeffect_ai_engine.is_available():
+        return jsonify({'success': False, 'error': matchaeffect_ai_engine.install_instructions()}), 400
+
+    file = request.files.get('file')
+    if not file:
+        return jsonify({'success': False, 'error': 'Nenhuma imagem enviada.'}), 400
+
+    mode = request.form.get('mode', 'add')
+    if mode not in ('add', 'remove'):
+        return jsonify({'success': False, 'error': 'Modo inválido.'}), 400
+
+    try:
+        seed_raw = request.form.get('seed')
+        params = {
+            'denoising_strength': float(request.form.get('denoising_strength', 0.6)),
+            'control_weight': float(request.form.get('control_weight', 0.7)),
+            'steps': int(request.form.get('steps', 20)),
+            'cfg': float(request.form.get('cfg', 7.0)),
+            'seed': int(seed_raw) if seed_raw else None,
+            'max_side': int(request.form.get('max_side', 512)),
+        }
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Parâmetros inválidos.'}), 400
+
+    job_id = matchaeffect_ai_engine.start_job(mode, file.read(), params)
+    return jsonify({'success': True, 'job_id': job_id})
+
+@app.route("/matchaeffect/ai/jobs/<job_id>", methods=["GET"], strict_slashes=False)
+def matchaeffect_ai_job_status(job_id):
+    job = matchaeffect_ai_engine.get_job(job_id)
+    if not job:
+        return jsonify({'success': False, 'error': 'Job não encontrado.'}), 404
+    return jsonify({
+        'success': True,
+        'status': job['status'],
+        'message': job.get('message'),
+        'image_b64': job.get('image_b64'),
+        'elapsed': job.get('elapsed'),
+    })
+
+# --- InstaSaver: cola um link do Instagram e vê/baixa stories, destaques e posts ---
+# Usa a sessão do Instagram já logada no navegador local (cookies lidos pelo
+# leitor do yt-dlp); as mídias passam por /instasaver/media porque a CDN do
+# Instagram bloqueia exibição direta em outras origens.
+
+@app.route("/instasaver", strict_slashes=False)
+def instasaver():
+    return render_template_string(INSTASAVER_HTML())
+
+@app.route("/instasaver/status", methods=["GET"], strict_slashes=False)
+def instasaver_status():
+    return jsonify(instasaver_engine.session_status())
+
+@app.route("/instasaver/resolve", methods=["POST"], strict_slashes=False)
+def instasaver_resolve():
+    link = (request.get_json(silent=True) or {}).get('link', '')
+    try:
+        return jsonify({'success': True, **instasaver_engine.resolve(link)})
+    except instasaver_engine.InstaSaverError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro inesperado: {e}'})
+
+@app.route("/instasaver/posts", methods=["GET"], strict_slashes=False)
+def instasaver_posts():
+    try:
+        page = instasaver_engine.get_posts(
+            request.args.get('username', ''), request.args.get('max_id') or None)
+        return jsonify({'success': True, **page})
+    except instasaver_engine.InstaSaverError as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route("/instasaver/highlight/<highlight_id>", methods=["GET"], strict_slashes=False)
+def instasaver_highlight(highlight_id):
+    try:
+        return jsonify({'success': True, 'highlight': instasaver_engine.get_highlight(highlight_id)})
+    except instasaver_engine.InstaSaverError as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+def _instasaver_filename(name, fallback):
+    import re
+    name = re.sub(r'[^\w.-]', '_', name or '')[:150]
+    return name or fallback
+
+@app.route("/instasaver/media", methods=["GET"], strict_slashes=False)
+def instasaver_media():
+    url = request.args.get('url', '')
+    try:
+        upstream = instasaver_engine.open_media(url, request.headers.get('Range'))
+    except instasaver_engine.InstaSaverError as e:
+        return Response(str(e), status=400, mimetype='text/plain')
+    except Exception:
+        return Response('Falha ao buscar a mídia.', status=502, mimetype='text/plain')
+
+    headers = {'Cache-Control': 'private, max-age=3600'}
+    for key in ('Content-Length', 'Content-Range', 'Accept-Ranges'):
+        if upstream.headers.get(key):
+            headers[key] = upstream.headers[key]
+    if request.args.get('dl'):
+        headers['Content-Disposition'] = (
+            f'attachment; filename="{_instasaver_filename(request.args.get("name"), "instagram_media")}"')
+
+    def stream():
+        try:
+            for chunk in upstream.iter_content(chunk_size=64 * 1024):
+                yield chunk
+        finally:
+            upstream.close()
+
+    return Response(stream(), status=upstream.status_code, headers=headers,
+                    mimetype=upstream.headers.get('Content-Type', 'application/octet-stream'))
+
+@app.route("/instasaver/zip", methods=["POST"], strict_slashes=False)
+def instasaver_zip():
+    import tempfile
+    payload = request.get_json(silent=True) or {}
+    items = [i for i in (payload.get('items') or [])[:300]
+             if instasaver_engine.is_allowed_media_url(i.get('url', ''))]
+    if not items:
+        return jsonify({'success': False, 'error': 'Nada para baixar.'}), 400
+
+    spool = tempfile.SpooledTemporaryFile(max_size=64 * 1024 * 1024)
+    used = set()
+    with zipfile.ZipFile(spool, 'w', zipfile.ZIP_STORED) as zf:
+        for n, item in enumerate(items):
+            name = _instasaver_filename(item.get('filename'), f'instagram_{n}')
+            if name in used:
+                name = f'{n}_{name}'
+            used.add(name)
+            try:
+                upstream = instasaver_engine.open_media(item['url'])
+                with zf.open(name, 'w') as dest:
+                    for chunk in upstream.iter_content(chunk_size=256 * 1024):
+                        dest.write(chunk)
+                upstream.close()
+            except Exception:
+                continue  # link expirado: o resto do zip ainda vale
+    spool.seek(0)
+    return send_file(spool, mimetype='application/zip', as_attachment=True,
+                     download_name=_instasaver_filename(payload.get('name'), 'instagram') + '.zip')
 
 @app.route("/musica", strict_slashes=False)
 def musica():
@@ -1720,7 +2186,7 @@ def pdfs_split():
         file = request.files.get('file')
         splits_config = request.form.get('splits_config', '')
         
-        if not file or not file.filename.endswith('.pdf'):
+        if not file or not _is_pdf_filename(file.filename):
             error = "Selecione um arquivo PDF válido."
         else:
             try:
@@ -1742,7 +2208,7 @@ def pdfs_split():
                             writer.add_page(reader.pages[page_num])
                     
                     name_base = split['name'] if split['name'] else f"{base_name}_parte"
-                    output_name = name_base if name_base.endswith('.pdf') else f"{name_base}.pdf"
+                    output_name = name_base if _is_pdf_filename(name_base) else f"{name_base}.pdf"
 
                     output_path = os.path.join(downloads_dir, output_name)
                     counter = 1
@@ -1780,7 +2246,7 @@ def pdfs_convert():
                 os.makedirs(downloads_dir, exist_ok=True)
                 base_name = os.path.splitext(file.filename)[0]
                 
-                if file.filename.endswith('.pdf') and output_format in ['jpg', 'png']:
+                if _is_pdf_filename(file.filename) and output_format in ['jpg', 'png']:
                     from PyPDF2 import PdfReader
                     from PIL import Image
                     import fitz
@@ -1793,7 +2259,7 @@ def pdfs_convert():
                         img.save(output_path)
                     status = f"✅ {len(doc)} imagens criadas na pasta Downloads!"
                 
-                elif not file.filename.endswith('.pdf') and output_format == 'pdf':
+                elif not _is_pdf_filename(file.filename) and output_format == 'pdf':
                     from PIL import Image
                     
                     img = Image.open(file.stream)
@@ -1826,7 +2292,7 @@ def pdfs_compress():
         file = request.files.get('file')
         quality = request.form.get('quality', 'medium')
         
-        if not file or not file.filename.endswith('.pdf'):
+        if not file or not _is_pdf_filename(file.filename):
             error = "Selecione um arquivo PDF válido."
         else:
             try:
@@ -1905,7 +2371,7 @@ def pdfs_rotate():
         mode = request.form.get('mode', 'all')
         rotations_str = request.form.get('rotations', '{}')
         
-        if not file or not file.filename.endswith('.pdf'):
+        if not file or not _is_pdf_filename(file.filename):
             error = "Selecione um arquivo PDF válido."
         else:
             try:
@@ -2046,7 +2512,7 @@ def pdfs_repair():
     if request.method == "POST":
         file = request.files.get('file')
         
-        if not file or not file.filename.endswith('.pdf'):
+        if not file or not _is_pdf_filename(file.filename):
             error = "Selecione um arquivo PDF válido."
         else:
             try:
@@ -2250,7 +2716,7 @@ def pdfs_protect():
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
         
-        if not file or not file.filename.endswith('.pdf'):
+        if not file or not _is_pdf_filename(file.filename):
             error = "Selecione um arquivo PDF válido."
         elif password != confirm_password:
             error = "As senhas não coincidem."
@@ -2305,7 +2771,7 @@ def pdfs_unlock_progress():
         password = request.form.get('password', '')
         force_unlock = request.form.get('force_unlock', '')
         
-        if not file or not file.filename.endswith('.pdf'):
+        if not file or not _is_pdf_filename(file.filename):
             yield f"data: {json.dumps({'error': 'Arquivo invalido'})}\n\n"
             return
         
@@ -2467,7 +2933,7 @@ def pdfs_unlock():
         password = request.form.get('password', '')
         force_unlock = request.form.get('force_unlock', '')
         
-        if not file or not file.filename.endswith('.pdf'):
+        if not file or not _is_pdf_filename(file.filename):
             error = "Selecione um arquivo PDF válido."
         else:
             try:
@@ -2714,7 +3180,7 @@ def pdfs_watermark():
         file = request.files.get('file')
         watermark_type = request.form.get('type', 'text')
         
-        if not file or not file.filename.endswith('.pdf'):
+        if not file or not _is_pdf_filename(file.filename):
             error = "Selecione um arquivo PDF válido."
         else:
             try:
@@ -2918,7 +3384,7 @@ def pdfs_corrupt():
         file = request.files.get('file')
         corruption_level = request.form.get('level', 'light')
         
-        if not file or not file.filename.endswith('.pdf'):
+        if not file or not _is_pdf_filename(file.filename):
             error = "Selecione um arquivo PDF válido."
         else:
             try:
@@ -2997,21 +3463,35 @@ def pdfs_merge():
                 os.makedirs(downloads_dir, exist_ok=True)
                 
                 writer = PdfWriter()
-                
+                skipped = []
+
                 for idx, file in enumerate(files):
-                    if file.filename.endswith('.pdf'):
-                        reader = PdfReader(file.stream)
-                        pages_spec = pages_list[idx] if idx < len(pages_list) else ''
-                        
-                        if not pages_spec or pages_spec == 'all':
-                            for page in reader.pages:
-                                writer.add_page(page)
-                        else:
-                            page_numbers = [int(p.strip()) for p in pages_spec.split(',') if p.strip()]
-                            for page_num in page_numbers:
-                                if 1 <= page_num <= len(reader.pages):
-                                    writer.add_page(reader.pages[page_num - 1])
-                
+                    if not _is_pdf_filename(file.filename):
+                        skipped.append(file.filename)
+                        continue
+
+                    reader = PdfReader(file.stream)
+                    # Índice fora da lista (front-end não mandou seleção pra esse arquivo)
+                    # cai em "todas as páginas"; já uma string vazia é explícita - o usuário
+                    # apagou todas as páginas desse arquivo na prévia - e deve resultar em
+                    # nenhuma página dele entrando no PDF final, não em "todas".
+                    pages_spec = pages_list[idx] if idx < len(pages_list) else 'all'
+
+                    if pages_spec == 'all':
+                        for page in reader.pages:
+                            writer.add_page(page)
+                    elif pages_spec:
+                        page_numbers = [int(p.strip()) for p in pages_spec.split(',') if p.strip().isdigit()]
+                        for page_num in page_numbers:
+                            if 1 <= page_num <= len(reader.pages):
+                                writer.add_page(reader.pages[page_num - 1])
+
+                if len(writer.pages) == 0:
+                    raise ValueError(
+                        "Nenhuma página selecionada para mesclar. Verifique se os arquivos são PDFs válidos "
+                        "e se pelo menos uma página está marcada."
+                    )
+
                 base_name = os.path.splitext(files[0].filename)[0]
                 name_stem = f"{base_name}_organizado" if len(files) == 1 else "PDF_Mesclado"
                 output_filename = f"{name_stem}.pdf"
@@ -3027,11 +3507,13 @@ def pdfs_merge():
                     writer.write(output_file)
                 
                 status = f"✅ '{output_filename}' criado com sucesso na pasta Downloads!"
+                if skipped:
+                    status += f" (ignorado(s) por não ser PDF: {', '.join(skipped)})"
             except ImportError:
                 error = "PyPDF2 não está instalado. Execute: pip install PyPDF2"
             except Exception as e:
                 error = f"Erro ao mesclar PDFs: {str(e)}"
-    
+
     return render_template_string(PDFS_MERGE_HTML, status=status, error=error)
 
 class UnsupportedConversionError(Exception):
@@ -3394,53 +3876,23 @@ def estimate_size():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
-CONFIG_HTML = """
-<!doctype html>
+CONFIG_HTML = """<!doctype html>
 <html lang="pt-br">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configurações</title>
+  <title>Instruções - LocalTools</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #0a0f1e;
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
+      background-image: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       padding: 40px 15px;
-      position: relative;
-      overflow-x: hidden;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(148, 163, 184, 0.03) 2px,
-        rgba(148, 163, 184, 0.03) 4px
-      );
-      animation: grid-move 20s linear infinite;
-      pointer-events: none;
-    }
-    @keyframes grid-move {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(50px); }
+      padding-top: 100px;
     }
     .back-button {
       position: fixed;
@@ -3449,105 +3901,114 @@ CONFIG_HTML = """
       width: 56px;
       height: 56px;
       background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(40px) saturate(180%);
+      backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s;
       z-index: 1000;
       color: #cbd5e1;
-      box-shadow: 
-        0 0 0 1px rgba(148, 163, 184, 0.1),
-        0 8px 24px rgba(0, 0, 0, 0.5),
-        0 0 40px rgba(34, 197, 94, 0.03);
-    }
-    .back-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
     }
     .back-button:hover {
       background: rgba(15, 23, 42, 0.95);
       border-color: rgba(34, 197, 94, 0.4);
       color: #22c55e;
       transform: translateX(-6px);
-      box-shadow: 
-        0 0 0 1px rgba(34, 197, 94, 0.2),
-        0 12px 32px rgba(0, 0, 0, 0.6),
-        0 0 60px rgba(34, 197, 94, 0.15);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
     }
     .logo {
-      font-size: 64px;
+      font-size: 48px;
       font-weight: 900;
       background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: 6px;
-      text-transform: uppercase;
-      filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4));
-      animation: glow-pulse 3s ease-in-out infinite;
+      text-align: center;
       margin-bottom: 10px;
-      position: relative;
-      z-index: 1;
-    }
-    @keyframes glow-pulse {
-      0%, 100% { filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4)); }
-      50% { filter: drop-shadow(0 0 35px rgba(34, 197, 94, 0.9)) drop-shadow(0 0 70px rgba(59, 130, 246, 0.6)); }
+      letter-spacing: 8px;
     }
     .tagline {
+      text-align: center;
       color: #64748b;
       font-size: 15px;
-      margin-bottom: 40px;
+      margin-bottom: 48px;
       font-weight: 500;
-      letter-spacing: 0.5px;
-      position: relative;
-      z-index: 1;
     }
-    .card {
+    .app-section {
       background: rgba(15, 23, 42, 0.4);
-      border-radius: 28px;
-      padding: 40px;
-      box-shadow: 
-        0 0 0 1px rgba(148, 163, 184, 0.1),
-        0 20px 60px rgba(0, 0, 0, 0.6),
-        0 0 80px rgba(34, 197, 94, 0.05);
-      width: 100%;
-      max-width: 520px;
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 24px;
       border: 1px solid rgba(148, 163, 184, 0.08);
-      backdrop-filter: blur(40px) saturate(180%);
-      position: relative;
-      z-index: 1;
+      backdrop-filter: blur(40px);
     }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
     }
-    h1 {
-      margin: 0 0 10px;
+    .app-icon {
+      font-size: 48px;
+    }
+    .app-title {
       font-size: 28px;
       font-weight: 700;
       color: #f8fafc;
-      letter-spacing: -0.5px;
     }
-    p {
-      margin: 0 0 32px;
-      font-size: 14px;
+    .app-description {
+      font-size: 15px;
       color: #94a3b8;
-      font-weight: 400;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .features {
+      display: grid;
+      gap: 12px;
+    }
+    .feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .feature-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .feature-text {
+      flex: 1;
+    }
+    .feature-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .feature-desc {
+      font-size: 13px;
+      color: #64748b;
       line-height: 1.6;
+    }
+    .sub-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .sub-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 12px;
     }
   </style>
 </head>
@@ -3558,17 +4019,778 @@ CONFIG_HTML = """
     </svg>
   </div>
   
-  <div class="logo">CONFIG</div>
-  <div class="tagline">Configurações do Sistema</div>
-  
-  <div class="card">
-    <h1>⚙️ Configurações</h1>
-    <p>Em desenvolvimento...</p>
+  <div class="container">
+    <div class="logo">LOCALTOOLS</div>
+    <div class="tagline">Guia Completo de Funcionalidades</div>
+    
+    <!-- VERTO -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🎬</div>
+        <div class="app-title">Verto - Conversor de Mídia</div>
+      </div>
+      <div class="app-description">
+        Baixe vídeos e áudios do YouTube com seleção de qualidade e cálculo automático de tamanho.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📺</div>
+          <div class="feature-text">
+            <div class="feature-title">Download de Vídeos MP4</div>
+            <div class="feature-desc">Qualidades: 8K, 4K, 2K, 1080p, 720p, 480p, 360p. Tamanho estimado em tempo real.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎵</div>
+          <div class="feature-text">
+            <div class="feature-title">Download de Áudio MP3</div>
+            <div class="feature-desc">Bitrates: 320kbps, 256kbps, 192kbps, 128kbps. Extração de áudio de alta qualidade.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🖼️</div>
+          <div class="feature-text">
+            <div class="feature-title">Download de Thumbnails</div>
+            <div class="feature-desc">Formatos PNG e JPG. Resoluções: Máxima, Alta, Média, Padrão.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <div class="feature-title">Preview em Tempo Real</div>
+            <div class="feature-desc">Visualize thumbnail, título e duração antes de baixar.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PURPLEFLIX -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🎮</div>
+        <div class="app-title">PurpleFlix - Streaming</div>
+      </div>
+      <div class="app-description">
+        Plataforma de streaming integrada.
+      </div>
+    </div>
+
+    <!-- TEMPO -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">⏰</div>
+        <div class="app-title">Tempo - Relógio e Calendário</div>
+      </div>
+      <div class="app-description">
+        Relógio digital e analógico com calendário interativo e feriados brasileiros.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🕐</div>
+          <div class="feature-text">
+            <div class="feature-title">Relógio Duplo</div>
+            <div class="feature-desc">Digital e analógico sincronizados em tempo real.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📅</div>
+          <div class="feature-text">
+            <div class="feature-title">Calendário Interativo</div>
+            <div class="feature-desc">Navegação por meses e anos. Visualização de dias, meses e anos.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎉</div>
+          <div class="feature-text">
+            <div class="feature-title">Feriados Brasileiros</div>
+            <div class="feature-desc">Lista completa de feriados nacionais de 2024-2026.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDFS -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">📄</div>
+        <div class="app-title">PDFs - Suite Completa</div>
+      </div>
+      <div class="app-description">
+        Ferramentas profissionais para manipulação de PDFs.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">✂️</div>
+          <div class="feature-text">
+            <div class="feature-title">Dividir PDF</div>
+            <div class="feature-desc">Divida PDFs em múltiplos arquivos por intervalos de páginas personalizados.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔄</div>
+          <div class="feature-text">
+            <div class="feature-title">Converter PDF</div>
+            <div class="feature-desc">PDF ↔ Imagens (JPG/PNG). Imagens → PDF.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🗜️</div>
+          <div class="feature-text">
+            <div class="feature-title">Comprimir PDF</div>
+            <div class="feature-desc">Reduza o tamanho com 3 níveis de qualidade (Baixa, Média, Alta).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔄</div>
+          <div class="feature-text">
+            <div class="feature-title">Girar PDF</div>
+            <div class="feature-desc">Rotação de páginas: 90°, 180°, 270°. Individual ou em massa.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔍</div>
+          <div class="feature-text">
+            <div class="feature-title">Comparar PDFs</div>
+            <div class="feature-desc">Compare múltiplos PDFs e veja diferenças e similaridades.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔧</div>
+          <div class="feature-text">
+            <div class="feature-title">Reparar PDF</div>
+            <div class="feature-desc">5 estratégias de recuperação para PDFs corrompidos.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text">
+            <div class="feature-title">Proteger PDF</div>
+            <div class="feature-desc">Adicione senha de criptografia aos seus PDFs.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔓</div>
+          <div class="feature-text">
+            <div class="feature-title">Desbloquear PDF</div>
+            <div class="feature-desc">Remova senhas com força bruta (10.000 combinações) ou senha conhecida.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">✏️</div>
+          <div class="feature-text">
+            <div class="feature-title">Editar PDF</div>
+            <div class="feature-desc">Extraia texto e crie novo PDF editado.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💧</div>
+          <div class="feature-text">
+            <div class="feature-title">Marca D'água</div>
+            <div class="feature-desc">Adicione texto ou imagem como marca d'água. 15 posições + arraste customizado.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💥</div>
+          <div class="feature-text">
+            <div class="feature-title">Corromper PDF</div>
+            <div class="feature-desc">4 níveis de corrupção para testes (Leve, Médio, Pesado, Extremo).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔗</div>
+          <div class="feature-text">
+            <div class="feature-title">Mesclar PDFs</div>
+            <div class="feature-desc">Una múltiplos PDFs em um só. Selecione páginas específicas.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFFICE -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🗃️</div>
+        <div class="app-title">Office - Conversor e Reparador</div>
+      </div>
+      <div class="app-description">
+        Converta e recupere arquivos do pacote Office (Word, Excel, PowerPoint) usando o motor do LibreOffice.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🔄</div>
+          <div class="feature-text">
+            <div class="feature-title">Converter</div>
+            <div class="feature-desc">DOCX/XLSX/PPTX ↔ ODT/ODS/ODP, PDF e imagens PNG/JPG (uma por página ou slide) sem problemas de fonte ou acentuação.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🩺</div>
+          <div class="feature-text">
+            <div class="feature-title">Reparar e Recuperar</div>
+            <div class="feature-desc">5 níveis de recuperação: detecção do formato real (corrige extensão trocada), reconstrução do ZIP, validação nativa, reparo via LibreOffice e recuperação bruta de texto.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔀</div>
+          <div class="feature-text">
+            <div class="feature-title">Extensão errada não é problema</div>
+            <div class="feature-desc">Se um .xlsx na verdade é um .docx por dentro (ou vice-versa), a ferramenta identifica o conteúdo real e recupera pelo formato certo.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSPARÊNCIA -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🎨</div>
+        <div class="app-title">Transparência - Remover Fundo</div>
+      </div>
+      <div class="app-description">
+        Remova fundos de imagens automaticamente usando IA.
+      </div>
+    </div>
+
+    <!-- QR CODE -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🔲</div>
+        <div class="app-title">QR Code - Gerador Gratuito</div>
+      </div>
+      <div class="app-description">
+        Gere QR Codes estáticos permanentes sem marcas d'água ou expiração.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🔗</div>
+          <div class="feature-text">
+            <div class="feature-title">Links/URLs</div>
+            <div class="feature-desc">Qualquer endereço web.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📶</div>
+          <div class="feature-text">
+            <div class="feature-title">Wi-Fi</div>
+            <div class="feature-desc">Compartilhe credenciais de rede.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">👤</div>
+          <div class="feature-text">
+            <div class="feature-title">vCard</div>
+            <div class="feature-desc">Cartão de visita digital.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💰</div>
+          <div class="feature-text">
+            <div class="feature-title">PIX</div>
+            <div class="feature-desc">Pagamentos instantâneos.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎨</div>
+          <div class="feature-text">
+            <div class="feature-title">Customização Total</div>
+            <div class="feature-desc">Cores, tamanho, bordas, logo central, 4 níveis de correção de erro.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPRESSOR -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🗜️</div>
+        <div class="app-title">Compressor - Redução de Tamanho</div>
+      </div>
+      <div class="app-description">
+        Comprima imagens, vídeos e áudios mantendo qualidade.
+      </div>
+    </div>
+
+    <!-- ARQUIVOS -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">📁</div>
+        <div class="app-title">Arquivos - Conversor Universal</div>
+      </div>
+      <div class="app-description">
+        Converta entre 150+ formatos de arquivo com estimativa de tamanho.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🖼️</div>
+          <div class="feature-text">
+            <div class="feature-title">Imagens (50+ formatos)</div>
+            <div class="feature-desc">PNG, JPG, WEBP, HEIC, RAW, TIFF, BMP, GIF, SVG, PSD, etc.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎬</div>
+          <div class="feature-text">
+            <div class="feature-title">Vídeos (35+ formatos)</div>
+            <div class="feature-desc">MP4, AVI, MKV, MOV, WEBM, FLV, etc.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎵</div>
+          <div class="feature-text">
+            <div class="feature-title">Áudios (40+ formatos)</div>
+            <div class="feature-desc">MP3, WAV, FLAC, AAC, OGG, OPUS, etc.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📄</div>
+          <div class="feature-text">
+            <div class="feature-title">Documentos, eBooks, Fontes, CAD, 3D</div>
+            <div class="feature-desc">PDF, DOCX, EPUB, TTF, DWG, OBJ e muito mais.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSCREVER -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🎤</div>
+        <div class="app-title">Transcrever - Áudio para Texto</div>
+      </div>
+      <div class="app-description">
+        Converta áudios e vídeos em texto formatado usando reconhecimento de voz.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🎯</div>
+          <div class="feature-text">
+            <div class="feature-title">Reconhecimento Avançado</div>
+            <div class="feature-desc">Sample rate 48kHz, filtros de áudio (FFT, speechnorm), chunks de 20s.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🌍</div>
+          <div class="feature-text">
+            <div class="feature-title">Múltiplos Idiomas</div>
+            <div class="feature-desc">PT-BR, EN-US, PT-PT, ES-ES com fallback automático.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📝</div>
+          <div class="feature-text">
+            <div class="feature-title">Formatação Automática</div>
+            <div class="feature-desc">Capitalização de sentenças e texto limpo.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📋</div>
+          <div class="feature-text">
+            <div class="feature-title">Copiar Resultado</div>
+            <div class="feature-desc">Botão para copiar transcrição para área de transferência.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GHOST TOOL -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">👻</div>
+        <div class="app-title">Ghost Tool - Removedor de Metadados</div>
+      </div>
+      <div class="app-description">
+        Remova metadados de múltiplos arquivos simultaneamente. GPS, autor, datas, câmera - tudo apagado permanentemente.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📷</div>
+          <div class="feature-text">
+            <div class="feature-title">Imagens (50+ formatos)</div>
+            <div class="feature-desc">Remove EXIF, GPS, câmera, software. Recria pixel por pixel.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎬</div>
+          <div class="feature-text">
+            <div class="feature-title">Vídeos e Áudios (70+ formatos)</div>
+            <div class="feature-desc">Remove metadados com FFmpeg. Mantém qualidade original.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📄</div>
+          <div class="feature-text">
+            <div class="feature-title">Documentos Office</div>
+            <div class="feature-desc">Remove autor, empresa, datas de DOCX, XLSX, PPTX.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📚</div>
+          <div class="feature-text">
+            <div class="feature-title">PDFs, eBooks, Arquivos</div>
+            <div class="feature-desc">Remove metadados de PDFs, EPUBs, ZIPs e mais.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <div class="feature-title">Processamento em Massa</div>
+            <div class="feature-desc">Múltiplos arquivos simultaneamente. Download em lote.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text">
+            <div class="feature-title">100% Local</div>
+            <div class="feature-desc">Arquivos nunca saem do seu computador.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEALTH -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🕵️</div>
+        <div class="app-title">Stealth - Esteganografia Criptografada</div>
+      </div>
+      <div class="app-description">
+        Esconda arquivos secretos dentro de imagens, vídeos, áudios ou PDFs com criptografia AES-256 opcional.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🔐</div>
+          <div class="feature-text">
+            <div class="feature-title">Esconder Arquivos</div>
+            <div class="feature-desc">Múltiplos arquivos em imagens (LSB), vídeos, áudios ou PDFs. Senha opcional.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔓</div>
+          <div class="feature-text">
+            <div class="feature-title">Extrair Arquivos</div>
+            <div class="feature-desc">Recupere arquivos escondidos com ou sem senha. Detecção automática.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🛡️</div>
+          <div class="feature-text">
+            <div class="feature-title">Criptografia AES-256-GCM</div>
+            <div class="feature-desc">Criptografia militar com PBKDF2, salt, nonce e tag de autenticação.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎨</div>
+          <div class="feature-text">
+            <div class="feature-title">LSB Steganography</div>
+            <div class="feature-desc">Esconde dados nos bits menos significativos dos pixels. Invisível ao olho humano.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📦</div>
+          <div class="feature-text">
+            <div class="feature-title">Múltiplos Arquivos</div>
+            <div class="feature-desc">Esconda vários arquivos de uma vez. Compactação automática em ZIP.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎯</div>
+          <div class="feature-text">
+            <div class="feature-title">Formato Original Mantido</div>
+            <div class="feature-desc">MP4 → MP4, MP3 → MP3, PDF → PDF. Arquivo de saída mantém formato de cobertura.</div>
+          </div>
+        </div>
+      </div>
+      <div class="sub-section">
+        <div class="sub-title">📋 Casos de Uso</div>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">📱</div>
+            <div class="feature-text">
+              <div class="feature-desc">Envie documentos secretos via redes sociais (Instagram, WhatsApp)</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">💾</div>
+            <div class="feature-text">
+              <div class="feature-desc">Backup criptografado disfarçado em fotos comuns</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">🔒</div>
+            <div class="feature-text">
+              <div class="feature-desc">Comunicação segura e discreta</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">🎭</div>
+            <div class="feature-text">
+              <div class="feature-desc">Proteção de dados sensíveis em plain sight</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENSOR -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🔒</div>
+        <div class="app-title">Censor - Proteção de Privacidade com IA</div>
+      </div>
+      <div class="app-description">
+        Censura automática de informações sensíveis em imagens usando IA. Detecta e oculta rostos, documentos, placas, e-mails, telefones, cartões, sites, nomes, @IDs e mais.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">👤</div>
+          <div class="feature-text">
+            <div class="feature-title">Detecção de Rostos</div>
+            <div class="feature-desc">BlazeFace (TensorFlow.js) detecta rostos automaticamente em tempo real.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔤</div>
+          <div class="feature-text">
+            <div class="feature-title">Documentos (CPF, RG, CNH)</div>
+            <div class="feature-desc">OCR com Tesseract.js identifica números de documentos brasileiros.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🚗</div>
+          <div class="feature-text">
+            <div class="feature-title">Placas de Veículos</div>
+            <div class="feature-desc">Detecta placas padrão brasileiro (ABC1D23) e Mercosul.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">✉️</div>
+          <div class="feature-text">
+            <div class="feature-title">E-mails</div>
+            <div class="feature-desc">Identifica e censura endereços de e-mail em imagens.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📞</div>
+          <div class="feature-text">
+            <div class="feature-title">Telefones</div>
+            <div class="feature-desc">Detecta números de telefone (fixo e celular) com DDD.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💳</div>
+          <div class="feature-text">
+            <div class="feature-title">Cartões de Crédito</div>
+            <div class="feature-desc">Identifica padrões de 16 dígitos de cartões.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🌐</div>
+          <div class="feature-text">
+            <div class="feature-title">Sites e URLs</div>
+            <div class="feature-desc">Detecta endereços web (http://, https://, www.) em imagens.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">👤</div>
+          <div class="feature-text">
+            <div class="feature-title">Nomes de Pessoas</div>
+            <div class="feature-desc">Identifica nomes próprios (padrão Nome Sobrenome).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">@</div>
+          <div class="feature-text">
+            <div class="feature-title">IDs e Handles</div>
+            <div class="feature-desc">Detecta @usernames de redes sociais (Twitter, Instagram, etc).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎨</div>
+          <div class="feature-text">
+            <div class="feature-title">8 Tipos de Censura</div>
+            <div class="feature-desc">Desfoque, Pixelizar, Tarja Preta, Tarja Branca, Emoji 😎, Gradiente, Redação ████, Ruído.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🤖</div>
+          <div class="feature-text">
+            <div class="feature-title">Intensidade Automática</div>
+            <div class="feature-desc">IA analisa brilho da imagem e ajusta intensidade automaticamente (ou manual: Baixa/Média/Alta).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <div class="feature-title">Processamento em Massa</div>
+            <div class="feature-desc">Até 20 imagens simultaneamente com download em lote.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text">
+            <div class="feature-title">100% Local no Navegador</div>
+            <div class="feature-desc">IA roda no navegador. Arquivos nunca saem do seu computador.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOCIAL PREVIEW -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">📱</div>
+        <div class="app-title">Social Preview - Estúdio de Preview de Redes Sociais</div>
+      </div>
+      <div class="app-description">
+        Visualize como seu conteúdo aparecerá em 8 plataformas diferentes em 3 tipos de dispositivos. Exporte em 11 formatos otimizados.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📱</div>
+          <div class="feature-text">
+            <div class="feature-title">Preview Mobile</div>
+            <div class="feature-desc">Twitter, LinkedIn, Facebook, WhatsApp, Open Graph, Instagram, Instagram Story, Instagram Reels.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💻</div>
+          <div class="feature-text">
+            <div class="feature-title">Preview Desktop</div>
+            <div class="feature-desc">Visualização em tela grande para todas as 8 plataformas.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📡</div>
+          <div class="feature-text">
+            <div class="feature-title">Preview Tablet</div>
+            <div class="feature-desc">Visualização intermediária para todas as 8 plataformas.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📦</div>
+          <div class="feature-text">
+            <div class="feature-title">Exportação em Massa</div>
+            <div class="feature-desc">11 formatos otimizados: Twitter 1200×675, LinkedIn 1200×627, Facebook 1200×630, Instagram Square 1080×1080, Instagram Story 1080×1920, Instagram Reels 1080×1920, Open Graph 1200×630, Desktop Full HD 1920×1080, Desktop 2K 2560×1440, Tablet Landscape 1024×768, Tablet Portrait 768×1024.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <div class="feature-title">Atualização em Tempo Real</div>
+            <div class="feature-desc">Todos os 24 previews atualizam simultaneamente ao editar.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLEAN READER -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🧹</div>
+        <div class="app-title">Clean Reader - Limpador de Distração</div>
+      </div>
+      <div class="app-description">
+        Extraia conteúdo limpo de qualquer site removendo anúncios, pop-ups e poluição visual. Leia ou exporte para PDF, Markdown ou EPUB.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🧹</div>
+          <div class="feature-text">
+            <div class="feature-title">Extração Inteligente</div>
+            <div class="feature-desc">Remove scripts, styles, nav, header, footer, aside, forms, buttons automaticamente.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">👁️</div>
+          <div class="feature-text">
+            <div class="feature-title">Modo Leitura</div>
+            <div class="feature-desc">Tela cheia com fundo branco, texto centralizado e fonte otimizada para leitura.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📄</div>
+          <div class="feature-text">
+            <div class="feature-title">Exportar PDF</div>
+            <div class="feature-desc">Salva artigo limpo em PDF formatado com ReportLab.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📝</div>
+          <div class="feature-text">
+            <div class="feature-title">Exportar Markdown</div>
+            <div class="feature-desc">Converte para Markdown preservando links e formatação.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📚</div>
+          <div class="feature-text">
+            <div class="feature-title">Exportar EPUB</div>
+            <div class="feature-desc">Gera eBook para Kindle e leitores digitais.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ISOLADOR DE VOZ -->
+    <div class="app-section">
+      <div class="app-header">
+        <div class="app-icon">🎤</div>
+        <div class="app-title">Isolador de Voz - Neural Audio Splitter</div>
+      </div>
+      <div class="app-description">
+        Separe voz e música de qualquer áudio usando IA Demucs (Meta). Ideal para remover ruídos, extrair vocais ou criar versões instrumentais.
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🎤</div>
+          <div class="feature-text">
+            <div class="feature-title">Isolar Voz</div>
+            <div class="feature-desc">Extrai apenas a voz do áudio, removendo música e ruídos de fundo.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎵</div>
+          <div class="feature-text">
+            <div class="feature-title">Isolar Música</div>
+            <div class="feature-desc">Extrai apenas a música instrumental, removendo vocais.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🤖</div>
+          <div class="feature-text">
+            <div class="feature-title">IA Demucs (Meta)</div>
+            <div class="feature-desc">Modelo neural state-of-the-art da Meta/Facebook Research. Open-source e gratuito.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⏱️</div>
+          <div class="feature-text">
+            <div class="feature-title">Sem Limite de Tempo</div>
+            <div class="feature-desc">Processa áudios de qualquer duração. Contador de tempo em tempo real.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📁</div>
+          <div class="feature-text">
+            <div class="feature-title">Múltiplos Formatos</div>
+            <div class="feature-desc">Suporta MP3, WAV, MP4, M4A, OGG, FLAC e mais. Saída em WAV de alta qualidade.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💾</div>
+          <div class="feature-text">
+            <div class="feature-title">Salva em Downloads</div>
+            <div class="feature-desc">Arquivos processados salvos automaticamente na pasta Downloads com nomes únicos.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 60px;"></div>
   </div>
 </body>
 </html>
 """
-
 FILES_HTML = """
 <!doctype html>
 <html lang="pt-br">
@@ -4599,8 +5821,7 @@ FILES_HTML = """
 </html>
 """
 
-TEMPO_HTML = """
-<!doctype html>
+TEMPO_HTML = """<!doctype html>
 <html lang="pt-br">
 <head>
   <meta charset="utf-8">
@@ -4722,6 +5943,15 @@ TEMPO_HTML = """
       width: 400px;
       display: flex;
       flex-direction: column;
+    }
+    .card.holidays {
+      width: 420px;
+      max-height: 520px;
+      overflow-y: auto;
+      display: none;
+    }
+    .card.holidays.show {
+      display: block;
     }
     .digital-clock {
       font-size: 64px;
@@ -4905,6 +6135,80 @@ TEMPO_HTML = """
     .calendar-day.other-month {
       opacity: 0.3;
     }
+    .calendar-day.weekend {
+      color: #ef4444;
+    }
+    /* Cada categoria de data tem sua própria cor - feriado de verdade, ponto
+       facultativo, dia sem aula e data comemorativa não são a mesma coisa e
+       não deveriam parecer a mesma coisa no calendário. */
+    .calendar-day.holiday-nacional {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-estadual {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.1));
+      border-color: rgba(249, 115, 22, 0.4);
+      color: #f97316;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-ubatuba {
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.1));
+      border-color: rgba(234, 179, 8, 0.4);
+      color: #eab308;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-saosebastiao {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(147, 51, 234, 0.1));
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #a855f7;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-caraguatatuba {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(8, 145, 178, 0.1));
+      border-color: rgba(6, 182, 212, 0.4);
+      color: #06b6d4;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-ilhabela {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(219, 39, 119, 0.1));
+      border-color: rgba(236, 72, 153, 0.4);
+      color: #ec4899;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-facultativo {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1));
+      border-color: rgba(59, 130, 246, 0.4);
+      color: #60a5fa;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-fatec {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.1));
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #22c55e;
+      font-weight: 700;
+    }
+    .calendar-day.holiday-comemorativa {
+      border-color: rgba(148, 163, 184, 0.5);
+      border-style: dashed;
+    }
+    .day-dots {
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2px;
+    }
+    .day-dots .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+    }
+    .calendar-day {
+      position: relative;
+    }
     .calendar-day.selectable {
       cursor: pointer;
     }
@@ -4916,6 +6220,7 @@ TEMPO_HTML = """
     .holiday-toggle {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 10px;
       margin-top: 16px;
       padding-top: 16px;
@@ -4930,7 +6235,7 @@ TEMPO_HTML = """
       width: 40px;
       height: 40px;
       background: rgba(15, 23, 42, 0.6);
-      border: 2px solid rgba(59, 130, 246, 0.3);
+      border: 2px solid rgba(148, 163, 184, 0.2);
       border-radius: 8px;
       display: flex;
       flex-direction: column;
@@ -4947,7 +6252,7 @@ TEMPO_HTML = """
       left: 0;
       right: 0;
       height: 8px;
-      background: rgba(59, 130, 246, 0.3);
+      background: rgba(148, 163, 184, 0.2);
       border-radius: 4px 4px 0 0;
     }
     .calendar-checkbox-grid {
@@ -4959,7 +6264,7 @@ TEMPO_HTML = """
     .calendar-checkbox-cell {
       width: 6px;
       height: 6px;
-      background: rgba(148, 163, 184, 0.3);
+      background: rgba(148, 163, 184, 0.2);
       border-radius: 1px;
       transition: all 0.3s;
     }
@@ -4976,54 +6281,95 @@ TEMPO_HTML = """
     }
     .holiday-toggle:hover .calendar-checkbox {
       border-color: #60a5fa;
-      transform: scale(1.05);
     }
-    .holiday-toggle label {
+    .holiday-toggle label.text-label {
       font-size: 14px;
       color: #94a3b8;
-      cursor: pointer;
+      cursor: default;
       margin: 0;
       font-weight: 500;
+      pointer-events: none;
     }
-    .holidays-card {
-      background: rgba(15, 23, 42, 0.4);
-      border-radius: 28px;
-      padding: 32px;
-      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(148, 163, 184, 0.08);
-      backdrop-filter: blur(40px) saturate(180%);
-      position: relative;
-      width: 344px;
-      display: none;
-      max-height: 520px;
-      overflow-y: auto;
-    }
-    .holidays-card.show {
-      display: block;
-    }
-    .holidays-card h3 {
-      font-size: 20px;
-      color: #3b82f6;
-      margin-bottom: 20px;
+    .holidays h3 {
+      font-size: 18px;
+      color: #f8fafc;
+      margin-bottom: 4px;
       font-weight: 700;
     }
+    .holidays .subtitle {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    /* Legenda das categorias - cada cor definida uma única vez e reaproveitada
+       via variável CSS tanto na legenda quanto nos itens da lista. */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+    .legend-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.08);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #cbd5e1;
+      white-space: nowrap;
+    }
+    .legend-chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cat-color);
+      box-shadow: 0 0 6px var(--cat-color);
+      flex-shrink: 0;
+    }
     .holiday-item {
-      padding: 12px;
-      background: rgba(59, 130, 246, 0.1);
-      border-radius: 8px;
+      padding: 12px 14px;
       margin-bottom: 8px;
-      border: 1px solid rgba(59, 130, 246, 0.2);
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      border-left: 4px solid var(--cat-color);
+    }
+    .holiday-item:last-child {
+      margin-bottom: 0;
     }
     .holiday-date {
-      font-size: 12px;
-      color: #60a5fa;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cat-color);
       margin-bottom: 4px;
     }
     .holiday-name {
       font-size: 14px;
-      color: #cbd5e1;
-      font-weight: 500;
+      color: #f1f5f9;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+    .holiday-type {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--cat-color);
+      background: color-mix(in srgb, var(--cat-color) 16%, transparent);
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+    .holiday-desc {
+      font-size: 12.5px;
+      color: #94a3b8;
+      line-height: 1.5;
     }
     @media (max-width: 768px) {
       .digital-clock { font-size: 48px; }
@@ -5031,7 +6377,6 @@ TEMPO_HTML = """
       .hour-hand { height: 55px; }
       .minute-hand { height: 80px; }
       .second-hand { height: 90px; }
-      .holidays-card { width: 100%; max-width: 344px; }
     }
   </style>
 </head>
@@ -5063,8 +6408,8 @@ TEMPO_HTML = """
         <div class="nav-btn" onclick="navigate(1)">›</div>
       </div>
       <div class="calendar-grid" id="calendar-grid"></div>
-      <div class="holiday-toggle" onclick="toggleHolidays()">
-        <input type="checkbox" id="holiday-checkbox">
+      <div class="holiday-toggle">
+        <input type="checkbox" id="holiday-checkbox" onchange="toggleHolidaysCard()">
         <label for="holiday-checkbox" class="calendar-checkbox">
           <div class="calendar-checkbox-grid">
             <div class="calendar-checkbox-cell"></div>
@@ -5075,12 +6420,24 @@ TEMPO_HTML = """
             <div class="calendar-checkbox-cell"></div>
           </div>
         </label>
-        <label for="holiday-checkbox">Mostrar feriados</label>
+        <span class="text-label">Mostrar feriados</span>
       </div>
     </div>
     
-    <div class="holidays-card" id="holidays-card">
-      <h3>🎉 Feriados de <span id="holiday-year">2024</span></h3>
+    <div class="card holidays" id="holidays-card">
+      <h3>🎉 Feriados e Datas Comemorativas</h3>
+      <p class="subtitle">Feriados nacionais, estaduais, das cidades do Litoral Norte e pontos facultativos são calculados automaticamente para qualquer ano. Dias sem aula da Fatec são cadastrados manualmente ano a ano, conforme o calendário acadêmico oficial.</p>
+      <div class="legend">
+        <div class="legend-chip" style="--cat-color:#ef4444"><span class="dot"></span>Feriado Nacional</div>
+        <div class="legend-chip" style="--cat-color:#f97316"><span class="dot"></span>Feriado Estadual (SP)</div>
+        <div class="legend-chip" style="--cat-color:#a855f7"><span class="dot"></span>São Sebastião</div>
+        <div class="legend-chip" style="--cat-color:#eab308"><span class="dot"></span>Ubatuba</div>
+        <div class="legend-chip" style="--cat-color:#06b6d4"><span class="dot"></span>Caraguatatuba</div>
+        <div class="legend-chip" style="--cat-color:#ec4899"><span class="dot"></span>Ilhabela</div>
+        <div class="legend-chip" style="--cat-color:#3b82f6"><span class="dot"></span>Ponto Facultativo</div>
+        <div class="legend-chip" style="--cat-color:#22c55e"><span class="dot"></span>Sem Aula (Fatec/Escolas)</div>
+        <div class="legend-chip" style="--cat-color:#94a3b8"><span class="dot"></span>Data Comemorativa (tem aula/expediente normal)</div>
+      </div>
       <div id="holidays-list"></div>
     </div>
   </div>
@@ -5090,77 +6447,178 @@ TEMPO_HTML = """
     let currentYear = new Date().getFullYear();
     let viewMode = 'days';
     
-    const holidays = {
-      2024: [
-        { date: '01/01', name: 'Confraternização Universal' },
-        { date: '12/02', name: 'Carnaval' },
-        { date: '13/02', name: 'Carnaval' },
-        { date: '29/03', name: 'Sexta-feira Santa' },
-        { date: '21/04', name: 'Tiradentes' },
-        { date: '01/05', name: 'Dia do Trabalho' },
-        { date: '30/05', name: 'Corpus Christi' },
-        { date: '07/09', name: 'Independência do Brasil' },
-        { date: '12/10', name: 'Nossa Senhora Aparecida' },
-        { date: '02/11', name: 'Finados' },
-        { date: '15/11', name: 'Proclamação da República' },
-        { date: '20/11', name: 'Consciência Negra' },
-        { date: '25/12', name: 'Natal' }
-      ],
-      2025: [
-        { date: '01/01', name: 'Confraternização Universal' },
-        { date: '03/03', name: 'Carnaval' },
-        { date: '04/03', name: 'Carnaval' },
-        { date: '18/04', name: 'Sexta-feira Santa' },
-        { date: '21/04', name: 'Tiradentes' },
-        { date: '01/05', name: 'Dia do Trabalho' },
-        { date: '19/06', name: 'Corpus Christi' },
-        { date: '07/09', name: 'Independência do Brasil' },
-        { date: '12/10', name: 'Nossa Senhora Aparecida' },
-        { date: '02/11', name: 'Finados' },
-        { date: '15/11', name: 'Proclamação da República' },
-        { date: '20/11', name: 'Consciência Negra' },
-        { date: '25/12', name: 'Natal' }
-      ],
-      2026: [
-        { date: '01/01', name: 'Confraternização Universal' },
-        { date: '16/02', name: 'Carnaval' },
-        { date: '17/02', name: 'Carnaval' },
-        { date: '03/04', name: 'Sexta-feira Santa' },
-        { date: '21/04', name: 'Tiradentes' },
-        { date: '01/05', name: 'Dia do Trabalho' },
-        { date: '04/06', name: 'Corpus Christi' },
-        { date: '07/09', name: 'Independência do Brasil' },
-        { date: '12/10', name: 'Nossa Senhora Aparecida' },
-        { date: '02/11', name: 'Finados' },
-        { date: '15/11', name: 'Proclamação da República' },
-        { date: '20/11', name: 'Consciência Negra' },
-        { date: '25/12', name: 'Natal' }
-      ]
+    // Cada categoria tem um rótulo (mostrado como badge na lista/legenda) e uma
+    // cor. CATEGORY_PRIORITY define qual cor "vence" no quadradinho do dia
+    // quando mais de uma categoria cai na mesma data (ex: feriado municipal e
+    // ponto facultativo da Fatec no mesmo dia).
+    const CATEGORIES = {
+      nacional:      { label: 'Feriado Nacional',         color: '#ef4444' },
+      estadual:      { label: 'Feriado Estadual (SP)',    color: '#f97316' },
+      saosebastiao:  { label: 'São Sebastião',            color: '#a855f7' },
+      ubatuba:       { label: 'Ubatuba',                  color: '#eab308' },
+      caraguatatuba: { label: 'Caraguatatuba',            color: '#06b6d4' },
+      ilhabela:      { label: 'Ilhabela',                 color: '#ec4899' },
+      fatec:         { label: 'Sem Aula (Fatec/Escolas)', color: '#22c55e' },
+      facultativo:   { label: 'Ponto Facultativo',        color: '#3b82f6' },
+      comemorativa:  { label: 'Data Comemorativa',        color: '#94a3b8' }
     };
-    
-    function toggleHolidays() {
-      const checkbox = document.getElementById('holiday-checkbox');
-      const card = document.getElementById('holidays-card');
-      if (checkbox.checked) {
-        card.classList.add('show');
-        updateHolidaysList();
-      } else {
-        card.classList.remove('show');
+    const CATEGORY_PRIORITY = ['nacional', 'estadual', 'saosebastiao', 'ubatuba', 'caraguatatuba', 'ilhabela', 'fatec', 'facultativo', 'comemorativa'];
+
+    const holidays = {
+      // Dia/mês fixo, repete em qualquer ano.
+      fixed: [
+        {day: 1, month: 1, name: 'Confraternização Universal', type: 'nacional', desc: 'Feriado nacional de Ano Novo.'},
+        {day: 20, month: 1, name: 'São Sebastião (Padroeiro)', type: 'saosebastiao', desc: 'Feriado municipal de São Sebastião-SP em homenagem ao padroeiro da cidade.'},
+        {day: 2, month: 2, name: "N. Sra. D'Ajuda e Bonsucesso (Padroeira)", type: 'ilhabela', desc: 'Feriado municipal de Ilhabela-SP em homenagem à padroeira da cidade.'},
+        {day: 3, month: 2, name: 'Aniversário de Ubatuba', type: 'ubatuba', desc: 'Feriado municipal pela fundação de Ubatuba-SP.'},
+        {day: 14, month: 2, name: "Valentine's Day", type: 'comemorativa', desc: 'Data comemorativa internacional - não é o Dia dos Namorados brasileiro (esse é 12/06).'},
+        {day: 8, month: 3, name: 'Dia Internacional da Mulher', type: 'comemorativa', desc: 'Data comemorativa, sem alteração de expediente.'},
+        {day: 20, month: 4, name: 'Aniversário de Caraguatatuba', type: 'caraguatatuba', desc: 'Feriado municipal pela emancipação político-administrativa de Caraguatatuba-SP em 20/04/1857 (Lei Municipal nº 871/1972).'},
+        {day: 21, month: 4, name: 'Tiradentes', type: 'nacional', desc: 'Feriado nacional em homenagem a Joaquim José da Silva Xavier.'},
+        {day: 1, month: 5, name: 'Dia do Trabalho', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 12, month: 6, name: 'Dia dos Namorados', type: 'comemorativa', desc: 'Data comemorativa brasileira, véspera do Dia de Santo Antônio.'},
+        {day: 24, month: 6, name: 'São João', type: 'comemorativa', desc: 'Data comemorativa das festas juninas.'},
+        {day: 9, month: 7, name: 'Revolução Constitucionalista', type: 'estadual', desc: 'Feriado estadual em São Paulo, em memória à Revolução de 1932.'},
+        {day: 7, month: 9, name: 'Independência do Brasil', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 12, month: 10, name: 'Nossa Senhora Aparecida', type: 'nacional', desc: 'Feriado nacional, padroeira do Brasil.'},
+        {day: 15, month: 10, name: 'Dia do Professor', type: 'fatec', desc: 'Dia não letivo em escolas e faculdades (Decreto Federal nº 52.682/1963).'},
+        {day: 28, month: 10, name: 'Dia do Servidor Público', type: 'facultativo', desc: 'Ponto facultativo tradicional no funcionalismo público, incluindo Fatec/Centro Paula Souza.'},
+        {day: 31, month: 10, name: 'Halloween', type: 'comemorativa', desc: 'Data comemorativa, sem alteração de expediente no Brasil.'},
+        {day: 2, month: 11, name: 'Finados', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 15, month: 11, name: 'Proclamação da República', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 20, month: 11, name: 'Consciência Negra', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 24, month: 12, name: 'Véspera de Natal', type: 'facultativo', desc: 'Ponto facultativo tradicional no funcionalismo público a partir do meio-dia.'},
+        {day: 25, month: 12, name: 'Natal', type: 'nacional', desc: 'Feriado nacional.'},
+        {day: 31, month: 12, name: 'Véspera de Ano Novo', type: 'facultativo', desc: 'Ponto facultativo tradicional no funcionalismo público.'}
+      ],
+
+      // Datas confirmadas só para anos específicos (decretos anuais, calendário
+      // acadêmico da Fatec, eleições...) - não dá pra calcular por fórmula
+      // porque dependem de decisão do governo/Fatec a cada ano. Só entram aqui
+      // anos com fonte oficial conferida; anos fora desta lista simplesmente não
+      // mostram esses extras (em vez de arriscar uma data inventada).
+      byYear: {
+        2026: [
+          {startDay: 14, startMonth: 2, endDay: 18, endMonth: 2, name: 'Recesso de Carnaval e Quarta de Cinzas', type: 'fatec', desc: 'Não haverá aula na Fatec (Calendário Acadêmico 2026 - CGESG/Centro Paula Souza): feriado e emenda de Carnaval e Quarta-feira de Cinzas.'},
+          {startDay: 3, startMonth: 4, endDay: 4, endMonth: 4, name: 'Emenda da Paixão de Cristo', type: 'fatec', desc: 'Não haverá aula na Fatec em 2026 (Calendário Acadêmico CGESG): feriado e emenda da Sexta-feira Santa.'},
+          {day: 20, month: 4, name: 'Emenda de Tiradentes (Fatec)', type: 'fatec', desc: 'Não haverá aula na Fatec em 2026 (Calendário Acadêmico CGESG): véspera de Tiradentes.'},
+          {day: 10, month: 7, name: 'Emenda da Revolução Constitucionalista', type: 'facultativo', desc: 'Ponto facultativo no funcionalismo estadual em 2026 (Decreto Estadual nº 70.273/2025).'},
+          {startDay: 10, startMonth: 7, endDay: 25, endMonth: 7, name: 'Recesso Escolar da Fatec', type: 'fatec', desc: 'Recesso entre os semestres letivos de 2026 (Calendário Acadêmico CGESG/Centro Paula Souza).'},
+          {startDay: 2, startMonth: 10, endDay: 4, endMonth: 10, name: 'Preparo e 1º turno das Eleições', type: 'fatec', desc: 'Fatec sem aula em 2026 para preparo do local de votação e 1º turno das Eleições Nacionais.'},
+          {startDay: 23, startMonth: 10, endDay: 25, endMonth: 10, name: 'Preparo e 2º turno das Eleições', type: 'fatec', desc: 'Fatec sem aula em 2026 para preparo do local de votação e 2º turno das Eleições Nacionais.'},
+          {startDay: 20, startMonth: 11, endDay: 21, endMonth: 11, name: 'Emenda da Consciência Negra', type: 'fatec', desc: 'Não haverá aula na Fatec em 2026 (Calendário Acadêmico CGESG): feriado e emenda da Consciência Negra.'}
+        ]
+      },
+
+      movable: function(year) {
+        const easter = this.getEaster(year);
+        const d = offset => new Date(easter.getTime() + offset * 86400000);
+        const mothersDay = this.getSecondSunday(year, 4); // Maio
+        const fathersDay = this.getSecondSunday(year, 7); // Agosto
+        return [
+          {date: d(-48), name: 'Carnaval (Segunda-feira)', type: 'facultativo', desc: 'Ponto facultativo tradicional, dois dias antes da Quarta-feira de Cinzas.'},
+          {date: d(-47), name: 'Carnaval (Terça-feira)', type: 'facultativo', desc: 'Ponto facultativo tradicional, véspera da Quarta-feira de Cinzas.'},
+          {date: d(-46), name: 'Quarta-feira de Cinzas', type: 'facultativo', desc: 'Ponto facultativo tradicional até o meio-dia, início da Quaresma.'},
+          {date: d(-2), name: 'Sexta-feira Santa', type: 'nacional', desc: 'Feriado nacional cristão, dois dias antes da Páscoa.'},
+          {date: d(0), name: 'Páscoa', type: 'comemorativa', desc: 'Data comemorativa cristã, sem alteração de expediente.'},
+          {date: d(60), name: 'Corpus Christi', type: 'facultativo', desc: 'Ponto facultativo tradicional, 60 dias após a Páscoa.'},
+          {date: mothersDay, name: 'Dia das Mães', type: 'comemorativa', desc: 'Data comemorativa, segundo domingo de maio.'},
+          {date: fathersDay, name: 'Dia dos Pais', type: 'comemorativa', desc: 'Data comemorativa, segundo domingo de agosto.'}
+        ];
+      },
+      getEaster: function(year) {
+        const f = Math.floor, G = year % 19, C = f(year / 100),
+              H = (C - f(C / 4) - f((8 * C + 13) / 25) + 19 * G + 15) % 30,
+              I = H - f(H / 28) * (1 - f(29 / (H + 1)) * f((21 - G) / 11)),
+              J = (year + f(year / 4) + I + 2 - C + f(C / 4)) % 7,
+              L = I - J, month = 3 + f((L + 40) / 44),
+              day = L + 28 - 31 * f(month / 4);
+        return new Date(year, month - 1, day);
+      },
+      getSecondSunday: function(year, month) {
+        const firstDay = new Date(year, month, 1);
+        const firstSunday = 1 + (7 - firstDay.getDay()) % 7;
+        return new Date(year, month, firstSunday + 7);
+      },
+
+      // Lista "humana" do ano inteiro: um item por evento (intervalos de vários
+      // dias, como o recesso da Fatec, aparecem como um item só com data de
+      // início e fim, não um item repetido por dia).
+      getAllForYear: function(year) {
+        const result = [];
+        this.fixed.forEach(h => {
+          result.push({date: new Date(year, h.month - 1, h.day), endDate: null, name: h.name, type: h.type, desc: h.desc});
+        });
+        this.movable(year).forEach(h => {
+          result.push({date: h.date, endDate: null, name: h.name, type: h.type, desc: h.desc});
+        });
+        (this.byYear[year] || []).forEach(h => {
+          if (h.startDay !== undefined) {
+            result.push({
+              date: new Date(year, h.startMonth - 1, h.startDay),
+              endDate: new Date(year, h.endMonth - 1, h.endDay),
+              name: h.name, type: h.type, desc: h.desc
+            });
+          } else {
+            result.push({date: new Date(year, h.month - 1, h.day), endDate: null, name: h.name, type: h.type, desc: h.desc});
+          }
+        });
+        result.sort((a, b) => a.date - b.date);
+        return result;
+      },
+      getForYear: function(year) {
+        return this.getAllForYear(year);
+      },
+      getForMonth: function(month, year) {
+        return this.getAllForYear(year).filter(h => {
+          if (h.endDate) return h.date.getMonth() <= month && h.endDate.getMonth() >= month;
+          return h.date.getMonth() === month;
+        });
+      },
+      // Pode haver mais de um evento no mesmo dia (ex: feriado municipal e
+      // ponto facultativo da Fatec juntos) - por isso sempre retorna uma lista.
+      getForDay: function(day, month, year) {
+        const target = new Date(year, month, day);
+        return this.getAllForYear(year).filter(h => {
+          if (h.endDate) return target >= h.date && target <= h.endDate;
+          return h.date.getFullYear() === target.getFullYear() && h.date.getMonth() === target.getMonth() && h.date.getDate() === target.getDate();
+        });
+      },
+      getPrimaryType: function(day, month, year) {
+        const items = this.getForDay(day, month, year);
+        if (items.length === 0) return null;
+        let best = items[0].type, bestRank = CATEGORY_PRIORITY.indexOf(best);
+        items.forEach(h => {
+          const rank = CATEGORY_PRIORITY.indexOf(h.type);
+          if (rank < bestRank) { bestRank = rank; best = h.type; }
+        });
+        return best;
       }
+    };
+
+    function formatDateLabel(h) {
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      if (h.endDate) {
+        if (h.date.getMonth() === h.endDate.getMonth()) {
+          return `${h.date.getDate()} a ${h.endDate.getDate()} de ${months[h.date.getMonth()]}`;
+        }
+        return `${h.date.getDate()} de ${months[h.date.getMonth()]} a ${h.endDate.getDate()} de ${months[h.endDate.getMonth()]}`;
+      }
+      return `${h.date.getDate()} de ${months[h.date.getMonth()]}`;
     }
-    
-    function updateHolidaysList() {
-      const list = document.getElementById('holidays-list');
-      const yearSpan = document.getElementById('holiday-year');
-      yearSpan.textContent = currentYear;
-      
-      const yearHolidays = holidays[currentYear] || [];
-      list.innerHTML = yearHolidays.map(h => `
-        <div class="holiday-item">
-          <div class="holiday-date">${h.date}/${currentYear}</div>
-          <div class="holiday-name">${h.name}</div>
-        </div>
-      `).join('');
+
+    function renderHolidayItem(h) {
+      const item = document.createElement('div');
+      item.className = 'holiday-item';
+      const cat = CATEGORIES[h.type];
+      item.style.setProperty('--cat-color', cat.color);
+      item.innerHTML = `
+        <div class="holiday-date">${formatDateLabel(h)}</div>
+        <div class="holiday-type">${cat.label}</div>
+        <div class="holiday-name">${h.name}</div>
+        <div class="holiday-desc">${h.desc}</div>
+      `;
+      return item;
     }
     
     function updateClock() {
@@ -5190,7 +6648,7 @@ TEMPO_HTML = """
     
     function addClockNumbers() {
       const clock = document.getElementById('analog-clock');
-      const radius = 120;
+      const radius = 105;
       for (let i = 1; i <= 12; i++) {
         const angle = (i * 30 - 90) * (Math.PI / 180);
         const x = 140 + radius * Math.cos(angle);
@@ -5245,8 +6703,31 @@ TEMPO_HTML = """
       for (let i = 1; i <= daysInMonth; i++) {
         const day = document.createElement('div');
         day.className = 'calendar-day';
+        const dayOfWeek = new Date(year, month, i).getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) day.classList.add('weekend');
+
+        const dayEvents = holidays.getForDay(i, month, year);
+        if (dayEvents.length > 0) {
+          const primary = holidays.getPrimaryType(i, month, year);
+          day.classList.add('holiday-' + primary);
+          // Se houver mais de uma categoria no mesmo dia, a cor de fundo mostra
+          // a de maior prioridade e um pontinho por baixo indica cada categoria
+          // extra - assim nenhuma informação fica escondida.
+          const extraTypes = [...new Set(dayEvents.map(h => h.type))].filter(t => t !== primary);
+          if (extraTypes.length > 0) {
+            const dots = document.createElement('div');
+            dots.className = 'day-dots';
+            extraTypes.forEach(t => {
+              const dot = document.createElement('div');
+              dot.className = 'dot';
+              dot.style.background = CATEGORIES[t].color;
+              dots.appendChild(dot);
+            });
+            day.appendChild(dots);
+          }
+        }
         if (i === today) day.classList.add('today');
-        day.textContent = i;
+        day.appendChild(document.createTextNode(i));
         grid.appendChild(day);
       }
       
@@ -5262,6 +6743,53 @@ TEMPO_HTML = """
       }
     }
     
+    function toggleHolidaysCard() {
+      const checkbox = document.getElementById('holiday-checkbox');
+      const card = document.getElementById('holidays-card');
+      if (checkbox.checked) {
+        card.classList.add('show');
+        if (viewMode === 'days') {
+          showHolidays();
+        } else if (viewMode === 'months') {
+          showYearHolidays();
+        }
+      } else {
+        card.classList.remove('show');
+      }
+    }
+    
+    function showHolidays() {
+      const holidaysList = holidays.getForMonth(currentMonth, currentYear);
+      const card = document.getElementById('holidays-card');
+      const list = document.getElementById('holidays-list');
+      const checkbox = document.getElementById('holiday-checkbox');
+
+      if (holidaysList.length === 0 || !checkbox.checked) {
+        card.classList.remove('show');
+        return;
+      }
+
+      card.classList.add('show');
+      list.innerHTML = '';
+      holidaysList.forEach(h => list.appendChild(renderHolidayItem(h)));
+    }
+
+    function showYearHolidays() {
+      const holidaysList = holidays.getForYear(currentYear);
+      const card = document.getElementById('holidays-card');
+      const list = document.getElementById('holidays-list');
+      const checkbox = document.getElementById('holiday-checkbox');
+
+      if (!checkbox.checked) {
+        card.classList.remove('show');
+        return;
+      }
+
+      card.classList.add('show');
+      list.innerHTML = '';
+      holidaysList.forEach(h => list.appendChild(renderHolidayItem(h)));
+    }
+    
     function navigate(delta) {
       if (viewMode === 'days') {
         currentMonth += delta;
@@ -5273,9 +6801,7 @@ TEMPO_HTML = """
         currentYear += delta * 10;
       }
       renderCalendar();
-      if (document.getElementById('holiday-checkbox').checked) {
-        updateHolidaysList();
-      }
+      checkHolidaysVisibility();
     }
     
     function toggleView() {
@@ -5283,12 +6809,30 @@ TEMPO_HTML = """
       else if (viewMode === 'months') viewMode = 'years';
       else viewMode = 'days';
       renderCalendar();
+      checkHolidaysVisibility();
+    }
+    
+    function checkHolidaysVisibility() {
+      const checkbox = document.getElementById('holiday-checkbox');
+      const card = document.getElementById('holidays-card');
+      if (checkbox.checked) {
+        card.classList.add('show');
+      } else {
+        card.classList.remove('show');
+      }
     }
     
     function renderCalendar() {
-      if (viewMode === 'days') generateCalendar();
-      else if (viewMode === 'months') generateMonthsView();
-      else generateYearsView();
+      if (viewMode === 'days') {
+        generateCalendar();
+        showHolidays();
+      } else if (viewMode === 'months') {
+        generateMonthsView();
+        showYearHolidays();
+      } else {
+        generateYearsView();
+        document.getElementById('holidays-card').classList.remove('show');
+      }
     }
     
     function generateMonthsView() {
@@ -5303,7 +6847,7 @@ TEMPO_HTML = """
         div.className = 'calendar-day selectable';
         if (i === now.getMonth() && currentYear === now.getFullYear()) div.classList.add('today');
         div.textContent = month;
-        div.onclick = () => { currentMonth = i; viewMode = 'days'; renderCalendar(); };
+        div.onclick = () => { currentMonth = i; viewMode = 'days'; renderCalendar(); checkHolidaysVisibility(); };
         grid.appendChild(div);
       });
     }
@@ -5322,7 +6866,7 @@ TEMPO_HTML = """
         if (i === -1 || i === 10) div.classList.add('other-month');
         if (year === now.getFullYear()) div.classList.add('today');
         div.textContent = year;
-        div.onclick = () => { currentYear = year; viewMode = 'months'; renderCalendar(); };
+        div.onclick = () => { currentYear = year; viewMode = 'months'; renderCalendar(); checkHolidaysVisibility(); };
         grid.appendChild(div);
       }
     }
@@ -5335,7 +6879,6 @@ TEMPO_HTML = """
 </body>
 </html>
 """
-
 PURPLEFLIX_HTML = """
 <!doctype html>
 <html lang="pt-br">
@@ -6574,7 +8117,7 @@ PDFS_MERGE_HTML = """<!doctype html>
     uploadArea.addEventListener('drop', (e) => {
       e.preventDefault();
       uploadArea.classList.remove('dragover');
-      const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.pdf'));
+      const files = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
       addFiles(files);
     });
     
@@ -9517,4 +11060,8 @@ def isolate_progress(task_id):
     return jsonify({'progress': 0, 'eta': 'Calculando...'})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # threaded=True: necessário para o polling de progresso (ex.: geração por
+    # IA do Matcha Effect) funcionar enquanto o trabalho pesado roda em thread
+    # de fundo — sem isso o servidor de desenvolvimento atende 1 requisição
+    # por vez e a aba trava esperando a geração terminar.
+    app.run(debug=True, threaded=True)

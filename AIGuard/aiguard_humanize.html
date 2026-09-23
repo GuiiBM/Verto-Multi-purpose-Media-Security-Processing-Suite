@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reescritor & Diff</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.2.0/diff.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(239, 68, 68, 0.4); color: #ef4444; transform: translateX(-6px); }
+    .back-button.locked { pointer-events: none; opacity: 0.4; }
+    .logo {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(135deg, #ef4444 0%, #8b5cf6 50%, #3b82f6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 32px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      max-width: 1450px; margin: 0 auto;
+    }
+    .top-row { display: grid; grid-template-columns: 1fr 220px; gap: 16px; margin-bottom: 8px; align-items: end; }
+    @media (max-width: 700px) { .top-row { grid-template-columns: 1fr; } }
+    .pane-label { font-size: 12px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .input-toolbar { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
+    .file-btn {
+      padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 11.5px; font-weight: 700;
+      background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .file-btn:hover { background: rgba(148, 163, 184, 0.2); }
+    input[type="file"] { display: none; }
+    .char-count { font-size: 11px; color: #64748b; margin-left: auto; }
+    textarea {
+      width: 100%; height: 200px; resize: vertical;
+      background: rgba(6, 10, 22, 0.8); color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 14px;
+      padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+    }
+    textarea:focus { outline: none; border-color: rgba(239, 68, 68, 0.4); }
+    select {
+      width: 100%; padding: 12px; border-radius: 10px; background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 13px; font-family: 'Inter', sans-serif;
+    }
+    button.action {
+      padding: 12px 24px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #ef4444, #8b5cf6);
+      color: white; transition: all 0.25s;
+    }
+    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.35); }
+    button.action:disabled { opacity: 0.6; cursor: not-allowed; }
+    .progress-wrap { margin-top: 14px; display: none; }
+    .progress-wrap.show { display: block; }
+    .progress-label { font-size: 11.5px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .progress-track { width: 100%; height: 8px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #ef4444, #8b5cf6); transition: width 0.15s ease; }
+    .history-row { display: flex; gap: 8px; margin: 20px 0; flex-wrap: wrap; align-items: center; }
+    .history-label { font-size: 12px; color: #94a3b8; margin-right: 4px; }
+    .history-chip {
+      padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer; font-size: 12.5px; font-weight: 600;
+    }
+    .history-chip.active { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
+    .history-chip.original { border-color: rgba(59, 130, 246, 0.3); color: #60a5fa; }
+    .view-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+    .toggle-btn {
+      padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer; font-size: 12px; font-weight: 600;
+    }
+    .toggle-btn.active { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
+    .result-wrap {
+      background: rgba(6, 10, 22, 0.8); border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 14px; overflow: auto; max-height: 560px;
+    }
+    .result-inline { padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.9; white-space: pre-wrap; word-break: break-word; }
+    .result-side { display: grid; grid-template-columns: 1fr 1fr; }
+    .result-col { padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.9; white-space: pre-wrap; word-break: break-word; }
+    .result-col.left { border-right: 1px solid rgba(148, 163, 184, 0.1); }
+    .diff-add { background: rgba(34, 197, 94, 0.22); color: #86efac; border-radius: 3px; }
+    .diff-del { background: rgba(239, 68, 68, 0.22); color: #fca5a5; border-radius: 3px; text-decoration: line-through; text-decoration-color: rgba(252,165,165,0.5); }
+    .btn-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .btn-secondary {
+      padding: 9px 16px; border-radius: 10px; cursor: pointer; font-size: 12.5px; font-weight: 700;
+      background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .empty-hint { padding: 40px; text-align: center; color: #64748b; font-size: 13px; }
+    .disclaimer { margin-top: 18px; font-size: 11.5px; color: #64748b; line-height: 1.6; background: rgba(148,163,184,0.06); border-radius: 10px; padding: 12px; }
+  </style>
+</head>
+<body>
+  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/aiguard'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">✍️ Reescritor & Diff</div>
+  <div class="tagline">Gera variações locais mantendo o sentido — sem limite de tamanho, com diff e histórico de iterações</div>
+
+  <div class="card">
+    <div class="top-row">
+      <div>
+        <div class="pane-label">Texto original</div>
+        <div class="input-toolbar">
+          <div class="file-btn" onclick="document.getElementById('file-input').click()">📁 Carregar arquivo (TXT/PDF/DOCX)</div>
+          <input type="file" id="file-input" accept=".txt,.pdf,.docx">
+          <span class="char-count" id="char-count"></span>
+        </div>
+        <textarea id="input" placeholder="Cole ou carregue o texto que deseja reescrever — sem limite de tamanho..." oninput="updateCharCount()"></textarea>
+      </div>
+      <div>
+        <div class="pane-label">Tom</div>
+        <select id="tone-select">
+          <option value="academico">Acadêmico</option>
+          <option value="casual">Casual</option>
+          <option value="corporativo">Corporativo</option>
+          <option value="direto">Direto</option>
+          <option value="criativo">Criativo</option>
+        </select>
+        <button class="action" id="generate-btn" style="width:100%; margin-top:10px;" onclick="generateVariation()">✍️ Gerar variação</button>
+        <div class="progress-wrap" id="progress-wrap">
+          <div class="progress-label"><span id="progress-stage">Reescrevendo...</span><span id="progress-pct">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-row" id="history-row"></div>
+
+    <div class="view-toggle">
+      <div class="toggle-btn active" data-view="side" onclick="setView('side')">Lado a lado</div>
+      <div class="toggle-btn" data-view="inline" onclick="setView('inline')">Inline</div>
+    </div>
+
+    <div class="result-wrap">
+      <div id="result"><div class="empty-hint">Gere uma variação para comparar com o original...</div></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="copySelected()">📋 Copiar versão selecionada</button>
+      <button class="btn-secondary" onclick="downloadSelected()">⬇️ Baixar .txt</button>
+      <button class="btn-secondary" onclick="clearHistory()">🗑️ Limpar histórico</button>
+    </div>
+
+    <div class="disclaimer">
+      Reescrita heurística baseada em substituição de vocabulário (com variação para não repetir sempre o mesmo
+      sinônimo), ajuste de tom e variação de estrutura de frases — roda 100% local, sem enviar texto para
+      nenhuma IA online, e sem limite de tamanho (textos longos são processados em lotes para não travar o
+      navegador). A qualidade é a de um assistente de estilo, não a de um modelo de linguagem completo.
+    </div>
+  </div>
+
+  <script>
+    let busy = false;
+
+    const GENERIC_SYNONYMS = {
+      'importante': ['relevante','fundamental','essencial','significativo','crucial'],
+      'grande': ['amplo','extenso','considerável','notável','expressivo'],
+      'pequeno': ['reduzido','modesto','limitado','discreto'],
+      'bom': ['positivo','favorável','adequado','satisfatório','sólido'],
+      'ruim': ['negativo','inadequado','problemático','insatisfatório'],
+      'mostra': ['demonstra','revela','evidencia','indica','aponta'],
+      'mostrar': ['demonstrar','revelar','evidenciar','apontar'],
+      'usar': ['utilizar','empregar','aplicar','recorrer a'],
+      'usa': ['utiliza','emprega','aplica','recorre a'],
+      'fazer': ['realizar','executar','efetuar','conduzir'],
+      'faz': ['realiza','executa','efetua','conduz'],
+      'ajuda': ['auxilia','contribui para','colabora com','favorece'],
+      'ajudar': ['auxiliar','contribuir para','colaborar com'],
+      'muito': ['bastante','consideravelmente','extremamente','substancialmente'],
+      'também': ['ademais','igualmente','da mesma forma','do mesmo modo'],
+      'mas': ['contudo','entretanto','porém','ainda assim'],
+      'porque': ['visto que','uma vez que','dado que','já que'],
+      'assim': ['dessa forma','desse modo','logo','portanto'],
+      'problema': ['desafio','dificuldade','obstáculo','entrave'],
+      'ideia': ['conceito','noção','proposta','concepção'],
+      'pessoas': ['indivíduos','sujeitos','integrantes'],
+      'rápido': ['ágil','célere','veloz','acelerado'],
+      'começar': ['iniciar','dar início a','partir para'],
+      'terminar': ['concluir','finalizar','encerrar','fechar'],
+      'melhorar': ['aprimorar','otimizar','aperfeiçoar','elevar'],
+      'criar': ['desenvolver','elaborar','construir','conceber'],
+      'entender': ['compreender','assimilar','captar'],
+      'mudar': ['alterar','modificar','transformar','reformular'],
+      'usado': ['empregado','utilizado','aplicado'],
+      'necessário': ['preciso','indispensável','requerido'],
+      'permite': ['possibilita','viabiliza','habilita'],
+      'permitir': ['possibilitar','viabilizar','habilitar'],
+      'resultado': ['desfecho','resultante','saldo'],
+      'exemplo': ['caso','ilustração','amostra'],
+      'diferente': ['distinto','diverso','variado'],
+      'diversos': ['vários','múltiplos','numerosos'],
+      'principal': ['central','primordial','predominante'],
+      'atualmente': ['hoje em dia','no momento','presentemente'],
+      'geralmente': ['normalmente','habitualmente','em geral'],
+      'especialmente': ['sobretudo','particularmente','em especial'],
+      'aumentar': ['ampliar','elevar','expandir'],
+      'diminuir': ['reduzir','minimizar','atenuar'],
+      'claro': ['evidente','nítido','patente'],
+      'possível': ['viável','exequível','factível'],
+      'necessidade': ['exigência','demanda','carência'],
+      'objetivo': ['propósito','meta','finalidade'],
+      'situação': ['cenário','contexto','conjuntura'],
+      'oferecer': ['proporcionar','disponibilizar','fornecer'],
+      'garantir': ['assegurar','certificar','viabilizar'],
+      'considerar': ['avaliar','ponderar','levar em conta'],
+    };
+
+    const TONE_WORDS = {
+      academico: {
+        'acho': ['considera-se','observa-se','pressupõe-se'], 'acredito': ['pressupõe-se','entende-se'],
+        'a gente': ['nós'], 'pra': ['para'], 'tipo': ['tal como','a exemplo de'], 'bem': ['satisfatoriamente','de maneira adequada'],
+        'coisa': ['elemento','fator'], 'jeito': ['maneira','modo'], 'tá': ['está'], 'legal': ['pertinente','relevante']
+      },
+      casual: {
+        'entretanto': ['mas'], 'contudo': ['só que'], 'utilizar': ['usar'], 'realizar': ['fazer'],
+        'para': ['pra'], 'está': ['tá'], 'portanto': ['então'], 'consequentemente': ['por isso'],
+        'aproximadamente': ['mais ou menos'], 'adicionalmente': ['além disso']
+      },
+      corporativo: {
+        'fazer': ['entregar','executar'], 'ideia': ['proposta estratégica'], 'ajuda': ['agrega valor a'],
+        'problema': ['ponto de atenção'], 'melhorar': ['otimizar'], 'time': ['equipe'],
+        'plano': ['roadmap','plano de ação'], 'resultado': ['entregável','resultado estratégico'],
+        'meta': ['KPI','objetivo estratégico'], 'reunião': ['alinhamento']
+      },
+      direto: {
+        'bastante': [''], 'muito': [''], 'consideravelmente': [''], 'de certa forma': [''],
+        'em certa medida': [''], 'basicamente': [''], 'de maneira geral': [''], 'é importante destacar que': [''],
+        'vale ressaltar que': [''], 'cabe mencionar que': ['']
+      },
+      criativo: {
+        'grande': ['imenso','monumental','colossal'], 'rápido': ['num piscar de olhos','veloz como o vento'],
+        'bom': ['brilhante','notável','extraordinário'], 'ideia': ['centelha de ideia','faísca criativa'],
+        'começar': ['dar os primeiros passos rumo a'], 'problema': ['desafio a ser desvendado']
+      }
+    };
+
+    const TONE_STARTERS = {
+      academico: ['Nesse contexto, ', 'Sob essa perspectiva, ', 'Consoante o exposto, ', 'Ademais, ', 'Nessa linha de raciocínio, '],
+      casual: ['Olha, ', 'Então, ', 'Sabe, ', 'Bom, ', 'Pensa comigo: '],
+      corporativo: ['Nesse cenário, ', 'Do ponto de vista estratégico, ', 'Para entregar valor, ', 'Alinhando expectativas, '],
+      direto: ['Resumindo: ', 'Na prática, ', 'Em poucas palavras, ', 'Direto ao ponto: '],
+      criativo: ['Como um raio em céu limpo, ', 'Em um lampejo de inspiração, ', 'Feito um rio que encontra o mar, ', 'Tal qual um pincel sobre a tela, ']
+    };
+
+    let history = []; // { id, tone, text }
+    let selectedId = 'original';
+    let currentView = 'side';
+    let idCounter = 0;
+
+    const fileInput = document.getElementById('file-input');
+    const generateBtn = document.getElementById('generate-btn');
+    const backButton = document.getElementById('back-button');
+    const progressWrap = document.getElementById('progress-wrap');
+    const progressStage = document.getElementById('progress-stage');
+    const progressPct = document.getElementById('progress-pct');
+    const progressFill = document.getElementById('progress-fill');
+
+    function updateCharCount() {
+      const text = document.getElementById('input').value;
+      const words = (text.match(/\S+/g) || []).length;
+      document.getElementById('char-count').textContent = text ? `${words.toLocaleString()} palavras · ${text.length.toLocaleString()} caracteres` : '';
+    }
+
+    async function extractText(file) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'txt') return await file.text();
+      if (ext === 'pdf') {
+        if (pdfjsLib.GlobalWorkerOptions.workerSrc === '') {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(it => it.str).join(' ') + '\n';
+        }
+        return text;
+      }
+      if (ext === 'docx') {
+        const buf = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer: buf });
+        return result.value;
+      }
+      throw new Error('Formato não suportado');
+    }
+
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    fileInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        document.getElementById('input').value = await extractText(file);
+        updateCharCount();
+      } catch (err) {
+        alert('Erro ao ler arquivo: ' + err.message);
+      }
+    });
+
+    function splitSentences(text) {
+      return text.replace(/\n+/g, ' ').split(/(?<=[.!?])\s+(?=[A-ZÀ-Ú0-9])/g).map(s => s.trim()).filter(Boolean);
+    }
+
+    function shuffle(arr) {
+      const out = arr.slice();
+      for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [out[i], out[j]] = [out[j], out[i]];
+      }
+      return out;
+    }
+
+    // Picker com rotação: em vez de sortear o mesmo sinônimo repetidamente para uma
+    // palavra que aparece muitas vezes no texto, cicla por uma ordem embaralhada -
+    // reduz a chance de o texto reescrito parecer robótico por repetir sempre a
+    // mesma substituição.
+    function makePicker() {
+      const state = {};
+      return function pick(key, options) {
+        let st = state[key];
+        if (!st || st.order.length !== options.length) {
+          st = { order: shuffle(options.map((_, i) => i)), idx: 0 };
+          state[key] = st;
+        }
+        const chosen = options[st.order[st.idx % st.order.length]];
+        st.idx++;
+        return chosen;
+      };
+    }
+
+    function replaceWithCase(match, replacement) {
+      if (!replacement) return '';
+      if (match[0] === match[0].toUpperCase() && match[1] && match[1] === match[1].toLowerCase()) {
+        return replacement.charAt(0).toUpperCase() + replacement.slice(1);
+      }
+      if (match === match.toUpperCase()) return replacement.toUpperCase();
+      return replacement;
+    }
+
+    function applyDictionary(text, dict, chance, picker) {
+      let out = text;
+      Object.keys(dict).forEach(key => {
+        const options = dict[key];
+        const re = new RegExp('\\b' + key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+        out = out.replace(re, m => {
+          if (Math.random() > chance) return m;
+          return replaceWithCase(m, picker(key, options));
+        });
+      });
+      return out.replace(/\s{2,}/g, ' ').replace(/\s+([,.;:!?])/g, '$1');
+    }
+
+    function maybeSwapClause(sentence) {
+      const m = sentence.match(/^(.+?),\s*(mas|porém|contudo|entretanto)\s+(.+)$/i);
+      if (m && Math.random() < 0.25) {
+        const [, left, conj, right] = m;
+        const rightCap = right.charAt(0).toUpperCase() + right.slice(1);
+        const leftLower = left.charAt(0).toLowerCase() + left.slice(1);
+        return `${rightCap}, ${conj} ${leftLower}`;
+      }
+      return sentence;
+    }
+
+    // Frases muito longas com "e" coordenativo no meio são ocasionalmente quebradas
+    // em duas - reduz uniformidade estrutural e imita variação natural de escrita humana.
+    function maybeSplitLongSentence(sentence) {
+      const words = sentence.split(/\s+/);
+      if (words.length < 28) return [sentence];
+      const midIdx = Math.floor(words.length / 2);
+      for (let offset = 0; offset < 6; offset++) {
+        for (const idx of [midIdx + offset, midIdx - offset]) {
+          if (idx > 4 && idx < words.length - 4 && /^e$/i.test(words[idx])) {
+            if (Math.random() < 0.4) {
+              const left = words.slice(0, idx).join(' ').replace(/[,;]$/, '') + '.';
+              const rightWords = words.slice(idx + 1);
+              rightWords[0] = rightWords[0].charAt(0).toUpperCase() + rightWords[0].slice(1);
+              return [left, rightWords.join(' ')];
+            }
+            return [sentence];
+          }
+        }
+      }
+      return [sentence];
+    }
+
+    function rewriteSentence(s, tone, starters, picker) {
+      let out = applyDictionary(s, GENERIC_SYNONYMS, 0.55, picker);
+      out = applyDictionary(out, TONE_WORDS[tone] || {}, 0.7, picker);
+      out = maybeSwapClause(out);
+      if (starters.length && Math.random() < 0.22) {
+        const starter = starters[Math.floor(Math.random() * starters.length)];
+        out = starter + out.charAt(0).toLowerCase() + out.slice(1);
+      }
+      return maybeSplitLongSentence(out);
+    }
+
+    function setLocked(locked) {
+      busy = locked;
+      generateBtn.disabled = locked;
+      backButton.classList.toggle('locked', locked);
+    }
+    function tick() { return new Promise(r => setTimeout(r, 0)); }
+
+    async function generateVariation() {
+      if (busy) return;
+      const original = document.getElementById('input').value.trim();
+      if (!original) return;
+      const tone = document.getElementById('tone-select').value;
+
+      setLocked(true);
+      progressWrap.classList.add('show');
+      progressStage.textContent = 'Dividindo em frases...';
+      progressFill.style.width = '3%';
+      progressPct.textContent = '3%';
+      await tick();
+
+      const sentences = splitSentences(original);
+      const starters = TONE_STARTERS[tone] || [];
+      const picker = makePicker();
+      const outSentences = [];
+
+      const CHUNK = 200;
+      for (let start = 0; start < sentences.length; start += CHUNK) {
+        const end = Math.min(start + CHUNK, sentences.length);
+        for (let i = start; i < end; i++) {
+          outSentences.push(...rewriteSentence(sentences[i], tone, starters, picker));
+        }
+        const pct = 5 + Math.round((end / sentences.length) * 90);
+        progressStage.textContent = `Reescrevendo frase ${end.toLocaleString()} de ${sentences.length.toLocaleString()}...`;
+        progressFill.style.width = pct + '%';
+        progressPct.textContent = pct + '%';
+        if (end < sentences.length) await tick();
+      }
+
+      const text = outSentences.join(' ');
+      const id = 'v' + (idCounter++);
+      history.push({ id, tone, text });
+      if (history.length > 5) history.shift();
+      selectedId = id;
+
+      progressFill.style.width = '100%';
+      progressPct.textContent = '100%';
+      progressStage.textContent = 'Concluído!';
+      setTimeout(() => progressWrap.classList.remove('show'), 400);
+      setLocked(false);
+
+      renderHistory();
+      renderDiff();
+    }
+
+    function renderHistory() {
+      const row = document.getElementById('history-row');
+      let html = '<span class="history-label">Versões:</span>';
+      html += `<div class="history-chip original ${selectedId === 'original' ? 'active' : ''}" onclick="selectVersion('original')">Original</div>`;
+      history.forEach((h, i) => {
+        html += `<div class="history-chip ${selectedId === h.id ? 'active' : ''}" onclick="selectVersion('${h.id}')">v${i + 1} · ${h.tone}</div>`;
+      });
+      row.innerHTML = html;
+    }
+
+    function selectVersion(id) {
+      selectedId = id;
+      renderHistory();
+      renderDiff();
+    }
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function setView(v) {
+      currentView = v;
+      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+      renderDiff();
+    }
+
+    function getSelectedText() {
+      if (selectedId === 'original') return document.getElementById('input').value.trim();
+      const h = history.find(h => h.id === selectedId);
+      return h ? h.text : '';
+    }
+
+    function renderDiff() {
+      const original = document.getElementById('input').value.trim();
+      const resultEl = document.getElementById('result');
+      if (!original || !history.length) {
+        resultEl.innerHTML = '<div class="empty-hint">Gere uma variação para comparar com o original...</div>';
+        return;
+      }
+      const target = selectedId === 'original' ? original : getSelectedText();
+      const parts = Diff.diffWords(original, target);
+      if (currentView === 'inline') {
+        let html = '';
+        parts.forEach(p => {
+          const t = esc(p.value);
+          if (p.added) html += `<span class="diff-add">${t}</span>`;
+          else if (p.removed) html += `<span class="diff-del">${t}</span>`;
+          else html += t;
+        });
+        resultEl.innerHTML = `<div class="result-inline">${html}</div>`;
+      } else {
+        let left = '', right = '';
+        parts.forEach(p => {
+          const t = esc(p.value);
+          if (p.added) right += `<span class="diff-add">${t}</span>`;
+          else if (p.removed) left += `<span class="diff-del">${t}</span>`;
+          else { left += t; right += t; }
+        });
+        resultEl.innerHTML = `<div class="result-side"><div class="result-col left">${left}</div><div class="result-col">${right}</div></div>`;
+      }
+    }
+
+    function copySelected() {
+      const text = getSelectedText();
+      if (text) navigator.clipboard.writeText(text);
+    }
+    function downloadSelected() {
+      const text = getSelectedText();
+      if (!text) return;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'texto-reescrito.txt';
+      a.click();
+    }
+    function clearHistory() {
+      history = [];
+      selectedId = 'original';
+      renderHistory();
+      renderDiff();
+    }
+
+    renderHistory();
+  </script>
+</body>
+</html>

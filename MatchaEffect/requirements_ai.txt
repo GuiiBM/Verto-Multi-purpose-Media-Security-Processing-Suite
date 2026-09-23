@@ -1,0 +1,23 @@
+# Dependências opcionais do Efeito Matcha por IA (Stable Diffusion + ControlNet).
+# NÃO fazem parte da instalação padrão do Verto (INSTALAR.py) — instale apenas
+# se for usar as ferramentas "IA generativa real" do app Matcha Effect.
+#
+# Como instalar:
+#   pip install -r MatchaEffect/requirements_ai.txt
+#
+# Sem GPU NVIDIA, o PyTorch "padrão" (com suporte a CUDA) também funciona em
+# CPU, mas baixa muito mais dado do que precisa. Para uma instalação bem menor
+# e mais rápida numa máquina só-CPU, use antes:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+#
+# Aviso: são vários GB de download (pacotes + checkpoint do modelo, baixado
+# automaticamente do Hugging Face na primeira geração) e, sem GPU, cada
+# imagem pode levar alguns minutos para gerar.
+
+torch
+diffusers>=0.27
+transformers
+accelerate
+safetensors
+controlnet-aux
+opencv-python-headless

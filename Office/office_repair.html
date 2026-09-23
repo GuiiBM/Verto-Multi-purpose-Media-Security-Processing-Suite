@@ -69,6 +69,16 @@
     .repair-info-list { font-size: 12px; color: #94a3b8; line-height: 1.8; padding-left: 20px; }
     .repair-info-list li.stage-active { color: #fdba74; font-weight: 600; }
     .repair-info-list li.stage-done { color: #4ade80; }
+    .cleanup-option {
+      margin-top: 16px; padding: 14px 16px; background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px;
+      display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+    }
+    .cleanup-option input[type="checkbox"] {
+      display: block; width: 18px; height: 18px; margin-top: 2px; accent-color: #22c55e; cursor: pointer;
+    }
+    .cleanup-option-text { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+    .cleanup-option-text b { color: #4ade80; }
     button[type="submit"] {
       margin-top: 20px; width: 100%; padding: 14px; border: none; border-radius: 999px;
       font-size: 14px; font-weight: 700; cursor: pointer;
@@ -161,6 +171,16 @@
             <li data-stage="5"><strong>Nível 5:</strong> Recuperação bruta de texto e remontagem em um arquivo novo</li>
           </ul>
         </div>
+
+        <label class="cleanup-option" for="cleanup-columns">
+          <input type="checkbox" id="cleanup-columns" name="cleanup_columns">
+          <span class="cleanup-option-text">
+            <b>🧹 Limpar colunas vazias</b><br>
+            Se o arquivo for uma planilha Excel, remove colunas sem nenhum valor (inclusive as
+            que sobram "fantasmas" por formatação, deixando o arquivo com milhares de colunas
+            vazias). Deixa o arquivo menor e mais fácil de manter.
+          </span>
+        </label>
       </fieldset>
 
       <button type="submit" id="submit-btn">
@@ -312,6 +332,7 @@
 
       const fd = new FormData();
       fd.append('file', file);
+      fd.append('cleanup_columns', document.getElementById('cleanup-columns').checked ? '1' : '0');
 
       try {
         const res = await fetch('/office/repair', { method: 'POST', body: fd });

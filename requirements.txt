@@ -1,5 +1,6 @@
 Flask>=2.3.3
 yt-dlp>=2026.8.19
+yt-dlp-ejs>=0.8.0
 PyPDF2
 Pillow
 pillow-heif
@@ -24,3 +25,4 @@ soundfile
 python-docx
 python-pptx
 openpyxl
+secretstorage

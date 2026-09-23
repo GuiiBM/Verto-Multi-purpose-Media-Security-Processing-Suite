@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Studio</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(168, 85, 247, 0.4); color: #a855f7; transform: translateX(-6px); }
+    .logo {
+      font-size: 56px; font-weight: 900;
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #3b82f6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: 4px;
+      filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.5));
+      animation: glow-pulse 3s ease-in-out infinite;
+      text-align: center; margin-bottom: 10px;
+    }
+    @keyframes glow-pulse {
+      0%, 100% { filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.5)); }
+      50% { filter: drop-shadow(0 0 35px rgba(168, 85, 247, 0.75)); }
+    }
+    .tagline { color: #64748b; font-size: 15px; margin-bottom: 48px; text-align: center; font-weight: 500; }
+    .tools-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 20px; max-width: 700px; margin: 0 auto 40px;
+    }
+    @media (max-width: 640px) {
+      .tools-grid { grid-template-columns: 1fr; }
+    }
+    .tool-card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 20px; padding: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      cursor: pointer; transition: all 0.3s;
+    }
+    .tool-card:hover { border-color: rgba(168, 85, 247, 0.3); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(168, 85, 247, 0.2); }
+    .tool-icon { font-size: 44px; margin-bottom: 16px; }
+    .tool-title { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }
+    .tool-desc { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+    .formats-note {
+      max-width: 950px; margin: 0 auto; background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(148, 163, 184, 0.08); border-radius: 16px;
+      padding: 20px 24px; font-size: 13px; color: #94a3b8; line-height: 1.8;
+    }
+    .formats-note b { color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">Image Studio</div>
+  <div class="tagline">Redimensionamento e otimização em massa — processamento 100% no navegador</div>
+
+  <div class="tools-grid">
+    <div class="tool-card" onclick="window.location.href='/imagestudio/solo'">
+      <div class="tool-icon">🖼️</div>
+      <div class="tool-title">Editor Individual</div>
+      <div class="tool-desc">Corte manual com arrasto, filtros e marca d'água em uma imagem por vez — comparação antes/depois e download direto, sem ZIP</div>
+    </div>
+    <div class="tool-card" onclick="window.location.href='/imagestudio/resize'">
+      <div class="tool-icon">✂️</div>
+      <div class="tool-title">Crop & Resize</div>
+      <div class="tool-desc">Proporções prontas (16:9, 1:1, 4:3) ou dimensões exatas — alterne entre lote (até 100 → ZIP) e individual (1 imagem → download direto)</div>
+    </div>
+    <div class="tool-card" onclick="window.location.href='/imagestudio/filters'">
+      <div class="tool-icon">🎨</div>
+      <div class="tool-title">Filtros & Marca d'Água</div>
+      <div class="tool-desc">Brilho, contraste, saturação, nitidez e marca d'água — alterne entre lote (até 100 → ZIP) e individual (1 imagem → download direto)</div>
+    </div>
+    <div class="tool-card" onclick="window.location.href='/imagestudio/favicon'">
+      <div class="tool-icon">🔖</div>
+      <div class="tool-title">Gerador de Favicon</div>
+      <div class="tool-desc">Transforme uma imagem em todos os tamanhos de ícone para web e apps (ico, 16 a 512px)</div>
+    </div>
+  </div>
+
+  <div class="formats-note">
+    <b>100% local:</b> as imagens são processadas com Canvas diretamente no seu navegador e nunca saem da sua
+    máquina. O download acontece em ZIP para lotes ou arquivo único quando aplicável.
+  </div>
+</body>
+</html>

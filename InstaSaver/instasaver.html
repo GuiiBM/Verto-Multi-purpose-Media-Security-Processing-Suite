@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InstaSaver</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --ig: linear-gradient(135deg, #f58529 0%, #dd2a7b 45%, #8134af 75%, #515bd4 100%);
+      --card: rgba(15, 23, 42, 0.45);
+      --line: rgba(148, 163, 184, 0.1);
+      --muted: #94a3b8;
+      --pink: #ec4899;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(221, 42, 123, 0.09) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(129, 52, 175, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(245, 133, 41, 0.05) 0px, transparent 50%);
+      color: #e2e8f0; min-height: 100vh; padding: 100px 16px 60px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 50; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(236, 72, 153, 0.45); color: var(--pink); transform: translateX(-6px); }
+    .wrap { max-width: 1040px; margin: 0 auto; }
+    .logo {
+      font-size: 52px; font-weight: 900; text-align: center; letter-spacing: 1px;
+      background: var(--ig); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 25px rgba(221, 42, 123, 0.45));
+    }
+    .tagline { color: #64748b; font-size: 15px; margin: 8px 0 32px; text-align: center; font-weight: 500; }
+
+    .search {
+      display: flex; gap: 10px; background: var(--card); border: 1px solid var(--line);
+      border-radius: 20px; padding: 10px; backdrop-filter: blur(40px); max-width: 760px; margin: 0 auto;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .search:focus-within { border-color: rgba(236, 72, 153, 0.45); box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.08); }
+    .search input {
+      flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: #f8fafc;
+      font: 500 15px 'Inter', sans-serif; padding: 12px 14px;
+    }
+    .search input::placeholder { color: #475569; }
+    .btn {
+      border: 0; cursor: pointer; border-radius: 14px; font: 700 14px 'Inter', sans-serif;
+      padding: 12px 18px; color: #fff; background: var(--ig); transition: transform .15s, opacity .15s; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity: .5; cursor: default; transform: none; }
+    .btn.ghost { background: rgba(148, 163, 184, 0.1); color: #e2e8f0; border: 1px solid var(--line); }
+    .btn.ghost:hover { border-color: rgba(236, 72, 153, 0.4); }
+    .btn.sm { padding: 8px 12px; font-size: 13px; border-radius: 11px; }
+    .session { text-align: center; font-size: 12.5px; color: #64748b; margin-top: 12px; min-height: 18px; }
+    .session b { color: #34d399; font-weight: 600; }
+    .session.bad b { color: #f87171; }
+
+    .notice {
+      max-width: 760px; margin: 20px auto 0; padding: 14px 18px; border-radius: 14px; font-size: 14px; line-height: 1.6;
+      background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); color: #fecaca; display: none;
+    }
+    .notice.info { background: rgba(148, 163, 184, 0.07); border-color: var(--line); color: #cbd5e1; }
+
+    .loader { display: none; justify-content: center; margin: 48px 0; }
+    .spinner { width: 42px; height: 42px; border-radius: 50%; border: 3px solid rgba(236, 72, 153, 0.15); border-top-color: var(--pink); animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Perfil */
+    #result { display: none; margin-top: 36px; }
+    .profile {
+      display: flex; gap: 24px; align-items: center; background: var(--card); border: 1px solid var(--line);
+      border-radius: 24px; padding: 24px; backdrop-filter: blur(40px);
+    }
+    .avatar-ring { padding: 3px; border-radius: 50%; background: var(--ig); flex-shrink: 0; }
+    .avatar-ring img { display: block; width: 96px; height: 96px; border-radius: 50%; border: 3px solid #0a0f1e; object-fit: cover; background: #1e293b; }
+    .avatar-ring.no-story { background: rgba(148, 163, 184, 0.25); }
+    .p-info { flex: 1; min-width: 0; }
+    .p-user { font-size: 22px; font-weight: 800; color: #f8fafc; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .verified { width: 18px; height: 18px; }
+    .p-name { color: #cbd5e1; font-weight: 600; margin-top: 2px; }
+    .p-stats { display: flex; gap: 20px; margin: 10px 0; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
+    .p-stats b { color: #f8fafc; }
+    .p-bio { font-size: 14px; color: #cbd5e1; white-space: pre-line; line-height: 1.5; max-height: 4.5em; overflow: hidden; }
+    .p-actions { display: flex; flex-direction: column; gap: 8px; }
+    .tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.14); color: #cbd5e1; }
+
+    /* Abas */
+    .tabs { display: flex; gap: 6px; margin: 28px 0 18px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+    .tab {
+      background: none; border: 0; color: var(--muted); font: 700 14px 'Inter', sans-serif; padding: 12px 16px; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+    }
+    .tab .count { font-weight: 600; color: #64748b; margin-left: 4px; }
+    .tab.active { color: #f8fafc; border-image: var(--ig) 1; border-bottom-width: 2px; border-bottom-style: solid; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+    .panel-head h3 { font-size: 15px; color: #cbd5e1; font-weight: 700; }
+    .empty { color: #64748b; text-align: center; padding: 48px 12px; font-size: 14px; }
+    .section-error { color: #fca5a5; font-size: 13px; margin-bottom: 12px; }
+
+    /* Destaques */
+    .hl-row { display: flex; gap: 18px; overflow-x: auto; padding: 4px 2px 14px; margin-bottom: 10px; }
+    .hl { flex-shrink: 0; width: 84px; text-align: center; cursor: pointer; background: none; border: 0; color: inherit; font-family: inherit; }
+    .hl .ring { padding: 3px; border-radius: 50%; background: rgba(148, 163, 184, 0.25); transition: background .2s; }
+    .hl.active .ring, .hl:hover .ring { background: var(--ig); }
+    .hl img { display: block; width: 72px; height: 72px; border-radius: 50%; border: 3px solid #0a0f1e; object-fit: cover; background: #1e293b; }
+    .hl span { display: block; font-size: 12px; margin-top: 6px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Grade */
+    .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    .grid.tall { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .card {
+      position: relative; border-radius: 14px; overflow: hidden; background: #111827; cursor: pointer;
+      aspect-ratio: 1 / 1; border: 1px solid var(--line);
+    }
+    .grid.tall .card { aspect-ratio: 9 / 16; }
+    .card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
+    .card:hover img { transform: scale(1.04); }
+    .card .badges { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; }
+    .badge {
+      background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); color: #fff; font-size: 11px; font-weight: 700;
+      padding: 4px 7px; border-radius: 8px; display: flex; align-items: center; gap: 4px;
+    }
+    .card .dl {
+      position: absolute; bottom: 8px; right: 8px; width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); color: #fff; display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .2s, background .2s; text-decoration: none;
+    }
+    .card:hover .dl { opacity: 1; }
+    .card .dl:hover { background: #dd2a7b; }
+    .card .meta {
+      position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 10px 10px; font-size: 11.5px; color: #e2e8f0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.75)); display: flex; gap: 10px; pointer-events: none;
+    }
+    .card.focus { outline: 2px solid var(--pink); outline-offset: 2px; }
+    @media (hover: none) { .card .dl { opacity: 1; } }
+    .more { display: flex; justify-content: center; margin-top: 20px; }
+
+    /* Visualizador */
+    .viewer {
+      position: fixed; inset: 0; background: rgba(2, 6, 23, 0.94); backdrop-filter: blur(10px); z-index: 100;
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .viewer.open { display: flex; }
+    .v-box { display: flex; gap: 20px; max-width: 1100px; width: 100%; max-height: 100%; align-items: stretch; }
+    .v-media { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; min-height: 0; min-width: 0; }
+    .v-media img, .v-media video { max-width: 100%; max-height: calc(100vh - 80px); border-radius: 14px; display: block; background: #000; }
+    .v-side {
+      width: 300px; flex-shrink: 0; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px;
+      display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 80px); overflow: auto;
+    }
+    .v-side .cap { font-size: 13.5px; line-height: 1.55; color: #cbd5e1; white-space: pre-line; word-break: break-word; }
+    .v-side .when { font-size: 12px; color: #64748b; }
+    .v-side .stats { display: flex; gap: 14px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+    .v-close, .v-nav {
+      position: fixed; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--line); color: #e2e8f0; cursor: pointer;
+      width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; z-index: 101; font-size: 22px;
+    }
+    .v-close { top: 20px; right: 20px; }
+    .v-nav.prev { left: 20px; top: 50%; transform: translateY(-50%); }
+    .v-nav.next { right: 20px; top: 50%; transform: translateY(-50%); }
+    .v-nav:hover, .v-close:hover { border-color: rgba(236, 72, 153, 0.45); color: var(--pink); }
+    .dots { position: absolute; bottom: -22px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; }
+    .dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(148, 163, 184, 0.35); }
+    .dots i.on { background: var(--pink); }
+    .c-nav {
+      position: absolute; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.85); color: #0f172a; border: 0; cursor: pointer; font-size: 18px; font-weight: 800;
+    }
+    .c-nav.l { left: 10px; } .c-nav.r { right: 10px; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0;
+      background: #0f172a; border: 1px solid var(--line); color: #e2e8f0; padding: 12px 18px; border-radius: 12px;
+      font-size: 14px; transition: all .25s; z-index: 200; pointer-events: none; max-width: calc(100% - 32px);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 760px) {
+      body { padding-top: 92px; }
+      .logo { font-size: 40px; }
+      .profile { flex-direction: column; text-align: center; }
+      .p-user, .p-stats { justify-content: center; }
+      .p-actions { flex-direction: row; justify-content: center; flex-wrap: wrap; }
+      .grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+      .grid.tall { grid-template-columns: repeat(3, 1fr); }
+      .card { border-radius: 6px; }
+      .card .meta { display: none; }
+      .v-box { flex-direction: column; overflow: auto; }
+      .v-side { width: 100%; max-height: none; }
+      .v-media img, .v-media video { max-height: 65vh; }
+      .v-nav { top: auto; bottom: 20px; transform: none; }
+      .search .btn span { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'" title="Voltar">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+
+  <div class="wrap">
+    <div class="logo">InstaSaver</div>
+    <div class="tagline">Cole o link de um story, destaque, post ou perfil — o resto é automático</div>
+
+    <form class="search" id="form" autocomplete="off">
+      <input id="link" type="text" placeholder="https://www.instagram.com/stories/usuario/..." aria-label="Link do Instagram">
+      <button type="button" class="btn ghost" id="pasteBtn" title="Colar e buscar">📋 <span>Colar</span></button>
+      <button type="submit" class="btn" id="goBtn">Buscar</button>
+    </form>
+    <div class="session" id="session"></div>
+    <div class="notice" id="notice"></div>
+
+    <div class="loader" id="loader"><div class="spinner"></div></div>
+
+    <div id="result">
+      <div class="profile">
+        <div class="avatar-ring" id="avatarRing"><img id="pAvatar" alt=""></div>
+        <div class="p-info">
+          <div class="p-user"><span id="pUser"></span><span id="pBadges"></span></div>
+          <div class="p-name" id="pName"></div>
+          <div class="p-stats" id="pStats"></div>
+          <div class="p-bio" id="pBio"></div>
+        </div>
+        <div class="p-actions">
+          <a class="btn ghost sm" id="pOpen" target="_blank" rel="noopener">Abrir no Instagram ↗</a>
+          <a class="btn ghost sm" id="pAvatarDl">Baixar foto de perfil</a>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" data-tab="stories">Stories<span class="count" id="cStories"></span></button>
+        <button class="tab" data-tab="highlights">Destaques<span class="count" id="cHighlights"></span></button>
+        <button class="tab" data-tab="posts">Posts<span class="count" id="cPosts"></span></button>
+      </div>
+
+      <section class="panel" id="panel-stories">
+        <div class="panel-head">
+          <h3>Stories das últimas 24h</h3>
+          <button class="btn sm" data-zip="stories">⬇ Baixar todos (.zip)</button>
+        </div>
+        <div class="section-error" id="err-stories"></div>
+        <div class="grid tall" id="gridStories"></div>
+      </section>
+
+      <section class="panel" id="panel-highlights">
+        <div class="section-error" id="err-highlights"></div>
+        <div class="hl-row" id="hlRow"></div>
+        <div class="panel-head" id="hlHead" style="display:none">
+          <h3 id="hlTitle"></h3>
+          <button class="btn sm" data-zip="highlight">⬇ Baixar destaque (.zip)</button>
+        </div>
+        <div class="grid tall" id="gridHighlight"></div>
+      </section>
+
+      <section class="panel" id="panel-posts">
+        <div class="panel-head">
+          <h3 id="postsTitle">Posts e reels</h3>
+          <button class="btn sm" data-zip="posts">⬇ Baixar carregados (.zip)</button>
+        </div>
+        <div class="section-error" id="err-posts"></div>
+        <div class="grid" id="gridPosts"></div>
+        <div class="more"><button class="btn ghost" id="moreBtn" style="display:none">Carregar mais</button></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="viewer" id="viewer">
+    <button class="v-close" id="vClose" title="Fechar (Esc)">✕</button>
+    <button class="v-nav prev" id="vPrev" title="Anterior (←)">‹</button>
+    <button class="v-nav next" id="vNext" title="Próximo (→)">›</button>
+    <div class="v-box">
+      <div class="v-media" id="vMedia"></div>
+      <aside class="v-side" id="vSide"></aside>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const state = { profile: null, stories: [], highlights: [], hlCache: new Map(), hlCurrent: null,
+                  posts: [], nextMaxId: null, loadingMore: false };
+  let viewer = null;  // { list, index, sub }
+
+  // ---------- utilidades ----------
+  const proxied = url => '/instasaver/media?url=' + encodeURIComponent(url);
+  const dlHref = m => proxied(m.url) + '&dl=1&name=' + encodeURIComponent(m.filename);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const fmtNum = n => n == null ? '—' : Intl.NumberFormat('pt-BR', { notation: n >= 10000 ? 'compact' : 'standard' }).format(n);
+  const fmtDate = ts => ts ? new Date(ts * 1000).toLocaleString('pt-BR', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+  const fmtDur = s => s ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}` : '';
+  const ago = ts => {
+    const h = (Date.now() / 1000 - ts) / 3600;
+    return h < 1 ? `${Math.max(1, Math.round(h * 60))} min` : `${Math.round(h)} h`;
+  };
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 3200);
+  }
+  function notice(msg, info) {
+    const n = $('notice'); n.style.display = msg ? 'block' : 'none';
+    n.className = 'notice' + (info ? ' info' : ''); n.textContent = msg || '';
+  }
+  const ICON_DL = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  // ---------- sessão ----------
+  fetch('/instasaver/status').then(r => r.json()).then(s => {
+    const el = $('session');
+    if (s.logged_in) el.innerHTML = `Sessão do Instagram: <b>● ${esc(s.source)}</b>`;
+    else { el.classList.add('bad'); el.innerHTML = `<b>● sem sessão</b> — ${esc(s.error)}`; }
+  }).catch(() => {});
+
+  // ---------- busca ----------
+  $('form').addEventListener('submit', e => { e.preventDefault(); resolve($('link').value); });
+  $('link').addEventListener('paste', () => setTimeout(() => resolve($('link').value), 0));
+  $('pasteBtn').addEventListener('click', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      $('link').value = text.trim(); resolve(text);
+    } catch { $('link').focus(); toast('Use Ctrl+V no campo — o navegador bloqueou a leitura da área de transferência.'); }
+  });
+
+  async function resolve(link) {
+    link = (link || '').trim();
+    if (!link) return;
+    if (resolve.busy === link) return;
+    resolve.busy = link;
+    notice(''); $('result').style.display = 'none'; $('loader').style.display = 'flex'; $('goBtn').disabled = true;
+    try {
+      const res = await fetch('/instasaver/resolve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ link }) });
+      const data = await res.json();
+      if (!data.success) { notice(data.error); return; }
+      render(data);
+      const u = new URL(location.href); u.searchParams.set('link', link); history.replaceState(null, '', u);
+    } catch (err) {
+      notice('Não consegui falar com o servidor local do Verto.');
+    } finally {
+      resolve.busy = null; $('loader').style.display = 'none'; $('goBtn').disabled = false;
+    }
+  }
+
+  // ---------- render ----------
+  function render(data) {
+    const p = state.profile = data.profile;
+    state.stories = data.stories || [];
+    state.highlights = data.highlights || [];
+    state.hlCache.clear(); state.hlCurrent = null;
+    state.posts = (data.posts && data.posts.items) || [];
+    state.nextMaxId = data.posts && data.posts.next_max_id;
+
+    $('pAvatar').src = p.profile_pic ? proxied(p.profile_pic) : '';
+    $('avatarRing').classList.toggle('no-story', !state.stories.length);
+    $('pUser').textContent = '@' + p.username;
+    $('pBadges').innerHTML =
+      (p.is_verified ? '<svg class="verified" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#3b82f6"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') +
+      (p.is_private ? ' <span class="tag">🔒 Privado</span>' : '');
+    $('pName').textContent = p.full_name || '';
+    $('pStats').innerHTML = [
+      p.posts_count != null ? `<span><b>${fmtNum(p.posts_count)}</b> posts</span>` : '',
+      p.followers != null ? `<span><b>${fmtNum(p.followers)}</b> seguidores</span>` : '',
+      p.following != null ? `<span><b>${fmtNum(p.following)}</b> seguindo</span>` : '',
+    ].join('');
+    $('pBio').textContent = p.biography || '';
+    $('pOpen').href = `https://www.instagram.com/${encodeURIComponent(p.username)}/`;
+    if (p.profile_pic) { $('pAvatarDl').style.display = ''; $('pAvatarDl').href = dlHref({ url: p.profile_pic, filename: `${p.username}_perfil.jpg` }); }
+    else $('pAvatarDl').style.display = 'none';
+
+    for (const k of ['stories', 'highlights', 'posts']) $('err-' + k).textContent = (data.errors || {})[k] || '';
+    if (data.locked) notice(`@${p.username} é um perfil privado que sua conta não segue — o Instagram não libera o conteúdo.`, true);
+
+    $('cStories').textContent = state.stories.length;
+    $('cHighlights').textContent = state.highlights.length;
+    renderStories(); renderHighlightTray(); renderPosts();
+    $('gridHighlight').innerHTML = ''; $('hlHead').style.display = 'none';
+    $('result').style.display = 'block';
+
+    // Abre direto no que o link apontava.
+    const f = data.focus || {};
+    if (f.kind === 'highlight' && f.highlight) {
+      state.hlCache.set(f.highlight.id, f.highlight);
+      if (!state.highlights.some(h => h.id === f.highlight.id))
+        state.highlights.unshift({ id: f.highlight.id, title: f.highlight.title, cover: f.highlight.items[0]?.thumb, count: f.highlight.items.length });
+      renderHighlightTray(); switchTab('highlights'); openHighlight(f.highlight.id);
+    } else if (f.kind === 'post' && f.post) {
+      switchTab('posts');
+      let i = state.posts.findIndex(x => x.id === f.post.id);
+      if (i < 0) { state.posts.unshift(f.post); renderPosts(); i = 0; }
+      markFocus('gridPosts', i); openViewer(postList(), i);
+    } else if (f.kind === 'story') {
+      switchTab(state.stories.length ? 'stories' : (state.posts.length ? 'posts' : 'stories'));
+      if (!state.stories.length && !data.locked && !data.errors?.stories)
+        toast('Esse perfil não tem stories ativos agora — mostrando o resto do perfil.');
+      const i = f.story_pk ? state.stories.findIndex(s => s.id === f.story_pk) : -1;
+      if (i >= 0) { markFocus('gridStories', i); openViewer(storyList(state.stories), i); }
+    } else {
+      switchTab(state.stories.length ? 'stories' : 'posts');
+    }
+  }
+
+  function markFocus(gridId, i) {
+    const el = $(gridId).children[i];
+    if (el) { el.classList.add('focus'); el.scrollIntoView({ block: 'nearest' }); }
+  }
+
+  function card(m, { badges = '', meta = '', onOpen, dl }) {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `<img loading="lazy" src="${m.thumb ? proxied(m.thumb) : ''}" alt="">
+      <div class="badges">${badges}</div>
+      ${meta ? `<div class="meta">${meta}</div>` : ''}
+      ${dl ? `<a class="dl" href="${dl}" title="Baixar" download>${ICON_DL}</a>` : ''}`;
+    el.addEventListener('click', e => { if (!e.target.closest('.dl')) onOpen(); });
+    return el;
+  }
+
+  const storyList = items => items.map(m => ({ media: [m], kind: 'story', taken_at: m.taken_at }));
+  const postList = () => state.posts.map(p => ({ ...p, kind: 'post' }));
+
+  function renderStoryGrid(gridId, items) {
+    const grid = $(gridId); grid.innerHTML = '';
+    if (!items.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Nada por aqui.</div>'; return; }
+    items.forEach((m, i) => grid.appendChild(card(m, {
+      badges: m.type === 'video' ? `<span class="badge">▶ ${fmtDur(m.duration)}</span>` : '',
+      meta: gridId === 'gridStories' && m.taken_at ? `há ${ago(m.taken_at)}` : (m.taken_at ? new Date(m.taken_at * 1000).toLocaleDateString('pt-BR') : ''),
+      dl: dlHref(m), onOpen: () => openViewer(storyList(items), i),
+    })));
+  }
+  const renderStories = () => renderStoryGrid('gridStories', state.stories);
+
+  function renderHighlightTray() {
+    const row = $('hlRow'); row.innerHTML = '';
+    if (!state.highlights.length) { row.innerHTML = '<div class="empty" style="width:100%">Nenhum destaque.</div>'; return; }
+    for (const h of state.highlights) {
+      const b = document.createElement('button');
+      b.className = 'hl' + (state.hlCurrent === h.id ? ' active' : ''); b.dataset.id = h.id;
+      b.innerHTML = `<div class="ring"><img loading="lazy" src="${h.cover ? proxied(h.cover) : ''}" alt=""></div><span>${esc(h.title || 'Destaque')}</span>`;
+      b.addEventListener('click', () => openHighlight(h.id));
+      row.appendChild(b);
+    }
+  }
+
+  async function openHighlight(id) {
+    state.hlCurrent = id;
+    document.querySelectorAll('.hl').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+    let hl = state.hlCache.get(id);
+    if (!hl) {
+      $('gridHighlight').innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>';
+      try {
+        const data = await (await fetch('/instasaver/highlight/' + encodeURIComponent(id))).json();
+        if (!data.success) throw new Error(data.error);
+        hl = data.highlight; state.hlCache.set(id, hl);
+      } catch (err) {
+        $('gridHighlight').innerHTML = `<div class="empty" style="grid-column:1/-1">${esc(err.message || 'Erro ao carregar destaque.')}</div>`;
+        return;
+      }
+    }
+    if (state.hlCurrent !== id) return;
+    $('hlHead').style.display = 'flex';
+    $('hlTitle').textContent = `${hl.title || 'Destaque'} · ${hl.items.length} itens`;
+    renderStoryGrid('gridHighlight', hl.items);
+  }
+
+  function renderPosts() {
+    const grid = $('gridPosts'); grid.innerHTML = '';
+    $('cPosts').textContent = state.posts.length ? state.posts.length + (state.nextMaxId ? '+' : '') : '0';
+    if (!state.posts.length) grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Nenhum post disponível.</div>';
+    state.posts.forEach((p, i) => {
+      const first = p.media[0] || {};
+      const badges = [
+        p.is_reel ? '<span class="badge">🎬 Reel</span>' : (first.type === 'video' ? '<span class="badge">▶</span>' : ''),
+        p.media.length > 1 ? `<span class="badge">❐ ${p.media.length}</span>` : '',
+      ].join('');
+      const meta = [p.like_count != null ? `♥ ${fmtNum(p.like_count)}` : '', p.comment_count != null ? `💬 ${fmtNum(p.comment_count)}` : '',
+                    p.play_count ? `▶ ${fmtNum(p.play_count)}` : ''].join(' ');
+      grid.appendChild(card({ thumb: p.thumb }, {
+        badges, meta, dl: p.media.length === 1 ? dlHref(first) : null, onOpen: () => openViewer(postList(), i),
+      }));
+    });
+    $('moreBtn').style.display = state.nextMaxId ? '' : 'none';
+    $('postsTitle').textContent = `Posts e reels${state.posts.length ? ` · ${state.posts.length} carregados` : ''}`;
+  }
+
+  async function loadMore() {
+    if (!state.nextMaxId || state.loadingMore) return;
+    state.loadingMore = true; $('moreBtn').disabled = true; $('moreBtn').textContent = 'Carregando...';
+    try {
+      const q = new URLSearchParams({ username: state.profile.username, max_id: state.nextMaxId });
+      const data = await (await fetch('/instasaver/posts?' + q)).json();
+      if (!data.success) throw new Error(data.error);
+      const seen = new Set(state.posts.map(p => p.id));
+      state.posts.push(...data.items.filter(p => !seen.has(p.id)));
+      state.nextMaxId = data.next_max_id;
+      renderPosts();
+    } catch (err) { toast(err.message || 'Erro ao carregar mais posts.'); }
+    finally { state.loadingMore = false; $('moreBtn').disabled = false; $('moreBtn').textContent = 'Carregar mais'; }
+  }
+  $('moreBtn').addEventListener('click', loadMore);
+  new IntersectionObserver(es => { if (es[0].isIntersecting && $('panel-posts').classList.contains('active')) loadMore(); },
+                           { rootMargin: '400px' }).observe($('moreBtn'));
+
+  // ---------- abas ----------
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+    if (name === 'highlights' && !state.hlCurrent && state.highlights.length) openHighlight(state.highlights[0].id);
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+  // ---------- zip ----------
+  document.querySelectorAll('[data-zip]').forEach(b => b.addEventListener('click', async () => {
+    const kind = b.dataset.zip, u = state.profile.username;
+    let items, name;
+    if (kind === 'stories') { items = state.stories; name = `${u}_stories`; }
+    else if (kind === 'highlight') { const h = state.hlCache.get(state.hlCurrent); items = h ? h.items : []; name = `${u}_destaque_${h ? (h.title || h.id) : ''}`; }
+    else { items = state.posts.flatMap(p => p.media); name = `${u}_posts`; }
+    if (!items.length) return toast('Nada para baixar aqui.');
+    const label = b.textContent; b.disabled = true; b.textContent = `Preparando ${items.length} arquivos...`;
+    try {
+      const res = await fetch('/instasaver/zip', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, items: items.map(m => ({ url: m.url, filename: m.filename })) }) });
+      if (!res.ok) throw new Error();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(await res.blob()); a.download = name.replace(/[^\w.-]/g, '_') + '.zip';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    } catch { toast('Falha ao gerar o .zip — os links podem ter expirado, busque de novo.'); }
+    finally { b.disabled = false; b.textContent = label; }
+  }));
+
+  // ---------- visualizador ----------
+  function openViewer(list, index) { viewer = { list, index, sub: 0 }; $('viewer').classList.add('open'); document.body.style.overflow = 'hidden'; drawViewer(); }
+  function closeViewer() { $('vMedia').innerHTML = ''; $('viewer').classList.remove('open'); document.body.style.overflow = ''; viewer = null; }
+  function step(d) {
+    if (!viewer) return;
+    const entry = viewer.list[viewer.index];
+    const ns = viewer.sub + d;
+    if (ns >= 0 && ns < entry.media.length) viewer.sub = ns;           // navega dentro do carrossel primeiro
+    else {
+      const ni = viewer.index + d;
+      if (ni < 0 || ni >= viewer.list.length) return;
+      viewer.index = ni; viewer.sub = d > 0 ? 0 : viewer.list[ni].media.length - 1;
+    }
+    drawViewer();
+  }
+  function drawViewer() {
+    const entry = viewer.list[viewer.index], m = entry.media[viewer.sub];
+    const box = $('vMedia');
+    box.innerHTML = m.type === 'video'
+      ? `<video src="${proxied(m.url)}" poster="${m.thumb ? proxied(m.thumb) : ''}" controls autoplay playsinline></video>`
+      : `<img src="${proxied(m.url)}" alt="">`;
+    if (entry.media.length > 1) {
+      box.insertAdjacentHTML('beforeend',
+        (viewer.sub > 0 ? '<button class="c-nav l" data-d="-1">‹</button>' : '') +
+        (viewer.sub < entry.media.length - 1 ? '<button class="c-nav r" data-d="1">›</button>' : '') +
+        `<div class="dots">${entry.media.map((_, i) => `<i class="${i === viewer.sub ? 'on' : ''}"></i>`).join('')}</div>`);
+      box.querySelectorAll('.c-nav').forEach(b => b.addEventListener('click', () => {
+        viewer.sub += Number(b.dataset.d); drawViewer();
+      }));
+    }
+    const vid = box.querySelector('video');
+    if (vid && entry.kind === 'story') vid.addEventListener('ended', () => step(1));
+
+    const side = [];
+    side.push(`<div class="when">${esc(fmtDate(m.taken_at || entry.taken_at))} · ${viewer.index + 1} de ${viewer.list.length}</div>`);
+    if (entry.kind === 'post') {
+      side.push(`<div class="stats">${entry.like_count != null ? `<span>♥ ${fmtNum(entry.like_count)}</span>` : ''}${entry.comment_count != null ? `<span>💬 ${fmtNum(entry.comment_count)}</span>` : ''}${entry.play_count ? `<span>▶ ${fmtNum(entry.play_count)}</span>` : ''}</div>`);
+      if (entry.caption) side.push(`<div class="cap">${esc(entry.caption)}</div>`);
+    }
+    side.push(`<a class="btn" href="${dlHref(m)}" download>${ICON_DL} Baixar ${m.type === 'video' ? 'vídeo' : 'foto'}</a>`);
+    if (entry.media.length > 1) side.push(`<button class="btn ghost" id="vZipPost">⬇ Baixar as ${entry.media.length} mídias (.zip)</button>`);
+    if (entry.permalink) side.push(`<a class="btn ghost sm" href="${esc(entry.permalink)}" target="_blank" rel="noopener">Abrir post no Instagram ↗</a>`);
+    $('vSide').innerHTML = side.join('');
+    const zp = $('vZipPost');
+    if (zp) zp.addEventListener('click', async () => {
+      zp.disabled = true;
+      try {
+        const res = await fetch('/instasaver/zip', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: `${state.profile.username}_${entry.code || entry.id}`, items: entry.media.map(x => ({ url: x.url, filename: x.filename })) }) });
+        if (!res.ok) throw new Error();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(await res.blob());
+        a.download = `${state.profile.username}_${entry.code || entry.id}.zip`; a.click();
+      } catch { toast('Falha ao gerar o .zip.'); }
+      zp.disabled = false;
+    });
+    const last = viewer.index === viewer.list.length - 1 && viewer.sub === entry.media.length - 1;
+    $('vPrev').style.visibility = viewer.index === 0 && viewer.sub === 0 ? 'hidden' : 'visible';
+    $('vNext').style.visibility = last ? 'hidden' : 'visible';
+  }
+  $('vClose').addEventListener('click', closeViewer);
+  $('vPrev').addEventListener('click', () => step(-1));
+  $('vNext').addEventListener('click', () => step(1));
+  $('viewer').addEventListener('click', e => { if (e.target.id === 'viewer' || e.target.classList.contains('v-box')) closeViewer(); });
+  document.addEventListener('keydown', e => {
+    if (!viewer) return;
+    if (e.key === 'Escape') closeViewer();
+    else if (e.key === 'ArrowRight') step(1);
+    else if (e.key === 'ArrowLeft') step(-1);
+  });
+
+  // Link na URL (?link=...) busca sozinho ao abrir a página.
+  const initial = new URLSearchParams(location.search).get('link');
+  if (initial) { $('link').value = initial; resolve(initial); }
+})();
+</script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 > Processamento 100% local. Dados sensíveis nunca saem da máquina do usuário.
 
-Suíte de 17 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
+Suíte de 22 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
 
 ---
 
@@ -55,6 +55,11 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | 🧹**Clean Reader**    | Produtividade  | Extração de conteúdo + modo leitura                             |
 | 🎮**PurpleFlix**      | Streaming      | Player integrado                                                   |
 | ⏰**Tempo**           | Utilitário    | Relógio + calendário com feriados brasileiros                    |
+| 🧰**Dev/Data**        | Desenvolvimento | Beautifier/minifier, gerador de dados mock, conversor JSON/CSV/YAML/XML e encode/decode — tudo no navegador |
+| 🖌️**Image Studio**   | Mídia         | Editor individual (corte manual com arrasto, antes/depois, sem ZIP), crop & resize em massa, filtros/marca d'água em lote e gerador de favicon via Canvas |
+| 🔀**Text Clean & Diff** | Produtividade | Diff lado a lado/inline, sanitizador de texto (dedupe, ordenação, case) e contador estatístico |
+| 🔍**Capture & OCR**   | Captura        | OCR local via Tesseract.js e gravador de tela com exportação em WEBM/GIF |
+| 🛡️**AI Guard & Diff** | IA (heurística) | Detector heurístico de conteúdo de IA (sem limite de tamanho, upload de TXT/PDF/DOCX), reescritor com tom e diff, e verificador de plágio interno |
 | 📖**Instruções**    | Docs           | Documentação inline de todos os apps                             |
 
 ---
@@ -91,6 +96,17 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 - YOLOv8 para detecção de rostos, placas, documentos e 6 outros tipos
 - Aplica blur ou pixelização configurável sobre as regiões detectadas
 
+**Dev/Data, Image Studio, Text Clean & Diff, Capture & OCR, AI Guard & Diff**
+
+- Diferente das ferramentas de IA/binários acima, esses 5 apps rodam inteiramente no navegador (JavaScript puro) — o Flask apenas serve o HTML, sem rota de upload/processamento no backend
+- Image Studio usa Canvas para crop/resize/filtros em lote e monta o `.ico` multi-resolução manualmente (container ICO com PNGs embutidos), empacotando lotes em ZIP via JSZip
+- O **Editor Individual** do Image Studio (`/imagestudio/solo`) é o modo focado para uma imagem (ou algumas) por vez: seleção de corte arrastável com âncoras e trava de proporção, prévia com filtro CSS ao vivo, comparação antes/depois via canvas + slider, e download direto do arquivo único — sem gerar ZIP, diferente dos modos em lote
+- Capture & OCR roda o reconhecimento de texto via Tesseract.js (WebAssembly) e a gravação de tela via `getDisplayMedia`/`MediaRecorder`, convertendo para GIF com gif.js por amostragem de quadros
+- AI Guard é heurístico por design: o "detector de IA" combina burstiness (variação do tamanho das frases e das palavras), repetição de bigramas, repetição de aberturas de frase, diversidade de vocabulário e conectores típicos de LLM — não usa nenhum modelo de IA online e é rotulado como estimativa, não prova
+- O detector, o reescritor e o verificador de plágio do AI Guard não têm limite de tamanho de texto: aceitam upload de TXT/PDF/DOCX (via pdf.js/mammoth.js) além de colar texto, e processam em lotes assíncronos (`setTimeout`/progress bar) para não travar a aba em documentos grandes
+- O reescritor do AI Guard é baseado em dicionários de sinônimos por tom + variação de estrutura de frase, com um "picker" que roda as opções de sinônimo em vez de sortear sempre a mesma, reduzindo repetição em textos longos — não é um modelo de linguagem completo
+- O verificador de plágio interno usa shingling de n-gramas (Jaccard) para achar trechos duplicados entre o texto atual e documentos TXT/PDF/DOCX carregados localmente
+
 ---
 
 ## Instalação
@@ -114,8 +130,13 @@ http://localhost:5000
 ## Estrutura
 
 ```
-├── app.py                        # Flask app — 50+ rotas, 17 apps
+├── app.py                        # Flask app — 70+ rotas, 22 apps
 ├── Office/                       # Conversor e reparador de Word/Excel/PowerPoint
+├── DevData/                      # Beautifier/minifier, dados mock, conversor de formatos, encode/decode
+├── ImageStudio/                  # Crop & resize em massa, filtros/marca d'água, gerador de favicon
+├── TextClean/                    # Text diff, sanitizador e contador estatístico
+├── CaptureOCR/                   # OCR local (Tesseract.js) e gravador de tela/GIF
+├── AIGuard/                      # Detector heurístico de IA, reescritor/diff e plágio interno
 ├── executaveis/
 │   ├── INSTALAR.py               # Setup universal (Windows + Linux)
 │   ├── INICIAR.py                # Launcher universal

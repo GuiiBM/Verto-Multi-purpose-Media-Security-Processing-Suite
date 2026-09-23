@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Dados Mock</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(59, 130, 246, 0.4); color: #3b82f6; transform: translateX(-6px); }
+    .logo {
+      font-size: 44px; font-weight: 900;
+      background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 50%, #22c55e 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .layout { display: grid; grid-template-columns: 340px 1fr; gap: 20px; max-width: 1300px; margin: 0 auto; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+    }
+    h2 { font-size: 15px; color: #f8fafc; margin-bottom: 16px; }
+    .field-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .field-check {
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 10px; cursor: pointer; font-size: 13px; color: #cbd5e1;
+    }
+    .field-check input { width: 16px; height: 16px; accent-color: #3b82f6; }
+    label.small { display: block; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 8px; }
+    input[type="number"], input[type="text"], select {
+      width: 100%; padding: 10px 12px; border-radius: 10px; margin-bottom: 18px;
+      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #e2e8f0; font-family: 'Inter', sans-serif; font-size: 13px;
+    }
+    .format-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+    .format-tab {
+      flex: 1; text-align: center; padding: 10px; border-radius: 10px; cursor: pointer;
+      border: 1px solid rgba(148, 163, 184, 0.2); background: rgba(15, 23, 42, 0.6);
+      color: #94a3b8; font-size: 13px; font-weight: 700; transition: all 0.2s;
+    }
+    .format-tab.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+    button.action {
+      width: 100%; padding: 13px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white; transition: all 0.25s;
+    }
+    button.action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35); }
+    .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+    .btn-secondary {
+      flex: 1; padding: 11px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700;
+      background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .btn-secondary:hover { background: rgba(148, 163, 184, 0.2); }
+    .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .count-badge { font-size: 12px; color: #64748b; }
+    pre#output {
+      background: rgba(6, 10, 22, 0.8); border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 14px; padding: 16px; height: 560px; overflow: auto;
+      font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.7; color: #a5f3fc;
+      white-space: pre-wrap; word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/devdata'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🎲 Dados Mock</div>
+  <div class="tagline">Dados de teste sintéticos, gerados no navegador — nenhuma pessoa real envolvida</div>
+
+  <div class="layout">
+    <div class="card">
+      <h2>Campos</h2>
+      <div class="field-list">
+        <label class="field-check"><input type="checkbox" value="nome" checked> Nome completo</label>
+        <label class="field-check"><input type="checkbox" value="cpf" checked> CPF</label>
+        <label class="field-check"><input type="checkbox" value="email" checked> E-mail</label>
+        <label class="field-check"><input type="checkbox" value="telefone" checked> Telefone</label>
+        <label class="field-check"><input type="checkbox" value="endereco" checked> Endereço</label>
+        <label class="field-check"><input type="checkbox" value="cidade" checked> Cidade / UF</label>
+        <label class="field-check"><input type="checkbox" value="cep"> CEP</label>
+        <label class="field-check"><input type="checkbox" value="nascimento" checked> Data de nascimento</label>
+        <label class="field-check"><input type="checkbox" value="cadastro"> Data de cadastro</label>
+      </div>
+
+      <label class="small">Quantidade de registros</label>
+      <input type="number" id="qty" value="20" min="1" max="5000">
+
+      <label class="small">Formato de saída</label>
+      <div class="format-tabs">
+        <div class="format-tab active" data-fmt="json" onclick="setFormat('json')">JSON</div>
+        <div class="format-tab" data-fmt="csv" onclick="setFormat('csv')">CSV</div>
+        <div class="format-tab" data-fmt="sql" onclick="setFormat('sql')">SQL</div>
+      </div>
+
+      <div id="table-name-wrap" style="display:none;">
+        <label class="small">Nome da tabela (SQL)</label>
+        <input type="text" id="table-name" value="usuarios">
+      </div>
+
+      <button class="action" onclick="generate()">🎲 Gerar dados</button>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="copyOutput()">📋 Copiar</button>
+        <button class="btn-secondary" onclick="downloadOutput()">⬇️ Baixar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="preview-header">
+        <h2 style="margin:0;">Resultado</h2>
+        <span class="count-badge" id="count-badge"></span>
+      </div>
+      <pre id="output">Configure os campos e clique em "Gerar dados"...</pre>
+    </div>
+  </div>
+
+  <script>
+    let currentFormat = 'json';
+    let lastRows = [];
+
+    const FIRST_NAMES = ['Ana','Bruno','Carla','Diego','Elisa','Fábio','Gabriela','Heitor','Isabela','João','Karina','Lucas','Marina','Nicolas','Olívia','Pedro','Quésia','Rafael','Sabrina','Thiago','Vitória','Wesley','Yasmin','Zeca','Beatriz','Caio','Daniela','Eduardo','Fernanda','Gustavo'];
+    const LAST_NAMES = ['Silva','Souza','Oliveira','Santos','Pereira','Costa','Rodrigues','Almeida','Nascimento','Lima','Araújo','Fernandes','Carvalho','Gomes','Martins','Rocha','Ribeiro','Alves','Monteiro','Cardoso'];
+    const STREETS = ['Rua das Flores','Av. Brasil','Rua Sete de Setembro','Av. Paulista','Rua XV de Novembro','Rua das Palmeiras','Av. Getúlio Vargas','Rua São João','Alameda Santos','Rua Rio Branco'];
+    const NEIGHBORHOODS = ['Centro','Jardim América','Vila Nova','Boa Vista','Santa Cruz','Bela Vista','Cidade Nova','Jardim Europa'];
+    const CITIES = [['São Paulo','SP'],['Rio de Janeiro','RJ'],['Belo Horizonte','MG'],['Curitiba','PR'],['Porto Alegre','RS'],['Salvador','BA'],['Recife','PE'],['Fortaleza','CE'],['Brasília','DF'],['Campinas','SP']];
+    const EMAIL_DOMAINS = ['gmail.com','outlook.com','yahoo.com.br','hotmail.com','empresa.com.br'];
+
+    function rand(n) { return Math.floor(Math.random() * n); }
+    function pick(arr) { return arr[rand(arr.length)]; }
+    function pad(n, len) { return String(n).padStart(len, '0'); }
+
+    function generateCPF() {
+      const n = Array.from({ length: 9 }, () => rand(10));
+      const calcDigit = (arr) => {
+        let sum = 0, weight = arr.length + 1;
+        arr.forEach(d => { sum += d * weight; weight--; });
+        const r = sum % 11;
+        return r < 2 ? 0 : 11 - r;
+      };
+      const d1 = calcDigit(n);
+      const d2 = calcDigit([...n, d1]);
+      const digits = [...n, d1, d2];
+      return `${digits.slice(0,3).join('')}.${digits.slice(3,6).join('')}.${digits.slice(6,9).join('')}-${digits.slice(9).join('')}`;
+    }
+
+    function generatePhone() {
+      const ddd = pad(11 + rand(78), 2);
+      return `(${ddd}) 9${pad(rand(10000), 4)}-${pad(rand(10000), 4)}`;
+    }
+
+    function generateCEP() {
+      return `${pad(rand(100000), 5)}-${pad(rand(1000), 3)}`;
+    }
+
+    function randomDate(yearsBack, yearsForward) {
+      const now = new Date();
+      const start = new Date(now.getFullYear() - yearsBack, 0, 1).getTime();
+      const end = new Date(now.getFullYear() + yearsForward, 11, 31).getTime();
+      const d = new Date(start + Math.random() * (end - start));
+      return `${pad(d.getDate(),2)}/${pad(d.getMonth()+1,2)}/${d.getFullYear()}`;
+    }
+
+    function stripAccents(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+    function generateRow(fields) {
+      const first = pick(FIRST_NAMES);
+      const last = pick(LAST_NAMES);
+      const nome = `${first} ${last}`;
+      const [cidade, uf] = pick(CITIES);
+      const row = {};
+      if (fields.includes('nome')) row.nome = nome;
+      if (fields.includes('cpf')) row.cpf = generateCPF();
+      if (fields.includes('email')) row.email = `${stripAccents(first).toLowerCase()}.${stripAccents(last).toLowerCase()}${rand(100)}@${pick(EMAIL_DOMAINS)}`;
+      if (fields.includes('telefone')) row.telefone = generatePhone();
+      if (fields.includes('endereco')) row.endereco = `${pick(STREETS)}, ${1 + rand(2000)} - ${pick(NEIGHBORHOODS)}`;
+      if (fields.includes('cidade')) row.cidade_uf = `${cidade}/${uf}`;
+      if (fields.includes('cep')) row.cep = generateCEP();
+      if (fields.includes('nascimento')) row.data_nascimento = randomDate(70, -18);
+      if (fields.includes('cadastro')) row.data_cadastro = randomDate(5, 0);
+      return row;
+    }
+
+    function getSelectedFields() {
+      return Array.from(document.querySelectorAll('.field-check input:checked')).map(c => c.value);
+    }
+
+    function setFormat(fmt) {
+      currentFormat = fmt;
+      document.querySelectorAll('.format-tab').forEach(t => t.classList.toggle('active', t.dataset.fmt === fmt));
+      document.getElementById('table-name-wrap').style.display = fmt === 'sql' ? 'block' : 'none';
+    }
+
+    function toCSV(rows) {
+      if (!rows.length) return '';
+      const headers = Object.keys(rows[0]);
+      const escape = v => `"${String(v).replace(/"/g, '""')}"`;
+      const lines = [headers.join(',')];
+      rows.forEach(r => lines.push(headers.map(h => escape(r[h])).join(',')));
+      return lines.join('\n');
+    }
+
+    function toSQL(rows, table) {
+      if (!rows.length) return '';
+      const headers = Object.keys(rows[0]);
+      const escape = v => `'${String(v).replace(/'/g, "''")}'`;
+      const lines = [`CREATE TABLE ${table} (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  ${headers.map(h => h + ' VARCHAR(255)').join(',\n  ')}\n);\n`];
+      rows.forEach(r => {
+        lines.push(`INSERT INTO ${table} (${headers.join(', ')}) VALUES (${headers.map(h => escape(r[h])).join(', ')});`);
+      });
+      return lines.join('\n');
+    }
+
+    function generate() {
+      const fields = getSelectedFields();
+      let qty = parseInt(document.getElementById('qty').value, 10) || 1;
+      qty = Math.min(Math.max(qty, 1), 5000);
+      if (!fields.length) { document.getElementById('output').textContent = 'Selecione ao menos um campo.'; return; }
+
+      lastRows = Array.from({ length: qty }, () => generateRow(fields));
+
+      let out = '';
+      if (currentFormat === 'json') out = JSON.stringify(lastRows, null, 2);
+      else if (currentFormat === 'csv') out = toCSV(lastRows);
+      else out = toSQL(lastRows, (document.getElementById('table-name').value || 'usuarios').trim());
+
+      document.getElementById('output').textContent = out;
+      document.getElementById('count-badge').textContent = `${qty.toLocaleString()} registros`;
+    }
+
+    function copyOutput() {
+      const text = document.getElementById('output').textContent;
+      if (text) navigator.clipboard.writeText(text);
+    }
+
+    function downloadOutput() {
+      const text = document.getElementById('output').textContent;
+      if (!text || !lastRows.length) return;
+      const ext = { json: 'json', csv: 'csv', sql: 'sql' }[currentFormat];
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'mock-data.' + ext;
+      a.click();
+    }
+  </script>
+</body>
+</html>

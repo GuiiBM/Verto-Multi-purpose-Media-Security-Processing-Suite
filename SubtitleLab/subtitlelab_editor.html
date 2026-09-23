@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transcrição & Timeline de Legendas</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(16, 185, 129, 0.4); color: #10b981; transform: translateX(-6px); }
+    .logo {
+      font-size: 36px; font-weight: 900;
+      background: linear-gradient(135deg, #fbbf24 0%, #10b981 50%, #06b6d4 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tagline { color: #64748b; font-size: 14px; margin-bottom: 28px; text-align: center; }
+    .card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      max-width: 1080px; margin: 0 auto;
+    }
+    .dropzone {
+      border: 2px dashed rgba(148, 163, 184, 0.25); border-radius: 16px; padding: 40px 20px;
+      text-align: center; cursor: pointer; transition: all 0.25s; color: #94a3b8; font-size: 13px;
+    }
+    .dropzone:hover, .dropzone.drag { border-color: #10b981; background: rgba(16, 185, 129, 0.05); color: #cbd5e1; }
+    .dropzone b { color: #f8fafc; display: block; font-size: 16px; margin-bottom: 8px; }
+    .editor-body { display: none; }
+    .editor-body.show { display: block; }
+    .player-wrap { position: relative; border-radius: 12px; overflow: hidden; background: #000; }
+    video { width: 100%; max-height: 420px; display: block; background: #000; }
+    .caption-overlay {
+      position: absolute; left: 0; right: 0; bottom: 8%; text-align: center; pointer-events: none;
+      font-size: 20px; font-weight: 700; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+      padding: 0 20px; white-space: pre-wrap;
+    }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
+    button.action {
+      padding: 11px 16px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 12.5px; font-weight: 700; transition: all 0.25s; display: flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #10b981, #06b6d4); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35); }
+    .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    button.action:disabled { opacity: 0.5; cursor: not-allowed; }
+    .section-title { font-size: 13px; font-weight: 700; color: #f8fafc; margin: 22px 0 10px; }
+    .timeline-wrap { margin-top: 8px; }
+    .timeline-ruler {
+      position: relative; height: 64px; background: #05070f; border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 10px; overflow: hidden; user-select: none;
+    }
+    .timeline-playhead {
+      position: absolute; top: 0; bottom: 0; width: 2px; background: #f8fafc; z-index: 5; pointer-events: none;
+    }
+    .cue-block {
+      position: absolute; top: 6px; bottom: 6px; background: rgba(16, 185, 129, 0.25);
+      border: 1px solid rgba(16, 185, 129, 0.6); border-radius: 6px; cursor: grab;
+      display: flex; align-items: center; padding: 0 10px; font-size: 11px; color: #d1fae5;
+      overflow: hidden; white-space: nowrap;
+    }
+    .cue-block.selected { background: rgba(6, 182, 212, 0.35); border-color: #06b6d4; }
+    .cue-handle {
+      position: absolute; top: 0; bottom: 0; width: 8px; cursor: ew-resize; z-index: 2;
+    }
+    .cue-handle.left { left: 0; } .cue-handle.right { right: 0; }
+    .time-labels { display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .cue-editor {
+      margin-top: 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 14px; padding: 16px; display: none;
+    }
+    .cue-editor.show { display: block; }
+    .cue-editor textarea {
+      width: 100%; min-height: 60px; resize: vertical; padding: 10px 12px; border-radius: 10px;
+      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #e2e8f0; font-size: 13px; font-family: inherit; outline: none; margin-bottom: 10px;
+    }
+    .cue-editor .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .cue-editor label { font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 6px; }
+    .cue-editor input[type="number"] {
+      width: 90px; padding: 7px 9px; border-radius: 8px; background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 12px;
+    }
+    .delay-row { display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+    .delay-row input[type="number"] {
+      width: 100px; padding: 8px 10px; border-radius: 8px; background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 13px;
+    }
+    .status { margin-top: 16px; font-size: 13px; padding: 12px 14px; border-radius: 12px; display: none; }
+    .status.show { display: block; }
+    .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .status.info { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .cue-count { text-align: center; font-size: 12px; color: #64748b; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/subtitlelab'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">📝 Transcrição & Timeline de Legendas</div>
+  <div class="tagline">Transcreva, ajuste o tempo de cada bloco e exporte em .srt ou .vtt</div>
+
+  <div class="card">
+    <div class="dropzone" id="dropzone">
+      <b>Arraste um vídeo ou áudio aqui ou clique para escolher</b>
+      MP4, WEBM, MP3, WAV, M4A — a linha do tempo e a exportação rodam no seu navegador
+      <input type="file" id="file-input" accept="audio/*,video/*" style="display:none;">
+    </div>
+
+    <div class="editor-body" id="editor-body">
+      <div class="player-wrap">
+        <video id="preview" controls></video>
+        <div class="caption-overlay" id="caption-overlay"></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="action btn-primary" id="transcribe-btn" onclick="transcribeAudio()">🎙️ Transcrever automaticamente</button>
+        <button class="action btn-secondary" onclick="addBlockAtPlayhead()">➕ Adicionar bloco</button>
+        <button class="action btn-secondary" onclick="document.getElementById('import-input').click()">📂 Importar .srt/.vtt</button>
+        <input type="file" id="import-input" accept=".srt,.vtt" style="display:none;">
+        <button class="action btn-danger" onclick="clearAllCues()">🗑️ Limpar tudo</button>
+      </div>
+
+      <div class="section-title">Linha do tempo</div>
+      <div class="timeline-wrap">
+        <div class="timeline-ruler" id="timeline-ruler">
+          <div class="timeline-playhead" id="timeline-playhead"></div>
+        </div>
+        <div class="time-labels"><span>00:00</span><span id="duration-label">00:00</span></div>
+      </div>
+      <div class="cue-count" id="cue-count">0 blocos de legenda</div>
+
+      <div class="cue-editor" id="cue-editor">
+        <textarea id="cue-text" placeholder="Texto da legenda..."></textarea>
+        <div class="row">
+          <label>Início (s) <input type="number" id="cue-start" step="0.1" min="0"></label>
+          <label>Fim (s) <input type="number" id="cue-end" step="0.1" min="0"></label>
+          <button class="action btn-danger" onclick="deleteSelectedCue()">🗑️ Excluir bloco</button>
+        </div>
+      </div>
+
+      <div class="section-title">Sincronizador de delay</div>
+      <div class="delay-row">
+        <span style="font-size:12px;color:#94a3b8;">Deslocar todas as legendas em</span>
+        <input type="number" id="delay-value" step="0.1" value="0">
+        <span style="font-size:12px;color:#94a3b8;">segundos</span>
+        <button class="action btn-secondary" onclick="applyDelay()">↔️ Aplicar offset</button>
+      </div>
+
+      <div class="section-title">Exportar</div>
+      <div class="toolbar">
+        <button class="action btn-primary" onclick="exportSubtitle('srt')">⬇️ Baixar .SRT</button>
+        <button class="action btn-primary" onclick="exportSubtitle('vtt')">⬇️ Baixar .VTT</button>
+      </div>
+
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+  <script>
+    let cues = [];
+    let nextCueId = 1;
+    let selectedCueId = null;
+    let mediaDuration = 0;
+    let currentFile = null;
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const importInput = document.getElementById('import-input');
+    const editorBody = document.getElementById('editor-body');
+    const video = document.getElementById('preview');
+    const captionOverlay = document.getElementById('caption-overlay');
+    const ruler = document.getElementById('timeline-ruler');
+    const playheadEl = document.getElementById('timeline-playhead');
+    const statusBox = document.getElementById('status');
+    const cueEditor = document.getElementById('cue-editor');
+    const transcribeBtn = document.getElementById('transcribe-btn');
+
+    function showResult(type, message) {
+      statusBox.className = 'status show ' + type;
+      statusBox.textContent = message;
+    }
+
+    function formatClock(sec) {
+      if (!isFinite(sec) || sec < 0) sec = 0;
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(Math.floor(sec % 60)).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+    function pad(n, len) { return String(n).padStart(len, '0'); }
+    function secToSrtTime(sec) {
+      sec = Math.max(0, sec);
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = Math.floor(sec % 60);
+      const ms = Math.round((sec - Math.floor(sec)) * 1000);
+      return `${pad(h,2)}:${pad(m,2)}:${pad(s,2)},${pad(ms,3)}`;
+    }
+    function secToVttTime(sec) {
+      sec = Math.max(0, sec);
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = Math.floor(sec % 60);
+      const ms = Math.round((sec - Math.floor(sec)) * 1000);
+      return `${pad(h,2)}:${pad(m,2)}:${pad(s,2)}.${pad(ms,3)}`;
+    }
+
+    // ---------- File loading ----------
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+    importInput.addEventListener('change', e => {
+      if (e.target.files[0]) importSubtitleFile(e.target.files[0]);
+      importInput.value = '';
+    });
+
+    function loadFile(file) {
+      currentFile = file;
+      video.src = URL.createObjectURL(file);
+      dropzone.style.display = 'none';
+      editorBody.classList.add('show');
+      statusBox.classList.remove('show');
+      video.addEventListener('loadedmetadata', () => {
+        mediaDuration = video.duration || 0;
+        document.getElementById('duration-label').textContent = formatClock(mediaDuration);
+        renderTimeline();
+      }, { once: true });
+    }
+
+    video.addEventListener('timeupdate', () => {
+      if (mediaDuration > 0) {
+        const pct = (video.currentTime / mediaDuration) * 100;
+        playheadEl.style.left = pct + '%';
+      }
+      const active = cues.find(c => video.currentTime >= c.start && video.currentTime < c.end);
+      captionOverlay.textContent = active ? active.text : '';
+    });
+
+    // ---------- Transcription (server-side engine reuse) ----------
+    async function transcribeAudio() {
+      if (!currentFile) return;
+      transcribeBtn.disabled = true;
+      transcribeBtn.textContent = '⏳ Transcrevendo... (pode levar alguns minutos)';
+      showResult('info', '⏳ Enviando para o motor de transcrição local e aguardando o resultado...');
+      try {
+        const formData = new FormData();
+        formData.append('file', currentFile);
+        const res = await fetch('/subtitlelab/transcribe', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Falha na transcrição.');
+        data.segments.forEach(seg => {
+          cues.push({ id: nextCueId++, start: seg.start, end: seg.end, text: seg.text });
+        });
+        cues.sort((a, b) => a.start - b.start);
+        renderTimeline();
+        showResult('ok', `✅ ${data.segments.length} blocos transcritos! Ajuste o tempo/texto na linha do tempo se necessário.`);
+      } catch (e) {
+        showResult('err', '❌ ' + e.message);
+      } finally {
+        transcribeBtn.disabled = false;
+        transcribeBtn.textContent = '🎙️ Transcrever automaticamente';
+      }
+    }
+
+    // ---------- Cue management ----------
+    function addBlockAtPlayhead() {
+      const start = video.currentTime || 0;
+      const end = Math.min(mediaDuration || start + 2, start + 2);
+      const cue = { id: nextCueId++, start, end: Math.max(end, start + 0.5), text: 'Novo texto' };
+      cues.push(cue);
+      cues.sort((a, b) => a.start - b.start);
+      renderTimeline();
+      selectCue(cue.id);
+    }
+
+    function clearAllCues() {
+      if (cues.length === 0) return;
+      cues = [];
+      selectedCueId = null;
+      renderTimeline();
+      cueEditor.classList.remove('show');
+    }
+
+    function deleteSelectedCue() {
+      if (selectedCueId === null) return;
+      cues = cues.filter(c => c.id !== selectedCueId);
+      selectedCueId = null;
+      cueEditor.classList.remove('show');
+      renderTimeline();
+    }
+
+    function selectCue(id) {
+      selectedCueId = id;
+      const cue = cues.find(c => c.id === id);
+      if (!cue) { cueEditor.classList.remove('show'); return; }
+      document.getElementById('cue-text').value = cue.text;
+      document.getElementById('cue-start').value = cue.start.toFixed(1);
+      document.getElementById('cue-end').value = cue.end.toFixed(1);
+      cueEditor.classList.add('show');
+      renderTimeline();
+    }
+
+    document.getElementById('cue-text').addEventListener('input', e => {
+      const cue = cues.find(c => c.id === selectedCueId);
+      if (cue) cue.text = e.target.value;
+    });
+    document.getElementById('cue-start').addEventListener('change', e => {
+      const cue = cues.find(c => c.id === selectedCueId);
+      if (!cue) return;
+      cue.start = Math.max(0, Math.min(parseFloat(e.target.value) || 0, cue.end - 0.1));
+      renderTimeline();
+    });
+    document.getElementById('cue-end').addEventListener('change', e => {
+      const cue = cues.find(c => c.id === selectedCueId);
+      if (!cue) return;
+      cue.end = Math.max(cue.start + 0.1, Math.min(parseFloat(e.target.value) || 0, mediaDuration || Infinity));
+      renderTimeline();
+    });
+
+    // ---------- Timeline rendering & dragging ----------
+    function renderTimeline() {
+      ruler.querySelectorAll('.cue-block').forEach(el => el.remove());
+      document.getElementById('cue-count').textContent = `${cues.length} bloco${cues.length === 1 ? '' : 's'} de legenda`;
+      if (mediaDuration <= 0) return;
+      const rulerWidth = ruler.clientWidth;
+      cues.forEach(cue => {
+        const left = (cue.start / mediaDuration) * rulerWidth;
+        const width = Math.max(4, ((cue.end - cue.start) / mediaDuration) * rulerWidth);
+        const block = document.createElement('div');
+        block.className = 'cue-block' + (cue.id === selectedCueId ? ' selected' : '');
+        block.style.left = left + 'px';
+        block.style.width = width + 'px';
+        block.textContent = cue.text;
+        block.dataset.id = cue.id;
+
+        const handleLeft = document.createElement('div');
+        handleLeft.className = 'cue-handle left';
+        const handleRight = document.createElement('div');
+        handleRight.className = 'cue-handle right';
+        block.appendChild(handleLeft);
+        block.appendChild(handleRight);
+
+        handleLeft.addEventListener('mousedown', e => startDrag(e, cue.id, 'resize-left'));
+        handleRight.addEventListener('mousedown', e => startDrag(e, cue.id, 'resize-right'));
+        block.addEventListener('mousedown', e => {
+          if (e.target === handleLeft || e.target === handleRight) return;
+          startDrag(e, cue.id, 'move');
+        });
+        block.addEventListener('click', () => selectCue(cue.id));
+
+        ruler.appendChild(block);
+      });
+    }
+    window.addEventListener('resize', renderTimeline);
+
+    let dragState = null;
+    function startDrag(e, cueId, mode) {
+      e.preventDefault();
+      e.stopPropagation();
+      const cue = cues.find(c => c.id === cueId);
+      dragState = { cueId, mode, startX: e.clientX, origStart: cue.start, origEnd: cue.end };
+      selectCue(cueId);
+    }
+    window.addEventListener('mousemove', e => {
+      if (!dragState || mediaDuration <= 0) return;
+      const rulerWidth = ruler.clientWidth;
+      const deltaTime = ((e.clientX - dragState.startX) / rulerWidth) * mediaDuration;
+      const cue = cues.find(c => c.id === dragState.cueId);
+      if (!cue) return;
+      if (dragState.mode === 'resize-left') {
+        cue.start = Math.max(0, Math.min(dragState.origStart + deltaTime, dragState.origEnd - 0.1));
+      } else if (dragState.mode === 'resize-right') {
+        cue.end = Math.max(dragState.origStart + 0.1, Math.min(dragState.origEnd + deltaTime, mediaDuration));
+      } else if (dragState.mode === 'move') {
+        const len = dragState.origEnd - dragState.origStart;
+        let newStart = dragState.origStart + deltaTime;
+        newStart = Math.max(0, Math.min(newStart, mediaDuration - len));
+        cue.start = newStart;
+        cue.end = newStart + len;
+      }
+      renderTimeline();
+      if (cue.id === selectedCueId) {
+        document.getElementById('cue-start').value = cue.start.toFixed(1);
+        document.getElementById('cue-end').value = cue.end.toFixed(1);
+      }
+    });
+    window.addEventListener('mouseup', () => {
+      if (!dragState) return;
+      dragState = null;
+      cues.sort((a, b) => a.start - b.start);
+      renderTimeline();
+    });
+
+    // ---------- Delay sync ----------
+    function applyDelay() {
+      const delta = parseFloat(document.getElementById('delay-value').value) || 0;
+      if (delta === 0 || cues.length === 0) return;
+      cues.forEach(cue => {
+        const len = cue.end - cue.start;
+        const newStart = Math.max(0, cue.start + delta);
+        cue.start = newStart;
+        cue.end = newStart + len;
+      });
+      renderTimeline();
+      showResult('ok', `✅ Offset de ${delta > 0 ? '+' : ''}${delta}s aplicado a ${cues.length} legendas.`);
+    }
+
+    // ---------- Import / export ----------
+    function parseSubtitleText(text) {
+      const lines = text.replace(/\r/g, '').split('\n');
+      const result = [];
+      let i = 0;
+      if (lines[0] && lines[0].trim().toUpperCase().startsWith('WEBVTT')) i = 1;
+      while (i < lines.length) {
+        while (i < lines.length && lines[i].trim() === '') i++;
+        if (i >= lines.length) break;
+        if (!lines[i].includes('-->')) i++;
+        if (i >= lines.length || !lines[i].includes('-->')) { i++; continue; }
+        const m = lines[i].match(/(\d+):(\d\d):(\d\d)[.,](\d+)\s*-->\s*(\d+):(\d\d):(\d\d)[.,](\d+)/);
+        i++;
+        if (!m) continue;
+        const start = (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]) + (+m[4]) / 1000;
+        const end = (+m[5]) * 3600 + (+m[6]) * 60 + (+m[7]) + (+m[8]) / 1000;
+        const textLines = [];
+        while (i < lines.length && lines[i].trim() !== '') { textLines.push(lines[i]); i++; }
+        result.push({ id: nextCueId++, start, end, text: textLines.join('\n') });
+      }
+      return result;
+    }
+
+    async function importSubtitleFile(file) {
+      try {
+        const text = await file.text();
+        const imported = parseSubtitleText(text);
+        if (imported.length === 0) throw new Error('Nenhum bloco de legenda encontrado no arquivo.');
+        cues = cues.concat(imported).sort((a, b) => a.start - b.start);
+        renderTimeline();
+        showResult('ok', `✅ ${imported.length} blocos importados.`);
+      } catch (e) {
+        showResult('err', '❌ Não foi possível importar: ' + e.message);
+      }
+    }
+
+    function buildSRT() {
+      return cues.map((cue, i) => `${i + 1}\n${secToSrtTime(cue.start)} --> ${secToSrtTime(cue.end)}\n${cue.text}\n`).join('\n');
+    }
+    function buildVTT() {
+      return 'WEBVTT\n\n' + cues.map((cue, i) => `${i + 1}\n${secToVttTime(cue.start)} --> ${secToVttTime(cue.end)}\n${cue.text}\n`).join('\n');
+    }
+    function exportSubtitle(format) {
+      if (cues.length === 0) { showResult('err', '❌ Não há legendas para exportar.'); return; }
+      const content = format === 'vtt' ? buildVTT() : buildSRT();
+      const blob = new Blob([content], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'legendas.' + format;
+      a.click();
+      showResult('ok', `✅ Arquivo .${format} exportado!`);
+    }
+  </script>
+</body>
+</html>

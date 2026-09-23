@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matcha Effect</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(139, 195, 74, 0.10) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(124, 179, 66, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(212, 225, 87, 0.06) 0px, transparent 50%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 15px;
+      padding-top: 100px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(139, 195, 74, 0.4); color: #8bc34a; transform: translateX(-6px); }
+    .logo {
+      font-size: 52px; font-weight: 900;
+      background: linear-gradient(135deg, #8bc34a 0%, #cddc39 50%, #558b2f 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+      filter: drop-shadow(0 0 25px rgba(139, 195, 74, 0.5));
+      animation: glow-pulse 3s ease-in-out infinite;
+      text-align: center; margin-bottom: 10px;
+    }
+    @keyframes glow-pulse {
+      0%, 100% { filter: drop-shadow(0 0 25px rgba(139, 195, 74, 0.5)); }
+      50% { filter: drop-shadow(0 0 35px rgba(139, 195, 74, 0.75)); }
+    }
+    .tagline { color: #64748b; font-size: 15px; margin-bottom: 48px; text-align: center; font-weight: 500; }
+    .group-title {
+      max-width: 700px; margin: 0 auto 14px; font-size: 12px; font-weight: 700; color: #8bc34a;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .tools-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; max-width: 700px; margin: 0 auto 32px;
+    }
+    .tool-card {
+      background: rgba(15, 23, 42, 0.4); border-radius: 20px; padding: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
+      cursor: pointer; transition: all 0.3s;
+    }
+    .tool-card:hover { border-color: rgba(139, 195, 74, 0.3); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(139, 195, 74, 0.2); }
+    .tool-icon { font-size: 44px; margin-bottom: 16px; }
+    .tool-title { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }
+    .tool-desc { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+    .formats-note {
+      max-width: 700px; margin: 0 auto; background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(148, 163, 184, 0.08); border-radius: 16px;
+      padding: 20px 24px; font-size: 13px; color: #94a3b8; line-height: 1.8;
+    }
+    .formats-note b { color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="logo">🍵 Matcha Effect</div>
+  <div class="tagline">O filtro viral "Wild Hearts Whisper" (TikTok/CapCut) — geração real por IA local, ou um filtro rápido de cor como aproximação</div>
+
+  <div class="group-title">🤖 IA generativa real (Stable Diffusion + ControlNet)</div>
+  <div class="tools-grid">
+    <div class="tool-card" onclick="window.location.href='/matchaeffect/ai/add'">
+      <div class="tool-icon">➕</div>
+      <div class="tool-title">Adicionar com IA</div>
+      <div class="tool-desc">Img2img + ControlNet SoftEdge reconstroem sua foto com a textura "fluid art" verde-matcha, preservando rosto e silhueta. Roda localmente; sem GPU, pode levar minutos por imagem</div>
+    </div>
+    <div class="tool-card" onclick="window.location.href='/matchaeffect/ai/remove'">
+      <div class="tool-icon">➖</div>
+      <div class="tool-title">Remover com IA</div>
+      <div class="tool-desc">Restaure o original exato (se você guardou o arquivo) ou peça uma reconstrução aproximada por IA de uma foto matcha de qualquer origem</div>
+    </div>
+    <div class="tool-card" onclick="window.location.href='/matchaeffect/ai/video'">
+      <div class="tool-icon">🎬</div>
+      <div class="tool-title">Vídeo: adicionar (still + transição derretendo)</div>
+      <div class="tool-desc">Gera 1 quadro com o efeito via IA e renderiza localmente a transição "derretendo" até ele, como no CapCut/Premiere</div>
+    </div>
+    <div class="tool-card" onclick="window.location.href='/matchaeffect/ai/video/remove'">
+      <div class="tool-icon">🎬</div>
+      <div class="tool-title">Vídeo: remover (engenharia reversa)</div>
+      <div class="tool-desc">O mesmo pipeline ao contrário: gera 1 quadro reconstruído sem o efeito via IA e renderiza a transição restaurando o vídeo</div>
+    </div>
+  </div>
+
+  <div class="group-title">⚡ Filtro rápido — Fotos (aproximação de cor, sem IA)</div>
+  <div class="tools-grid">
+    <div class="tool-card" onclick="window.location.href='/matchaeffect/add'">
+      <div class="tool-icon">➕</div>
+      <div class="tool-title">Adicionar Efeito Matcha</div>
+      <div class="tool-desc">Aplique a cor esverdeada, o grão e o "haze" do filtro, instantâneo e sem instalar nada — apenas um filtro de cor, não a geração por IA real</div>
+    </div>
+    <div class="tool-card" onclick="window.location.href='/matchaeffect/remove'">
+      <div class="tool-icon">➖</div>
+      <div class="tool-title">Remover Efeito Matcha</div>
+      <div class="tool-desc">Corrige automaticamente o tom esverdeado de uma foto já filtrada, aproximando das cores originais</div>
+    </div>
+  </div>
+
+  <div class="group-title">⚡ Filtro rápido — Vídeos (aproximação de cor, sem IA)</div>
+  <div class="tools-grid">
+    <div class="tool-card" onclick="window.location.href='/matchaeffect/video/add'">
+      <div class="tool-icon">➕</div>
+      <div class="tool-title">Adicionar Efeito Matcha</div>
+      <div class="tool-desc">Renderiza o vídeo quadro a quadro com o mesmo tom esverdeado, grão e haze — prévia ao vivo antes de exportar</div>
+    </div>
+    <div class="tool-card" onclick="window.location.href='/matchaeffect/video/remove'">
+      <div class="tool-icon">➖</div>
+      <div class="tool-title">Remover Efeito Matcha</div>
+      <div class="tool-desc">Corrige o tom esverdeado do vídeo quadro a quadro e reexporta, com opção de realce leve contra o haze</div>
+    </div>
+  </div>
+
+  <div class="formats-note">
+    <b>100% local:</b> tanto a IA generativa quanto o filtro rápido rodam na sua máquina — nada é enviado
+    para servidores externos. A IA generativa (Stable Diffusion + ControlNet) precisa de dependências
+    pesadas instaladas à parte (<code>pip install -r MatchaEffect/requirements_ai.txt</code>) e baixa
+    vários GB de modelo na primeira geração; sem GPU NVIDIA, cada imagem pode levar minutos. Como uma
+    difusão generativa não tem "desfazer" matemático, a remoção real só é exata se você guardou o
+    arquivo original — o app sempre oferece os dois downloads lado a lado.
+  </div>
+</body>
+</html>
