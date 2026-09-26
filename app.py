@@ -57,6 +57,12 @@ from MatchaEffect.matchaeffect_templates import (
 from MatchaEffect import matchaeffect_ai_engine
 from InstaSaver.instasaver_templates import INSTASAVER_HTML
 from InstaSaver import instasaver_engine
+from VscoSaver.vscosaver_templates import VSCOSAVER_HTML
+from VscoSaver import vscosaver_engine
+from WhatsSaver.whatssaver_templates import WHATSSAVER_HTML
+from WhatsSaver import whatssaver_engine
+from Conversor.conversor_templates import CONVERSOR_HTML
+from Conversor import conversor_engine
 
 app = Flask(__name__)
 
@@ -128,22 +134,37 @@ MENU_HTML = """
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Menu de Apps</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    :root {
+      --bg: #0a0f1e;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --label: #cbd5e1;
+      --accent: #22c55e;
+      --glass: rgba(15, 23, 42, 0.45);
+      --glass-hover: rgba(15, 23, 42, 0.7);
+      --line: rgba(148, 163, 184, 0.1);
+      --icon: clamp(64px, 5.6vw, 88px);
+      --gap: clamp(18px, 2.2vw, 32px);
+      --gutter: clamp(16px, 4vw, 48px);
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #0a0f1e;
-      background-image: 
+      background: var(--bg);
+      background-image:
         radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%),
         radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
-      color: #e2e8f0;
+      background-attachment: fixed;
+      color: var(--text);
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
+      padding: clamp(28px, 6vh, 64px) var(--gutter) clamp(32px, 6vh, 64px);
       position: relative;
       overflow-x: hidden;
     }
@@ -168,55 +189,127 @@ MENU_HTML = """
       0% { transform: translateY(0); }
       100% { transform: translateY(50px); }
     }
+
+    /* ---------- Cabeçalho ---------- */
+    .hero {
+      width: 100%;
+      max-width: 1400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      margin-bottom: clamp(24px, 4vh, 44px);
+    }
     .logo {
-      font-size: 72px;
+      font-size: clamp(28px, 7vw, 72px);
       font-weight: 900;
       background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      letter-spacing: 18px;
+      letter-spacing: 0.25em;
+      padding-left: 0.25em; /* compensa o espaçamento da última letra */
       text-transform: uppercase;
+      line-height: 1.1;
       filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4));
       animation: glow-pulse 3s ease-in-out infinite;
-      margin-bottom: 10px;
-      position: relative;
-      z-index: 1;
     }
     @keyframes glow-pulse {
       0%, 100% { filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4)); }
       50% { filter: drop-shadow(0 0 35px rgba(34, 197, 94, 0.9)) drop-shadow(0 0 70px rgba(59, 130, 246, 0.6)); }
     }
+    .clock {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(6px, 1vh, 10px);
+      margin-top: clamp(10px, 2vh, 20px);
+    }
     .time {
-      color: white;
-      font-size: 48px;
-      font-weight: 300;
-      margin-bottom: 10px;
-      position: relative;
-      z-index: 1;
+      color: #fff;
+      font-size: clamp(52px, 7vw, 96px);
+      font-weight: 200;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      text-shadow: 0 0 40px rgba(59, 130, 246, 0.25);
     }
     .date {
-      color: rgba(255,255,255,0.9);
-      font-size: 20px;
-      margin-top: 10px;
-      margin-bottom: 8px;
-      position: relative;
-      z-index: 1;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: clamp(14px, 1.3vw, 17px);
+      font-weight: 500;
+      letter-spacing: 0.3px;
     }
     .tagline {
-      color: #64748b;
-      font-size: 15px;
-      margin-bottom: 60px;
+      color: var(--muted);
+      font-size: 14px;
       font-weight: 500;
       letter-spacing: 0.5px;
+      margin-top: 6px;
+    }
+
+    /* ---------- Busca ---------- */
+    .search {
+      display: block;
       position: relative;
+      width: 100%;
+      max-width: 520px;
+      margin-top: clamp(18px, 3vh, 28px);
+    }
+    .search svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--muted);
+      pointer-events: none;
       z-index: 1;
     }
+    .search input {
+      width: 100%;
+      height: 46px;
+      padding: 0 52px 0 44px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--glass);
+      backdrop-filter: blur(20px) saturate(160%);
+      color: var(--text);
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search input::placeholder { color: var(--muted); }
+    .search input:focus {
+      border-color: rgba(34, 197, 94, 0.45);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+    }
+    .search kbd {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font: 600 12px 'Inter', sans-serif;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 2px 7px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .search input:focus + kbd { display: none; }
+
+    /* ---------- Grid de apps ---------- */
     .apps-grid {
+      width: 100%;
+      max-width: 1400px;
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 32px;
-      max-width: 600px;
+      grid-template-columns: repeat(auto-fill, minmax(calc(var(--icon) + 28px), 1fr));
+      gap: var(--gap) calc(var(--gap) * 0.6);
       position: relative;
       z-index: 1;
     }
@@ -224,23 +317,30 @@ MENU_HTML = """
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+      padding: 6px 2px;
+      border-radius: 18px;
       cursor: pointer;
       transition: transform 0.2s;
       text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
     }
     .app:active { transform: scale(0.95); }
+    .app[hidden] { display: none; }
     .app-icon {
-      width: 90px;
-      height: 90px;
-      background: rgba(15, 23, 42, 0.4);
+      width: var(--icon);
+      height: var(--icon);
+      flex-shrink: 0;
+      background: var(--glass);
       backdrop-filter: blur(40px) saturate(180%);
-      border-radius: 20px;
+      border-radius: 22%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 44px;
-      box-shadow: 
+      font-size: calc(var(--icon) * 0.48);
+      line-height: 1;
+      box-shadow:
         0 0 0 1px rgba(148, 163, 184, 0.1),
         0 20px 60px rgba(0, 0, 0, 0.6),
         0 0 80px rgba(34, 197, 94, 0.05);
@@ -258,71 +358,112 @@ MENU_HTML = """
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
     }
-    .app:hover .app-icon {
-      background: rgba(15, 23, 42, 0.6);
+    .app:hover .app-icon,
+    .app:focus-visible .app-icon {
+      background: var(--glass-hover);
       transform: translateY(-4px);
-      box-shadow: 
+      box-shadow:
         0 0 0 1px rgba(148, 163, 184, 0.2),
         0 24px 70px rgba(0, 0, 0, 0.7),
         0 0 100px rgba(34, 197, 94, 0.1);
-      border-color: rgba(34, 197, 94, 0.2);
+      border-color: rgba(34, 197, 94, 0.25);
     }
-    .app-name { 
-      color: #cbd5e1;
-      font-size: 14px;
+    .app:focus-visible .app-icon { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.6), 0 24px 70px rgba(0, 0, 0, 0.7); }
+    .app.first-match .app-icon { border-color: rgba(34, 197, 94, 0.45); }
+    .app-name {
+      color: var(--label);
+      font-size: clamp(12px, 0.95vw, 14px);
       font-weight: 600;
       text-align: center;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.2px;
+      line-height: 1.3;
+      max-width: 100%;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      overflow-wrap: anywhere;
     }
+    .app:hover .app-name { color: #fff; }
+    .app-hint {
+      color: rgba(34, 197, 94, 0.85);
+      font-size: 11px;
+      font-weight: 500;
+      text-align: center;
+      line-height: 1.3;
+      max-width: 100%;
+      margin-top: -4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .app-hint:empty { display: none; }
     .youtube-icon {
-      width: 50px;
-      height: 50px;
+      width: 55%;
+      height: 55%;
       position: relative;
     }
     .youtube-icon svg {
       width: 100%;
       height: 100%;
     }
+    .neon-icon-verto { filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.5)); }
+    .neon-icon-purpleflix { filter: drop-shadow(0 0 8px rgba(188, 19, 255, 0.5)); }
+    .neon-icon-tempo { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); }
+    .neon-icon-pdf { filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5)); }
 
-    .neon-icon-verto {
-      filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.5));
+    .empty {
+      display: none;
+      color: var(--muted);
+      font-size: 15px;
+      margin-top: 8px;
+      position: relative;
+      z-index: 1;
     }
+    .empty.show { display: block; }
+    .empty a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .empty a:hover { text-decoration: underline; }
 
-    .neon-icon-purpleflix {
-      filter: drop-shadow(0 0 8px rgba(188, 19, 255, 0.5));
-    }
-
-    .neon-icon-tempo {
-      filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
-    }
-
-    .neon-icon-pdf {
-      filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
-    }
-
-    @media (max-width: 640px) {
-      .logo { font-size: 48px; letter-spacing: 12px; }
-      .time { font-size: 36px; }
-      .date { font-size: 14px; margin-bottom: 30px; }
-      .tagline { font-size: 13px; margin-bottom: 40px; }
-      .apps-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; }
-      .app-icon { width: 75px; height: 75px; font-size: 36px; }
-    }
+    /* ---------- Ajustes por tela ---------- */
     @media (max-width: 480px) {
-      .logo { font-size: 40px; letter-spacing: 8px; }
-      .time { font-size: 32px; }
-      .date { font-size: 13px; }
-      .app-icon { width: 70px; height: 70px; font-size: 32px; }
-      .apps-grid { grid-template-columns: repeat(2, 1fr); }
+      :root { --icon: 60px; --gap: 18px; }
+      .tagline { display: none; }
+      .search kbd { display: none; }
+      .search input { padding-right: 16px; }
+    }
+    @media (max-height: 560px) and (orientation: landscape) {
+      body { padding-top: 20px; }
+      .hero { margin-bottom: 20px; }
+      .tagline { display: none; }
+      .logo { font-size: clamp(26px, 5vw, 44px); }
+      .time { font-size: 44px; }
+    }
+    @media (hover: none) {
+      .search kbd { display: none; }
+      .search input { padding-right: 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body::before, .logo { animation: none; }
+      .app, .app-icon { transition: none; }
     }
   </style>
 </head>
 <body>
-  <div class="logo">LOCALTOOLS</div>
-  <div class="date" id="date">Segunda, 1 de Janeiro</div>
-  <div class="time" id="time">12:00</div>
-  <div class="tagline">Menu de Aplicativos</div>
-  <div class="apps-grid">
+  <header class="hero">
+    <div class="logo">LOCALTOOLS</div>
+    <div class="clock">
+      <div class="time" id="time">12:00</div>
+      <div class="date" id="date">Segunda, 1 de Janeiro</div>
+    </div>
+    <div class="tagline">Menu de Aplicativos</div>
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="search" placeholder="Buscar app ou o que você quer fazer…" autocomplete="off" spellcheck="false" aria-label="Buscar app ou função">
+      <kbd>/</kbd>
+    </label>
+  </header>
+  <main class="apps-grid" id="apps">
     <a href="/verto" class="app">
       <div class="app-icon">
         <div class="youtube-icon neon-icon-verto">
@@ -350,9 +491,13 @@ MENU_HTML = """
       <div class="app-icon">📁</div>
       <div class="app-name">Arquivos</div>
     </a>
+    <a href="/conversor" class="app">
+      <div class="app-icon">🔁</div>
+      <div class="app-name">Conversor</div>
+    </a>
     <a href="/purpleflix" class="app">
       <div class="app-icon">
-        <div class="youtube-icon neon-icon-purpleflix"">
+        <div class="youtube-icon neon-icon-purpleflix">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" fill="url(#gradient2)"/>
             <defs>
@@ -484,8 +629,239 @@ MENU_HTML = """
       <div class="app-icon">📸</div>
       <div class="app-name">InstaSaver</div>
     </a>
-  </div>
+    <a href="/vscosaver" class="app">
+      <div class="app-icon">🎞️</div>
+      <div class="app-name">VscoSaver</div>
+    </a>
+    <a href="/whatssaver" class="app">
+      <div class="app-icon">💬</div>
+      <div class="app-name">WhatsSaver</div>
+    </a>
+  </main>
+  <p class="empty" id="empty">Nenhum app encontrado. Veja o guia completo em <a href="/instructions">Instruções</a>.</p>
+  <script src="/apps-catalog.js"></script>
   <script>
+    // ---------- Busca ----------
+    // Procura pelo nome do app e também pelo que ele faz: subtítulo, palavras-chave,
+    // descrição e funções vêm do catálogo da página de Instruções (/apps-catalog.js),
+    // então um app documentado lá já é encontrado aqui. Sem o catálogo, busca só pelo nome.
+    const search = document.getElementById('search');
+    const apps = Array.from(document.querySelectorAll('.app'));
+    const empty = document.getElementById('empty');
+
+    // Sem acento, minúsculo e sem hífen: "Wi-Fi" vira "wifi", "e-mail" vira "email".
+    const fold = (t) => String(t || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/-/g, '');
+
+    const STOPWORDS = new Set(['de', 'da', 'do', 'das', 'dos', 'a', 'o', 'as', 'os', 'e', 'em', 'no', 'na', 'nos', 'nas',
+      'um', 'uma', 'para', 'pra', 'com', 'por', 'que', 'como', 'meu', 'minha', 'quero', 'preciso', 'fazer', 'app',
+      'deixar', 'ficar', 'tornar', 'algo', 'coisa', 'dois', 'duas', 'tres', 'varios', 'varias', 'todos', 'todas',
+      'meus', 'minhas', 'esse', 'essa', 'este', 'esta', 'isso', 'algum', 'alguma', 'mais']);
+
+    // Palavras que a pessoa pode usar sem saber o termo exato da ferramenta.
+    // Cada grupo é equivalente: buscar qualquer uma acha as outras.
+    const SINONIMOS = [
+      ['baixar', 'download', 'salvar', 'puxar'],
+      ['juntar', 'unir', 'mesclar', 'combinar', 'agrupar', 'merge'],
+      ['dividir', 'separar', 'partir', 'split'],
+      ['diminuir', 'reduzir', 'comprimir', 'compactar', 'encolher', 'otimizar'],
+      ['converter', 'transformar', 'conversor', 'trocar'],
+      ['foto', 'imagem', 'figura', 'print', 'screenshot', 'jpg', 'png'],
+      ['video', 'filme', 'clipe', 'mp4'],
+      ['audio', 'som', 'musica', 'mp3'],
+      ['legenda', 'subtitulo', 'caption', 'srt'],
+      ['senha', 'password', 'proteger', 'criptografar'],
+      ['remover', 'tirar', 'apagar', 'excluir', 'eliminar'],
+      ['fundo', 'background'],
+      ['voz', 'vocal', 'fala', 'narracao', 'locucao'],
+      ['gravar', 'gravacao', 'gravador', 'filmar'],
+      ['esconder', 'ocultar', 'disfarcar', 'secreto'],
+      ['borrar', 'desfocar', 'blur', 'pixelizar', 'censurar', 'tarja'],
+      ['whatsapp', 'zap', 'wpp', 'whats'],
+      ['instagram', 'insta', 'ig'],
+      ['youtube', 'yt'],
+      ['relogio', 'hora', 'horario', 'calendario', 'feriado'],
+      ['ajuda', 'tutorial', 'instrucoes', 'duvida'],
+      ['planilha', 'excel', 'xlsx', 'xls'],
+      ['apresentacao', 'powerpoint', 'slides', 'pptx'],
+      ['word', 'docx'],
+      ['consertar', 'reparar', 'recuperar', 'corrompido', 'danificado', 'arrumar'],
+      ['girar', 'rotacionar', 'virar'],
+      ['comparar', 'diff', 'diferenca'],
+      ['metadados', 'exif', 'gps', 'localizacao'],
+      ['ia', 'inteligencia', 'ai', 'gpt', 'chatgpt'],
+      ['qr', 'qrcode'],
+      ['ler', 'leitura', 'leitor'],
+      ['transcrever', 'transcricao', 'ditado'],
+      ['cortar', 'recortar', 'crop', 'aparar'],
+      ['redimensionar', 'resize', 'dimensao'],
+      ['filtro', 'efeito', 'preset'],
+      ['editar', 'editor', 'edicao', 'alterar'],
+      ['gerar', 'criar', 'gerador'],
+      ['programacao', 'programar', 'dev', 'desenvolvedor', 'codigo'],
+      ['tela', 'screen', 'monitor'],
+      ['icone', 'favicon', 'ico'],
+      ['assistir', 'streaming', 'filmes', 'series'],
+      ['story', 'stories', 'destaque'],
+    ];
+
+    // Plural simples do português, como na página de Instruções, e o radical de
+    // verbos: "legendar" acha "legenda", "remover" acha "remova" e "remove".
+    function variants(term) {
+      const list = [term];
+      if (term.length > 3) {
+        if (term.endsWith('ns')) list.push(term.slice(0, -2) + 'm');
+        if (term.endsWith('m')) list.push(term.slice(0, -1) + 'ns');
+        if (term.endsWith('oes') || term.endsWith('aes')) list.push(term.slice(0, -3) + 'ao');
+        if (term.endsWith('s')) list.push(term.slice(0, -1));
+      }
+      if (term.length >= 7 && /[aei]r$/.test(term)) list.push(term.slice(0, -2));
+      return list;
+    }
+
+    const isWordChar = (c) => !!c && /[a-z0-9]/.test(c);
+    function hasWord(text, w) {
+      for (let i = text.indexOf(w); i !== -1; i = text.indexOf(w, i + 1)) {
+        if (!isWordChar(text[i - 1]) && !isWordChar(text[i + w.length])) return true;
+      }
+      return false;
+    }
+
+    // Cada termo digitado vira uma lista de alternativas (plurais + sinônimos).
+    // Palavras curtas ("ia", "yt", "som") só valem inteiras, senão "ia" acharia "mídia".
+    function termsOf(query) {
+      const all = fold(query).split(/\\s+/).filter(Boolean);
+      const useful = all.filter((t) => !STOPWORDS.has(t));
+      return (useful.length ? useful : all).map((term) => {
+        const alts = new Map();
+        for (const v of variants(term)) alts.set(v, { whole: term.length <= 2, weight: 1 });
+        for (const v of variants(term)) {
+          for (const group of SINONIMOS) {
+            if (!group.includes(v)) continue;
+            for (const w of group) {
+              for (const wv of variants(w)) if (!alts.has(wv)) alts.set(wv, { whole: wv.length <= 3, weight: 0.6 });
+            }
+          }
+        }
+        return Array.from(alts, ([w, opt]) => ({ w, ...opt }));
+      });
+    }
+
+    // 1 se a palavra digitada (ou o plural dela) está no texto, 0.6 se só um sinônimo está, 0 se nada.
+    function matches(text, term) {
+      let best = 0;
+      for (const { w, whole, weight } of term) {
+        if (weight > best && (whole ? hasWord(text, w) : text.includes(w))) best = weight;
+      }
+      return best;
+    }
+
+    // Índice de cada tile: o que vem do catálogo, pelo link do app.
+    const EXTRA = {
+      '/instructions': { key: 'ajuda manual guia tutorial documentacao como usar funcionalidades', desc: 'Guia completo de todos os apps e funções' },
+    };
+    const catalog = {};
+    try {
+      for (const cat of CATEGORIAS) for (const app of cat.apps) catalog[app.url] = app;
+    } catch (e) { /* catálogo indisponível: busca só pelo nome */ }
+
+    const index = apps.map((el, i) => {
+      const href = el.getAttribute('href');
+      const info = catalog[href] || {};
+      const extra = EXTRA[href] || {};
+      const hint = document.createElement('span');
+      hint.className = 'app-hint';
+      el.appendChild(hint);
+      return {
+        el, i, hint,
+        name: fold(el.querySelector('.app-name').textContent + ' ' + (info.name || '') + ' ' + href),
+        key: fold([info.subtitle, info.keywords, extra.key].join(' ')),
+        desc: fold([info.desc, extra.desc].join(' ')),
+        features: (info.features || []).map((f) => ({
+          label: f.title,
+          title: fold((f.title || '') + ' ' + (f.kw || '')),
+          desc: fold(f.desc),
+        })),
+      };
+    });
+
+    // Pontua o app: nome vale mais que palavras-chave, que valem mais que uma função,
+    // que vale mais que a descrição. Todos os termos precisam bater em algum lugar, e
+    // uma mesma função que cobre vários termos ("juntar pdf" → Mesclar PDFs) ganha bônus.
+    // Se a busca não foi só pelo nome, as funções que mais explicam o resultado
+    // aparecem embaixo do nome do app. "misses" é quantos termos podem faltar.
+    function score(entry, terms, misses = 0) {
+      let total = 0;
+      let byName = true;
+      const hits = new Map();
+      for (const term of terms) {
+        let best = 0;
+        for (const f of entry.features) {
+          const s = Math.max(4 * matches(f.title, term), 2 * matches(f.desc, term));
+          if (s) {
+            const h = hits.get(f.label) || { s: 0, n: 0 };
+            hits.set(f.label, { s: h.s + s, n: h.n + 1 });
+          }
+          best = Math.max(best, s);
+        }
+        const inName = matches(entry.name, term);
+        if (inName) { total += 10 * inName; continue; }
+        byName = false;
+        best = Math.max(best, 6 * matches(entry.key, term));
+        if (!best) best = 2 * matches(entry.desc, term);
+        if (!best && misses-- <= 0) return null;
+        total += best;
+      }
+      const ranked = Array.from(hits).sort((a, b) => b[1].n - a[1].n || b[1].s - a[1].s);
+      if (ranked.length) total += 3 * (ranked[0][1].n - 1);
+      const top = ranked.filter(([, h]) => h.n === ranked[0][1].n && h.s >= ranked[0][1].s * 0.75).slice(0, 2);
+      const hint = byName ? '' : top.map(([label]) => label).join(' · ');
+      return { total, hint };
+    }
+
+    let ranked = [];
+    function filterApps() {
+      const terms = termsOf(search.value);
+      // Frases longas ("preciso tirar a voz de uma música"): se nenhum app cobre
+      // todos os termos, aceita os que só não cobrem um deles.
+      let results = index.map((entry) => (terms.length ? score(entry, terms) : null));
+      if (terms.length >= 3 && !results.some(Boolean)) results = index.map((entry) => score(entry, terms, 1));
+      ranked = [];
+      for (const entry of index) {
+        entry.el.classList.remove('first-match');
+        if (!terms.length) {
+          entry.el.hidden = false;
+          entry.el.style.order = '';
+          entry.hint.textContent = '';
+          continue;
+        }
+        const result = results[entry.i];
+        entry.el.hidden = !result;
+        entry.hint.textContent = result ? result.hint : '';
+        if (result) ranked.push({ entry, total: result.total });
+      }
+      ranked.sort((a, b) => b.total - a.total || a.entry.i - b.entry.i);
+      ranked.forEach(({ entry }, pos) => { entry.el.style.order = pos; });
+      if (ranked.length) ranked[0].entry.el.classList.add('first-match');
+      empty.classList.toggle('show', terms.length > 0 && !ranked.length);
+    }
+    search.addEventListener('input', filterApps);
+    search.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        filterApps();
+        if (ranked.length) window.location.href = ranked[0].entry.el.getAttribute('href');
+      } else if (e.key === 'Escape') {
+        search.value = '';
+        filterApps();
+        search.blur();
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== search) {
+        e.preventDefault();
+        search.focus();
+      }
+    });
+
     function updateTime() {
       const now = new Date();
       const hours = String(now.getHours()).padStart(2, '0');
@@ -1375,6 +1751,20 @@ def get_formats():
 def index():
     return render_template_string(MENU_HTML)
 
+@app.route("/apps-catalog.js")
+def apps_catalog():
+    # Reaproveita o catálogo da página de Instruções (BADGES + CATEGORIAS) na busca do menu,
+    # para que um app documentado lá seja encontrado pelas funções e sinônimos também na home.
+    try:
+        with open('templates/instructions.html', 'r', encoding='utf-8') as f:
+            html = f.read()
+        start = html.index('const BADGES = {')
+        end = html.index('// ---------- Busca ----------', start)
+        js = html[start:end]
+    except (OSError, ValueError):
+        js = ''
+    return Response(js, mimetype='application/javascript')
+
 @app.route("/verto", methods=["GET", "POST"], strict_slashes=False)
 def verto():
     status = None
@@ -1692,6 +2082,60 @@ def office_repair():
         return jsonify({'success': False, 'error': str(e)})
     except Exception as e:
         return jsonify({'success': False, 'error': f'Erro ao reparar: {str(e)}'})
+
+# --- Conversor Universal: qualquer formato -> qualquer formato (inclusive imagem -> DXF) ---
+# Cada rota "entrada -> saída" é resolvida por um motor local (Pillow, potrace,
+# ezdxf, PyMuPDF, LibreOffice, FFmpeg, 7-Zip, fontTools, trimesh). O resultado vai
+# para a pasta Downloads e também pode ser baixado pelo navegador via token.
+
+@app.route("/conversor", strict_slashes=False)
+def conversor():
+    return Response(CONVERSOR_HTML(), mimetype='text/html')
+
+@app.route("/conversor/formats", methods=["GET"], strict_slashes=False)
+def conversor_formats():
+    return jsonify(conversor_engine.catalog())
+
+@app.route("/conversor/detect", methods=["POST"], strict_slashes=False)
+def conversor_detect():
+    file = request.files.get('file')
+    if not file or not file.filename:
+        return jsonify({'success': False, 'error': 'Selecione um arquivo.'})
+    try:
+        return jsonify({'success': True, 'format': conversor_engine.detect_upload(file)})
+    except conversor_engine.ConversionError as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route("/conversor/preview", methods=["POST"], strict_slashes=False)
+def conversor_preview():
+    opts = request.form.to_dict()
+    try:
+        return jsonify({'success': True, **conversor_engine.trace_preview(request.files.get('file'), opts)})
+    except conversor_engine.ConversionError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro ao gerar a prévia: {e}'})
+
+@app.route("/conversor/convert", methods=["POST"], strict_slashes=False)
+def conversor_convert():
+    opts = request.form.to_dict()
+    output_format = opts.pop('format', '')
+    try:
+        result = conversor_engine.convert_upload(request.files.get('file'), output_format, opts)
+        return jsonify({'success': True, **result})
+    except conversor_engine.ConversionError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro ao converter: {e}'})
+
+@app.route("/conversor/download/<token>", methods=["GET"], strict_slashes=False)
+def conversor_download(token):
+    path = conversor_engine.output_path(token)
+    if not path:
+        return Response("Arquivo não encontrado (ele pode ter sido movido da pasta Downloads).",
+                        status=404, mimetype='text/plain; charset=utf-8')
+    inline = request.args.get('inline') == '1'
+    return send_file(path, as_attachment=not inline, download_name=os.path.basename(path))
 
 # --- Dev/Data: ferramentas de formatação, dados mock, conversão e encode/decode ---
 # Todas processadas 100% no navegador (JS) - sem rotas de upload/processamento no backend.
@@ -2029,6 +2473,252 @@ def instasaver_zip():
     spool.seek(0)
     return send_file(spool, mimetype='application/zip', as_attachment=True,
                      download_name=_instasaver_filename(payload.get('name'), 'instagram') + '.zip')
+
+# --- VscoSaver: cola um link do VSCO e vê/baixa galeria, coleção e spaces ---
+# O VSCO é público (não precisa de login); as mídias passam por /vscosaver/media
+# porque o Cloudflare do VSCO só entrega para quem imita um navegador, e os
+# vídeos em HLS são juntados num .mp4 pelo ffmpeg antes de sair daqui.
+
+@app.route("/vscosaver", strict_slashes=False)
+def vscosaver():
+    return render_template_string(VSCOSAVER_HTML())
+
+@app.route("/vscosaver/resolve", methods=["POST"], strict_slashes=False)
+def vscosaver_resolve():
+    link = (request.get_json(silent=True) or {}).get('link', '')
+    try:
+        return jsonify({'success': True, **vscosaver_engine.resolve(link)})
+    except vscosaver_engine.VscoSaverError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro inesperado: {e}'})
+
+@app.route("/vscosaver/gallery", methods=["GET"], strict_slashes=False)
+def vscosaver_gallery():
+    try:
+        page = vscosaver_engine.get_gallery(
+            request.args.get('site_id', ''), request.args.get('username', ''), request.args.get('cursor') or None)
+        return jsonify({'success': True, **page})
+    except vscosaver_engine.VscoSaverError as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route("/vscosaver/collection", methods=["GET"], strict_slashes=False)
+def vscosaver_collection():
+    try:
+        page = vscosaver_engine.get_collection(
+            request.args.get('collection_id', ''), request.args.get('username', ''),
+            request.args.get('page', 1, type=int))
+        return jsonify({'success': True, **page})
+    except vscosaver_engine.VscoSaverError as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route("/vscosaver/space/<space_id>", methods=["GET"], strict_slashes=False)
+def vscosaver_space(space_id):
+    try:
+        return jsonify({'success': True, **vscosaver_engine.get_space(space_id, request.args.get('cursor') or None)})
+    except vscosaver_engine.VscoSaverError as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route("/vscosaver/media", methods=["GET"], strict_slashes=False)
+def vscosaver_media():
+    url = request.args.get('url', '')
+    download = bool(request.args.get('dl'))
+    name = _instasaver_filename(request.args.get('name'), 'vsco_media')
+    try:
+        if vscosaver_engine.is_hls(url):
+            # send_file responde Range sozinho, então o player consegue avançar.
+            return send_file(vscosaver_engine.hls_to_mp4(url), mimetype='video/mp4', conditional=True,
+                             as_attachment=download, download_name=name, max_age=3600)
+        upstream = vscosaver_engine.fetch_media(url, request.headers.get('Range'))
+    except vscosaver_engine.VscoSaverError as e:
+        return Response(str(e), status=400, mimetype='text/plain')
+    except Exception:
+        return Response('Falha ao buscar a mídia.', status=502, mimetype='text/plain')
+
+    headers = {'Cache-Control': 'private, max-age=3600'}
+    for key in ('Content-Range', 'Accept-Ranges'):
+        if upstream.headers.get(key):
+            headers[key] = upstream.headers[key]
+    if download:
+        headers['Content-Disposition'] = f'attachment; filename="{name}"'
+    return Response(upstream.content, status=upstream.status_code, headers=headers,
+                    mimetype=upstream.headers.get('Content-Type', 'application/octet-stream'))
+
+@app.route("/vscosaver/zip", methods=["POST"], strict_slashes=False)
+def vscosaver_zip():
+    import tempfile
+    payload = request.get_json(silent=True) or {}
+    items = [i for i in (payload.get('items') or [])[:300]
+             if vscosaver_engine.is_allowed_media_url(i.get('url', ''))]
+    if not items:
+        return jsonify({'success': False, 'error': 'Nada para baixar.'}), 400
+
+    spool = tempfile.SpooledTemporaryFile(max_size=64 * 1024 * 1024)
+    used = set()
+    with zipfile.ZipFile(spool, 'w', zipfile.ZIP_STORED) as zf:
+        for n, item in enumerate(items):
+            name = _instasaver_filename(item.get('filename'), f'vsco_{n}')
+            if name in used:
+                name = f'{n}_{name}'
+            used.add(name)
+            try:
+                if vscosaver_engine.is_hls(item['url']):
+                    zf.write(vscosaver_engine.hls_to_mp4(item['url']), name)
+                else:
+                    zf.writestr(name, vscosaver_engine.fetch_media(item['url']).content)
+            except Exception:
+                continue  # uma mídia que falhou não derruba o resto do zip
+    spool.seek(0)
+    return send_file(spool, mimetype='application/zip', as_attachment=True,
+                     download_name=_instasaver_filename(payload.get('name'), 'vsco') + '.zip')
+
+# --- WhatsSaver: conecta ao WhatsApp (como o WhatsApp Web) e mostra, por conversa,
+# todas as fotos e vídeos - inclusive os enviados como arquivo - direto dos
+# servidores do WhatsApp. A conexão fica numa ponte em Node.js (WhatsSaver/bridge)
+# que o motor abre sozinho. Como no InstaSaver, nada é salvo sem pedir: ver usa
+# um cache temporário, o botão baixa pelo navegador e "baixar tudo" gera um .zip.
+
+def _whatssaver_error(e):
+    return jsonify({'success': False, 'error': str(e), 'code': getattr(e, 'code', None)})
+
+@app.route("/whatssaver", strict_slashes=False)
+def whatssaver():
+    return render_template_string(WHATSSAVER_HTML())
+
+@app.route("/whatssaver/status", methods=["GET"], strict_slashes=False)
+def whatssaver_status():
+    return jsonify({'success': True, **whatssaver_engine.status()})
+
+@app.route("/whatssaver/setup", methods=["POST"], strict_slashes=False)
+def whatssaver_setup():
+    whatssaver_engine.start_install()
+    return jsonify({'success': True})
+
+@app.route("/whatssaver/connect", methods=["POST"], strict_slashes=False)
+def whatssaver_connect():
+    try:
+        return jsonify({'success': True, 'state': whatssaver_engine.connect()})
+    except whatssaver_engine.WhatsSaverError as e:
+        return _whatssaver_error(e)
+
+@app.route("/whatssaver/pair", methods=["POST"], strict_slashes=False)
+def whatssaver_pair():
+    try:
+        phone = (request.get_json(silent=True) or {}).get('phone', '')
+        return jsonify({'success': True, **whatssaver_engine.pair(phone)})
+    except whatssaver_engine.WhatsSaverError as e:
+        return _whatssaver_error(e)
+
+@app.route("/whatssaver/logout", methods=["POST"], strict_slashes=False)
+def whatssaver_logout():
+    try:
+        whatssaver_engine.logout()
+        return jsonify({'success': True})
+    except whatssaver_engine.WhatsSaverError as e:
+        return _whatssaver_error(e)
+
+@app.route("/whatssaver/chats", methods=["GET"], strict_slashes=False)
+def whatssaver_chats():
+    return jsonify({'success': True, 'chats': whatssaver_engine.list_chats(
+        request.args.get('q', ''), request.args.get('scope', 'media'))})
+
+@app.route("/whatssaver/chat", methods=["GET"], strict_slashes=False)
+def whatssaver_chat():
+    try:
+        return jsonify({'success': True, 'chat': whatssaver_engine.chat_info(request.args.get('jid', ''))})
+    except whatssaver_engine.WhatsSaverError as e:
+        return _whatssaver_error(e)
+
+@app.route("/whatssaver/media", methods=["GET"], strict_slashes=False)
+def whatssaver_media():
+    a = request.args
+    return jsonify({'success': True, **whatssaver_engine.list_media(
+        a.get('jid', ''), a.get('kind', 'all'), a.get('who', 'all'),
+        a.get('offset', 0, type=int), a.get('limit', 120, type=int))})
+
+@app.route("/whatssaver/thumb", methods=["GET"], strict_slashes=False)
+def whatssaver_thumb():
+    path, data = whatssaver_engine.thumb(request.args.get('jid', ''), request.args.get('id', ''))
+    if path:
+        return send_file(path, mimetype='image/jpeg', max_age=86400)
+    if data:
+        return Response(data, mimetype='image/jpeg', headers={'Cache-Control': 'private, max-age=86400'})
+    return Response(status=404)
+
+@app.route("/whatssaver/avatar", methods=["GET"], strict_slashes=False)
+def whatssaver_avatar():
+    path = whatssaver_engine.avatar(request.args.get('jid', ''))
+    if not path:
+        return Response(status=404)
+    return send_file(path, mimetype='image/jpeg', max_age=3600)
+
+@app.route("/whatssaver/prepare", methods=["POST"], strict_slashes=False)
+def whatssaver_prepare():
+    data = request.get_json(silent=True) or {}
+    try:
+        return jsonify({'success': True, **whatssaver_engine.prepare(data.get('jid', ''), str(data.get('id', '')))})
+    except whatssaver_engine.WhatsSaverError as e:
+        return _whatssaver_error(e)
+
+@app.route("/whatssaver/view", methods=["GET"], strict_slashes=False)
+def whatssaver_view():
+    a = request.args
+    try:
+        path, mimetype, name = whatssaver_engine.media_file(a.get('jid', ''), a.get('id', ''), preview=bool(a.get('preview')))
+    except whatssaver_engine.WhatsSaverError as e:
+        return Response(str(e), status=502, mimetype='text/plain')
+    # conditional=True responde Range, então o player de vídeo consegue avançar.
+    return send_file(path, mimetype=mimetype, conditional=True, as_attachment=bool(a.get('dl')),
+                     download_name=name, max_age=0)
+
+@app.route("/whatssaver/history", methods=["POST"], strict_slashes=False)
+def whatssaver_history():
+    data = request.get_json(silent=True) or {}
+    try:
+        if data.get('action') == 'stop':
+            return jsonify({'success': True, 'history': whatssaver_engine.history_stop()})
+        return jsonify({'success': True, 'history': whatssaver_engine.history_start(data.get('jid', ''))})
+    except whatssaver_engine.WhatsSaverError as e:
+        return _whatssaver_error(e)
+
+@app.route("/whatssaver/prefetch", methods=["GET", "POST"], strict_slashes=False)
+def whatssaver_prefetch():
+    # POST começa a trazer as fotos da conversa para o cache (miniaturas nítidas); GET acompanha.
+    if request.method == 'POST':
+        return jsonify({'success': True, **whatssaver_engine.prefetch_start((request.get_json(silent=True) or {}).get('jid', ''))})
+    return jsonify({'success': True, **whatssaver_engine.prefetch_status(request.args.get('jid', ''), request.args.get('since', 0, type=int), request.args.get('mark_since', 0, type=int))})
+
+@app.route("/whatssaver/zip/start", methods=["POST"], strict_slashes=False)
+def whatssaver_zip_start():
+    data = request.get_json(silent=True) or {}
+    try:
+        return jsonify({'success': True, 'job': whatssaver_engine.zip_start(
+            data.get('jid', ''), data.get('ids'), data.get('kind', 'all'), data.get('who', 'all'))})
+    except whatssaver_engine.WhatsSaverError as e:
+        return _whatssaver_error(e)
+
+@app.route("/whatssaver/zip/status", methods=["GET"], strict_slashes=False)
+def whatssaver_zip_status():
+    try:
+        return jsonify({'success': True, 'job': whatssaver_engine.zip_status(request.args.get('id', ''))})
+    except whatssaver_engine.WhatsSaverError as e:
+        return _whatssaver_error(e)
+
+@app.route("/whatssaver/zip/cancel", methods=["POST"], strict_slashes=False)
+def whatssaver_zip_cancel():
+    whatssaver_engine.zip_cancel((request.get_json(silent=True) or {}).get('id', ''))
+    return jsonify({'success': True})
+
+@app.route("/whatssaver/zip/download", methods=["GET"], strict_slashes=False)
+def whatssaver_zip_download():
+    from urllib.parse import quote
+    try:
+        chunks, name = whatssaver_engine.zip_stream(request.args.get('id', ''))
+    except whatssaver_engine.WhatsSaverError as e:
+        return Response(str(e), status=410, mimetype='text/plain')
+    # O .zip sai em streaming (sem arquivo temporário), direto do cache.
+    headers = {'Content-Disposition': f"attachment; filename=\"whatssaver.zip\"; filename*=UTF-8''{quote(name)}"}
+    return Response(chunks, mimetype='application/zip', headers=headers)
 
 @app.route("/musica", strict_slashes=False)
 def musica():

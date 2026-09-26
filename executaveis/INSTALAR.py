@@ -148,6 +148,7 @@ def main():
         "yt-dlp-ejs>=0.8.0",
         "PyPDF2",
         "Pillow",
+        "pillow-heif",
         "pikepdf",
         "reportlab",
         "PyMuPDF",
@@ -161,6 +162,7 @@ def main():
         "readability-lxml",
         "beautifulsoup4",
         "requests",
+        "curl_cffi",
         "html2text",
         "ebooklib",
         "lxml",
@@ -168,10 +170,20 @@ def main():
         "soundfile",
         "python-docx",
         "python-pptx",
-        "openpyxl"
+        "openpyxl",
+        # Conversor Universal (imagem -> DXF/SVG, CAD, fontes, 3D, Markdown)
+        "ezdxf",
+        "potracer",
+        "fonttools",
+        "brotli",
+        "trimesh",
+        "markdown",
+        "scikit-image",
+        "scipy",
+        "PyYAML"
     ]
     
-    total_etapas = len(packages) + 3  # pacotes + FFmpeg + LibreOffice + runtime JS (Deno)
+    total_etapas = len(packages) + 4  # pacotes + FFmpeg + LibreOffice + runtime JS (Deno) + WhatsSaver
     etapa_atual = 0
     inicio_instalacao = time.time()
 
@@ -250,7 +262,7 @@ def main():
     print_progress_bar(etapa_atual, total_etapas, inicio_instalacao)
 
     # [6/7] Instalar LibreOffice (motor de conversão do app Office)
-    print_colored("\n[6/7] Instalando LibreOffice...", "yellow")
+    print_colored("\n[6/8] Instalando LibreOffice...", "yellow")
 
     if shutil.which("soffice") or shutil.which("libreoffice"):
         print_colored("LibreOffice já está instalado!", "green")
@@ -284,7 +296,7 @@ def main():
     # resolução de um desafio em JavaScript para liberar os formatos de
     # vídeo/áudio, então o downloader do Verto não funciona sem um runtime
     # JS disponível (deno, node, bun ou quickjs).
-    print_colored("\n[7/7] Instalando runtime JavaScript (necessário para o YouTube)...", "yellow")
+    print_colored("\n[7/8] Instalando runtime JavaScript (necessário para o YouTube)...", "yellow")
 
     if shutil.which("deno") or shutil.which("node") or shutil.which("bun") or shutil.which("quickjs"):
         print_colored("Runtime JavaScript já está instalado!", "green")
@@ -321,6 +333,21 @@ def main():
             print_colored(f"[AVISO] Erro ao instalar Deno: {e}", "yellow")
             print_colored("        O downloader de YouTube pode falhar sem um runtime JS.", "yellow")
             print_colored("        Instale manualmente em: https://deno.com/", "white")
+
+    etapa_atual += 1
+    print_progress_bar(etapa_atual, total_etapas, inicio_instalacao)
+
+    # [8/8] WhatsSaver - a conexão com o WhatsApp é uma ponte em Node.js
+    # (biblioteca Baileys). O próprio motor do app faz a instalação: usa o
+    # Node 20+ do sistema ou baixa um portátil para WhatsSaver/bridge/runtime.
+    print_colored("\n[8/8] Preparando o WhatsSaver (ponte com o WhatsApp)...", "yellow")
+    result = subprocess.run([python_venv, "-c",
+                             "from WhatsSaver.whatssaver_engine import install_components; install_components()"])
+    if result.returncode == 0:
+        print_colored("WhatsSaver pronto!", "green")
+    else:
+        print_colored("[AVISO] O WhatsSaver não foi preparado agora.", "yellow")
+        print_colored("        Dá para instalar depois pelo botão \"Instalar agora\" dentro do app.", "white")
 
     etapa_atual += 1
     print_progress_bar(etapa_atual, total_etapas, inicio_instalacao)

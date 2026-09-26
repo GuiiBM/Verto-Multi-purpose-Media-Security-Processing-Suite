@@ -152,17 +152,21 @@ def _soffice_binary():
     return shutil.which("soffice") or shutil.which("libreoffice") or "soffice"
 
 
-def run_soffice(input_path, target_ext, outdir, timeout=180):
+def run_soffice(input_path, target_ext, outdir, timeout=180, infilter=None):
     """Roda o LibreOffice headless em um perfil de usuário isolado (evita travar
     por causa de outra instância/lock quando várias conversões acontecem em
-    sequência) e com timeout, já que o soffice pode travar em arquivos ruins."""
+    sequência) e com timeout, já que o soffice pode travar em arquivos ruins.
+    infilter força o filtro de importação (ex.: "writer_pdf_import" para abrir
+    um PDF no Writer em vez do Draw)."""
     profile_dir = tempfile.mkdtemp(prefix="office_soffice_profile_")
     try:
         cmd = [
             _soffice_binary(), "--headless", "--norestore", "--nolockcheck", "--nodefault",
             f"-env:UserInstallation=file://{profile_dir}",
-            "--convert-to", target_ext, "--outdir", outdir, input_path,
         ]
+        if infilter:
+            cmd.append(f"--infilter={infilter}")
+        cmd += ["--convert-to", target_ext, "--outdir", outdir, input_path]
         try:
             return subprocess.run(cmd, capture_output=True, timeout=timeout)
         except subprocess.TimeoutExpired as e:

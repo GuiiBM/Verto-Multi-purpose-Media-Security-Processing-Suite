@@ -17,6 +17,7 @@ pycryptodome
 readability-lxml
 beautifulsoup4
 requests
+curl_cffi
 html2text
 ebooklib
 lxml
@@ -26,3 +27,12 @@ python-docx
 python-pptx
 openpyxl
 secretstorage
+ezdxf
+potracer
+fonttools
+brotli
+trimesh
+markdown
+scikit-image
+scipy
+PyYAML

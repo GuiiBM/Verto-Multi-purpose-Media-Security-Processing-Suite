@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsSaver</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --wa: linear-gradient(135deg, #5cf08f 0%, #25d366 45%, #128c7e 100%);
+      --accent: #25d366;
+      --ink: #04130a;
+      --card: rgba(15, 23, 42, 0.45);
+      --line: rgba(148, 163, 184, 0.1);
+      --muted: #94a3b8;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(37, 211, 102, 0.07) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(18, 140, 126, 0.07) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(37, 211, 102, 0.04) 0px, transparent 50%);
+      color: #e2e8f0; min-height: 100vh; padding: 100px 16px 90px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 50; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(37, 211, 102, 0.5); color: #fff; transform: translateX(-6px); }
+    .wrap { max-width: 1240px; margin: 0 auto; }
+    .logo {
+      font-size: 52px; font-weight: 900; text-align: center; letter-spacing: 1px;
+      background: var(--wa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 25px rgba(37, 211, 102, 0.25));
+    }
+    .tagline { color: #64748b; font-size: 15px; margin: 8px 0 32px; text-align: center; font-weight: 500; }
+
+    .btn {
+      border: 0; cursor: pointer; border-radius: 14px; font: 700 14px 'Inter', sans-serif;
+      padding: 12px 18px; color: var(--ink); background: var(--accent); transition: transform .15s, opacity .15s, border-color .15s; white-space: nowrap;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity: .5; cursor: default; transform: none; }
+    .btn.ghost { background: rgba(148, 163, 184, 0.1); color: #e2e8f0; border: 1px solid var(--line); }
+    .btn.ghost:hover { border-color: rgba(37, 211, 102, 0.45); }
+    .btn.danger { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .btn.sm { padding: 8px 12px; font-size: 13px; border-radius: 11px; }
+    .btn.xs { padding: 6px 10px; font-size: 12px; border-radius: 9px; }
+    .spinner { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; border: 3px solid rgba(37, 211, 102, 0.15); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+    .spinner.sm { width: 18px; height: 18px; border-width: 2px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .muted { color: var(--muted); }
+    .hidden { display: none !important; }
+    .loading-screen { display: flex; justify-content: center; margin: 60px 0; }
+
+    /* Cartões de etapa (instalação / conexão / aviso) */
+    .panel-card {
+      max-width: 860px; margin: 0 auto; background: var(--card); border: 1px solid var(--line);
+      border-radius: 24px; padding: 32px; backdrop-filter: blur(40px);
+    }
+    .panel-card h2 { font-size: 22px; font-weight: 800; color: #f8fafc; margin-bottom: 10px; }
+    .panel-card p { color: #cbd5e1; line-height: 1.6; font-size: 14.5px; }
+    .panel-card .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+    .checklist { list-style: none; margin: 16px 0 0; display: grid; gap: 8px; font-size: 14px; }
+    .checklist li { display: flex; gap: 10px; align-items: center; color: #cbd5e1; }
+    .checklist b { color: #f8fafc; }
+    .log {
+      margin-top: 18px; background: #020617; border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+      font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; color: #a7f3d0; max-height: 260px; overflow: auto; white-space: pre-wrap;
+    }
+    .err-text { color: #fca5a5; margin-top: 14px; font-size: 14px; line-height: 1.5; }
+
+    .connect { display: grid; grid-template-columns: 300px 1fr; gap: 32px; align-items: center; }
+    .qr-box {
+      width: 300px; height: 300px; border-radius: 20px; background: #fff; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; box-shadow: 0 0 0 6px rgba(37, 211, 102, 0.12);
+    }
+    .qr-box img { width: 100%; height: 100%; display: block; }
+    .qr-box .qr-wait { display: flex; flex-direction: column; align-items: center; gap: 14px; color: #0f172a; font-size: 13px; font-weight: 600; text-align: center; padding: 20px; }
+    .qr-box .qr-wait .spinner { border-color: rgba(15, 23, 42, 0.12); border-top-color: #128c7e; }
+    .steps { counter-reset: s; list-style: none; display: grid; gap: 12px; margin: 16px 0 20px; }
+    .steps li { counter-increment: s; display: flex; gap: 12px; font-size: 14.5px; color: #cbd5e1; line-height: 1.5; }
+    .steps li::before {
+      content: counter(s); flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: rgba(37, 211, 102, 0.14);
+      color: #4ade80; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center;
+    }
+    .steps b { color: #f8fafc; }
+    .pair { border-top: 1px solid var(--line); padding-top: 18px; }
+    .pair-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .input {
+      flex: 1; min-width: 180px; background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(148, 163, 184, 0.18); border-radius: 12px;
+      color: #f8fafc; font: 500 15px 'Inter', sans-serif; padding: 11px 14px; outline: 0;
+    }
+    .input:focus { border-color: rgba(37, 211, 102, 0.5); box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.08); }
+    .pair-code {
+      margin-top: 14px; font: 800 30px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 6px; color: #4ade80;
+      background: rgba(37, 211, 102, 0.08); border: 1px dashed rgba(37, 211, 102, 0.4); border-radius: 14px; padding: 12px 16px; text-align: center;
+    }
+    .privacy { margin-top: 22px; font-size: 12.5px; color: #64748b; line-height: 1.6; }
+
+    /* Barra da conta */
+    .account {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line);
+      border-radius: 20px; padding: 14px 18px; backdrop-filter: blur(40px);
+    }
+    .account .who { flex: 1; min-width: 200px; }
+    .account .who b { color: #f8fafc; font-size: 15px; }
+    .account .who div { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); margin-right: 6px; box-shadow: 0 0 10px rgba(37, 211, 102, 0.7); }
+    .dot.warn { background: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.6); }
+    .banner {
+      margin-top: 12px; padding: 12px 16px; border-radius: 14px; font-size: 13.5px; line-height: 1.55;
+      background: rgba(37, 211, 102, 0.07); border: 1px solid rgba(37, 211, 102, 0.22); color: #bbf7d0; display: flex; gap: 12px; align-items: center;
+    }
+    .banner.warn { background: rgba(251, 191, 36, 0.07); border-color: rgba(251, 191, 36, 0.25); color: #fde68a; }
+
+    /* Layout em duas colunas */
+    .layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; margin-top: 16px; align-items: start; }
+    .sidebar {
+      background: var(--card); border: 1px solid var(--line); border-radius: 20px; backdrop-filter: blur(40px);
+      position: sticky; top: 16px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; overflow: hidden;
+    }
+    .side-head { padding: 14px; border-bottom: 1px solid var(--line); }
+    .search {
+      display: flex; align-items: center; gap: 8px; background: rgba(2, 6, 23, 0.55); border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 12px; padding: 0 12px;
+    }
+    .search:focus-within { border-color: rgba(37, 211, 102, 0.45); }
+    .search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: #f8fafc; font: 500 14px 'Inter', sans-serif; padding: 10px 0; }
+    .search svg { color: #64748b; flex-shrink: 0; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .chip {
+      border: 1px solid rgba(148, 163, 184, 0.15); background: rgba(15, 23, 42, 0.6); color: #94a3b8; font: 600 12.5px 'Inter', sans-serif;
+      padding: 6px 11px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: all .15s;
+    }
+    .chip:hover { color: #e2e8f0; border-color: rgba(37, 211, 102, 0.35); }
+    .chip.active { background: rgba(37, 211, 102, 0.14); border-color: rgba(37, 211, 102, 0.5); color: #4ade80; }
+    .chip .n { font-weight: 700; opacity: .75; margin-left: 4px; }
+    .chat-list { overflow-y: auto; flex: 1; padding: 6px; }
+    .chat-item {
+      display: flex; gap: 12px; align-items: center; padding: 10px; border-radius: 14px; cursor: pointer; border: 1px solid transparent;
+      width: 100%; background: none; color: inherit; font: inherit; text-align: left;
+    }
+    .chat-item:hover { background: rgba(148, 163, 184, 0.07); }
+    .chat-item.active { background: rgba(37, 211, 102, 0.1); border-color: rgba(37, 211, 102, 0.3); }
+    .avatar {
+      position: relative; flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; background: #1e293b; color: #cbd5e1;
+      display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; overflow: hidden;
+    }
+    .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .avatar.lg { width: 64px; height: 64px; font-size: 22px; }
+    .c-main { flex: 1; min-width: 0; }
+    .c-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+    .c-name { font-weight: 700; color: #f1f5f9; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .c-date { font-size: 11.5px; color: #64748b; flex-shrink: 0; }
+    .c-stats { display: flex; gap: 10px; font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .list-empty { color: #64748b; font-size: 13.5px; text-align: center; padding: 30px 14px; line-height: 1.6; }
+
+    /* Painel da conversa */
+    .pane { min-width: 0; }
+    .pane-empty {
+      background: var(--card); border: 1px dashed rgba(148, 163, 184, 0.18); border-radius: 20px; padding: 70px 24px; text-align: center; color: #64748b; line-height: 1.6;
+    }
+    .pane-empty .big { font-size: 46px; margin-bottom: 12px; }
+    .pane-empty b { display: block; color: #cbd5e1; font-size: 17px; margin-bottom: 6px; }
+    .chat-head {
+      background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px; backdrop-filter: blur(40px);
+    }
+    .ch-top { display: flex; gap: 16px; align-items: center; }
+    .ch-back { display: none; margin-bottom: 10px; }
+    .ch-info { flex: 1; min-width: 0; }
+    .ch-name { font-size: 20px; font-weight: 800; color: #f8fafc; word-break: break-word; }
+    .ch-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .ch-stats { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); margin-top: 8px; }
+    .ch-stats b { color: #f8fafc; }
+    .ch-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .hist-line { margin-top: 12px; font-size: 13px; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; line-height: 1.5; }
+    .hist-line.running { color: #bbf7d0; }
+    .hist-line.bad { color: #fde68a; }
+    .toolbar { display: flex; gap: 10px 18px; flex-wrap: wrap; align-items: center; margin: 16px 2px 12px; }
+    .toolbar .group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .toolbar .label { font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px; color: #64748b; font-weight: 700; margin-right: 2px; }
+    .fresh { font-size: 13px; color: #bbf7d0; margin: 0 2px 10px; display: flex; gap: 10px; align-items: center; }
+
+    .selbar {
+      position: sticky; top: 12px; z-index: 20; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      background: rgba(6, 40, 26, 0.92); border: 1px solid rgba(37, 211, 102, 0.35); border-radius: 16px; padding: 10px 14px; margin-bottom: 12px;
+      backdrop-filter: blur(20px);
+    }
+    .selbar b { color: #f8fafc; margin-right: auto; font-size: 14px; }
+
+    /* Grade */
+    .month { grid-column: 1 / -1; font-size: 13px; font-weight: 800; color: #cbd5e1; margin: 14px 2px 2px; }
+    .month:first-child { margin-top: 0; }
+    .grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .tile {
+      position: relative; border-radius: 12px; overflow: hidden; background: #111827; cursor: pointer; aspect-ratio: 1 / 1;
+      border: 1px solid var(--line); user-select: none;
+    }
+    .tile > img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
+    .tile:hover > img { transform: scale(1.04); }
+    .tile.sel { outline: 3px solid var(--accent); outline-offset: -3px; }
+    .tile.sel > img { transform: scale(.94); border-radius: 8px; }
+    .ph {
+      width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+      color: #64748b; font-size: 34px; background: linear-gradient(135deg, #111827, #1e293b);
+    }
+    .ph span { font-size: 12px; font-weight: 800; letter-spacing: 1px; color: #94a3b8; }
+    .t-badges { position: absolute; top: 7px; right: 7px; display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; max-width: 75%; }
+    .badge {
+      background: rgba(0, 0, 0, 0.62); backdrop-filter: blur(8px); color: #fff; font-size: 10.5px; font-weight: 700;
+      padding: 3px 6px; border-radius: 7px; display: flex; align-items: center; gap: 4px; white-space: nowrap;
+    }
+    .badge.file { background: rgba(14, 116, 144, 0.85); }
+    .badge.err { background: rgba(185, 28, 28, 0.9); }
+    .badge.phone { background: rgba(180, 83, 9, 0.9); }
+    .pref-line { font-size: 12.5px; color: var(--muted); margin: -4px 2px 10px; display: flex; gap: 8px; align-items: center; }
+    .check {
+      position: absolute; top: 7px; left: 7px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.85);
+      background: rgba(0, 0, 0, 0.35); opacity: 0; transition: opacity .15s; display: flex; align-items: center; justify-content: center; color: var(--ink);
+    }
+    .tile:hover .check, .selecting .check { opacity: 1; }
+    .tile.sel .check { background: var(--accent); border-color: var(--accent); opacity: 1; }
+    .t-meta {
+      position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 48px 8px 8px; font-size: 11px; color: #e2e8f0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.78)); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .dl {
+      position: absolute; bottom: 7px; right: 7px; width: 34px; height: 34px; border-radius: 10px; border: 0; cursor: pointer;
+      background: rgba(0, 0, 0, 0.62); backdrop-filter: blur(8px); color: #fff; display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .2s, background .2s, color .2s;
+    }
+    .tile:hover .dl, .dl.busy { opacity: 1; }
+    .dl:hover { background: var(--accent); color: var(--ink); }
+    .dl.busy { pointer-events: none; }
+    .dl .spinner { border-top-color: #fff; }
+    @media (hover: none) { .dl { opacity: 1; } }
+    .grid-empty { grid-column: 1 / -1; color: #64748b; text-align: center; padding: 50px 12px; font-size: 14px; line-height: 1.6; }
+    .more { display: flex; justify-content: center; margin-top: 18px; min-height: 42px; }
+
+    /* Visualizador */
+    .viewer {
+      position: fixed; inset: 0; background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(10px); z-index: 100;
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .viewer.open { display: flex; }
+    .v-box { display: flex; gap: 20px; max-width: 1200px; width: 100%; max-height: 100%; align-items: stretch; }
+    .v-media { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; min-height: 0; min-width: 0; }
+    .v-media img, .v-media video { max-width: 100%; max-height: calc(100vh - 80px); border-radius: 14px; display: block; background: #000; }
+    .v-media img.blur { filter: blur(3px) brightness(.55); min-width: min(480px, 100%); }
+    .v-media .blank { width: min(480px, 100%); aspect-ratio: 1; border-radius: 14px; background: #111827; }
+    .v-wait {
+      position: absolute; inset: 0; display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center;
+      font-size: 14px; color: #e2e8f0; text-align: center; padding: 20px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); line-height: 1.5;
+    }
+    .v-wait .btn { text-shadow: none; }
+    .v-side {
+      width: 320px; flex-shrink: 0; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px;
+      display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 80px); overflow: auto;
+    }
+    .v-side .when { font-size: 12.5px; color: #64748b; }
+    .v-side .by { font-size: 14px; color: #f8fafc; font-weight: 700; }
+    .v-side .cap { font-size: 13.5px; line-height: 1.55; color: #cbd5e1; white-space: pre-line; word-break: break-word; }
+    .v-side .fname { font-size: 13px; color: #cbd5e1; word-break: break-all; }
+    .v-side .status { font-size: 13px; line-height: 1.5; padding: 10px 12px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); color: #fecaca; word-break: break-word; }
+    .v-side .status.phone { background: rgba(245, 158, 11, 0.1); color: #fde68a; }
+    .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag { font-size: 11.5px; font-weight: 600; padding: 4px 8px; border-radius: 8px; background: rgba(148, 163, 184, 0.12); color: #cbd5e1; }
+    .tag.file { background: rgba(14, 116, 144, 0.3); color: #a5f3fc; }
+    .v-close, .v-nav {
+      position: fixed; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--line); color: #e2e8f0; cursor: pointer;
+      width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; z-index: 101; font-size: 22px;
+    }
+    .v-close { top: 20px; right: 20px; }
+    .v-nav.prev { left: 20px; top: 50%; transform: translateY(-50%); }
+    .v-nav.next { right: 20px; top: 50%; transform: translateY(-50%); }
+    .v-nav:hover, .v-close:hover { border-color: rgba(37, 211, 102, 0.5); color: #fff; }
+
+    /* Progresso do .zip */
+    .dock {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 90; width: min(620px, calc(100% - 32px));
+      background: rgba(15, 23, 42, 0.96); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 16px; padding: 12px 14px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45); display: none;
+    }
+    .dock.show { display: block; }
+    .dock-top { display: flex; gap: 10px; align-items: center; font-size: 13.5px; }
+    .dock-top .txt { flex: 1; min-width: 0; }
+    .dock-top .txt b { color: #f8fafc; }
+    .dock-top .sub { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar { height: 5px; border-radius: 99px; background: rgba(148, 163, 184, 0.15); margin-top: 10px; overflow: hidden; }
+    .bar i { display: block; height: 100%; width: 0; background: var(--wa); transition: width .3s; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0;
+      background: #0f172a; border: 1px solid var(--line); color: #e2e8f0; padding: 12px 18px; border-radius: 12px;
+      font-size: 14px; transition: all .25s; z-index: 200; pointer-events: none; max-width: calc(100% - 32px); text-align: center;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .dock.show ~ .toast { bottom: 120px; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; max-height: none; }
+      body.in-chat .sidebar { display: none; }
+      body:not(.in-chat) .pane { display: none; }
+      .ch-back { display: inline-flex; }
+      .connect { grid-template-columns: 1fr; justify-items: center; }
+    }
+    @media (max-width: 760px) {
+      body { padding-top: 92px; }
+      .logo { font-size: 40px; }
+      .panel-card { padding: 22px; }
+      .grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+      .tile { border-radius: 6px; }
+      .t-meta { display: none; }
+      .check { opacity: 1; width: 20px; height: 20px; }
+      .dl { width: 28px; height: 28px; bottom: 4px; right: 4px; border-radius: 8px; }
+      .v-box { flex-direction: column; overflow: auto; }
+      .v-side { width: 100%; max-height: none; }
+      .v-media img, .v-media video { max-height: 62vh; }
+      .v-nav { top: auto; bottom: 20px; transform: none; }
+      .qr-box { width: 260px; height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button" onclick="location.href='/'" title="Voltar">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+
+  <div class="wrap">
+    <div class="logo">WhatsSaver</div>
+    <div class="tagline">Todas as fotos e vídeos de uma conversa do WhatsApp, inclusive os enviados como arquivo, direto do WhatsApp</div>
+
+    <!-- Carregando -->
+    <div class="loading-screen" id="scrLoading"><div class="spinner"></div></div>
+
+    <!-- Instalação dos componentes -->
+    <section class="panel-card hidden" id="scrSetup">
+      <h2>Falta instalar os componentes do WhatsSaver</h2>
+      <p>O WhatsSaver conversa com o WhatsApp por uma pequena ponte em <b>Node.js</b> (a mesma técnica do WhatsApp Web). A instalação é feita uma vez só e fica dentro da pasta do Verto.</p>
+      <ul class="checklist" id="setupChecks"></ul>
+      <div class="actions"><button class="btn" id="setupBtn">Instalar agora</button></div>
+      <div class="log hidden" id="setupLog"></div>
+      <div class="err-text" id="setupErr"></div>
+    </section>
+
+    <!-- Conexão (QR / código) -->
+    <section class="panel-card hidden" id="scrConnect">
+      <div class="connect">
+        <div class="qr-box" id="qrBox"></div>
+        <div>
+          <h2 id="connTitle">Conecte o seu WhatsApp</h2>
+          <ol class="steps">
+            <li><span>Abra o <b>WhatsApp</b> no celular.</span></li>
+            <li><span>Toque em <b>⋮ Mais opções</b> (Android) ou <b>Configurações</b> (iPhone) e depois em <b>Aparelhos conectados</b>.</span></li>
+            <li><span>Toque em <b>Conectar um aparelho</b> e aponte a câmera para o QR ao lado.</span></li>
+          </ol>
+          <div class="pair">
+            <div class="muted" style="font-size:13.5px">Não dá para escanear? Conecte com o número do telefone:</div>
+            <div class="pair-row">
+              <input class="input" id="pairPhone" type="tel" placeholder="55 11 91234-5678" autocomplete="tel">
+              <button class="btn ghost" id="pairBtn">Gerar código</button>
+            </div>
+            <div class="pair-code hidden" id="pairCode"></div>
+            <div class="muted hidden" id="pairHelp" style="font-size:13px;margin-top:8px;line-height:1.5">No celular, em <b>Conectar um aparelho</b>, toque em <b>Conectar com número de telefone</b> e digite o código acima.</div>
+          </div>
+          <div class="err-text" id="connErr"></div>
+        </div>
+      </div>
+      <div class="privacy">O WhatsSaver entra como um <b>aparelho conectado</b> da sua conta, igual ao WhatsApp Web: ele só lê, não envia nada. A sessão e o índice das mídias ficam só neste computador (pasta <b>WhatsSaver/dados</b>). Para sair, use “Desconectar” aqui ou remova o aparelho “LocalTools WhatsSaver” no celular.</div>
+    </section>
+
+    <!-- Aviso de estado (desconectado, erro...) -->
+    <section class="panel-card hidden" id="scrNotice">
+      <h2 id="noticeTitle"></h2>
+      <p id="noticeText"></p>
+      <div class="actions" id="noticeActions"></div>
+    </section>
+
+    <!-- App conectado -->
+    <section class="hidden" id="scrApp">
+      <div class="account">
+        <div class="avatar" id="meAvatar"></div>
+        <div class="who">
+          <b id="meName"></b>
+          <div id="meSub"></div>
+        </div>
+        <button class="btn danger sm" id="logoutBtn">Desconectar</button>
+      </div>
+      <div class="banner hidden" id="syncBanner"></div>
+
+      <div class="layout">
+        <aside class="sidebar">
+          <div class="side-head">
+            <label class="search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2.2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+              <input id="chatSearch" type="search" placeholder="Buscar conversa ou número" autocomplete="off">
+            </label>
+            <div class="chips" id="scopeChips">
+              <button class="chip active" data-scope="media">Com mídia</button>
+              <button class="chip" data-scope="contacts">Contatos</button>
+              <button class="chip" data-scope="groups">Grupos</button>
+              <button class="chip" data-scope="all">Todas</button>
+            </div>
+          </div>
+          <div class="chat-list" id="chatList"></div>
+        </aside>
+
+        <main class="pane">
+          <div class="pane-empty" id="paneEmpty">
+            <div class="big">💬</div>
+            <b>Escolha uma conversa</b>
+            Você vê todas as fotos e vídeos dela, os normais e os enviados como arquivo, mesmo o que o celular nunca baixou, e baixa só o que quiser.
+          </div>
+
+          <div class="hidden" id="paneChat">
+            <button class="btn ghost sm ch-back" id="chBack">‹ Conversas</button>
+            <div class="chat-head">
+              <div class="ch-top">
+                <div class="avatar lg" id="chAvatar"></div>
+                <div class="ch-info">
+                  <div class="ch-name" id="chName"></div>
+                  <div class="ch-sub" id="chSub"></div>
+                </div>
+              </div>
+              <div class="ch-stats" id="chStats"></div>
+              <div class="ch-actions">
+                <button class="btn sm" id="zipAllBtn">⬇ Baixar tudo (.zip)</button>
+                <button class="btn ghost sm" id="histBtn">🕰 Buscar mensagens antigas</button>
+                <button class="btn ghost sm" id="selAllBtn">☑ Selecionar</button>
+              </div>
+              <div class="hist-line" id="histLine"></div>
+            </div>
+
+            <div class="toolbar">
+              <div class="group" id="kindChips">
+                <span class="label">Tipo</span>
+                <button class="chip active" data-kind="all">Tudo<span class="n" id="n-all"></span></button>
+                <button class="chip" data-kind="photo">Fotos<span class="n" id="n-photo"></span></button>
+                <button class="chip" data-kind="video">Vídeos<span class="n" id="n-video"></span></button>
+                <button class="chip" data-kind="file" title="Fotos e vídeos mandados como documento (arquivo), que o celular não baixa sozinho">Enviados como arquivo<span class="n" id="n-file"></span></button>
+              </div>
+              <div class="group" id="whoChips">
+                <span class="label">De</span>
+                <button class="chip active" data-who="all">Todos</button>
+                <button class="chip" data-who="them">Recebidas</button>
+                <button class="chip" data-who="me">Enviadas por mim</button>
+              </div>
+            </div>
+
+            <div class="pref-line hidden" id="prefLine"></div>
+            <div class="fresh hidden" id="freshBar"><span id="freshText"></span><button class="btn ghost xs" id="freshBtn">Atualizar</button></div>
+            <div class="selbar hidden" id="selBar">
+              <b id="selCount"></b>
+              <button class="btn xs" id="selDl">⬇ Baixar</button>
+              <button class="btn ghost xs" id="selAll">Selecionar todos</button>
+              <button class="btn ghost xs" id="selClear">Limpar</button>
+            </div>
+            <div class="grid" id="grid"></div>
+            <div class="more" id="more"></div>
+          </div>
+        </main>
+      </div>
+    </section>
+  </div>
+
+  <div class="viewer" id="viewer">
+    <button class="v-close" id="vClose" title="Fechar (Esc)">✕</button>
+    <button class="v-nav prev" id="vPrev" title="Anterior (←)">‹</button>
+    <button class="v-nav next" id="vNext" title="Próximo (→)">›</button>
+    <div class="v-box">
+      <div class="v-media" id="vMedia"></div>
+      <aside class="v-side" id="vSide"></aside>
+    </div>
+  </div>
+
+  <div class="dock" id="dock">
+    <div class="dock-top">
+      <div class="txt"><div id="dockText"></div><div class="sub" id="dockSub"></div></div>
+      <button class="btn ghost xs" id="dockAction"></button>
+    </div>
+    <div class="bar"><i id="dockBar"></i></div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const PAGE = 120;
+  const PHONE_HELP = 'Para salvar pelo celular: abra a mídia no WhatsApp e toque em Compartilhar ou Salvar, ou exporte a conversa (Mais > Exportar conversa > Incluir mídia).';
+  const S = {
+    st: null, screen: null, chats: [], scope: 'media', query: '',
+    jid: null, chat: null, filters: { kind: 'all', who: 'all' },
+    items: [], byId: new Map(), next: 0, loading: false, total: 0, lastMonth: null, listToken: 0,
+    selected: new Set(), selecting: false, anchor: null,
+    zip: null, viewer: null, autoHistory: new Set(),
+  };
+
+  // ---------- utilidades ----------
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const q = params => new URLSearchParams(params).toString();
+  const nf = n => Intl.NumberFormat('pt-BR').format(n || 0);
+  const fmtDate = ts => ts ? new Date(ts * 1000).toLocaleString('pt-BR', { dateStyle: 'long', timeStyle: 'short' }) : '';
+  const fmtDay = ts => ts ? new Date(ts * 1000).toLocaleDateString('pt-BR') : '';
+  const fmtShort = ts => {
+    if (!ts) return '';
+    const d = new Date(ts * 1000), now = new Date();
+    if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString('pt-BR', d.getFullYear() === now.getFullYear() ? { day: '2-digit', month: '2-digit' } : { day: '2-digit', month: '2-digit', year: '2-digit' });
+  };
+  const monthOf = ts => {
+    if (!ts) return 'Sem data';
+    const m = new Date(ts * 1000).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    return m[0].toUpperCase() + m.slice(1);
+  };
+  const fmtDur = s => s ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}` : '';
+  const fmtSize = b => {
+    if (!b) return '';
+    const u = ['B', 'KB', 'MB', 'GB']; let i = 0;
+    while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+    return `${b.toLocaleString('pt-BR', { maximumFractionDigits: i > 1 ? 1 : 0 })} ${u[i]}`;
+  };
+  const initials = name => (name || '?').replace(/[^\p{L}\p{N} ]/gu, '').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '#';
+  function toast(msg, ms = 3800) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms);
+  }
+  async function api(url, body) {
+    const opts = body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+    try {
+      const res = await fetch(url, opts);
+      return await res.json().catch(() => ({ success: false, error: `Erro ${res.status} no servidor local.` }));
+    } catch {
+      return { success: false, error: 'Não consegui falar com o servidor local do Verto.' };
+    }
+  }
+  function saveAs(href) {  // o navegador baixa com o nome que o servidor mandar
+    const a = document.createElement('a'); a.href = href; a.download = '';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  const avatarHtml = (jid, name) =>
+    `<span>${esc(initials(name))}</span><img loading="lazy" alt="" src="/whatssaver/avatar?${q({ jid })}" onerror="this.remove()">`;
+  const viewUrl = (m, extra) => '/whatssaver/view?' + q({ jid: S.jid, id: m.id, ...extra });
+  const thumbUrl = m => '/whatssaver/thumb?' + q({ jid: S.jid, id: m.id, v: m.cached ? 1 : 0 });
+  const ICON_DL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const ICON_OK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function kindLabel(m) {
+    if (m.variant === 'gif') return 'GIF';
+    if (m.variant === 'ptv') return 'Vídeo de recado';
+    if (!m.as_file) return m.kind === 'image' ? 'Foto' : 'Vídeo';
+    return m.kind === 'image' ? 'Foto enviada como arquivo' : 'Vídeo enviado como arquivo';
+  }
+
+  // ---------- telas ----------
+  function show(screen) {
+    if (S.screen === screen) return;
+    S.screen = screen;
+    for (const id of ['scrLoading', 'scrSetup', 'scrConnect', 'scrNotice', 'scrApp']) $(id).classList.toggle('hidden', id !== screen);
+  }
+
+  async function pollStatus() {
+    clearTimeout(pollStatus.t);
+    const st = await api('/whatssaver/status');
+    if (st.success) render(st);
+    else showNotice('Sem resposta do servidor', 'Não consegui falar com o servidor local do Verto. Ele ainda está aberto?', [['Tentar de novo', pollStatus]]);
+    const s = st?.state?.status;
+    const fast = !st.success || s !== 'open' || st.sync?.active || st.setup?.installing;
+    pollStatus.t = setTimeout(pollStatus, fast ? 2000 : 6000);
+  }
+
+  function showNotice(title, text, actions = []) {
+    show('scrNotice');
+    $('noticeTitle').textContent = title;
+    $('noticeText').innerHTML = text;
+    const box = $('noticeActions'); box.innerHTML = '';
+    for (const [label, fn] of actions) {
+      const b = document.createElement('button'); b.className = 'btn'; b.textContent = label;
+      b.addEventListener('click', fn); box.appendChild(b);
+    }
+  }
+
+  function render(st) {
+    const prev = S.st?.state?.status;
+    S.st = st;
+    const state = st.state || {};
+    switch (state.status) {
+      case 'setup': return renderSetup(st.setup);
+      case 'idle': case 'starting': case 'connecting':
+        if (!state.me) return renderConnect(state);
+        return renderApp(st, prev);
+      case 'qr': return renderConnect(state);
+      case 'open': case 'reconnecting': return renderApp(st, prev);
+      case 'qr_expired':
+        return showNotice('O QR expirou', 'Ninguém escaneou o código a tempo. Gere um novo para conectar.', [['Gerar novo QR', connect]]);
+      case 'logged_out':
+        resetChat();
+        return showNotice('Desconectado', 'Este computador não está mais conectado ao seu WhatsApp (você desconectou aqui ou pelo celular) e o índice local foi apagado.', [['Conectar de novo', connect]]);
+      case 'replaced':
+        return showNotice('Conexão assumida por outra janela', esc(state.error || ''), [['Reconectar aqui', connect]]);
+      case 'stopped':
+        return showNotice('A ponte com o WhatsApp fechou', esc(state.error || 'Ela vai reabrir sozinha.'), [['Reabrir', () => { show('scrLoading'); pollStatus(); }]]);
+      default:
+        return showNotice('Algo deu errado', esc(state.error || 'Erro desconhecido na conexão com o WhatsApp.'), [['Tentar de novo', connect]]);
+    }
+  }
+
+  async function connect() {
+    show('scrLoading');
+    const r = await api('/whatssaver/connect', {});
+    if (!r.success) toast(r.error || 'Não consegui iniciar a conexão.');
+    setTimeout(pollStatus, 800);
+  }
+
+  // ---------- instalação ----------
+  function renderSetup(setup) {
+    show('scrSetup');
+    const nodeLine = setup.node
+      ? `✅ <span>Node.js <b>${esc(setup.node)}</b> encontrado</span>`
+      : '⬇️ <span>Node.js não encontrado: o instalador baixa uma cópia portátil (~30 MB) só para o WhatsSaver</span>';
+    const depLine = setup.deps ? '✅ <span>Biblioteca do WhatsApp (<b>Baileys</b>) instalada</span>'
+      : '⬇️ <span>Biblioteca do WhatsApp (<b>Baileys</b>): será instalada pelo npm</span>';
+    $('setupChecks').innerHTML = `<li>${nodeLine}</li><li>${depLine}</li>`;
+    $('setupBtn').disabled = setup.installing;
+    $('setupBtn').innerHTML = setup.installing ? '<div class="spinner sm"></div> Instalando...' : 'Instalar agora';
+    const log = $('setupLog');
+    log.classList.toggle('hidden', !setup.log.length);
+    const atBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 10;
+    log.textContent = setup.log.join('\n');
+    if (atBottom) log.scrollTop = log.scrollHeight;
+    $('setupErr').textContent = setup.error ? '⚠ ' + setup.error : '';
+  }
+  $('setupBtn').addEventListener('click', async () => {
+    $('setupBtn').disabled = true;
+    await api('/whatssaver/setup', {});
+    pollStatus();
+  });
+
+  // ---------- conexão ----------
+  function renderConnect(state) {
+    show('scrConnect');
+    const box = $('qrBox');
+    if (state.status === 'qr' && state.qr_image) {
+      if (box.dataset.qr !== state.qr_image) {
+        box.dataset.qr = state.qr_image;
+        box.innerHTML = `<img alt="QR code para conectar o WhatsApp" src="${state.qr_image}">`;
+      }
+    } else if (!box.querySelector('.qr-wait')) {
+      box.dataset.qr = '';
+      box.innerHTML = '<div class="qr-wait"><div class="spinner"></div>Conectando ao WhatsApp...</div>';
+    }
+    $('connTitle').textContent = state.me ? 'Conectando...' : 'Conecte o seu WhatsApp';
+    const code = state.pairingCode;
+    $('pairCode').classList.toggle('hidden', !code);
+    $('pairHelp').classList.toggle('hidden', !code);
+    if (code) $('pairCode').textContent = code.length === 8 ? code.slice(0, 4) + '-' + code.slice(4) : code;
+    $('connErr').textContent = state.error && state.status !== 'qr' ? state.error : '';
+  }
+  $('pairBtn').addEventListener('click', async () => {
+    const phone = $('pairPhone').value;
+    if (!phone.replace(/\D/g, '')) { $('pairPhone').focus(); return; }
+    const b = $('pairBtn'); b.disabled = true; b.textContent = 'Gerando...';
+    const r = await api('/whatssaver/pair', { phone });
+    b.disabled = false; b.textContent = 'Gerar código';
+    if (!r.success) { $('connErr').textContent = r.error; return; }
+    $('connErr').textContent = '';
+    pollStatus();
+  });
+  $('pairPhone').addEventListener('keydown', e => { if (e.key === 'Enter') $('pairBtn').click(); });
+
+  // ---------- app conectado ----------
+  function renderApp(st, prev) {
+    const first = S.screen !== 'scrApp';
+    show('scrApp');
+    const state = st.state, me = state.me || {};
+    const online = state.status === 'open';
+    const num = (me.id || '').split('@')[0];
+    $('meName').textContent = me.name || 'Sua conta';
+    $('meSub').innerHTML = `<span class="dot${online ? '' : ' warn'}"></span>${online ? 'Conectado' : 'Reconectando...'}${num ? ' · +' + esc(num) : ''} · ${nf(st.stats?.media)} fotos e vídeos em ${nf(st.stats?.chats)} conversas`;
+    if (!$('meAvatar').dataset.set && me.id) { $('meAvatar').dataset.set = 1; $('meAvatar').innerHTML = avatarHtml(me.id, me.name || num); }
+
+    const sync = st.sync || {}, banner = $('syncBanner');
+    if (sync.active) {
+      banner.className = 'banner';
+      banner.innerHTML = `<div class="spinner sm"></div><div>Recebendo o histórico do celular${sync.progress != null ? ` · <b>${sync.progress}%</b>` : ''} · ${nf(sync.media)} fotos e vídeos encontrados até agora. Deixe o WhatsApp aberto no celular; as conversas vão aparecendo aqui.</div>`;
+    } else if (!online) {
+      banner.className = 'banner warn';
+      banner.innerHTML = `<div class="spinner sm"></div><div>Reconectando ao WhatsApp... ${esc(state.error || '')}</div>`;
+    } else banner.className = 'banner hidden';
+
+    if (first || (online && prev !== 'open')) {
+      loadChats();
+      if (S.jid) maybeAutoHistory();
+    } else if (sync.active && Date.now() - (loadChats.at || 0) > 8000) loadChats(true);
+  }
+
+  $('logoutBtn').addEventListener('click', async () => {
+    if (!confirm('Desconectar o WhatsSaver da sua conta?\n\nO aparelho "LocalTools WhatsSaver" sai da lista de aparelhos conectados e o índice local é apagado.')) return;
+    const r = await api('/whatssaver/logout', {});
+    if (!r.success) toast(r.error || 'Falha ao desconectar.');
+    resetChat(); S.chats = []; renderChats();
+    pollStatus();
+  });
+
+  // ---------- conversas ----------
+  async function loadChats(silent) {
+    loadChats.at = Date.now();
+    const token = (loadChats.token = (loadChats.token || 0) + 1);
+    if (!silent && !S.chats.length) $('chatList').innerHTML = '<div class="list-empty"><div class="spinner" style="margin:0 auto"></div></div>';
+    const r = await api('/whatssaver/chats?' + q({ scope: S.scope, q: S.query }));
+    if (token !== loadChats.token) return;
+    if (!r.success) { $('chatList').innerHTML = `<div class="list-empty">${esc(r.error)}</div>`; return; }
+    S.chats = r.chats;
+    renderChats();
+    if (S.jid && silent) refreshChat(true);
+  }
+
+  function renderChats() {
+    const list = $('chatList');
+    if (!S.chats.length) {
+      const syncing = S.st?.sync?.active;
+      list.innerHTML = `<div class="list-empty">${S.query ? 'Nenhuma conversa encontrada.' :
+        syncing ? 'As conversas aparecem aqui conforme o celular manda o histórico...' :
+        S.scope === 'media' ? 'Nenhuma conversa com fotos ou vídeos ainda.<br>Se você acabou de conectar, espere o celular mandar o histórico.' : 'Nenhuma conversa.'}</div>`;
+      return;
+    }
+    const scroll = list.scrollTop;
+    list.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    for (const c of S.chats) {
+      const b = document.createElement('button');
+      b.className = 'chat-item' + (c.jid === S.jid ? ' active' : '');
+      b.dataset.jid = c.jid;
+      const stats = c.total
+        ? `<span title="Fotos">📷 ${nf(c.photos)}</span><span title="Vídeos">🎬 ${nf(c.videos)}</span>${c.files ? `<span title="Enviados como arquivo">📎 ${nf(c.files)}</span>` : ''}`
+        : '<span>sem fotos ou vídeos ainda</span>';
+      b.innerHTML = `<div class="avatar">${avatarHtml(c.jid, c.name)}</div>
+        <div class="c-main"><div class="c-top"><div class="c-name">${c.group ? '👥 ' : ''}${esc(c.name)}</div><div class="c-date">${esc(fmtShort(c.last_ts))}</div></div>
+        <div class="c-stats">${stats}</div></div>`;
+      b.addEventListener('click', () => openChat(c.jid));
+      frag.appendChild(b);
+    }
+    list.appendChild(frag);
+    list.scrollTop = scroll;
+  }
+
+  let searchTimer;
+  $('chatSearch').addEventListener('input', e => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { S.query = e.target.value.trim(); loadChats(); }, 220);
+  });
+  $('scopeChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-scope]'); if (!b) return;
+    S.scope = b.dataset.scope;
+    document.querySelectorAll('#scopeChips .chip').forEach(x => x.classList.toggle('active', x === b));
+    loadChats();
+  });
+
+  // ---------- conversa aberta ----------
+  function resetChat() {
+    S.jid = null; S.chat = null; S.items = []; S.byId.clear(); S.selected.clear();
+    if (S.viewer) closeViewer();
+    $('paneChat').classList.add('hidden'); $('paneEmpty').classList.remove('hidden');
+    document.body.classList.remove('in-chat');
+    clearTimeout(refreshChat.t);
+    clearTimeout(pollPrefetch.t);
+    $('prefLine').classList.add('hidden');
+  }
+
+  async function openChat(jid) {
+    if (S.jid !== jid) {
+      S.jid = jid; S.chat = null; S.selected.clear(); S.selecting = false;
+      S.filters = { kind: 'all', who: 'all' };
+      syncChips();
+      $('grid').innerHTML = ''; $('more').innerHTML = '';
+    }
+    document.querySelectorAll('.chat-item').forEach(x => x.classList.toggle('active', x.dataset.jid === jid));
+    $('paneEmpty').classList.add('hidden'); $('paneChat').classList.remove('hidden');
+    document.body.classList.add('in-chat');
+    const c = S.chats.find(x => x.jid === jid) || { jid, name: '' };
+    $('chAvatar').innerHTML = avatarHtml(jid, c.name);
+    $('chName').textContent = c.name || '';
+    await refreshChat();
+    loadMedia(true);
+    maybeAutoHistory();
+    startPrefetch(jid);
+    if (window.innerWidth <= 900) window.scrollTo({ top: 0 });
+  }
+  $('chBack').addEventListener('click', () => { document.body.classList.remove('in-chat'); });
+
+  // Miniaturas nítidas: ao abrir a conversa o servidor já vai trazendo as
+  // fotos para o cache, e cada card troca a miniatura borrada pela boa.
+  async function startPrefetch(jid) {
+    clearTimeout(pollPrefetch.t);
+    S.prefetch = { jid, next: 0, markNext: 0 };
+    const r = await api('/whatssaver/prefetch', { jid });
+    if (r.success && S.jid === jid) applyPrefetch(r);
+  }
+  async function pollPrefetch() {
+    const p = S.prefetch;
+    if (!p || p.jid !== S.jid) return;
+    const r = await api('/whatssaver/prefetch?' + q({ jid: p.jid, since: p.next, mark_since: p.markNext }));
+    if (r.success && S.prefetch === p && p.jid === S.jid) applyPrefetch(r);
+  }
+  function applyPrefetch(r) {
+    const p = S.prefetch;
+    p.next = r.next; p.markNext = r.mark_next;
+    for (const id of r.ready || []) {  // fotos que chegaram: miniatura nítida
+      const m = S.byId.get(id);
+      if (m && !m.cached) { m.cached = true; m.error = null; m.error_code = null; redraw(id); }
+    }
+    for (const id of r.phone || []) {  // fotos que só o celular tem: marca o card
+      const m = S.byId.get(id);
+      if (m && m.error_code !== 'phone_only') { m.error_code = 'phone_only'; m.error = PHONE_HELP; redraw(id); }
+    }
+    const line = $('prefLine');
+    if (r.running) {
+      line.classList.remove('hidden');
+      const parts = [`<div class="spinner sm"></div>Carregando as miniaturas: <b>${nf(r.done)}</b> prontas`];
+      if (r.phone_only) parts.push(`${nf(r.phone_only)} só no celular`);
+      const left = r.total - r.done - r.skipped;
+      if (left > 0) parts.push(`faltam ${nf(left)}`);
+      line.innerHTML = parts.join(' · ');
+      clearTimeout(pollPrefetch.t);
+      pollPrefetch.t = setTimeout(pollPrefetch, 1200);
+    } else if (r.total && (r.done || r.phone_only)) {
+      line.classList.remove('hidden');
+      line.innerHTML = `✓ ${nf(r.done)} miniatura(s) carregada(s)` + (r.phone_only ? ` · ${nf(r.phone_only)} disponíveis só no celular` : '');
+      clearTimeout(pollPrefetch.t);
+      pollPrefetch.t = setTimeout(() => $('prefLine').classList.add('hidden'), 6000);
+    } else line.classList.add('hidden');
+  }
+
+  // O celular manda só o histórico recente; ao abrir uma conversa, o resto é
+  // pedido automaticamente (uma vez por conversa nesta visita à página).
+  async function maybeAutoHistory() {
+    const c = S.chat;
+    if (!c || c.history_end || S.st?.state?.status !== 'open' || S.autoHistory.has(c.jid)) return;
+    if (c.history && c.history.running) return;
+    S.autoHistory.add(c.jid);
+    const r = await api('/whatssaver/history', { action: 'start', jid: c.jid });
+    if (r.success && c.jid === S.jid) { refreshChat.wasRunning = true; refreshChat(true); }
+  }
+
+  async function refreshChat(silent) {
+    clearTimeout(refreshChat.t);
+    const jid = S.jid;
+    if (!jid) return;
+    const r = await api('/whatssaver/chat?' + q({ jid }));
+    if (jid !== S.jid) return;
+    if (!r.success) { if (!silent) toast(r.error); return; }
+    const prev = S.chat;
+    S.chat = r.chat;
+    renderChatHead();
+    const h = r.chat.history, running = !!(h && h.running);
+    if (prev && prev.jid === jid && r.chat.total > prev.total) {
+      if (running || refreshChat.wasRunning) appendOlder();  // a busca trouxe mídias mais antigas: vão para o fim da grade
+      else {
+        $('freshText').textContent = `Chegaram fotos ou vídeos novos nesta conversa (${nf(r.chat.total)} no total).`;
+        $('freshBar').classList.remove('hidden');
+      }
+    }
+    if (running) refreshChat.t = setTimeout(() => refreshChat(true), 2000);
+    else if (refreshChat.wasRunning) loadChats(true);
+    refreshChat.wasRunning = running;
+  }
+  $('freshBtn').addEventListener('click', () => { $('freshBar').classList.add('hidden'); loadMedia(true); });
+
+  function appendOlder() {
+    if (S.next == null) S.next = S.items.length;
+    loadMedia();
+  }
+
+  function renderChatHead() {
+    const c = S.chat;
+    $('chName').textContent = (c.group ? '👥 ' : '') + c.name;
+    const sub = [c.group ? 'Grupo' : c.number || 'Contato'];
+    if (c.last_ts) sub.push('última mensagem em ' + fmtDay(c.last_ts));
+    $('chSub').textContent = sub.join(' · ');
+    $('chStats').innerHTML = [
+      `<span><b>${nf(c.photos)}</b> fotos</span>`,
+      `<span><b>${nf(c.videos)}</b> vídeos</span>`,
+      `<span title="Fotos e vídeos mandados como documento"><b>${nf(c.files)}</b> enviados como arquivo</span>`,
+      c.phone_only ? `<span style="color:#fcd34d" title="Mídias antigas que o WhatsApp não libera mais para aparelhos conectados. ${PHONE_HELP}">📱 <b>${nf(c.phone_only)}</b> só no celular</span>` : '',
+      c.failed - c.phone_only > 0 ? `<span style="color:#fca5a5" title="Mídias que o WhatsApp não entregou na última tentativa">⚠ <b>${nf(c.failed - c.phone_only)}</b> indisponíveis</span>` : '',
+    ].join('');
+    $('n-all').textContent = c.total; $('n-photo').textContent = c.photos; $('n-video').textContent = c.videos; $('n-file').textContent = c.files;
+    updateZipBtn();
+
+    const h = c.history, line = $('histLine');
+    const known = c.oldest_ts ? `Mensagens conhecidas desde <b>${fmtDay(c.oldest_ts)}</b>.` : 'Nenhuma mensagem desta conversa foi recebida ainda.';
+    if (h && h.running) {
+      line.className = 'hist-line running';
+      line.innerHTML = `<div class="spinner sm"></div><span>Buscando no celular as mensagens mais antigas... ${nf(h.messages)} lidas, ${nf(h.media)} fotos/vídeos a mais${h.oldest_ts ? ` · já em <b>${fmtDay(h.oldest_ts)}</b>` : ''}</span><button class="btn ghost xs" id="histStop">Parar</button>`;
+      $('histStop').onclick = () => api('/whatssaver/history', { action: 'stop' }).then(() => refreshChat(true));
+    } else if (h && h.message) {
+      line.className = 'hist-line' + (h.status === 'done' ? '' : ' bad');
+      line.innerHTML = `<span>${h.status === 'done' ? '✓' : '⚠'} ${esc(h.message)}${h.messages ? ` (${nf(h.messages)} mensagens antigas lidas, ${nf(h.media)} fotos/vídeos a mais)` : ''} ${known}</span>`;
+    } else {
+      line.className = 'hist-line';
+      line.innerHTML = c.history_end ? '<span>✓ Conversa lida até o começo: todas as fotos e vídeos que o celular tem estão aqui.</span>'
+        : `<span>${known}</span>`;
+    }
+    $('histBtn').disabled = !!(h && h.running);
+    $('histBtn').textContent = c.history_end ? '🕰 Procurar de novo' : '🕰 Buscar mensagens antigas';
+  }
+
+  $('histBtn').addEventListener('click', async () => {
+    if (S.st?.state?.status !== 'open') return toast('O WhatsApp precisa estar conectado.');
+    const r = await api('/whatssaver/history', { action: 'start', jid: S.jid });
+    if (!r.success) return toast(r.error);
+    refreshChat.wasRunning = true;
+    refreshChat(true);
+  });
+
+  // ---------- filtros ----------
+  function syncChips() {
+    for (const [group, key] of [['kindChips', 'kind'], ['whoChips', 'who']])
+      document.querySelectorAll(`#${group} .chip`).forEach(x => x.classList.toggle('active', x.dataset[key] === S.filters[key]));
+  }
+  for (const [group, key] of [['kindChips', 'kind'], ['whoChips', 'who']]) {
+    $(group).addEventListener('click', e => {
+      const b = e.target.closest(`[data-${key}]`); if (!b) return;
+      S.filters[key] = b.dataset[key]; syncChips(); S.selected.clear(); loadMedia(true);
+    });
+  }
+
+  // ---------- grade ----------
+  async function loadMedia(reset) {
+    const jid = S.jid;
+    if (!jid) return;
+    if (reset) {
+      if (S.viewer) closeViewer();
+      S.listToken++; S.items = []; S.byId.clear(); S.next = 0; S.lastMonth = null; S.loading = false;
+      $('grid').innerHTML = '<div class="grid-empty"><div class="spinner" style="margin:0 auto"></div></div>';
+      $('freshBar').classList.add('hidden');
+      updateSelBar();
+    }
+    if (S.loading || S.next == null) return;
+    S.loading = true;
+    const token = S.listToken;
+    const r = await api('/whatssaver/media?' + q({ jid, ...S.filters, offset: S.next, limit: PAGE }));
+    if (token !== S.listToken || jid !== S.jid) return;
+    S.loading = false;
+    if (!r.success) { $('grid').innerHTML = `<div class="grid-empty">${esc(r.error)}</div>`; return; }
+    if (reset || $('grid').querySelector('.grid-empty')) $('grid').innerHTML = '';
+    S.total = r.total; S.next = r.next;
+    const frag = document.createDocumentFragment();
+    for (const m of r.items) {
+      if (S.byId.has(m.id)) continue;
+      const month = monthOf(m.ts);
+      if (month !== S.lastMonth) {
+        S.lastMonth = month;
+        const h = document.createElement('div'); h.className = 'month'; h.textContent = month; frag.appendChild(h);
+      }
+      m._i = S.items.length; S.items.push(m); S.byId.set(m.id, m);
+      frag.appendChild(tile(m));
+    }
+    $('grid').appendChild(frag);
+    if (!S.items.length) {
+      const f = S.filters, filtered = f.kind !== 'all' || f.who !== 'all';
+      $('grid').innerHTML = `<div class="grid-empty">${filtered ? 'Nada com esses filtros.' :
+        'Nenhuma foto ou vídeo conhecido nesta conversa ainda.<br>O WhatsSaver pede ao celular o histórico dela. Deixe o WhatsApp aberto no celular.'}</div>`;
+    }
+    $('more').innerHTML = S.next != null ? '<div class="spinner sm"></div>' : '';
+    updateZipBtn();
+    if (S.viewer) drawSide();
+    // Lista curta: o marcador de "mais" continua visível e o observer não dispara de novo.
+    requestAnimationFrame(() => {
+      if (S.next != null && !S.loading && $('more').getBoundingClientRect().top < innerHeight + 600) loadMedia();
+    });
+  }
+  new IntersectionObserver(es => { if (es[0].isIntersecting && S.jid && S.next != null) loadMedia(); }, { rootMargin: '600px' }).observe($('more'));
+
+  function updateZipBtn() {
+    const n = S.total || 0, f = S.filters;
+    const what = { all: 'tudo', photo: 'as fotos', video: 'os vídeos', file: 'os arquivos' }[f.kind];
+    const who = f.who === 'me' ? ' que enviei' : f.who === 'them' ? ' recebidos' : '';
+    $('zipAllBtn').disabled = !n || !!(S.zip && S.zip.state === 'preparing');
+    $('zipAllBtn').innerHTML = `${ICON_DL} Baixar ${what}${who} (.zip · ${nf(n)})`;
+  }
+
+  function tile(m) {
+    const el = document.createElement('div');
+    el.className = 'tile' + (S.selected.has(m.id) ? ' sel' : '');
+    el.dataset.id = m.id;
+    fillTile(el, m);
+    return el;
+  }
+
+  function fillTile(el, m) {
+    const badges = [];
+    if (m.error_code === 'phone_only') badges.push(`<span class="badge phone" title="${esc(m.error)}">📱 só no celular</span>`);
+    else if (m.error) badges.push(`<span class="badge err" title="${esc(m.error)}">⚠</span>`);
+    if (m.as_file) badges.push(`<span class="badge file" title="Enviado como arquivo (documento)">📎 ${esc((m.ext || '').toUpperCase())}</span>`);
+    if (m.variant === 'gif') badges.push('<span class="badge">GIF</span>');
+    else if (m.kind === 'video') badges.push(`<span class="badge">▶ ${fmtDur(m.seconds) || 'vídeo'}</span>`);
+    const icon = m.kind === 'video' ? '🎬' : '🖼️';
+    const img = m.thumb || m.cached
+      ? `<img loading="lazy" alt="" src="${thumbUrl(m)}" onerror="this.outerHTML='<div class=ph>${icon}</div>'">`
+      : `<div class="ph">${icon}<span>${esc((m.ext || '').toUpperCase())}</span></div>`;
+    const who = m.from_me ? 'Você' : m.sender;
+    el.innerHTML = `${img}<div class="check">${ICON_OK}</div><div class="t-badges">${badges.join('')}</div>
+      <div class="t-meta">${esc(fmtDay(m.ts))}${S.chat?.group && who ? ' · ' + esc(who) : ''}</div>
+      <button class="dl" title="Baixar ${m.kind === 'video' ? 'vídeo' : 'foto'}">${ICON_DL}</button>`;
+  }
+
+  function redraw(id) {
+    const m = S.byId.get(id);
+    const el = document.querySelector(`.tile[data-id="${CSS.escape(id)}"]`);
+    if (m && el) { el.classList.toggle('sel', S.selected.has(id)); fillTile(el, m); }
+  }
+
+  $('grid').addEventListener('click', e => {
+    const el = e.target.closest('.tile'); if (!el) return;
+    const m = S.byId.get(el.dataset.id); if (!m) return;
+    if (e.target.closest('.dl')) { e.stopPropagation(); return downloadOne(m, e.target.closest('.dl')); }
+    if (e.target.closest('.check') || S.selecting || e.shiftKey || e.ctrlKey || e.metaKey) return toggleSelect(m, e.shiftKey);
+    openViewer(m._i);
+  });
+
+  // ---------- download individual (pelo navegador, como no InstaSaver) ----------
+  async function prepare(m) {
+    if (m._preparing) return m._preparing;
+    m._preparing = api('/whatssaver/prepare', { jid: S.jid, id: m.id }).then(r => {
+      m._preparing = null;
+      const wasCached = m.cached;
+      if (r.success) { m.cached = true; m.error = null; m.error_code = null; }
+      else { m.error = r.error; m.error_code = r.code; if (r.code === 'phone_only') refreshChat(true); }
+      if (!r.success || !wasCached) redraw(m.id);  // miniatura melhor ou marca de erro
+      return r;
+    });
+    return m._preparing;
+  }
+  async function downloadOne(m, btn) {
+    if (btn) { btn.classList.add('busy'); btn.innerHTML = '<div class="spinner sm"></div>'; }
+    const r = m.cached ? { success: true } : await prepare(m);
+    if (btn && btn.isConnected) { btn.classList.remove('busy'); btn.innerHTML = ICON_DL; }
+    if (!r.success) return toast(r.error || 'Não consegui baixar.', 6000);
+    saveAs(viewUrl(m, { dl: 1 }));
+  }
+
+  // ---------- seleção ----------
+  function toggleSelect(m, range) {
+    if (range && S.anchor != null) {
+      const [a, b] = [S.anchor, m._i].sort((x, y) => x - y);
+      for (let i = a; i <= b; i++) S.selected.add(S.items[i].id);
+      S.items.slice(a, b + 1).forEach(x => redraw(x.id));
+    } else {
+      S.selected.has(m.id) ? S.selected.delete(m.id) : S.selected.add(m.id);
+      S.anchor = m._i;
+      redraw(m.id);
+    }
+    updateSelBar();
+  }
+  function updateSelBar() {
+    const n = S.selected.size;
+    $('selBar').classList.toggle('hidden', !n && !S.selecting);
+    $('selCount').textContent = n ? `${nf(n)} selecionado${n > 1 ? 's' : ''}` : 'Toque nas mídias para selecionar';
+    $('selDl').textContent = n > 1 ? `⬇ Baixar ${nf(n)} (.zip)` : '⬇ Baixar';
+    $('selDl').disabled = !n;
+    $('grid').classList.toggle('selecting', S.selecting || n > 0);
+    $('selAllBtn').textContent = S.selecting ? '✕ Parar de selecionar' : '☑ Selecionar';
+  }
+  $('selAllBtn').addEventListener('click', () => {
+    S.selecting = !S.selecting;
+    if (!S.selecting) clearSelection(); else updateSelBar();
+  });
+  function clearSelection() {
+    const ids = [...S.selected]; S.selected.clear(); ids.forEach(redraw); updateSelBar();
+  }
+  $('selClear').addEventListener('click', () => { S.selecting = false; clearSelection(); });
+  async function loadAll() {
+    for (let i = 0; i < 500 && S.next != null; i++) {
+      if (S.loading) { await new Promise(r => setTimeout(r, 120)); continue; }
+      const before = S.items.length;
+      await loadMedia();
+      if (S.items.length === before && !S.loading) break;  // a página falhou: não fica em laço
+    }
+  }
+  $('selAll').addEventListener('click', async () => {
+    // Seleciona tudo que bate com os filtros, inclusive o que ainda não carregou na tela.
+    await loadAll();
+    S.items.forEach(m => S.selected.add(m.id)); S.items.forEach(m => redraw(m.id)); updateSelBar();
+  });
+  $('selDl').addEventListener('click', () => {
+    const ids = [...S.selected];
+    if (ids.length === 1) return downloadOne(S.byId.get(ids[0]));
+    startZip({ ids });
+  });
+
+  // ---------- .zip ----------
+  $('zipAllBtn').addEventListener('click', () => startZip({ kind: S.filters.kind, who: S.filters.who }));
+
+  async function startZip(body) {
+    if (S.zip && S.zip.state === 'preparing') return toast('Já tem um .zip sendo preparado. Espere terminar ou cancele.');
+    const r = await api('/whatssaver/zip/start', { jid: S.jid, ...body });
+    if (!r.success) return toast(r.error || 'Não consegui começar o .zip.');
+    S.zip = r.job;
+    renderDock(); updateZipBtn(); pollZip();
+  }
+
+  async function pollZip() {
+    clearTimeout(pollZip.t);
+    if (!S.zip) return;
+    const r = await api('/whatssaver/zip/status?' + q({ id: S.zip.id }));
+    if (!r.success) { S.zip = null; renderDock(); updateZipBtn(); return toast(r.error); }
+    const was = S.zip.state;
+    S.zip = r.job;
+    if (r.job.state === 'preparing') pollZip.t = setTimeout(pollZip, 1000);
+    else if (was === 'preparing') {
+      if (r.job.state === 'ready') saveAs('/whatssaver/zip/download?' + q({ id: r.job.id }));
+      refreshItems(r.job.jid);
+    }
+    renderDock(); updateZipBtn();
+  }
+
+  // Depois do .zip: miniaturas melhores e marcas de erro nas mídias já carregadas.
+  async function refreshItems(jid) {
+    if (jid !== S.jid || !S.items.length) return;
+    const token = S.listToken;
+    for (let offset = 0; offset < S.items.length; offset += 500) {
+      const r = await api('/whatssaver/media?' + q({ jid, ...S.filters, offset, limit: 500 }));
+      if (!r.success || token !== S.listToken) return;
+      for (const fresh of r.items) {
+        const m = S.byId.get(fresh.id);
+        if (m && (m.cached !== fresh.cached || m.error !== fresh.error)) { m.cached = fresh.cached; m.error = fresh.error; redraw(m.id); }
+      }
+    }
+    refreshChat(true);
+  }
+
+  function renderDock() {
+    const dock = $('dock'), z = S.zip;
+    clearTimeout(renderDock.t);
+    if (!z) { dock.classList.remove('show'); return; }
+    dock.classList.add('show');
+    const finished = z.done + z.failed;
+    $('dockBar').style.width = (z.total ? Math.round(finished / z.total * 100) : 0) + '%';
+    if (z.state === 'preparing') {
+      $('dockText').innerHTML = `Preparando o .zip: <b>${nf(finished)}</b> de <b>${nf(z.total)}</b>`;
+      $('dockSub').textContent = [fmtSize(z.bytes), z.failed ? `${z.failed} ficaram de fora` : '']
+        .filter(Boolean).join(' · ') || 'Baixando direto do WhatsApp e conferindo cada arquivo';
+      $('dockAction').textContent = 'Cancelar';
+      $('dockAction').onclick = async () => { await api('/whatssaver/zip/cancel', { id: z.id }); pollZip(); };
+      return;
+    }
+    if (z.state === 'ready') {
+      $('dockText').innerHTML = `✓ <b>${esc(z.filename)}</b>: o download começou`;
+      $('dockSub').textContent = !z.failed ? `${nf(z.done)} arquivos · ${fmtSize(z.bytes)}`
+        : `${nf(z.done)} arquivos · ${nf(z.failed)} ficaram de fora${z.phone_only ? ` (${nf(z.phone_only)} só no celular)` : ''}: veja o LEIA dentro do .zip`;
+      $('dockAction').textContent = 'Baixar de novo';
+      $('dockAction').onclick = () => saveAs('/whatssaver/zip/download?' + q({ id: z.id }));
+      renderDock.t = setTimeout(() => { if (S.zip === z) { S.zip = null; renderDock(); } }, 20000);
+    } else {
+      $('dockText').innerHTML = z.state === 'cancelled' ? '.zip cancelado' : '⚠ Nenhum arquivo pôde ser baixado';
+      $('dockSub').textContent = z.state === 'cancelled' ? '' : (z.last_error || '');
+      $('dockAction').textContent = 'Fechar';
+      $('dockAction').onclick = () => { S.zip = null; renderDock(); updateZipBtn(); };
+      renderDock.t = setTimeout(() => { if (S.zip === z) { S.zip = null; renderDock(); updateZipBtn(); } }, 12000);
+    }
+  }
+
+  // ---------- visualizador ----------
+  function openViewer(index) {
+    S.viewer = { index, token: 0 };
+    $('viewer').classList.add('open'); document.body.style.overflow = 'hidden';
+    drawViewer();
+  }
+  function closeViewer() {
+    $('vMedia').innerHTML = ''; $('viewer').classList.remove('open'); document.body.style.overflow = ''; S.viewer = null;
+  }
+  function step(d) {
+    if (!S.viewer) return;
+    const ni = S.viewer.index + d;
+    if (ni < 0 || ni >= S.items.length) return;
+    S.viewer.index = ni; drawViewer();
+    if (ni > S.items.length - 6 && S.next != null) loadMedia();
+  }
+
+  async function drawViewer() {
+    const v = S.viewer; if (!v) return;
+    const m = S.items[v.index]; if (!m) return;
+    const token = ++v.token;
+    const box = $('vMedia');
+    const placeholder = m.thumb || m.cached ? `<img class="blur" src="${thumbUrl(m)}" alt="">` : '<div class="blank"></div>';
+    box.innerHTML = `${placeholder}<div class="v-wait" id="vWait"><div class="spinner"></div><span>Carregando do WhatsApp...</span></div>`;
+    drawSide();
+    $('vPrev').style.visibility = v.index === 0 ? 'hidden' : 'visible';
+    $('vNext').style.visibility = v.index === S.items.length - 1 && S.next == null ? 'hidden' : 'visible';
+
+    if (!m.cached) {
+      const r = await prepare(m);
+      if (!S.viewer || S.viewer.token !== token) return;
+      drawSide();
+      if (!r.success) {
+        $('vWait').innerHTML = `<span>⚠ ${esc(r.error)}</span><button class="btn sm" id="vRetry">Tentar de novo</button>`;
+        $('vRetry').onclick = () => drawViewer();
+        return;
+      }
+    }
+    const fail = what => {
+      if (!S.viewer || S.viewer.token !== token) return;
+      box.innerHTML = `${placeholder}<div class="v-wait"><span>O navegador não consegue ${what} este formato (.${esc(m.ext)}).<br>Use “Baixar” para abrir no computador.</span></div>`;
+    };
+    if (m.kind === 'video') {
+      const vid = document.createElement('video');
+      vid.controls = true; vid.autoplay = true; vid.playsInline = true;
+      if (m.thumb) vid.poster = thumbUrl(m);
+      vid.addEventListener('error', () => fail('tocar'), { once: true });
+      vid.src = viewUrl(m);
+      box.innerHTML = ''; box.appendChild(vid);
+    } else {
+      const img = new Image();
+      img.alt = '';
+      img.onload = () => { if (S.viewer && S.viewer.token === token) { box.innerHTML = ''; box.appendChild(img); } };
+      img.onerror = () => fail('mostrar');
+      img.src = viewUrl(m, { preview: 1 });
+    }
+    prefetch(v.index + 1);
+  }
+
+  // A próxima foto já vai sendo baixada, para a navegação pelas setas ser rápida.
+  function prefetch(i) {
+    const m = S.items[i];
+    if (m && !m.cached && !m.error && m.kind === 'image') prepare(m);
+  }
+
+  function drawSide() {
+    const v = S.viewer; if (!v) return;
+    const m = S.items[v.index]; if (!m) return;
+    const who = m.from_me ? 'Você' : (m.sender || S.chat?.name || '');
+    const tags = [
+      `<span class="tag${m.as_file ? ' file' : ''}">${esc(kindLabel(m))}</span>`,
+      m.ext ? `<span class="tag">.${esc(m.ext)}</span>` : '',
+      m.size ? `<span class="tag">${fmtSize(m.size)}</span>` : '',
+      m.width && m.height ? `<span class="tag">${m.width}×${m.height}</span>` : '',
+      m.seconds ? `<span class="tag">⏱ ${fmtDur(m.seconds)}</span>` : '',
+    ].filter(Boolean).join('');
+    $('vSide').innerHTML = [
+      `<div class="when">${esc(fmtDate(m.ts))} · ${v.index + 1} de ${nf(S.total)}</div>`,
+      who ? `<div class="by">${esc(who)}</div>` : '',
+      `<div class="tags">${tags}</div>`,
+      m.as_file && m.file_name ? `<div class="fname">📎 ${esc(m.file_name)}</div>` : '',
+      m.caption ? `<div class="cap">${esc(m.caption)}</div>` : '',
+      m.error_code === 'phone_only' ? `<div class="status phone">📱 ${esc(m.error)}<br><br>${PHONE_HELP}</div>`
+        : m.error ? `<div class="status">⚠ ${esc(m.error)}</div>` : '',
+      `<button class="btn" id="vDl">${ICON_DL} Baixar ${m.kind === 'video' ? 'vídeo' : 'foto'}</button>`,
+    ].join('');
+    $('vDl').onclick = () => downloadOne(m, null);
+  }
+  $('vClose').addEventListener('click', closeViewer);
+  $('vPrev').addEventListener('click', () => step(-1));
+  $('vNext').addEventListener('click', () => step(1));
+  $('viewer').addEventListener('click', e => { if (e.target.id === 'viewer' || e.target.classList.contains('v-box')) closeViewer(); });
+  document.addEventListener('keydown', e => {
+    if (!S.viewer) return;
+    if (e.key === 'Escape') closeViewer();
+    else if (e.key === 'ArrowRight') step(1);
+    else if (e.key === 'ArrowLeft') step(-1);
+  });
+
+  pollStatus();
+})();
+</script>
+</body>
+</html>

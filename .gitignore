@@ -26,3 +26,8 @@ ffmpeg.exe
 .DS_Store
 .vscode/
 InstaSaver/.doc_ids.json
+
+# WhatsSaver: sessão do WhatsApp e índice local (dão acesso à conta!) e dependências Node
+WhatsSaver/dados/
+WhatsSaver/bridge/node_modules/
+WhatsSaver/bridge/runtime/

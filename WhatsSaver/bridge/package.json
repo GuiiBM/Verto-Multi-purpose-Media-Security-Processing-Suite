@@ -1,0 +1,14 @@
+{
+  "name": "whatssaver-bridge",
+  "private": true,
+  "type": "module",
+  "description": "Ponte entre o Verto (Flask) e o WhatsApp Web via Baileys",
+  "main": "bridge.mjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "baileys": "7.0.0-rc14",
+    "pino": "^9.14.0"
+  }
+}

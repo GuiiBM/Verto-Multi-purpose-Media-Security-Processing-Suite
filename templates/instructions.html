@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Instruções - LocalTools</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -59,31 +59,242 @@
       text-align: center;
       color: #64748b;
       font-size: 15px;
-      margin-bottom: 48px;
+      margin-bottom: 32px;
       font-weight: 500;
     }
+
+    /* ---------- Busca e filtros (fixos no topo ao rolar) ---------- */
+    .search-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      margin: 0 -15px 32px;
+      padding: 16px 15px 14px;
+      background: rgba(10, 15, 30, 0.9);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 56px;
+      padding: 0 12px 0 18px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      border-radius: 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-box:focus-within {
+      border-color: rgba(34, 197, 94, 0.5);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+    }
+    .search-box svg { flex-shrink: 0; color: #64748b; }
+    .search-box input {
+      flex: 1;
+      min-width: 0;
+      background: none;
+      border: 0;
+      outline: 0;
+      color: #f8fafc;
+      font: 500 16px 'Inter', sans-serif;
+    }
+    .search-box input::placeholder { color: #64748b; }
+    .search-box input::-webkit-search-cancel-button { display: none; }
+    .kbd {
+      flex-shrink: 0;
+      font: 600 12px 'Inter', sans-serif;
+      color: #64748b;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 6px;
+      padding: 3px 8px;
+    }
+    .clear-btn {
+      flex-shrink: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 8px;
+      background: rgba(148, 163, 184, 0.1);
+      color: #cbd5e1;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .clear-btn:hover { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .search-box.has-value .clear-btn { display: flex; }
+    .search-box.has-value .kbd { display: none; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      background: rgba(15, 23, 42, 0.6);
+      color: #94a3b8;
+      font: 600 13px 'Inter', sans-serif;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .chip:hover { border-color: rgba(34, 197, 94, 0.35); color: #e2e8f0; }
+    .chip.active {
+      background: rgba(34, 197, 94, 0.14);
+      border-color: rgba(34, 197, 94, 0.5);
+      color: #4ade80;
+    }
+    .chip.no-results { opacity: 0.4; }
+    .chip-count {
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.12);
+    }
+    .chip.active .chip-count { background: rgba(34, 197, 94, 0.2); }
+    .search-info {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #64748b;
+    }
+    .search-info strong { color: #cbd5e1; font-weight: 600; }
+    .example {
+      background: none;
+      border: 0;
+      padding: 0;
+      color: #94a3b8;
+      font: inherit;
+      text-decoration: underline dotted rgba(148, 163, 184, 0.5);
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+    .example:hover { color: #4ade80; }
+
+    /* ---------- Categorias ---------- */
+    .category {
+      margin-bottom: 48px;
+      scroll-margin-top: 190px;
+    }
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 0 4px 18px;
+    }
+    .category-icon {
+      flex-shrink: 0;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      border-radius: 14px;
+    }
+    .category-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+    .category-desc {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .category-count {
+      margin-left: auto;
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      background: rgba(148, 163, 184, 0.08);
+      padding: 6px 12px;
+      border-radius: 999px;
+    }
+
+    /* ---------- Cartão de app ---------- */
     .app-section {
       background: rgba(15, 23, 42, 0.4);
       border-radius: 20px;
       padding: 32px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       border: 1px solid rgba(148, 163, 184, 0.08);
       backdrop-filter: blur(40px);
+      scroll-margin-top: 190px;
     }
+    .app-section:target { border-color: rgba(34, 197, 94, 0.4); }
     .app-header {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     .app-icon {
-      font-size: 48px;
+      font-size: 44px;
+      line-height: 1;
+    }
+    .app-heading {
+      flex: 1;
+      min-width: 0;
     }
     .app-title {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 700;
       color: #f8fafc;
     }
+    .app-subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+    .open-app {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .open-app:hover { background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.6); }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid;
+    }
+    .badge-navegador { color: #4ade80; border-color: rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.08); }
+    .badge-downloads { color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.08); }
+    .badge-internet { color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.08); }
+    .badge-ia { color: #f0abfc; border-color: rgba(217, 70, 239, 0.3); background: rgba(217, 70, 239, 0.08); }
+    .badge-instalacao { color: #fb923c; border-color: rgba(249, 115, 22, 0.3); background: rgba(249, 115, 22, 0.08); }
+    .badge-login { color: #f472b6; border-color: rgba(236, 72, 153, 0.3); background: rgba(236, 72, 153, 0.08); }
     .app-description {
       font-size: 15px;
       color: #94a3b8;
@@ -92,6 +303,7 @@
     }
     .features {
       display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
       gap: 12px;
     }
     .feature {
@@ -102,6 +314,13 @@
       background: rgba(15, 23, 42, 0.6);
       border-radius: 12px;
       border: 1px solid rgba(148, 163, 184, 0.1);
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    a.feature:hover {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(15, 23, 42, 0.85);
     }
     .feature-icon {
       font-size: 20px;
@@ -109,6 +328,7 @@
     }
     .feature-text {
       flex: 1;
+      min-width: 0;
     }
     .feature-title {
       font-size: 14px;
@@ -121,16 +341,92 @@
       color: #64748b;
       line-height: 1.6;
     }
+    .feature-go {
+      flex-shrink: 0;
+      font-size: 14px;
+      color: #475569;
+      transition: color 0.2s;
+    }
+    a.feature:hover .feature-go { color: #4ade80; }
     .sub-section {
       margin-top: 20px;
       padding-top: 20px;
       border-top: 1px solid rgba(148, 163, 184, 0.1);
     }
     .sub-title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
       color: #cbd5e1;
       margin-bottom: 12px;
+    }
+    .note {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(59, 130, 246, 0.06);
+      border: 1px solid rgba(59, 130, 246, 0.18);
+      color: #94a3b8;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .note strong { color: #cbd5e1; }
+    .show-all {
+      margin-top: 14px;
+      width: 100%;
+      padding: 10px 14px;
+      background: none;
+      border: 1px dashed rgba(148, 163, 184, 0.25);
+      border-radius: 10px;
+      color: #94a3b8;
+      font: 600 13px 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .show-all:hover { border-color: rgba(34, 197, 94, 0.5); color: #4ade80; }
+    mark {
+      background: rgba(34, 197, 94, 0.28);
+      color: #f8fafc;
+      border-radius: 3px;
+      padding: 0 1px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #64748b;
+    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state-title { font-size: 18px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; line-height: 1.7; }
+    .empty-state button {
+      margin-top: 16px;
+      padding: 10px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      background: rgba(34, 197, 94, 0.1);
+      color: #4ade80;
+      font: 600 14px 'Inter', sans-serif;
+      cursor: pointer;
+    }
+
+    /* Em telas menores o botão de voltar sairia por cima da busca fixa */
+    @media (max-width: 1360px) {
+      .back-button { position: absolute; }
+    }
+    @media (max-width: 640px) {
+      body { padding-top: 96px; }
+      .logo { font-size: 36px; letter-spacing: 6px; }
+      .kbd { display: none; }
+      .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+      .chips::-webkit-scrollbar { display: none; }
+      .category-header { align-items: flex-start; }
+      .category-icon { width: 44px; height: 44px; font-size: 22px; }
+      .category-title { font-size: 19px; }
+      .category-count { display: none; }
+      .app-section { padding: 20px; border-radius: 16px; }
+      .app-icon { font-size: 36px; }
+      .app-title { font-size: 21px; }
+      .open-app { width: 100%; justify-content: center; }
     }
   </style>
 </head>
@@ -140,1041 +436,818 @@
       <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </div>
-  
+
   <div class="container">
     <div class="logo">LOCALTOOLS</div>
-    <div class="tagline">Guia Completo de Funcionalidades</div>
-    
-    <!-- VERTO -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🎬</div>
-        <div class="app-title">Verto - Conversor de Mídia</div>
-      </div>
-      <div class="app-description">
-        Baixe vídeos e áudios do YouTube com seleção de qualidade e cálculo automático de tamanho.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">📺</div>
-          <div class="feature-text">
-            <div class="feature-title">Download de Vídeos MP4</div>
-            <div class="feature-desc">Qualidades: 8K, 4K, 2K, 1080p, 720p, 480p, 360p. Tamanho estimado em tempo real.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎵</div>
-          <div class="feature-text">
-            <div class="feature-title">Download de Áudio MP3</div>
-            <div class="feature-desc">Bitrates: 320kbps, 256kbps, 192kbps, 128kbps. Extração de áudio de alta qualidade.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🖼️</div>
-          <div class="feature-text">
-            <div class="feature-title">Download de Thumbnails</div>
-            <div class="feature-desc">Formatos PNG e JPG. Resoluções: Máxima, Alta, Média, Padrão.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-text">
-            <div class="feature-title">Preview em Tempo Real</div>
-            <div class="feature-desc">Visualize thumbnail, título e duração antes de baixar.</div>
-          </div>
-        </div>
-      </div>
+    <div class="tagline" id="tagline">Guia Completo de Funcionalidades</div>
+
+    <div class="search-wrap">
+      <label class="search-box" id="search-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 20L16.5 16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="search" id="search" autocomplete="off" spellcheck="false"
+               placeholder="Buscar app, função ou formato…"
+               aria-label="Buscar nas instruções">
+        <span class="kbd">/</span>
+        <button type="button" class="clear-btn" id="clear" aria-label="Limpar busca">✕</button>
+      </label>
+      <div class="chips" id="chips"></div>
+      <div class="search-info" id="info"></div>
     </div>
 
-    <!-- PURPLEFLIX -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🎮</div>
-        <div class="app-title">PurpleFlix - Streaming</div>
-      </div>
-      <div class="app-description">
-        Plataforma de streaming integrada.
-      </div>
-    </div>
-
-    <!-- TEMPO -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">⏰</div>
-        <div class="app-title">Tempo - Relógio e Calendário</div>
-      </div>
-      <div class="app-description">
-        Relógio digital e analógico com calendário interativo e feriados brasileiros.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🕐</div>
-          <div class="feature-text">
-            <div class="feature-title">Relógio Duplo</div>
-            <div class="feature-desc">Digital e analógico sincronizados em tempo real.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📅</div>
-          <div class="feature-text">
-            <div class="feature-title">Calendário Interativo</div>
-            <div class="feature-desc">Navegação por meses e anos. Visualização de dias, meses e anos.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎉</div>
-          <div class="feature-text">
-            <div class="feature-title">Feriados Brasileiros</div>
-            <div class="feature-desc">Lista completa de feriados nacionais de 2024-2026.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PDFS -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">📄</div>
-        <div class="app-title">PDFs - Suite Completa</div>
-      </div>
-      <div class="app-description">
-        Ferramentas profissionais para manipulação de PDFs.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">✂️</div>
-          <div class="feature-text">
-            <div class="feature-title">Dividir PDF</div>
-            <div class="feature-desc">Divida PDFs em múltiplos arquivos por intervalos de páginas personalizados.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔄</div>
-          <div class="feature-text">
-            <div class="feature-title">Converter PDF</div>
-            <div class="feature-desc">PDF ↔ Imagens (JPG/PNG). Imagens → PDF.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🗜️</div>
-          <div class="feature-text">
-            <div class="feature-title">Comprimir PDF</div>
-            <div class="feature-desc">Reduza o tamanho com 3 níveis de qualidade (Baixa, Média, Alta).</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔄</div>
-          <div class="feature-text">
-            <div class="feature-title">Girar PDF</div>
-            <div class="feature-desc">Rotação de páginas: 90°, 180°, 270°. Individual ou em massa.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔍</div>
-          <div class="feature-text">
-            <div class="feature-title">Comparar PDFs</div>
-            <div class="feature-desc">Compare múltiplos PDFs e veja diferenças e similaridades.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔧</div>
-          <div class="feature-text">
-            <div class="feature-title">Reparar PDF</div>
-            <div class="feature-desc">5 estratégias de recuperação para PDFs corrompidos.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔒</div>
-          <div class="feature-text">
-            <div class="feature-title">Proteger PDF</div>
-            <div class="feature-desc">Adicione senha de criptografia aos seus PDFs.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔓</div>
-          <div class="feature-text">
-            <div class="feature-title">Desbloquear PDF</div>
-            <div class="feature-desc">Remova senhas com força bruta (10.000 combinações) ou senha conhecida.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">✏️</div>
-          <div class="feature-text">
-            <div class="feature-title">Editar PDF</div>
-            <div class="feature-desc">Extraia texto e crie novo PDF editado.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">💧</div>
-          <div class="feature-text">
-            <div class="feature-title">Marca D'água</div>
-            <div class="feature-desc">Adicione texto ou imagem como marca d'água. 15 posições + arraste customizado.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">💥</div>
-          <div class="feature-text">
-            <div class="feature-title">Corromper PDF</div>
-            <div class="feature-desc">4 níveis de corrupção para testes (Leve, Médio, Pesado, Extremo).</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔗</div>
-          <div class="feature-text">
-            <div class="feature-title">Mesclar PDFs</div>
-            <div class="feature-desc">Una múltiplos PDFs em um só. Selecione páginas específicas.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- OFFICE -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🗃️</div>
-        <div class="app-title">Office - Conversor e Reparador</div>
-      </div>
-      <div class="app-description">
-        Converta e recupere arquivos do pacote Office (Word, Excel, PowerPoint) usando o motor do LibreOffice.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🔄</div>
-          <div class="feature-text">
-            <div class="feature-title">Converter</div>
-            <div class="feature-desc">DOCX/XLSX/PPTX ↔ ODT/ODS/ODP, PDF e imagens PNG/JPG (uma por página ou slide) sem problemas de fonte ou acentuação.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🩺</div>
-          <div class="feature-text">
-            <div class="feature-title">Reparar e Recuperar</div>
-            <div class="feature-desc">5 níveis de recuperação: detecção do formato real (corrige extensão trocada), reconstrução do ZIP, validação nativa, reparo via LibreOffice e recuperação bruta de texto.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔀</div>
-          <div class="feature-text">
-            <div class="feature-title">Extensão errada não é problema</div>
-            <div class="feature-desc">Se um .xlsx na verdade é um .docx por dentro (ou vice-versa), a ferramenta identifica o conteúdo real e recupera pelo formato certo.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TRANSPARÊNCIA -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🎨</div>
-        <div class="app-title">Transparência - Remover Fundo</div>
-      </div>
-      <div class="app-description">
-        Remova fundos de imagens automaticamente usando IA.
-      </div>
-    </div>
-
-    <!-- QR CODE -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🔲</div>
-        <div class="app-title">QR Code - Gerador Gratuito</div>
-      </div>
-      <div class="app-description">
-        Gere QR Codes estáticos permanentes sem marcas d'água ou expiração.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🔗</div>
-          <div class="feature-text">
-            <div class="feature-title">Links/URLs</div>
-            <div class="feature-desc">Qualquer endereço web.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📶</div>
-          <div class="feature-text">
-            <div class="feature-title">Wi-Fi</div>
-            <div class="feature-desc">Compartilhe credenciais de rede.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">👤</div>
-          <div class="feature-text">
-            <div class="feature-title">vCard</div>
-            <div class="feature-desc">Cartão de visita digital.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">💰</div>
-          <div class="feature-text">
-            <div class="feature-title">PIX</div>
-            <div class="feature-desc">Pagamentos instantâneos.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎨</div>
-          <div class="feature-text">
-            <div class="feature-title">Customização Total</div>
-            <div class="feature-desc">Cores, tamanho, bordas, logo central, 4 níveis de correção de erro.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- COMPRESSOR -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🗜️</div>
-        <div class="app-title">Compressor - Redução de Tamanho</div>
-      </div>
-      <div class="app-description">
-        Comprima imagens, vídeos e áudios mantendo qualidade.
-      </div>
-    </div>
-
-    <!-- ARQUIVOS -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">📁</div>
-        <div class="app-title">Arquivos - Conversor Universal</div>
-      </div>
-      <div class="app-description">
-        Converta entre 150+ formatos de arquivo com estimativa de tamanho.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🖼️</div>
-          <div class="feature-text">
-            <div class="feature-title">Imagens (50+ formatos)</div>
-            <div class="feature-desc">PNG, JPG, WEBP, HEIC, RAW, TIFF, BMP, GIF, SVG, PSD, etc.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎬</div>
-          <div class="feature-text">
-            <div class="feature-title">Vídeos (35+ formatos)</div>
-            <div class="feature-desc">MP4, AVI, MKV, MOV, WEBM, FLV, etc.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎵</div>
-          <div class="feature-text">
-            <div class="feature-title">Áudios (40+ formatos)</div>
-            <div class="feature-desc">MP3, WAV, FLAC, AAC, OGG, OPUS, etc.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📄</div>
-          <div class="feature-text">
-            <div class="feature-title">Documentos, eBooks, Fontes, CAD, 3D</div>
-            <div class="feature-desc">PDF, DOCX, EPUB, TTF, DWG, OBJ e muito mais.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TRANSCREVER -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🎤</div>
-        <div class="app-title">Transcrever - Áudio para Texto</div>
-      </div>
-      <div class="app-description">
-        Converta áudios e vídeos em texto formatado usando reconhecimento de voz.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🎯</div>
-          <div class="feature-text">
-            <div class="feature-title">Reconhecimento Avançado</div>
-            <div class="feature-desc">Sample rate 48kHz, filtros de áudio (FFT, speechnorm), chunks de 20s.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🌍</div>
-          <div class="feature-text">
-            <div class="feature-title">Múltiplos Idiomas</div>
-            <div class="feature-desc">PT-BR, EN-US, PT-PT, ES-ES com fallback automático.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📝</div>
-          <div class="feature-text">
-            <div class="feature-title">Formatação Automática</div>
-            <div class="feature-desc">Capitalização de sentenças e texto limpo.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📋</div>
-          <div class="feature-text">
-            <div class="feature-title">Copiar Resultado</div>
-            <div class="feature-desc">Botão para copiar transcrição para área de transferência.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- GHOST TOOL -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">👻</div>
-        <div class="app-title">Ghost Tool - Removedor de Metadados</div>
-      </div>
-      <div class="app-description">
-        Remova metadados de múltiplos arquivos simultaneamente. GPS, autor, datas, câmera - tudo apagado permanentemente.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">📷</div>
-          <div class="feature-text">
-            <div class="feature-title">Imagens (50+ formatos)</div>
-            <div class="feature-desc">Remove EXIF, GPS, câmera, software. Recria pixel por pixel.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎬</div>
-          <div class="feature-text">
-            <div class="feature-title">Vídeos e Áudios (70+ formatos)</div>
-            <div class="feature-desc">Remove metadados com FFmpeg. Mantém qualidade original.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📄</div>
-          <div class="feature-text">
-            <div class="feature-title">Documentos Office</div>
-            <div class="feature-desc">Remove autor, empresa, datas de DOCX, XLSX, PPTX.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📚</div>
-          <div class="feature-text">
-            <div class="feature-title">PDFs, eBooks, Arquivos</div>
-            <div class="feature-desc">Remove metadados de PDFs, EPUBs, ZIPs e mais.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-text">
-            <div class="feature-title">Processamento em Massa</div>
-            <div class="feature-desc">Múltiplos arquivos simultaneamente. Download em lote.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔒</div>
-          <div class="feature-text">
-            <div class="feature-title">100% Local</div>
-            <div class="feature-desc">Arquivos nunca saem do seu computador.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- STEALTH -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🕵️</div>
-        <div class="app-title">Stealth - Esteganografia Criptografada</div>
-      </div>
-      <div class="app-description">
-        Esconda arquivos secretos dentro de imagens, vídeos, áudios ou PDFs com criptografia AES-256 opcional.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🔐</div>
-          <div class="feature-text">
-            <div class="feature-title">Esconder Arquivos</div>
-            <div class="feature-desc">Múltiplos arquivos em imagens (LSB), vídeos, áudios ou PDFs. Senha opcional.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔓</div>
-          <div class="feature-text">
-            <div class="feature-title">Extrair Arquivos</div>
-            <div class="feature-desc">Recupere arquivos escondidos com ou sem senha. Detecção automática.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🛡️</div>
-          <div class="feature-text">
-            <div class="feature-title">Criptografia AES-256-GCM</div>
-            <div class="feature-desc">Criptografia militar com PBKDF2, salt, nonce e tag de autenticação.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎨</div>
-          <div class="feature-text">
-            <div class="feature-title">LSB Steganography</div>
-            <div class="feature-desc">Esconde dados nos bits menos significativos dos pixels. Invisível ao olho humano.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📦</div>
-          <div class="feature-text">
-            <div class="feature-title">Múltiplos Arquivos</div>
-            <div class="feature-desc">Esconda vários arquivos de uma vez. Compactação automática em ZIP.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎯</div>
-          <div class="feature-text">
-            <div class="feature-title">Formato Original Mantido</div>
-            <div class="feature-desc">MP4 → MP4, MP3 → MP3, PDF → PDF. Arquivo de saída mantém formato de cobertura.</div>
-          </div>
-        </div>
-      </div>
-      <div class="sub-section">
-        <div class="sub-title">📋 Casos de Uso</div>
-        <div class="features">
-          <div class="feature">
-            <div class="feature-icon">📱</div>
-            <div class="feature-text">
-              <div class="feature-desc">Envie documentos secretos via redes sociais (Instagram, WhatsApp)</div>
-            </div>
-          </div>
-          <div class="feature">
-            <div class="feature-icon">💾</div>
-            <div class="feature-text">
-              <div class="feature-desc">Backup criptografado disfarçado em fotos comuns</div>
-            </div>
-          </div>
-          <div class="feature">
-            <div class="feature-icon">🔒</div>
-            <div class="feature-text">
-              <div class="feature-desc">Comunicação segura e discreta</div>
-            </div>
-          </div>
-          <div class="feature">
-            <div class="feature-icon">🎭</div>
-            <div class="feature-text">
-              <div class="feature-desc">Proteção de dados sensíveis em plain sight</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CENSOR -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🔒</div>
-        <div class="app-title">Censor - Proteção de Privacidade com IA</div>
-      </div>
-      <div class="app-description">
-        Censura automática de informações sensíveis em imagens usando IA. Detecta e oculta rostos, documentos, placas, e-mails, telefones, cartões, sites, nomes, @IDs e mais.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">👤</div>
-          <div class="feature-text">
-            <div class="feature-title">Detecção de Rostos</div>
-            <div class="feature-desc">BlazeFace (TensorFlow.js) detecta rostos automaticamente em tempo real.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔤</div>
-          <div class="feature-text">
-            <div class="feature-title">Documentos (CPF, RG, CNH)</div>
-            <div class="feature-desc">OCR com Tesseract.js identifica números de documentos brasileiros.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🚗</div>
-          <div class="feature-text">
-            <div class="feature-title">Placas de Veículos</div>
-            <div class="feature-desc">Detecta placas padrão brasileiro (ABC1D23) e Mercosul.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">✉️</div>
-          <div class="feature-text">
-            <div class="feature-title">E-mails</div>
-            <div class="feature-desc">Identifica e censura endereços de e-mail em imagens.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📞</div>
-          <div class="feature-text">
-            <div class="feature-title">Telefones</div>
-            <div class="feature-desc">Detecta números de telefone (fixo e celular) com DDD.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">💳</div>
-          <div class="feature-text">
-            <div class="feature-title">Cartões de Crédito</div>
-            <div class="feature-desc">Identifica padrões de 16 dígitos de cartões.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🌐</div>
-          <div class="feature-text">
-            <div class="feature-title">Sites e URLs</div>
-            <div class="feature-desc">Detecta endereços web (http://, https://, www.) em imagens.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">👤</div>
-          <div class="feature-text">
-            <div class="feature-title">Nomes de Pessoas</div>
-            <div class="feature-desc">Identifica nomes próprios (padrão Nome Sobrenome).</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">@</div>
-          <div class="feature-text">
-            <div class="feature-title">IDs e Handles</div>
-            <div class="feature-desc">Detecta @usernames de redes sociais (Twitter, Instagram, etc).</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎨</div>
-          <div class="feature-text">
-            <div class="feature-title">8 Tipos de Censura</div>
-            <div class="feature-desc">Desfoque, Pixelizar, Tarja Preta, Tarja Branca, Emoji 😎, Gradiente, Redação ████, Ruído.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🤖</div>
-          <div class="feature-text">
-            <div class="feature-title">Intensidade Automática</div>
-            <div class="feature-desc">IA analisa brilho da imagem e ajusta intensidade automaticamente (ou manual: Baixa/Média/Alta).</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-text">
-            <div class="feature-title">Processamento em Massa</div>
-            <div class="feature-desc">Até 20 imagens simultaneamente com download em lote.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔒</div>
-          <div class="feature-text">
-            <div class="feature-title">100% Local no Navegador</div>
-            <div class="feature-desc">IA roda no navegador. Arquivos nunca saem do seu computador.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SOCIAL PREVIEW -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">📱</div>
-        <div class="app-title">Social Preview - Estúdio de Preview de Redes Sociais</div>
-      </div>
-      <div class="app-description">
-        Visualize como seu conteúdo aparecerá em 8 plataformas diferentes em 3 tipos de dispositivos. Exporte em 11 formatos otimizados.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">📱</div>
-          <div class="feature-text">
-            <div class="feature-title">Preview Mobile</div>
-            <div class="feature-desc">Twitter, LinkedIn, Facebook, WhatsApp, Open Graph, Instagram, Instagram Story, Instagram Reels.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">💻</div>
-          <div class="feature-text">
-            <div class="feature-title">Preview Desktop</div>
-            <div class="feature-desc">Visualização em tela grande para todas as 8 plataformas.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📡</div>
-          <div class="feature-text">
-            <div class="feature-title">Preview Tablet</div>
-            <div class="feature-desc">Visualização intermediária para todas as 8 plataformas.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📦</div>
-          <div class="feature-text">
-            <div class="feature-title">Exportação em Massa</div>
-            <div class="feature-desc">11 formatos otimizados: Twitter 1200×675, LinkedIn 1200×627, Facebook 1200×630, Instagram Square 1080×1080, Instagram Story 1080×1920, Instagram Reels 1080×1920, Open Graph 1200×630, Desktop Full HD 1920×1080, Desktop 2K 2560×1440, Tablet Landscape 1024×768, Tablet Portrait 768×1024.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-text">
-            <div class="feature-title">Atualização em Tempo Real</div>
-            <div class="feature-desc">Todos os 24 previews atualizam simultaneamente ao editar.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CLEAN READER -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🧹</div>
-        <div class="app-title">Clean Reader - Limpador de Distração</div>
-      </div>
-      <div class="app-description">
-        Extraia conteúdo limpo de qualquer site removendo anúncios, pop-ups e poluição visual. Leia ou exporte para PDF, Markdown ou EPUB.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🧹</div>
-          <div class="feature-text">
-            <div class="feature-title">Extração Inteligente</div>
-            <div class="feature-desc">Remove scripts, styles, nav, header, footer, aside, forms, buttons automaticamente.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">👁️</div>
-          <div class="feature-text">
-            <div class="feature-title">Modo Leitura</div>
-            <div class="feature-desc">Tela cheia com fundo branco, texto centralizado e fonte otimizada para leitura.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📄</div>
-          <div class="feature-text">
-            <div class="feature-title">Exportar PDF</div>
-            <div class="feature-desc">Salva artigo limpo em PDF formatado com ReportLab.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📝</div>
-          <div class="feature-text">
-            <div class="feature-title">Exportar Markdown</div>
-            <div class="feature-desc">Converte para Markdown preservando links e formatação.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📚</div>
-          <div class="feature-text">
-            <div class="feature-title">Exportar EPUB</div>
-            <div class="feature-desc">Gera eBook para Kindle e leitores digitais.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ISOLADOR DE VOZ -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🎤</div>
-        <div class="app-title">Isolador de Voz - Neural Audio Splitter</div>
-      </div>
-      <div class="app-description">
-        Separe voz e música de qualquer áudio usando IA Demucs (Meta). Ideal para remover ruídos, extrair vocais ou criar versões instrumentais.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🎤</div>
-          <div class="feature-text">
-            <div class="feature-title">Isolar Voz</div>
-            <div class="feature-desc">Extrai apenas a voz do áudio, removendo música e ruídos de fundo.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎵</div>
-          <div class="feature-text">
-            <div class="feature-title">Isolar Música</div>
-            <div class="feature-desc">Extrai apenas a música instrumental, removendo vocais.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🤖</div>
-          <div class="feature-text">
-            <div class="feature-title">IA Demucs (Meta)</div>
-            <div class="feature-desc">Modelo neural state-of-the-art da Meta/Facebook Research. Open-source e gratuito.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">⏱️</div>
-          <div class="feature-text">
-            <div class="feature-title">Sem Limite de Tempo</div>
-            <div class="feature-desc">Processa áudios de qualquer duração. Contador de tempo em tempo real.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📁</div>
-          <div class="feature-text">
-            <div class="feature-title">Múltiplos Formatos</div>
-            <div class="feature-desc">Suporta MP3, WAV, MP4, M4A, OGG, FLAC e mais. Saída em WAV de alta qualidade.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">💾</div>
-          <div class="feature-text">
-            <div class="feature-title">Salva em Downloads</div>
-            <div class="feature-desc">Arquivos processados salvos automaticamente na pasta Downloads com nomes únicos.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- DEV/DATA -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🧰</div>
-        <div class="app-title">Dev/Data - Ferramentas para Desenvolvedores</div>
-      </div>
-      <div class="app-description">
-        Beautifier/minifier de código, gerador de dados mock, conversor de formatos e encode/decode — tudo processado no navegador.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">✨</div>
-          <div class="feature-text">
-            <div class="feature-title">Beautifier / Minifier</div>
-            <div class="feature-desc">Formata e comprime JSON, HTML, CSS e JavaScript.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎲</div>
-          <div class="feature-text">
-            <div class="feature-title">Gerador de Dados Mock</div>
-            <div class="feature-desc">Cria conjuntos de dados fictícios (nomes, e-mails, números, datas) para testes.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔄</div>
-          <div class="feature-text">
-            <div class="feature-title">Conversor de Formatos</div>
-            <div class="feature-desc">Converte entre JSON, CSV, YAML e XML.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔐</div>
-          <div class="feature-text">
-            <div class="feature-title">Encode / Decode</div>
-            <div class="feature-desc">Base64, URL, HTML entities e outras codificações comuns.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- IMAGE STUDIO -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🖌️</div>
-        <div class="app-title">Image Studio - Edição em Lote e Individual</div>
-      </div>
-      <div class="app-description">
-        Editor individual com corte manual, crop & resize em massa, filtros e marca d'água em lote, e gerador de favicon — tudo via Canvas no navegador.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">✂️</div>
-          <div class="feature-text">
-            <div class="feature-title">Editor Individual</div>
-            <div class="feature-desc">Corte manual com arrasto e âncoras, trava de proporção, comparação antes/depois e download direto do arquivo único (sem ZIP).</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📐</div>
-          <div class="feature-text">
-            <div class="feature-title">Crop & Resize em Massa</div>
-            <div class="feature-desc">Corte e redimensione várias imagens de uma vez, com download em ZIP.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎨</div>
-          <div class="feature-text">
-            <div class="feature-title">Filtros e Marca d'Água em Lote</div>
-            <div class="feature-desc">Aplique filtros e marca d'água a múltiplas imagens simultaneamente.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🖼️</div>
-          <div class="feature-text">
-            <div class="feature-title">Gerador de Favicon</div>
-            <div class="feature-desc">Monta .ico multi-resolução manualmente (container ICO com PNGs embutidos) via Canvas.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TEXT CLEAN & DIFF -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🔀</div>
-        <div class="app-title">Text Clean & Diff - Comparação e Limpeza de Texto</div>
-      </div>
-      <div class="app-description">
-        Compare textos lado a lado, sanitize listas e conte estatísticas — tudo processado no navegador.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🔍</div>
-          <div class="feature-text">
-            <div class="feature-title">Diff de Texto</div>
-            <div class="feature-desc">Comparação lado a lado ou inline entre duas versões de um texto.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🧹</div>
-          <div class="feature-text">
-            <div class="feature-title">Sanitizador de Texto</div>
-            <div class="feature-desc">Remove duplicatas, ordena linhas e ajusta case (maiúsculas/minúsculas).</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📊</div>
-          <div class="feature-text">
-            <div class="feature-title">Contador Estatístico</div>
-            <div class="feature-desc">Contagem de caracteres, palavras, linhas e outras métricas do texto.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CAPTURE & OCR -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🔍</div>
-        <div class="app-title">Capture & OCR - Reconhecimento de Texto e Gravação de Tela</div>
-      </div>
-      <div class="app-description">
-        Extraia texto de imagens com OCR local e grave sua tela com exportação em WEBM ou GIF.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">📝</div>
-          <div class="feature-text">
-            <div class="feature-title">OCR Local</div>
-            <div class="feature-desc">Reconhecimento de texto via Tesseract.js (WebAssembly), sem enviar imagens para servidores externos.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎥</div>
-          <div class="feature-text">
-            <div class="feature-title">Gravador de Tela</div>
-            <div class="feature-desc">Captura via getDisplayMedia/MediaRecorder, com exportação em WEBM ou conversão para GIF (gif.js por amostragem de quadros).</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- AI GUARD & DIFF -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🛡️</div>
-        <div class="app-title">AI Guard & Diff - Detecção Heurística de Conteúdo de IA</div>
-      </div>
-      <div class="app-description">
-        Detector heurístico de conteúdo de IA, reescritor com tom e diff, e verificador de plágio interno — sem limite de tamanho, com upload de TXT/PDF/DOCX.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🕵️</div>
-          <div class="feature-text">
-            <div class="feature-title">Detector Heurístico de IA</div>
-            <div class="feature-desc">Analisa burstiness (variação do tamanho de frases e palavras), repetição de bigramas e aberturas de frase, diversidade de vocabulário e conectores típicos de LLM. Não usa modelo de IA online — é uma estimativa, não uma prova.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">✍️</div>
-          <div class="feature-text">
-            <div class="feature-title">Reescritor com Tom e Diff</div>
-            <div class="feature-desc">Baseado em dicionários de sinônimos por tom e variação de estrutura de frase, com picker que evita repetir sempre a mesma opção. Mostra o diff entre original e reescrito.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📋</div>
-          <div class="feature-text">
-            <div class="feature-title">Verificador de Plágio Interno</div>
-            <div class="feature-desc">Usa shingling de n-gramas (Jaccard) para achar trechos duplicados entre o texto atual e documentos TXT/PDF/DOCX carregados localmente.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">📁</div>
-          <div class="feature-text">
-            <div class="feature-title">Sem Limite de Tamanho</div>
-            <div class="feature-desc">Aceita upload de TXT/PDF/DOCX (via pdf.js/mammoth.js) além de texto colado, processando em lotes assíncronos para não travar a aba em documentos grandes.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SMART STUDIO -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">🎙️</div>
-        <div class="app-title">Smart Studio - Gravador, Teleprompter & Estúdio Vocal Local</div>
-      </div>
-      <div class="app-description">
-        Grave voz, podcast ou vídeo com teleprompter, filtros de áudio em tempo real e edição de corte por forma de onda — tudo direto no navegador, sem enviar gravações para servidores.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">📜</div>
-          <div class="feature-text">
-            <div class="feature-title">Teleprompter Inteligente</div>
-            <div class="feature-desc">Roteiro editável sobreposto à câmera, com rolagem automática controlada por velocidade, ajuste de tamanho da fonte e espelhamento de texto para vidros de teleprompter.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🎚️</div>
-          <div class="feature-text">
-            <div class="feature-title">Filtros e Efeitos em Tempo Real</div>
-            <div class="feature-desc">Redução de ruído, compressor de áudio, equalizador de 3 bandas (graves/médios/agudos) e ganho automático (AGC), tudo via Web Audio API sobre o áudio do microfone antes de gravar.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🌊</div>
-          <div class="feature-text">
-            <div class="feature-title">Corte & Edição Rápida</div>
-            <div class="feature-desc">Visualizador de forma de onda para selecionar, recortar ou remover trechos, cortar silêncios automaticamente e juntar gravações antes de exportar em WAV.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🚩</div>
-          <div class="feature-text">
-            <div class="feature-title">Marcadores de Áudio</div>
-            <div class="feature-desc">Insira marcadores durante a gravação para destacar pontos importantes, renomeie-os e exporte a lista com os tempos em .txt para guiar a edição.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUBTITLE LAB -->
-    <div class="app-section">
-      <div class="app-header">
-        <div class="app-icon">📝</div>
-        <div class="app-title">Subtitle Lab - Gerador & Editor Local de Legendas (SRT/VTT)</div>
-      </div>
-      <div class="app-description">
-        Estúdio para criação, sincronização e renderização local de legendas para vídeos, sem depender de plataformas pagas.
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🎙️</div>
-          <div class="feature-text">
-            <div class="feature-title">Transcrição para Legendas</div>
-            <div class="feature-desc">Transforma áudio/vídeo em blocos de legenda sincronizados por tempo (.srt/.vtt), reaproveitando o mesmo motor de reconhecimento de voz (SpeechRecognition + ffmpeg) do app de transcrição.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">⏱️</div>
-          <div class="feature-text">
-            <div class="feature-title">Editor de Timeline</div>
-            <div class="feature-desc">Ajuste o tempo de entrada/saída de cada bloco arrastando na linha do tempo, edite o texto, adicione ou exclua blocos e importe/exporte .srt e .vtt.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🔥</div>
-          <div class="feature-text">
-            <div class="feature-title">Burn-in de Legenda</div>
-            <div class="feature-desc">Renderiza o vídeo com as legendas embutidas (estilo reels/shorts) via Canvas + MediaRecorder, com fonte, tamanho, cor de texto/fundo e posição personalizáveis.</div>
-          </div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">↔️</div>
-          <div class="feature-text">
-            <div class="feature-title">Sincronizador de Delay</div>
-            <div class="feature-desc">Corrija legendas adiantadas ou atrasadas em massa aplicando um offset de tempo (positivo ou negativo) a todos os blocos com um único clique.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
+    <div id="content"></div>
     <div style="height: 60px;"></div>
   </div>
+
+  <script>
+    // Conteúdo do guia. Para documentar um app novo, adicione um objeto em
+    // "apps" da categoria certa: id, icon, name, subtitle, url, desc e features
+    // ({icon, title, desc, url?}). "keywords" não aparece na tela, só entra na
+    // busca (sinônimos, termos em inglês etc.); "badges" usa as chaves de BADGES.
+    const BADGES = {
+      navegador: '🌐 Roda no navegador',
+      downloads: '💾 Salva em Downloads',
+      internet: '📶 Requer internet',
+      ia: '🤖 Usa IA',
+      instalacao: '📦 IA opcional: instalação extra',
+      login: '🔑 Requer login no Instagram',
+      whatsapp: '📱 Conecta ao seu WhatsApp',
+    };
+
+    const CATEGORIAS = [
+      {
+        id: 'downloads', icon: '📥', name: 'Downloads & Streaming', short: 'Downloads',
+        desc: 'Baixe vídeos, áudios e mídias da internet e assista conteúdo',
+        apps: [
+          {
+            id: 'verto', icon: '🎬', name: 'Verto', subtitle: 'Downloader de vídeos do YouTube', url: '/verto',
+            badges: ['internet', 'downloads'],
+            keywords: 'youtube yt baixar download yt-dlp',
+            desc: 'Cole o link de um vídeo do YouTube, veja a prévia e baixe em vídeo, áudio ou só a thumbnail, escolhendo a qualidade antes.',
+            features: [
+              { icon: '📺', title: 'Download de Vídeos MP4', desc: 'Melhor qualidade disponível, 8K, 4K, 2K, 1080p, 720p, 480p, 360p ou o menor arquivo possível. Tamanho estimado em tempo real.' },
+              { icon: '🎵', title: 'Download de Áudio MP3', desc: 'Bitrates: 320 kbps (alta), 256 kbps, 192 kbps (média) e 128 kbps (baixa).' },
+              { icon: '🖼️', title: 'Download de Thumbnails', kw: 'capa miniatura', desc: 'Formatos PNG e JPG. Resoluções: Máxima, Alta, Média e Padrão.' },
+              { icon: '⚡', title: 'Preview em Tempo Real', desc: 'Veja thumbnail, título e duração do vídeo antes de baixar.' },
+              { icon: '💬', title: 'Erros Explicados', desc: 'Vídeo privado, com restrição de idade, exclusivo para membros, removido por direitos autorais ou live que ainda não começou aparecem com mensagem clara.' },
+            ],
+            note: 'Os arquivos vão para a pasta <strong>Downloads</strong>, com nome único se já existir um igual. O YouTube passou a exigir um runtime JavaScript para liberar os formatos: o <strong>INSTALAR.py</strong> baixa o Deno automaticamente (Node, Bun ou QuickJS também servem). Se vídeos públicos aparecerem como “não disponíveis”, rode o instalador de novo ou o ATUALIZAR.py.',
+          },
+          {
+            id: 'instasaver', icon: '📸', name: 'InstaSaver', subtitle: 'Stories, destaques e posts do Instagram', url: '/instasaver',
+            badges: ['internet', 'login'],
+            keywords: 'instagram insta ig stories highlights reel baixar download salvar perfil saveclip',
+            desc: 'Cole o link de um story, destaque, post, reel ou perfil (ou só o @usuário) e o app mostra tudo do perfil dono do link: stories, destaques e posts, com download individual ou em ZIP.',
+            features: [
+              { icon: '🔗', title: 'Link Automático', desc: 'Reconhece links de story, destaque (inclusive o link curto /s/ compartilhado pelo app), post, reel ou perfil, e também um @usuário digitado. Tem botão “Colar” para usar a área de transferência.' },
+              { icon: '⏱️', title: 'Stories', desc: 'Stories das últimas 24h do perfil, com botão para baixar todos em .zip.' },
+              { icon: '⭐', title: 'Destaques', desc: 'Abra qualquer destaque do perfil e baixe-o inteiro em .zip.' },
+              { icon: '🖼️', title: 'Posts e Reels', desc: 'Grade de posts e reels com “Carregar mais” e download de todos os carregados em .zip.' },
+              { icon: '👤', title: 'Foto de Perfil', desc: 'Baixe a foto de perfil ou abra o perfil direto no Instagram.' },
+              { icon: '🔍', title: 'Visualizador', desc: 'Abra fotos e vídeos em tela cheia e navegue entre eles pelas setas ‹ ›, baixando um a um.' },
+            ],
+            note: 'É preciso estar <strong>logado no Instagram em um navegador desta máquina</strong> (Chrome, Firefox, Chromium, Brave, Edge, Opera ou Vivaldi): o app reaproveita essa sessão e só mostra o que a sua conta já pode ver. Para escolher o navegador, defina a variável <strong>INSTASAVER_BROWSER</strong>; para usar um cookies.txt exportado, defina <strong>INSTASAVER_COOKIES</strong>. No Linux, ler a sessão do Chrome exige o pacote secretstorage (já está no requirements.txt).',
+          },
+          {
+            id: 'vscosaver', icon: '🎞️', name: 'VscoSaver', subtitle: 'Galeria, coleção e spaces do VSCO', url: '/vscosaver',
+            badges: ['internet'],
+            keywords: 'vsco vsco.co galeria gallery colecao collection repost spaces foto video baixar download salvar perfil preset filtro',
+            desc: 'Cole o link de um perfil, foto, vídeo, coleção ou space do VSCO (ou só o nome do usuário) e o app mostra tudo do perfil dono do link: galeria, coleção e spaces, com download individual ou em ZIP.',
+            features: [
+              { icon: '🔗', title: 'Link Automático', desc: 'Reconhece links de perfil (vsco.co/usuario/gallery), foto (/media/), vídeo (/video/), coleção (/collection/), spaces e o endereço antigo usuario.vsco.co, e também um nome de usuário digitado. Tem botão “Colar” para usar a área de transferência.' },
+              { icon: '🖼️', title: 'Galeria', desc: 'Fotos e vídeos do perfil em tamanho original, com “Carregar mais” automático e download de todos os carregados em .zip.' },
+              { icon: '🔁', title: 'Coleção', desc: 'Os reposts do perfil (a aba Collection do VSCO), mostrando o autor original de cada foto.' },
+              { icon: '🪐', title: 'Spaces', desc: 'Abra qualquer space do perfil e baixe-o inteiro em .zip.' },
+              { icon: '🎞️', title: 'Preset e Câmera', kw: 'filtro exif iso', desc: 'O visualizador mostra o preset usado (A5, HB1...), a câmera e os dados de exposição de cada foto.' },
+              { icon: '🎬', title: 'Vídeos', desc: 'Vídeos novos do VSCO vêm em pedaços (HLS): o app junta tudo num .mp4 sem perder qualidade antes de tocar ou baixar.' },
+              { icon: '👤', title: 'Foto de Perfil', desc: 'Baixe a foto de perfil em tamanho original ou abra o perfil direto no VSCO.' },
+            ],
+            note: 'Não precisa de login: o VSCO é público. O app usa o pacote <strong>curl_cffi</strong> (já está no requirements.txt) porque o VSCO bloqueia requisições que não parecem vir de um navegador, e o <strong>FFmpeg</strong> para montar os vídeos. Se aparecer “O VSCO limitou as requisições”, espere um ou dois minutos antes de buscar de novo.',
+          },
+          {
+            id: 'whatssaver', icon: '💬', name: 'WhatsSaver', subtitle: 'Fotos e vídeos das conversas do WhatsApp', url: '/whatssaver',
+            badges: ['internet', 'whatsapp'],
+            keywords: 'whatsapp zap wpp conversa chat contato grupo foto video midia arquivo documento baixar download salvar backup exportar galeria heic',
+            desc: 'Conecte o seu WhatsApp (como no WhatsApp Web), escolha uma conversa e veja todas as fotos e vídeos dela — inclusive os enviados como arquivo/documento — com download direto dos servidores do WhatsApp, mesmo do que o celular nunca baixou.',
+            features: [
+              { icon: '🔗', title: 'Conexão por QR ou Código', kw: 'aparelho conectado whatsapp web parear', desc: 'Escaneie o QR em “Aparelhos conectados” no celular ou gere um código de 8 dígitos pelo número de telefone. O app entra como o aparelho “LocalTools WhatsSaver” e só lê: não envia nada.' },
+              { icon: '💬', title: 'Conversas com Mídia', desc: 'Conversas e grupos com a contagem de fotos, vídeos e arquivos de cada um, busca por nome ou número e foto de perfil.' },
+              { icon: '📎', title: 'Enviados como Arquivo', kw: 'documento heic original qualidade', desc: 'Fotos e vídeos mandados como documento (para manter a qualidade original) aparecem junto, com o nome original — mesmo que o celular nunca tenha baixado.' },
+              { icon: '⬇️', title: 'Baixe Só o Que Quiser', desc: 'Clicar numa mídia só abre para ver. O botão ⬇ (no card ou no visualizador) baixa pelo navegador, um por um; “Baixar tudo” ou uma seleção (Shift para intervalos) gera um .zip, com a data de cada mensagem no nome dos arquivos.' },
+              { icon: '🕰️', title: 'Mensagens Antigas', kw: 'historico sincronizar', desc: 'Ao conectar, o celular manda só o histórico recente; ao abrir uma conversa, o app pede sozinho ao celular, em lotes, o resto dela até o começo, e as fotos e vídeos antigos vão aparecendo no fim da grade.' },
+              { icon: '♻️', title: 'Arquivos Conferidos', kw: 'reenvio reupload corrompido bad decrypt', desc: 'Cada arquivo é conferido pela chave da mensagem antes de ser entregue. Se o servidor do WhatsApp não tiver mais o original (ou devolver outro conteúdo), o app pede ao celular para reenviá-lo, como o WhatsApp Web faz — nada chega corrompido.' },
+              { icon: '🔍', title: 'Visualizador', desc: 'Fotos e vídeos em tela cheia com data, remetente, legenda, tamanho e nome original; HEIC e TIFF são convertidos para aparecer no navegador.' },
+            ],
+            note: 'Nada é salvo no computador sem você pedir: para mostrar uma mídia o app usa um cache temporário do sistema (whatssaver_cache, limpo sozinho). A conexão usa uma ponte em <strong>Node.js</strong> (biblioteca Baileys): o INSTALAR.py prepara tudo e baixa um Node portátil se não houver um, ou use o botão “Instalar agora” no próprio app. A sessão fica em <strong>WhatsSaver/dados</strong> — essa pasta dá acesso à sua conta, não compartilhe. O celular precisa estar ligado e com internet para buscar mensagens antigas e reenviar mídias que saíram do servidor. É um cliente não oficial (como os baseados no WhatsApp Web): só lê, mas o WhatsApp não dá garantia para esse tipo de uso.',
+          },
+          {
+            id: 'purpleflix', icon: '🎮', name: 'PurpleFlix', subtitle: 'Plataforma de streaming', url: '/purpleflix',
+            badges: ['internet'],
+            keywords: 'filmes series assistir player video',
+            desc: 'Abre a plataforma de streaming PurpleFlix dentro do LocalTools ou em uma nova aba.',
+            features: [
+              { icon: '📺', title: 'Prévia Integrada', desc: 'O PurpleFlix roda em um quadro dentro da página, com suporte a tela cheia.' },
+              { icon: '↗️', title: 'Abrir em Nova Aba', desc: 'O botão “Acessar PurpleFlix” abre o site completo (purpleflix3.vercel.app).' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'audio', icon: '🎙️', name: 'Áudio, Voz & Legendas', short: 'Áudio & Legendas',
+        desc: 'Transcreva, separe, grave e legende áudio e vídeo',
+        apps: [
+          {
+            id: 'transcribe', icon: '🎤', name: 'Transcrever', subtitle: 'Áudio e vídeo para texto', url: '/transcribe',
+            badges: ['internet'],
+            keywords: 'transcricao fala ditado reconhecimento de voz speech to text audio para texto',
+            desc: 'Envie um arquivo de áudio ou vídeo e receba o texto falado, já formatado e pronto para copiar.',
+            features: [
+              { icon: '🎯', title: 'Pré-processamento do Áudio', desc: 'O FFmpeg converte para 48 kHz e aplica filtros passa-alta/passa-baixa, redução de ruído (FFT), ganho e speechnorm antes do reconhecimento.' },
+              { icon: '✂️', title: 'Trechos de 20 Segundos', desc: 'O áudio é reconhecido em blocos de 20 s, o que aumenta a precisão em arquivos longos.' },
+              { icon: '🌍', title: 'Múltiplos Idiomas', desc: 'PT-BR, EN-US, PT-PT e ES-ES, com troca automática de idioma quando um trecho não é reconhecido.' },
+              { icon: '📝', title: 'Formatação Automática', desc: 'Capitalização de frases e texto limpo.' },
+              { icon: '📋', title: 'Copiar Resultado', desc: 'Botão para copiar a transcrição para a área de transferência.' },
+            ],
+            note: 'O reconhecimento usa o serviço de voz do Google (biblioteca SpeechRecognition), então precisa de internet e os trechos de áudio são enviados a esse serviço.',
+          },
+          {
+            id: 'isolate', icon: '🎤', name: 'Isolador de Voz', subtitle: 'Neural Audio Splitter', url: '/isolate',
+            badges: ['ia', 'downloads'],
+            keywords: 'separar voz vocal instrumental karaoke acapella remover musica remover voz ruido demucs stems',
+            desc: 'Separe voz e música de qualquer áudio com a IA Demucs (Meta). Ideal para remover ruídos, extrair vocais ou criar versões instrumentais.',
+            features: [
+              { icon: '🎤', title: 'Isolar Voz', desc: 'Extrai só a voz, removendo música e ruídos de fundo. Salva como <nome>_voz.mp3.' },
+              { icon: '🎵', title: 'Isolar Música', desc: 'Extrai só o instrumental, removendo os vocais. Salva como <nome>_instrumental.mp3.' },
+              { icon: '🤖', title: 'IA Demucs (Meta)', desc: 'Modelo neural htdemucs da Meta/Facebook Research, open-source e gratuito, rodando localmente.' },
+              { icon: '⏱️', title: 'Sem Limite de Tempo', desc: 'Processa áudios de qualquer duração, com contador de tempo em tempo real.' },
+              { icon: '📁', title: 'Múltiplos Formatos', desc: 'Aceita MP3, WAV, MP4, M4A, OGG, FLAC e mais. Saída em MP3.' },
+              { icon: '💾', title: 'Salva em Downloads', desc: 'Arquivos processados vão para a pasta Downloads, com nomes únicos.' },
+            ],
+          },
+          {
+            id: 'smartstudio', icon: '🎙️', name: 'Smart Studio', subtitle: 'Gravador, teleprompter e estúdio vocal', url: '/smartstudio',
+            badges: ['navegador'],
+            keywords: 'gravar gravador podcast microfone camera webcam teleprompter roteiro locucao',
+            desc: 'Grave voz, podcast ou vídeo com teleprompter, filtros de áudio em tempo real e edição de corte pela forma de onda, sem enviar gravações para servidores.',
+            features: [
+              { icon: '📜', title: 'Teleprompter Inteligente', url: '/smartstudio/studio', desc: 'Roteiro editável sobre a câmera, com rolagem automática por velocidade, ajuste do tamanho da fonte e espelhamento para vidros de teleprompter.' },
+              { icon: '🎚️', title: 'Filtros e Efeitos em Tempo Real', url: '/smartstudio/studio', desc: 'Redução de ruído, compressor, equalizador de 3 bandas (graves/médios/agudos) e ganho automático (AGC) via Web Audio API, aplicados antes de gravar.' },
+              { icon: '🚩', title: 'Marcadores de Áudio', url: '/smartstudio/studio', desc: 'Insira marcadores durante a gravação, renomeie-os e exporte a lista com os tempos em .txt para guiar a edição.' },
+              { icon: '🌊', title: 'Corte & Edição Rápida', url: '/smartstudio/editor', desc: 'Forma de onda para selecionar, recortar ou remover trechos, cortar silêncios automaticamente e juntar gravações antes de exportar em WAV.' },
+            ],
+          },
+          {
+            id: 'subtitlelab', icon: '📝', name: 'Subtitle Lab', subtitle: 'Gerador e editor de legendas SRT/VTT', url: '/subtitlelab',
+            badges: ['navegador', 'internet'],
+            keywords: 'legenda legendas srt vtt closed caption cc sincronizar queimar embutir reels shorts',
+            desc: 'Crie, sincronize e renderize legendas para vídeos sem depender de plataformas pagas.',
+            features: [
+              { icon: '🎙️', title: 'Transcrição para Legendas', url: '/subtitlelab/editor', desc: 'Transforma áudio/vídeo em blocos de legenda com tempo (.srt/.vtt), usando o mesmo motor de reconhecimento de voz do app Transcrever.' },
+              { icon: '⏱️', title: 'Editor de Timeline', url: '/subtitlelab/editor', desc: 'Ajuste entrada/saída de cada bloco arrastando na linha do tempo, edite o texto, adicione ou exclua blocos e importe/exporte .srt e .vtt.' },
+              { icon: '↔️', title: 'Sincronizador de Delay', url: '/subtitlelab/editor', desc: 'Corrija legendas adiantadas ou atrasadas aplicando um deslocamento de tempo (positivo ou negativo) a todos os blocos com um clique.' },
+              { icon: '🔥', title: 'Burn-in de Legenda', url: '/subtitlelab/burn', desc: 'Renderiza o vídeo com as legendas embutidas (estilo reels/shorts) via Canvas + MediaRecorder, com fonte, tamanho, cor do texto/fundo e posição personalizáveis.' },
+            ],
+            note: 'Linha do tempo, exportação e burn-in rodam no navegador. Só a transcrição automática passa pelo servidor local, que usa o reconhecimento de voz do Google (precisa de internet).',
+          },
+        ],
+      },
+      {
+        id: 'imagem', icon: '🖼️', name: 'Imagem, Vídeo & Design', short: 'Imagem & Vídeo',
+        desc: 'Edite, recorte, aplique filtros, capture a tela e simule posts',
+        apps: [
+          {
+            id: 'imagestudio', icon: '🖌️', name: 'Image Studio', subtitle: 'Edição de imagens em lote e individual', url: '/imagestudio',
+            badges: ['navegador'],
+            keywords: 'imagem foto editar editor',
+            desc: 'Editor individual com corte manual, crop & resize em massa, filtros e marca d’água em lote e gerador de favicon, tudo via Canvas no navegador.',
+            features: [
+              { icon: '✂️', title: 'Editor Individual', url: '/imagestudio/solo', kw: 'cortar recortar editar uma imagem', desc: 'Corte manual com arrasto e âncoras, trava de proporção, filtros e marca d’água, comparação antes/depois e download direto do arquivo (sem ZIP).' },
+              { icon: '📐', title: 'Crop & Resize', url: '/imagestudio/resize', kw: 'redimensionar cortar recortar tamanho proporcao massa', desc: 'Proporções prontas (16:9, 1:1, 4:3) ou dimensões exatas. Modo lote (até 100 imagens → ZIP) ou individual (download direto).' },
+              { icon: '🎨', title: 'Filtros & Marca d’Água', url: '/imagestudio/filters', kw: 'marca dagua watermark efeito massa', desc: 'Brilho, contraste, saturação, nitidez e marca d’água. Modo lote (até 100 imagens → ZIP) ou individual.' },
+              { icon: '🔖', title: 'Gerador de Favicon', url: '/imagestudio/favicon', kw: 'icone ico site', desc: 'Gera todos os tamanhos de ícone para web e apps (16 a 512 px) e monta um .ico multi-resolução.' },
+            ],
+          },
+          {
+            id: 'transparent', icon: '🎨', name: 'Transparência', subtitle: 'Remover fundo de imagens', url: '/transparent',
+            badges: ['ia', 'downloads'],
+            keywords: 'remover fundo background transparente recortar recorte rembg chroma key',
+            desc: 'Deixe o fundo de uma imagem transparente, automaticamente com IA ou removendo uma cor específica.',
+            features: [
+              { icon: '🤖', title: 'Remover Fundo (Auto)', desc: 'A IA rembg (ONNX Runtime, CPU) detecta o objeto principal e apaga o fundo sozinha.' },
+              { icon: '🎯', title: 'Remover Cor', desc: 'Clique na imagem para escolher a cor, use uma das cores comuns ou uma cor personalizada. Todos os pixels parecidos com ela ficam transparentes.' },
+              { icon: '🎚️', title: 'Tolerância Ajustável', desc: 'Controla quão parecida uma cor precisa ser para ser removida (padrão 30). Aumente para fundos com sombra ou degradê.' },
+              { icon: '💾', title: 'Saída em PNG', desc: 'O resultado é salvo como PNG com transparência na pasta Downloads, com preview na tela.' },
+            ],
+            note: 'Na primeira remoção automática, o rembg baixa o modelo de IA (precisa de internet uma única vez).',
+          },
+          {
+            id: 'matchaeffect', icon: '🍵', name: 'Matcha Effect', subtitle: 'Filtro viral verde “Wild Hearts Whisper” (TikTok/CapCut)', url: '/matchaeffect',
+            badges: ['navegador', 'ia', 'instalacao'],
+            keywords: 'matcha filtro verde tiktok capcut wild hearts whisper stable diffusion controlnet efeito viral fluid art haze',
+            desc: 'Aplique ou remova o efeito verde e “hazy” que viralizou, em fotos e vídeos. Há dois modos: um filtro rápido de cor (instantâneo, sem instalar nada) e a geração real por IA local (Stable Diffusion + ControlNet).',
+            features: [
+              { icon: '➕', title: 'Filtro Rápido: Adicionar em Fotos', url: '/matchaeffect/add', desc: 'Tom esverdeado com intensidade de 0 a 100%, haze/vinheta e grão opcionais. Lote (até 100 → ZIP) ou individual, saída em JPG, PNG ou WEBP.' },
+              { icon: '➖', title: 'Filtro Rápido: Remover de Fotos', url: '/matchaeffect/remove', desc: 'Correção adaptativa (gray world) que mede a cor real da foto e neutraliza o excesso de verde, com força ajustável e realce leve contra o haze. É uma estimativa, não uma reversão perfeita.' },
+              { icon: '🎬', title: 'Filtro Rápido: Adicionar em Vídeos', url: '/matchaeffect/video/add', desc: 'Renderiza o vídeo (MP4, WEBM, MOV) quadro a quadro com o efeito, com prévia ao vivo. A renderização dura cerca do tempo do vídeo; saída em WEBM.' },
+              { icon: '🎞️', title: 'Filtro Rápido: Remover de Vídeos', url: '/matchaeffect/video/remove', desc: 'Correção gray world recalculada a cada quadro, com opção de realce contra o haze. Saída em WEBM.' },
+              { icon: '🤖', title: 'IA: Adicionar em Fotos', url: '/matchaeffect/ai/add', desc: 'Stable Diffusion img2img + ControlNet SoftEdge reconstroem a foto com a textura “fluid art” verde-matcha, preservando rosto e silhueta. Oferece download do original e do resultado lado a lado.' },
+              { icon: '🔁', title: 'IA: Remover de Fotos', url: '/matchaeffect/ai/remove', desc: 'Duas opções: restaurar o original exato (se você guardou o arquivo) ou pedir uma reconstrução aproximada por IA de uma foto matcha de qualquer origem.' },
+              { icon: '🫠', title: 'IA: Vídeo com Transição “Derretendo”', url: '/matchaeffect/ai/video', desc: 'Gera 1 quadro com o efeito via IA e renderiza a transição derretendo até ele, como no CapCut/Premiere. Duração da transição e tempo no quadro final ajustáveis.' },
+              { icon: '⏪', title: 'IA: Remover de Vídeo', url: '/matchaeffect/ai/video/remove', desc: 'O mesmo pipeline ao contrário: gera 1 quadro reconstruído sem o efeito e renderiza a transição restaurando a aparência normal.' },
+              { icon: '⚙️', title: 'Parâmetros da IA', desc: 'Denoising Strength (recomendado 0,55–0,70: abaixo de 0,50 quase não muda, acima de 0,75 a IA ignora o rosto), ControlNet Weight, Sampling Steps, CFG Scale e Seed opcional.' },
+            ],
+            note: 'O filtro rápido funciona na hora. A IA generativa precisa de dependências pesadas: <strong>pip install -r MatchaEffect/requirements_ai.txt</strong>. Ela baixa vários GB de modelo na primeira geração e, sem GPU NVIDIA, cada imagem pode levar minutos. Como a difusão não tem “desfazer”, a remoção só é exata se você guardou o arquivo original.',
+          },
+          {
+            id: 'captureocr', icon: '🔍', name: 'Capture & OCR', subtitle: 'Reconhecimento de texto e gravação de tela', url: '/captureocr',
+            badges: ['navegador'],
+            keywords: 'captura capturar ocr',
+            desc: 'Extraia texto de imagens com OCR local e grave a tela com exportação em WEBM ou GIF.',
+            features: [
+              { icon: '📝', title: 'OCR Local', url: '/captureocr/ocr', kw: 'extrair ler texto de imagem foto screenshot copiar texto', desc: 'Arraste prints, recibos ou fotos de páginas e extraia texto editável via Tesseract.js (WebAssembly), sem enviar imagens a servidores.' },
+              { icon: '🎥', title: 'Gravador de Tela & GIF', url: '/captureocr/record', kw: 'gravar tela screencast captura de tela', desc: 'Grave uma aba ou a tela inteira (getDisplayMedia/MediaRecorder) e exporte em WEBM ou GIF animado (gif.js), sem marca d’água.' },
+            ],
+          },
+          {
+            id: 'social', icon: '📱', name: 'Social Preview', subtitle: 'Estúdio de preview de redes sociais', url: '/social',
+            badges: ['navegador'],
+            keywords: 'redes sociais mockup og open graph post',
+            desc: 'Veja como seu conteúdo aparece em 8 plataformas e 3 tipos de dispositivo, e exporte em 11 formatos otimizados.',
+            features: [
+              { icon: '📱', title: 'Preview Mobile', desc: 'Twitter, LinkedIn, Facebook, WhatsApp, Open Graph, Instagram, Instagram Story e Instagram Reels.' },
+              { icon: '💻', title: 'Preview Desktop', desc: 'Visualização em tela grande para as 8 plataformas.' },
+              { icon: '📡', title: 'Preview Tablet', desc: 'Visualização intermediária para as 8 plataformas.' },
+              { icon: '📦', title: 'Exportação em Massa', desc: '11 formatos: Twitter 1200×675, LinkedIn 1200×627, Facebook 1200×630, Instagram Square 1080×1080, Instagram Story 1080×1920, Instagram Reels 1080×1920, Open Graph 1200×630, Desktop Full HD 1920×1080, Desktop 2K 2560×1440, Tablet Landscape 1024×768 e Tablet Portrait 768×1024.' },
+              { icon: '⚡', title: 'Atualização em Tempo Real', desc: 'Os 24 previews atualizam juntos enquanto você edita.' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'documentos', icon: '📄', name: 'Documentos: PDF & Office', short: 'Documentos',
+        desc: 'Divida, junte, converta, proteja e recupere PDFs e arquivos do Office',
+        apps: [
+          {
+            id: 'pdfs', icon: '📄', name: 'PDFs', subtitle: 'Suíte completa de PDF', url: '/pdfs',
+            badges: ['downloads'],
+            keywords: 'pdf documento',
+            desc: '12 ferramentas para manipular PDFs. Os resultados são salvos na pasta Downloads.',
+            features: [
+              { icon: '✂️', title: 'Dividir PDF', url: '/pdfs/split', kw: 'separar extrair paginas', desc: 'Divida em vários arquivos por intervalos de páginas personalizados.' },
+              { icon: '🔗', title: 'Mesclar PDFs', url: '/pdfs/merge', kw: 'juntar unir combinar agrupar', desc: 'Una vários PDFs em um só, escolhendo páginas específicas.' },
+              { icon: '🔄', title: 'Converter PDF', url: '/pdfs/convert', kw: 'transformar imagem foto', desc: 'PDF → imagens (JPG/PNG, uma por página) e imagens → PDF.' },
+              { icon: '🗜️', title: 'Comprimir PDF', url: '/pdfs/compress', kw: 'reduzir diminuir tamanho compactar', desc: 'Reduza o tamanho com 3 níveis de qualidade (Baixa, Média, Alta).' },
+              { icon: '🔃', title: 'Girar PDF', url: '/pdfs/rotate', kw: 'rotacionar virar', desc: 'Rotação de 90°, 180° ou 270°, em páginas individuais ou em todas.' },
+              { icon: '🔍', title: 'Comparar PDFs', url: '/pdfs/compare', desc: 'Compare vários PDFs e veja diferenças e semelhanças.' },
+              { icon: '🔧', title: 'Reparar PDF', url: '/pdfs/repair', kw: 'recuperar consertar corrompido danificado', desc: '5 estratégias de recuperação para PDFs corrompidos.' },
+              { icon: '🔒', title: 'Proteger PDF', url: '/pdfs/protect', kw: 'criptografar bloquear', desc: 'Adicione senha de criptografia.' },
+              { icon: '🔓', title: 'Desbloquear PDF', url: '/pdfs/unlock', kw: 'remover quebrar descobrir senha', desc: 'Remova a senha informando-a ou por força bruta (10.000 combinações), com progresso.' },
+              { icon: '✏️', title: 'Editar PDF', url: '/pdfs/edit', desc: 'Extraia o texto, edite e gere um novo PDF.' },
+              { icon: '💧', title: 'Marca d’Água', url: '/pdfs/watermark', kw: 'marca dagua watermark logo carimbo', desc: 'Texto ou imagem como marca d’água, em 15 posições prontas ou arrastando para onde quiser.' },
+              { icon: '💥', title: 'Corromper PDF', url: '/pdfs/corrupt', desc: '4 níveis de corrupção para testes (Leve, Médio, Pesado, Extremo).' },
+            ],
+          },
+          {
+            id: 'office', icon: '🗃️', name: 'Office', subtitle: 'Conversor e reparador de Word, Excel e PowerPoint', url: '/office',
+            badges: ['downloads'],
+            keywords: 'word excel powerpoint docx xlsx pptx doc xls ppt odt ods odp rtf libreoffice planilha apresentacao slides documento',
+            desc: 'Converta e recupere arquivos do pacote Office usando o motor do LibreOffice, direto na sua máquina.',
+            features: [
+              { icon: '🔄', title: 'Converter', url: '/office/convert', desc: 'DOCX/XLSX/PPTX ↔ ODT/ODS/ODP, PDF e imagens PNG/JPG (uma por página ou slide), sem problemas de fonte ou acentuação.' },
+              { icon: '🩺', title: 'Reparar e Recuperar', url: '/office/repair', kw: 'recuperar consertar corrompido danificado', desc: '5 níveis: detecção do formato real (corrige extensão trocada), reconstrução do ZIP, validação nativa, reparo via LibreOffice e recuperação bruta de texto.' },
+              { icon: '🔀', title: 'Extensão Errada Não É Problema', url: '/office/repair', desc: 'Se um .xlsx na verdade é um .docx por dentro (ou vice-versa), a ferramenta identifica o conteúdo real e recupera pelo formato certo.' },
+              { icon: '📚', title: 'Formatos Suportados', desc: 'Word (doc, docx, odt, rtf), Excel (xls, xlsx, ods, csv) e PowerPoint (ppt, pptx, odp), além de PDF e PNG/JPG como saída.' },
+            ],
+            note: 'Precisa do LibreOffice instalado (o INSTALAR.py cuida disso).',
+          },
+        ],
+      },
+      {
+        id: 'conversao', icon: '🔄', name: 'Conversão & Compressão', short: 'Conversão',
+        desc: 'Troque o formato de qualquer arquivo ou reduza o tamanho dele',
+        apps: [
+          {
+            id: 'files', icon: '📁', name: 'Arquivos', subtitle: 'Conversor universal', url: '/files',
+            badges: ['downloads'],
+            keywords: 'converter conversor transformar formato extensao',
+            desc: 'Converta entre mais de 150 formatos de arquivo, com estimativa do tamanho final antes de converter.',
+            features: [
+              { icon: '🖼️', title: 'Imagens (50+ formatos)', desc: 'PNG, JPG, WEBP, HEIC, RAW, TIFF, BMP, GIF, SVG, PSD e outros.' },
+              { icon: '🎬', title: 'Vídeos (35+ formatos)', desc: 'MP4, AVI, MKV, MOV, WEBM, FLV e outros.' },
+              { icon: '🎵', title: 'Áudios (40+ formatos)', desc: 'MP3, WAV, FLAC, AAC, OGG, OPUS e outros.' },
+              { icon: '📄', title: 'Documentos, eBooks, Fontes, CAD e 3D', desc: 'PDF, DOCX, EPUB, TTF, DWG, OBJ e muito mais.' },
+              { icon: '🔐', title: 'Opção ENC (WhatsApp)', desc: 'Arquivos .enc do WhatsApp que na verdade já são imagens com a extensão trocada viram um PNG normal, que abre em qualquer visualizador.' },
+              { icon: '📏', title: 'Estimativa de Tamanho', desc: 'Mostra o tamanho aproximado do arquivo convertido para cada formato de saída.' },
+            ],
+          },
+          {
+            id: 'conversor', icon: '🔁', name: 'Conversor', subtitle: 'Qualquer formato para qualquer formato, inclusive imagem → DXF', url: '/conversor',
+            badges: ['downloads'],
+            keywords: 'converter conversor convertio online-convert dxf dwg cad autocad cnc laser plasma vetorizar vetor vetorizacao potrace svg eps png jpg pdf word excel mp3 mp4 gif heic fonte ttf otf woff stl obj 3d zip 7z rar',
+            desc: 'Conversor no estilo Convertio: arraste vários arquivos, escolha o formato de cada um e converta tudo de uma vez, com mais de 130 formatos de entrada e 1.700 conversões diretas, tudo local.',
+            features: [
+              { icon: '📐', title: 'Imagem → DXF (CAD)', kw: 'png jpg dxf autocad vetorizar cnc laser', desc: 'Vetorização com potrace: contorno preenchido, linha central (uma passada só, para CNC/laser/plotter) ou colorido (uma camada por cor). Polilinhas ou splines, hachura opcional, tamanho real em mm e versões R12 a R2018.' },
+              { icon: '👁️', title: 'Prévia da Vetorização', desc: 'Veja o vetor ao lado da imagem original e ajuste limiar, suavidade, manchas e número de cores antes de converter.' },
+              { icon: '✒️', title: 'Vetor Continua Vetor', kw: 'pdf svg ai eps cdr coreldraw visio dxf', desc: 'PDF, SVG, AI, EPS, CorelDRAW, Visio e WMF/EMF viram DXF com a geometria original (linhas, curvas, cores e textos), sem rasterizar. DXF volta para PDF, SVG, EPS ou PNG.' },
+              { icon: '📄', title: 'Documentos, Planilhas e Dados', desc: 'Word, ODT, RTF, Markdown, HTML, EPUB e PDF; Excel, ODS e CSV; JSON, YAML, XML e TSV convertidos entre si (via LibreOffice quando precisa).' },
+              { icon: '🎬', title: 'Áudio, Vídeo, Compactados, Fontes e 3D', desc: 'FFmpeg (MP4, MKV, WEBM, GIF, MP3, FLAC…), 7-Zip (ZIP, 7Z, RAR, TAR…), fontes TTF/OTF/WOFF/WOFF2 e modelos STL/OBJ/PLY/GLB (até STL → DXF).' },
+              { icon: '🔎', title: 'Formato Real Detectado', desc: 'Arquivo sem extensão ou com extensão errada (ex.: .enc do WhatsApp) é identificado pelo conteúdo.' },
+            ],
+            note: 'Os arquivos vão para a pasta <strong>Downloads</strong> (e também podem ser baixados pelo navegador); várias saídas, como uma por página, vêm num ZIP. DWG é um formato fechado: para abrir/gerar DWG instale o <strong>ODA File Converter</strong> (gratuito) ou o LibreDWG, que o Conversor detecta sozinho. Até lá, use DXF, que todo programa CAD abre.',
+          },
+          {
+            id: 'compress', icon: '🗜️', name: 'Compressor', subtitle: 'Redução de tamanho de arquivos', url: '/compress',
+            badges: ['downloads'],
+            keywords: 'comprimir compactar reduzir tamanho diminuir peso otimizar mb',
+            desc: 'Comprima imagens, vídeos, áudios, PDFs e outros arquivos escolhendo o nível de compressão, com estimativa do tamanho final antes de começar.',
+            features: [
+              { icon: '🎚️', title: 'Nível de Compressão', desc: 'Controle deslizante de máxima compressão a qualidade máxima (padrão 50%), mostrando tamanho original, estimado e redução.' },
+              { icon: '🖼️', title: 'Imagens', desc: 'JPG, PNG, WEBP, BMP, TIFF e GIF, recompactados com Pillow e redimensionados nos níveis mais fortes.' },
+              { icon: '🎬', title: 'Vídeos', desc: 'MP4, AVI, MKV, MOV, WEBM, FLV, WMV, M4V e MPG, recodificados em H.264 (FFmpeg) com qualidade conforme o nível escolhido.' },
+              { icon: '🎵', title: 'Áudios', desc: 'MP3, WAV, FLAC, AAC, OGG, M4A e WMA, com bitrate ajustado ao nível.' },
+              { icon: '📄', title: 'PDFs', desc: 'Recomprime as imagens internas e limpa a estrutura do arquivo.' },
+              { icon: '📦', title: 'Outros Arquivos', desc: 'Qualquer outro formato é compactado em .xz (LZMA).' },
+            ],
+            note: 'O arquivo comprimido é salvo na pasta Downloads com o sufixo <strong>_compressed</strong>, sem sobrescrever o original.',
+          },
+        ],
+      },
+      {
+        id: 'privacidade', icon: '🛡️', name: 'Privacidade & Segurança', short: 'Privacidade',
+        desc: 'Remova metadados, esconda arquivos e censure dados sensíveis',
+        apps: [
+          {
+            id: 'ghost', icon: '👻', name: 'Ghost Tool', subtitle: 'Removedor de metadados', url: '/ghost',
+            badges: ['downloads'],
+            keywords: 'metadados metadata exif gps localizacao privacidade anonimo limpar autor',
+            desc: 'Remova metadados de vários arquivos de uma vez: GPS, autor, datas, câmera, tudo apagado de forma permanente.',
+            features: [
+              { icon: '📷', title: 'Imagens (50+ formatos)', desc: 'Remove EXIF, GPS, câmera e software. Recria a imagem pixel por pixel.' },
+              { icon: '🎬', title: 'Vídeos e Áudios (70+ formatos)', desc: 'Remove metadados com FFmpeg, mantendo a qualidade original.' },
+              { icon: '📄', title: 'Documentos Office', desc: 'Remove autor, empresa e datas de DOCX, XLSX e PPTX.' },
+              { icon: '📚', title: 'PDFs, eBooks e Compactados', desc: 'Remove metadados de PDFs, EPUBs, ZIPs e mais.' },
+              { icon: '⚡', title: 'Processamento em Massa', desc: 'Vários arquivos ao mesmo tempo, com download em lote.' },
+              { icon: '🔒', title: '100% Local', desc: 'Os arquivos limpos ficam em Downloads/ghost_cleaned e nunca saem do seu computador.' },
+            ],
+          },
+          {
+            id: 'stealth', icon: '🕵️', name: 'Stealth', subtitle: 'Esteganografia criptografada', url: '/stealth',
+            keywords: 'esteganografia esconder ocultar segredo secreto privacidade seguranca',
+            desc: 'Esconda arquivos secretos dentro de imagens, vídeos, áudios ou PDFs, com criptografia AES-256 opcional.',
+            features: [
+              { icon: '🔐', title: 'Esconder Arquivos', desc: 'Vários arquivos dentro de imagens (LSB), vídeos, áudios ou PDFs. Senha opcional.' },
+              { icon: '🔓', title: 'Extrair Arquivos', desc: 'Recupere os arquivos escondidos, com ou sem senha. Detecção automática.' },
+              { icon: '🛡️', title: 'Criptografia AES-256-GCM', desc: 'PBKDF2, salt, nonce e tag de autenticação.' },
+              { icon: '🎨', title: 'LSB Steganography', desc: 'Esconde os dados nos bits menos significativos dos pixels, invisível ao olho humano.' },
+              { icon: '📦', title: 'Múltiplos Arquivos', desc: 'Esconda vários arquivos de uma vez, compactados automaticamente em ZIP.' },
+              { icon: '🎯', title: 'Formato Original Mantido', desc: 'MP4 → MP4, MP3 → MP3, PDF → PDF: a saída mantém o formato do arquivo de cobertura.' },
+            ],
+            usos: [
+              { icon: '📱', desc: 'Enviar documentos secretos por redes sociais (Instagram, WhatsApp)' },
+              { icon: '💾', desc: 'Backup criptografado disfarçado em fotos comuns' },
+              { icon: '🔒', desc: 'Comunicação segura e discreta' },
+              { icon: '🎭', desc: 'Proteção de dados sensíveis à vista de todos' },
+            ],
+          },
+          {
+            id: 'censor', icon: '🔒', name: 'Censor', subtitle: 'Proteção de privacidade com IA', url: '/censor',
+            badges: ['navegador', 'ia'],
+            keywords: 'censurar censura borrar desfocar blur pixelizar ocultar tarja lgpd privacidade anonimizar',
+            desc: 'Censura automática de informações sensíveis em imagens: rostos, documentos, placas, e-mails, telefones, cartões, sites, nomes, @IDs e mais.',
+            features: [
+              { icon: '👤', title: 'Detecção de Rostos', desc: 'BlazeFace (TensorFlow.js) detecta rostos automaticamente.' },
+              { icon: '🔤', title: 'Documentos (CPF, RG, CNH)', desc: 'OCR com Tesseract.js identifica números de documentos brasileiros.' },
+              { icon: '🚗', title: 'Placas de Veículos', desc: 'Placas no padrão brasileiro antigo e Mercosul (ABC1D23).' },
+              { icon: '✉️', title: 'E-mails', desc: 'Identifica e censura endereços de e-mail.' },
+              { icon: '📞', title: 'Telefones', desc: 'Números fixos e celulares com DDD.' },
+              { icon: '💳', title: 'Cartões de Crédito', desc: 'Sequências de 16 dígitos no padrão de cartões.' },
+              { icon: '🌐', title: 'Sites e URLs', desc: 'Endereços web (http://, https://, www.).' },
+              { icon: '🪪', title: 'Nomes de Pessoas', desc: 'Nomes próprios no padrão Nome Sobrenome.' },
+              { icon: '@', title: 'IDs e Handles', desc: '@usernames de redes sociais (Twitter, Instagram etc.).' },
+              { icon: '🎨', title: '8 Tipos de Censura', desc: 'Desfoque, Pixelizar, Tarja Preta, Tarja Branca, Emoji 😎, Gradiente, Redação ████ e Ruído.' },
+              { icon: '🤖', title: 'Intensidade Automática', desc: 'Analisa o brilho da imagem e ajusta a intensidade sozinho (ou manual: Baixa/Média/Alta).' },
+              { icon: '⚡', title: 'Processamento em Massa', desc: 'Até 20 imagens de uma vez, com download em lote.' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'texto', icon: '✍️', name: 'Texto & Leitura', short: 'Texto',
+        desc: 'Compare, limpe, analise e leia textos sem distrações',
+        apps: [
+          {
+            id: 'textclean', icon: '🔀', name: 'Text Clean & Diff', subtitle: 'Comparação e limpeza de texto', url: '/textclean',
+            badges: ['navegador'],
+            keywords: 'texto limpar',
+            desc: 'Compare textos, limpe listas e veja estatísticas, tudo processado no navegador.',
+            features: [
+              { icon: '🔍', title: 'Diff de Texto', url: '/textclean/diff', kw: 'comparar diferenca', desc: 'Compare dois textos ou códigos lado a lado ou inline, destacando adições, remoções e alterações.' },
+              { icon: '🧹', title: 'Sanitizador de Texto', url: '/textclean/sanitize', kw: 'limpar lista duplicados maiusculas minusculas', desc: 'Remova duplicadas, ordene, limpe espaços e quebras de linha e converta entre UPPERCASE, lowercase, Title Case, camelCase e slug-case.' },
+              { icon: '📊', title: 'Contador Estatístico', url: '/textclean/stats', kw: 'contar contagem contador de palavras', desc: 'Palavras, caracteres, linhas, tempo estimado de leitura e densidade das palavras mais frequentes.' },
+            ],
+          },
+          {
+            id: 'aiguard', icon: '🛡️', name: 'AI Guard & Diff', subtitle: 'Detecção heurística de texto de IA', url: '/aiguard',
+            badges: ['navegador'],
+            keywords: 'ia chatgpt gpt llm',
+            desc: 'Detector heurístico de texto de IA, reescritor com tom e diff, e verificador de plágio interno. Sem limite de tamanho, com upload de TXT/PDF/DOCX.',
+            features: [
+              { icon: '🕵️', title: 'Detector Heurístico de IA', url: '/aiguard/detect', kw: 'detectar texto gerado por ia chatgpt', desc: 'Mapa de calor por frase com burstiness (variação do tamanho de frases e palavras), repetição de bigramas e aberturas, diversidade de vocabulário e conectores típicos de LLM. Não usa IA online: é uma estimativa, não uma prova.' },
+              { icon: '✍️', title: 'Reescritor com Tom e Diff', url: '/aiguard/humanize', kw: 'humanizar parafrasear reescrever', desc: 'Dicionários de sinônimos por tom e variação de estrutura de frase, alternando as opções para não repetir. Mostra o diff com o original e guarda até 5 iterações.' },
+              { icon: '📋', title: 'Verificador de Plágio Interno', url: '/aiguard/plagiarism', kw: 'copia copiado', desc: 'Shingling de n-gramas (Jaccard) para achar trechos duplicados entre o texto atual e seus próprios documentos TXT/PDF/DOCX.' },
+              { icon: '📁', title: 'Sem Limite de Tamanho', desc: 'Aceita upload de TXT/PDF/DOCX (pdf.js/mammoth.js) ou texto colado, processando em lotes para não travar a aba com documentos grandes.' },
+            ],
+          },
+          {
+            id: 'clean', icon: '🧹', name: 'Clean Reader', subtitle: 'Leitor sem distrações', url: '/clean',
+            badges: ['internet'],
+            keywords: 'leitura artigo sem anuncios reader mode limpar site pagina noticia epub markdown kindle salvar',
+            desc: 'Extraia o conteúdo limpo de qualquer site, sem anúncios, pop-ups e poluição visual. Leia na tela ou exporte para PDF, Markdown ou EPUB.',
+            features: [
+              { icon: '🧹', title: 'Extração Inteligente', desc: 'Remove scripts, estilos, menus, cabeçalho, rodapé, barras laterais, formulários e botões automaticamente.' },
+              { icon: '👁️', title: 'Modo Leitura', desc: 'Tela cheia com fundo branco, texto centralizado e fonte otimizada para leitura.' },
+              { icon: '📄', title: 'Exportar PDF', desc: 'Salva o artigo limpo em PDF formatado (ReportLab).' },
+              { icon: '📝', title: 'Exportar Markdown', desc: 'Converte para Markdown preservando links e formatação.' },
+              { icon: '📚', title: 'Exportar EPUB', desc: 'Gera um eBook para Kindle e leitores digitais.' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'dev', icon: '🧰', name: 'Desenvolvimento & Utilitários', short: 'Dev & Utilitários',
+        desc: 'Ferramentas para programar, gerar QR Codes e acompanhar datas',
+        apps: [
+          {
+            id: 'devdata', icon: '🧰', name: 'Dev/Data', subtitle: 'Ferramentas para desenvolvedores', url: '/devdata',
+            badges: ['navegador'],
+            keywords: 'programacao programador desenvolvedor dev codigo',
+            desc: 'Beautifier/minifier, gerador de dados mock, conversor de formatos e encode/decode, tudo no navegador.',
+            features: [
+              { icon: '✨', title: 'Beautifier / Minifier', url: '/devdata/format', kw: 'formatar indentar minificar compactar prettify', desc: 'Formate ou compacte JSON, XML, SQL, HTML, CSS e JavaScript com um clique.' },
+              { icon: '🎲', title: 'Gerador de Dados Mock', url: '/devdata/mock', kw: 'dados falsos ficticios fake teste', desc: 'Dados fictícios de teste (nomes, CPFs, e-mails, endereços, telefones e datas) em JSON, CSV ou SQL.' },
+              { icon: '🔄', title: 'Conversor de Formatos', url: '/devdata/convert', desc: 'Converta entre JSON, CSV, YAML e XML.' },
+              { icon: '🔐', title: 'Encode / Decode', url: '/devdata/encode', kw: 'codificar decodificar', desc: 'Base64, JWT, URL Encode e HTML Entities.' },
+            ],
+          },
+          {
+            id: 'qrcode', icon: '🔲', name: 'QR Code', subtitle: 'Gerador gratuito e permanente', url: '/qrcode',
+            badges: ['downloads'],
+            keywords: 'qr qrcode codigo gerar',
+            desc: 'Gere QR Codes estáticos que nunca expiram, sem marca d’água e com personalização completa.',
+            features: [
+              { icon: '🔗', title: 'Links e Redes Sociais', desc: 'URL, WhatsApp, Instagram, Facebook, Twitter/X, LinkedIn, YouTube, TikTok, Telegram e Spotify, com detecção automática ao colar o link.' },
+              { icon: '📶', title: 'Wi-Fi', desc: 'Rede, senha e segurança (WPA/WPA2, WEP ou sem senha): quem escaneia conecta automaticamente.' },
+              { icon: '👤', title: 'vCard', desc: 'Cartão de visita com nome, telefone, e-mail, empresa, site e endereço.' },
+              { icon: '💰', title: 'PIX', desc: 'Chave, recebedor, cidade e valor opcional, no padrão BR Code.' },
+              { icon: '✉️', title: 'E-mail, SMS e Telefone', desc: 'Abre o e-mail já preenchido, envia SMS ou liga para o número.' },
+              { icon: '📍', title: 'Localização, Evento e Texto', desc: 'Coordenadas no Google Maps, evento para o calendário ou texto livre.' },
+              { icon: '🎨', title: 'Personalização Avançada', desc: 'Estilo quadrado, arredondado ou pontos; gradiente vertical, horizontal ou radial; cores do QR e do fundo; tamanho do pixel (5–20); borda (0–10) e logo central.' },
+              { icon: '🛡️', title: 'Correção de Erro', desc: '4 níveis: Baixo (7%), Médio (15%, recomendado), Alto (25%) e Muito Alto (30%). Use Alto ou Muito Alto com logo central.' },
+              { icon: '👁️', title: 'Preview em Tempo Real', desc: 'O QR Code aparece enquanto você preenche. O arquivo final é salvo na pasta Downloads.' },
+            ],
+          },
+          {
+            id: 'tempo', icon: '⏰', name: 'Tempo', subtitle: 'Relógio e calendário', url: '/tempo',
+            keywords: 'relogio hora data calendario feriados carnaval pascoa',
+            desc: 'Relógio digital e analógico com calendário interativo e feriados nacionais brasileiros.',
+            features: [
+              { icon: '🕐', title: 'Relógio Duplo', desc: 'Digital e analógico sincronizados em tempo real.' },
+              { icon: '📅', title: 'Calendário Interativo', desc: 'Navegue por meses e anos, com visualização de dias, meses e anos.' },
+              { icon: '🎉', title: 'Feriados Brasileiros', desc: 'Feriados nacionais de qualquer ano: os fixos e os móveis (Carnaval, Sexta-feira Santa e Corpus Christi), calculados a partir da Páscoa.' },
+            ],
+          },
+        ],
+      },
+    ];
+
+    // ---------- Busca ----------
+    // A comparação ignora acentos e maiúsculas: "audio" encontra "Áudio".
+    const STOPWORDS = new Set(['de', 'da', 'do', 'das', 'dos', 'a', 'o', 'as', 'os', 'e', 'em', 'no', 'na', 'nos', 'nas',
+      'um', 'uma', 'para', 'pra', 'com', 'por', 'que', 'como', 'meu', 'minha']);
+
+    function fold(text) {
+      return String(text).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    }
+
+    function stripTags(html) {
+      return String(html).replace(/<[^>]+>/g, '');
+    }
+
+    // Plural simples do português: "imagem" e "imagens" se acham, "funções"
+    // acha "função", "legendas" acha "legenda".
+    function variants(term) {
+      const list = [term];
+      if (term.length > 3) {
+        if (term.endsWith('ns')) list.push(term.slice(0, -2) + 'm');
+        if (term.endsWith('m')) list.push(term.slice(0, -1) + 'ns');
+        if (term.endsWith('oes') || term.endsWith('aes')) list.push(term.slice(0, -3) + 'ao');
+        if (term.endsWith('s')) list.push(term.slice(0, -1));
+      }
+      return list;
+    }
+
+    // Cada termo vira uma regex sobre o texto sem acento. Termos de até 2 letras
+    // ("ia", "js", "3d") só casam com a palavra inteira, senão "ia" acharia
+    // "mídia", "via", "cópia"...
+    function termsOf(query) {
+      const all = fold(query).split(/\s+/).filter(Boolean);
+      const useful = all.filter(t => !STOPWORDS.has(t));
+      return (useful.length ? useful : all).map(term => {
+        const alternatives = variants(term).map(v => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+        const source = term.length <= 2 ? `\\b(?:${alternatives})\\b` : `(?:${alternatives})`;
+        return { test: new RegExp(source), scan: new RegExp(source, 'g') };
+      });
+    }
+
+    function has(text, term) {
+      return term.test.test(text);
+    }
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    }
+
+    // Destaca os termos no texto original. Cada caractere é "dobrado" isoladamente,
+    // mantendo um mapa de posição para realçar a palavra com acento correta.
+    function highlight(text, terms) {
+      if (!terms.length) return escapeHtml(text);
+      let folded = '';
+      const map = [];
+      for (let i = 0; i < text.length; i++) {
+        const f = fold(text[i]);
+        for (let k = 0; k < f.length; k++) { folded += f[k]; map.push(i); }
+      }
+      const marked = new Array(text.length).fill(false);
+      for (const term of terms) {
+        term.scan.lastIndex = 0;
+        let m;
+        while ((m = term.scan.exec(folded)) !== null) {
+          if (!m[0].length) { term.scan.lastIndex++; continue; }
+          for (let j = m.index; j < m.index + m[0].length; j++) marked[map[j]] = true;
+        }
+      }
+      let out = '';
+      let open = false;
+      for (let i = 0; i < text.length; i++) {
+        if (marked[i] && !open) { out += '<mark>'; open = true; }
+        if (!marked[i] && open) { out += '</mark>'; open = false; }
+        out += escapeHtml(text[i]);
+      }
+      return open ? out + '</mark>' : out;
+    }
+
+    // Igual ao highlight, mas preserva as tags <strong> que existem nas notas.
+    function highlightHtml(html, terms) {
+      return html.split(/(<[^>]+>)/).map(part => part.startsWith('<') ? part : highlight(part, terms)).join('');
+    }
+
+    // Pré-calcula o texto pesquisável de cada app e função ("kw" são sinônimos
+    // de uma função específica, que não aparecem na tela).
+    let TOTAL_APPS = 0;
+    for (const cat of CATEGORIAS) {
+      for (const app of cat.apps) {
+        TOTAL_APPS++;
+        app.nameText = fold([app.name, app.subtitle, app.keywords || ''].join(' '));
+        app.ctxText = fold([app.desc, stripTags(app.note || ''), (app.badges || []).map(b => BADGES[b]).join(' ')].join(' '));
+        for (const f of app.features) f.text = fold([f.title || '', f.desc, f.kw || ''].join(' '));
+        for (const u of app.usos || []) u.text = fold(u.desc);
+      }
+    }
+
+    // Decide o que mostrar de um app para a busca atual:
+    //  - todos os termos batem com nome/subtítulo/palavras-chave: app inteiro;
+    //  - senão, os termos que sobram precisam estar na função (ou na descrição
+    //    do app), e pelo menos um deles na própria função. Assim "pdf senha"
+    //    mostra só Proteger e Desbloquear, não as 12 ferramentas de PDF;
+    //  - se só a descrição do app bate, mostra o app com as funções recolhidas.
+    function matchApp(app, terms) {
+      const total = app.features.length + (app.usos || []).length;
+      const specific = terms.filter(t => !has(app.nameText, t));
+      if (!specific.length) {
+        return { features: app.features, usos: app.usos || [], hidden: 0 };
+      }
+      const hit = item => specific.some(t => has(item.text, t)) &&
+        specific.every(t => has(item.text, t) || has(app.ctxText, t));
+      const features = app.features.filter(hit);
+      const usos = (app.usos || []).filter(hit);
+      if (features.length || usos.length) {
+        return { features, usos, hidden: total - features.length - usos.length };
+      }
+      if (specific.every(t => has(app.ctxText, t))) {
+        return { features: [], usos: [], hidden: total };
+      }
+      return null;
+    }
+
+    // ---------- Renderização ----------
+    const EXEMPLOS = ['legenda', 'senha pdf', 'remover fundo', 'mp3', 'instagram', 'docx'];
+    const state = { query: '', cat: 'todas', expanded: new Set() };
+    const $search = document.getElementById('search');
+    const $box = document.getElementById('search-box');
+    const $chips = document.getElementById('chips');
+    const $info = document.getElementById('info');
+    const $content = document.getElementById('content');
+
+    function renderFeature(f, terms) {
+      const inner = `
+        <div class="feature-icon">${f.icon}</div>
+        <div class="feature-text">
+          ${f.title ? `<div class="feature-title">${highlight(f.title, terms)}</div>` : ''}
+          <div class="feature-desc">${highlight(f.desc, terms)}</div>
+        </div>`;
+      return f.url
+        ? `<a class="feature" href="${f.url}" title="Abrir ${escapeHtml(f.title)}">${inner}<span class="feature-go">↗</span></a>`
+        : `<div class="feature">${inner}</div>`;
+    }
+
+    function renderApp(app, match, terms) {
+      const expanded = state.expanded.has(app.id);
+      const features = expanded ? app.features : match.features;
+      const usos = expanded ? (app.usos || []) : match.usos;
+      const total = app.features.length + (app.usos || []).length;
+      const badges = (app.badges || []).map(b => `<span class="badge badge-${b}">${BADGES[b]}</span>`).join('');
+      return `
+        <article class="app-section" id="app-${app.id}">
+          <div class="app-header">
+            <div class="app-icon">${app.icon}</div>
+            <div class="app-heading">
+              <h3 class="app-title">${highlight(app.name, terms)}</h3>
+              <div class="app-subtitle">${highlight(app.subtitle, terms)}</div>
+            </div>
+            <a class="open-app" href="${app.url}">Abrir app
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+          ${badges ? `<div class="badges">${badges}</div>` : ''}
+          <p class="app-description">${highlight(app.desc, terms)}</p>
+          ${features.length ? `<div class="features">${features.map(f => renderFeature(f, terms)).join('')}</div>` : ''}
+          ${usos.length ? `
+            <div class="sub-section">
+              <div class="sub-title">📋 Casos de Uso</div>
+              <div class="features">${usos.map(u => renderFeature(u, terms)).join('')}</div>
+            </div>` : ''}
+          ${app.note ? `<div class="note">ℹ️ ${highlightHtml(app.note, terms)}</div>` : ''}
+          ${match.hidden && !expanded ? `<button type="button" class="show-all" data-app="${app.id}">${match.hidden === total
+            ? `Mostrar as ${total} funções`
+            : `Mostrar todas as ${total} funções (${total - match.hidden} ${total - match.hidden === 1 ? 'encontrada' : 'encontradas'})`}</button>` : ''}
+        </article>`;
+    }
+
+    function render() {
+      const terms = termsOf(state.query);
+      const perCat = {};
+      let found = 0;
+      let html = '';
+
+      for (const cat of CATEGORIAS) {
+        const shown = [];
+        for (const app of cat.apps) {
+          const match = matchApp(app, terms);
+          if (!match) continue;
+          perCat[cat.id] = (perCat[cat.id] || 0) + 1;
+          if (state.cat === 'todas' || state.cat === cat.id) shown.push(renderApp(app, match, terms));
+        }
+        if (!shown.length) continue;
+        found += shown.length;
+        html += `
+          <section class="category" id="cat-${cat.id}">
+            <div class="category-header">
+              <div class="category-icon">${cat.icon}</div>
+              <div>
+                <h2 class="category-title">${escapeHtml(cat.name)}</h2>
+                <p class="category-desc">${escapeHtml(cat.desc)}</p>
+              </div>
+              <span class="category-count">${shown.length} ${shown.length === 1 ? 'app' : 'apps'}</span>
+            </div>
+            ${shown.join('')}
+          </section>`;
+      }
+
+      const allMatches = Object.values(perCat).reduce((a, b) => a + b, 0);
+      renderChips(perCat, allMatches);
+
+      const catName = state.cat === 'todas' ? '' : CATEGORIAS.find(c => c.id === state.cat).name;
+      if (!terms.length) {
+        $info.innerHTML = catName
+          ? `Mostrando <strong>${found}</strong> ${found === 1 ? 'app' : 'apps'} de <strong>${escapeHtml(catName)}</strong>`
+          : `<strong>${TOTAL_APPS}</strong> apps em <strong>${CATEGORIAS.length}</strong> categorias · experimente: ` +
+            EXEMPLOS.map(q => `<button type="button" class="example" data-q="${q}">${q}</button>`).join(', ');
+      } else if (found) {
+        $info.innerHTML = `<strong>${found}</strong> ${found === 1 ? 'app encontrado' : 'apps encontrados'} para “${escapeHtml(state.query.trim())}”` +
+          (catName ? ` em <strong>${escapeHtml(catName)}</strong>` : '');
+      } else {
+        $info.innerHTML = '';
+      }
+
+      if (!found) {
+        const elsewhere = catName && allMatches
+          ? `<p>Mas há <strong>${allMatches}</strong> ${allMatches === 1 ? 'resultado' : 'resultados'} em outras categorias.</p><button type="button" data-action="all-cats">Ver todas as categorias</button>`
+          : `<p>Tente outra palavra, um sinônimo ou o nome do formato (ex.: “mp3”, “docx”, “srt”).</p><button type="button" data-action="clear">Limpar busca</button>`;
+        html = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔎</div>
+            <div class="empty-state-title">Nada encontrado para “${escapeHtml(state.query.trim())}”${catName ? ` em ${escapeHtml(catName)}` : ''}</div>
+            ${elsewhere}
+          </div>`;
+      }
+      $content.innerHTML = html;
+      $box.classList.toggle('has-value', state.query.length > 0);
+    }
+
+    function renderChips(perCat, allMatches) {
+      const searching = termsOf(state.query).length > 0;
+      const chip = (id, icon, label, count) => `
+        <button type="button" class="chip${state.cat === id ? ' active' : ''}${searching && !count ? ' no-results' : ''}" data-cat="${id}">
+          ${icon} ${escapeHtml(label)} <span class="chip-count">${count}</span>
+        </button>`;
+      $chips.innerHTML = chip('todas', '✨', 'Todas', searching ? allMatches : TOTAL_APPS) +
+        CATEGORIAS.map(c => chip(c.id, c.icon, c.short, searching ? (perCat[c.id] || 0) : c.apps.length)).join('');
+    }
+
+    // Mantém busca e categoria na URL (ex.: /instructions?q=legenda) para dar
+    // para compartilhar ou abrir um resultado direto.
+    function syncUrl() {
+      const params = new URLSearchParams();
+      if (state.query.trim()) params.set('q', state.query.trim());
+      if (state.cat !== 'todas') params.set('cat', state.cat);
+      const qs = params.toString();
+      history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+    }
+
+    function update() {
+      state.expanded.clear();
+      render();
+      syncUrl();
+    }
+
+    $search.addEventListener('input', () => {
+      state.query = $search.value;
+      update();
+    });
+
+    document.getElementById('clear').addEventListener('click', e => {
+      e.preventDefault();
+      $search.value = '';
+      state.query = '';
+      update();
+      $search.focus();
+    });
+
+    $info.addEventListener('click', e => {
+      const example = e.target.closest('.example');
+      if (!example) return;
+      $search.value = state.query = example.dataset.q;
+      update();
+      $search.focus();
+    });
+
+    $chips.addEventListener('click', e => {
+      const btn = e.target.closest('.chip');
+      if (!btn) return;
+      state.cat = btn.dataset.cat;
+      update();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    $content.addEventListener('click', e => {
+      const showAll = e.target.closest('.show-all');
+      if (showAll) {
+        state.expanded.add(showAll.dataset.app);
+        render();
+        return;
+      }
+      const action = e.target.closest('[data-action]');
+      if (!action) return;
+      if (action.dataset.action === 'all-cats') state.cat = 'todas';
+      if (action.dataset.action === 'clear') { $search.value = ''; state.query = ''; }
+      update();
+    });
+
+    document.addEventListener('keydown', e => {
+      const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+      if ((e.key === '/' && !typing) || (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey))) {
+        e.preventDefault();
+        $search.focus();
+        $search.select();
+      } else if (e.key === 'Escape' && document.activeElement === $search) {
+        $search.value = '';
+        state.query = '';
+        update();
+        $search.blur();
+      }
+    });
+
+    const params = new URLSearchParams(location.search);
+    state.query = params.get('q') || '';
+    state.cat = CATEGORIAS.some(c => c.id === params.get('cat')) ? params.get('cat') : 'todas';
+    $search.value = state.query;
+    render();
+    if (location.hash) {
+      const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (target) target.scrollIntoView();
+    }
+  </script>
 </body>
 </html>

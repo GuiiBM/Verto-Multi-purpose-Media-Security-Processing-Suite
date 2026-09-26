@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversor Universal</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    :root {
+      --bg: #0a0f1e;
+      --card: rgba(15, 23, 42, 0.55);
+      --card-solid: #0f172a;
+      --line: rgba(148, 163, 184, 0.12);
+      --line-strong: rgba(148, 163, 184, 0.25);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --dim: #64748b;
+      --accent: #06b6d4;
+      --accent-2: #8b5cf6;
+      --ok: #22c55e;
+      --err: #f87171;
+      --warn: #fbbf24;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.09) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(34, 197, 94, 0.04) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 16px 80px;
+      padding-top: 96px;
+    }
+    button, input, select { font-family: inherit; }
+    .hidden { display: none !important; }
+
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 50; color: #cbd5e1; text-decoration: none;
+    }
+    .back-button:hover { border-color: rgba(6, 182, 212, 0.5); color: var(--accent); transform: translateX(-6px); }
+
+    header { text-align: center; margin-bottom: 32px; }
+    .logo {
+      font-size: 46px; font-weight: 900; letter-spacing: 1px;
+      background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 55%, #ec4899 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .logo-icon { -webkit-text-fill-color: initial; background: none; }
+    .tagline { color: var(--muted); font-size: 15px; margin-top: 8px; line-height: 1.5; }
+    .tagline b { color: #cbd5e1; font-weight: 600; }
+
+    .wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 24px;
+      backdrop-filter: blur(40px); padding: 28px;
+    }
+
+    /* ---------- Área de envio ---------- */
+    .drop {
+      border: 2px dashed rgba(6, 182, 212, 0.3); text-align: center; padding: 44px 24px 28px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .drop.dragover { border-color: var(--accent); background: rgba(6, 182, 212, 0.08); }
+    .drop-icon { font-size: 52px; margin-bottom: 14px; }
+    .btn-primary {
+      border: none; border-radius: 999px; padding: 14px 34px; font-size: 15px; font-weight: 700;
+      cursor: pointer; color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.25);
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      display: inline-flex; align-items: center; gap: 10px;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(139, 92, 246, 0.35); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost {
+      border: 1px solid var(--line-strong); background: rgba(15, 23, 42, 0.6); color: #cbd5e1;
+      border-radius: 999px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .drop-hint { color: var(--dim); font-size: 13px; margin-top: 14px; }
+    .presets { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+    .presets-label { color: var(--dim); font-size: 12px; margin-right: 4px; width: 100%; margin-bottom: 2px; }
+    .chip {
+      border: 1px solid var(--line-strong); background: rgba(15, 23, 42, 0.7); color: #cbd5e1;
+      border-radius: 999px; padding: 7px 13px; font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chip:hover { border-color: var(--accent); color: #fff; transform: translateY(-1px); }
+    .chip.cad { border-color: rgba(139, 92, 246, 0.45); }
+    .chip.active { background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(139,92,246,0.25)); border-color: var(--accent); color: #fff; }
+
+    /* ---------- Fila ---------- */
+    .queue-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .queue-head h2 { font-size: 18px; color: #f8fafc; }
+    .queue-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+    .item {
+      border: 1px solid var(--line); border-radius: 16px; background: rgba(2, 6, 23, 0.45);
+      margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s;
+    }
+    .item.st-done { border-color: rgba(34, 197, 94, 0.35); }
+    .item.st-error { border-color: rgba(248, 113, 113, 0.35); }
+    .item.st-converting { border-color: rgba(6, 182, 212, 0.45); }
+    .item-main { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+    .thumb {
+      width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0; overflow: hidden;
+      background: rgba(148, 163, 184, 0.08); display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .meta { flex: 1; min-width: 0; }
+    .name { font-size: 14px; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sub { font-size: 12px; color: var(--dim); margin-top: 4px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .badge {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 6px;
+      background: rgba(148, 163, 184, 0.15); color: #cbd5e1; text-transform: uppercase;
+    }
+    .arrow { color: var(--dim); font-size: 13px; flex-shrink: 0; }
+    .fmt-btn {
+      min-width: 92px; border: 1px solid var(--line-strong); background: rgba(15, 23, 42, 0.9);
+      color: #f8fafc; border-radius: 10px; padding: 9px 12px; font-size: 13px; font-weight: 700;
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; gap: 8px;
+      transition: border-color 0.2s, box-shadow 0.2s; flex-shrink: 0;
+    }
+    .fmt-btn:hover { border-color: var(--accent); }
+    .fmt-btn.empty { color: var(--warn); border-color: rgba(251, 191, 36, 0.45); }
+    .fmt-btn .caret { font-size: 10px; color: var(--dim); }
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 10px; border: 1px solid transparent; background: transparent;
+      color: var(--muted); cursor: pointer; font-size: 16px; flex-shrink: 0; transition: all 0.2s;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .icon-btn:hover { background: rgba(148, 163, 184, 0.1); color: #fff; }
+    .icon-btn.on { border-color: var(--accent); color: var(--accent); }
+    .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .state { width: 150px; flex-shrink: 0; font-size: 12px; text-align: right; color: var(--muted); }
+    .state .ok { color: var(--ok); font-weight: 600; }
+    .state .err { color: var(--err); font-weight: 600; }
+    .spinner {
+      display: inline-block; width: 13px; height: 13px; border-radius: 50%; vertical-align: -2px; margin-right: 6px;
+      border: 2px solid rgba(6, 182, 212, 0.25); border-top-color: var(--accent); animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .bar { height: 3px; background: rgba(148,163,184,0.1); position: relative; overflow: hidden; }
+    .bar > i { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.2s; }
+    .bar.indet > i { width: 35%; animation: indet 1.2s ease-in-out infinite; }
+    @keyframes indet { 0% { left: -35%; } 100% { left: 100%; } }
+
+    /* Opções */
+    .item-opts { border-top: 1px solid var(--line); padding: 16px 18px; background: rgba(15, 23, 42, 0.35); }
+    .opts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px 18px; }
+    .opt label.lbl { display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 7px; }
+    .opt .help { font-size: 11px; color: var(--dim); margin-top: 5px; line-height: 1.4; }
+    .opt select, .opt input[type=number] {
+      width: 100%; background: rgba(2, 6, 23, 0.7); color: var(--text); border: 1px solid var(--line-strong);
+      border-radius: 8px; padding: 8px 10px; font-size: 13px;
+    }
+    .opt input[type=range] { width: 100%; accent-color: var(--accent); }
+    .range-row { display: flex; align-items: center; gap: 10px; }
+    .range-row output { font-size: 12px; font-weight: 700; color: var(--accent); min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+    .check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer; padding-top: 4px; }
+    .check input { accent-color: var(--accent); width: 16px; height: 16px; }
+    .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; grid-column: 1 / -1; }
+    .seg button {
+      text-align: left; border: 1px solid var(--line-strong); background: rgba(2, 6, 23, 0.6); color: #cbd5e1;
+      border-radius: 12px; padding: 10px 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .seg button b { display: block; font-size: 13px; margin-bottom: 3px; color: #f1f5f9; }
+    .seg button span { font-size: 11px; color: var(--dim); line-height: 1.35; display: block; }
+    .seg button.active { border-color: var(--accent); background: rgba(6, 182, 212, 0.1); }
+    .opt-wide { grid-column: 1 / -1; }
+    .opts-title { font-size: 11px; font-weight: 800; letter-spacing: 1px; color: var(--dim); text-transform: uppercase; margin: 4px 0 10px; grid-column: 1 / -1; }
+    .opts-title:not(:first-child) { margin-top: 10px; }
+
+    .trace-preview { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pv-box {
+      border: 1px solid var(--line); border-radius: 12px; background: #fff; min-height: 180px; max-height: 360px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
+    }
+    .pv-box img { max-width: 100%; max-height: 350px; object-fit: contain; }
+    .pv-box .pv-tag { position: absolute; top: 8px; left: 8px; background: rgba(15,23,42,0.85); color: #e2e8f0; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+    .pv-box .pv-empty { color: #64748b; font-size: 13px; padding: 16px; text-align: center; }
+    .pv-actions { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+
+    /* Resultado */
+    .item-result { border-top: 1px solid var(--line); padding: 14px 18px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+    .res-info { flex: 1; min-width: 220px; font-size: 13px; color: #cbd5e1; line-height: 1.6; }
+    .res-info .path { color: var(--dim); font-size: 12px; word-break: break-all; }
+    .res-info ul { margin: 6px 0 0 18px; color: var(--muted); font-size: 12px; }
+    .res-info .errmsg { color: var(--err); }
+    .res-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .res-actions a { text-decoration: none; }
+    .res-preview {
+      width: 220px; height: 150px; border-radius: 10px; background: #fff; border: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: zoom-in;
+    }
+    .res-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+    .queue-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+    .queue-foot .summary { font-size: 13px; color: var(--muted); }
+
+    /* ---------- Destaques ---------- */
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .feature { border: 1px solid var(--line); border-radius: 16px; padding: 18px; background: rgba(2, 6, 23, 0.35); }
+    .feature .fi { font-size: 26px; margin-bottom: 8px; }
+    .feature h3 { font-size: 14px; color: #f1f5f9; margin-bottom: 6px; }
+    .feature p { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+
+    /* ---------- Tabela de formatos ---------- */
+    .formats h2 { font-size: 18px; color: #f8fafc; margin-bottom: 6px; }
+    .formats .lead { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .search {
+      width: 100%; background: rgba(2, 6, 23, 0.7); color: var(--text); border: 1px solid var(--line-strong);
+      border-radius: 12px; padding: 12px 14px; font-size: 14px; outline: none;
+    }
+    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12); }
+    .fmt-answer { margin: 12px 0 0; font-size: 13px; min-height: 18px; }
+    .fmt-answer .yes { color: var(--ok); font-weight: 600; }
+    .fmt-answer .no { color: var(--warn); }
+    .fgroup { margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; background: rgba(2, 6, 23, 0.3); }
+    .fgroup summary { font-size: 13px; color: #cbd5e1; font-weight: 700; padding: 12px 0; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+    .fgroup summary::-webkit-details-marker { display: none; }
+    .fgroup summary .cnt { color: var(--dim); font-weight: 500; }
+    .fgroup summary::after { content: '▾'; color: var(--dim); margin-left: 10px; }
+    .fgroup[open] summary::after { content: '▴'; }
+    .frow { display: flex; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); align-items: baseline; }
+    .frow .fin { width: 74px; flex-shrink: 0; }
+    .frow .fin .badge { font-size: 11px; }
+    .frow .flabel { width: 190px; flex-shrink: 0; font-size: 12px; color: var(--dim); }
+    .frow .fouts { font-size: 12px; color: #cbd5e1; line-height: 1.8; }
+    .frow .fouts span { display: inline-block; margin-right: 6px; }
+    .frow .fouts span.hl { color: var(--accent); font-weight: 700; }
+
+    /* ---------- Seletor de formato ---------- */
+    .picker {
+      position: fixed; z-index: 200; width: 460px; max-width: calc(100vw - 24px);
+      background: var(--card-solid); border: 1px solid var(--line-strong); border-radius: 16px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6); padding: 12px;
+    }
+    .picker input {
+      width: 100%; background: rgba(2, 6, 23, 0.8); color: var(--text); border: 1px solid var(--line-strong);
+      border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; margin-bottom: 10px;
+    }
+    .picker input:focus { border-color: var(--accent); }
+    .picker-body { display: flex; gap: 10px; max-height: 320px; }
+    .picker-groups { width: 130px; flex-shrink: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .picker-groups button {
+      text-align: left; background: transparent; border: none; color: var(--muted); padding: 8px 10px;
+      border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600;
+    }
+    .picker-groups button:hover { color: #fff; background: rgba(148, 163, 184, 0.08); }
+    .picker-groups button.active { color: #fff; background: rgba(6, 182, 212, 0.15); }
+    .picker-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; align-content: start; }
+    .picker-grid button {
+      background: rgba(2, 6, 23, 0.6); border: 1px solid var(--line); color: #f1f5f9; border-radius: 8px;
+      padding: 9px 4px; font-size: 12.5px; font-weight: 700; cursor: pointer; text-transform: uppercase; transition: all 0.15s;
+    }
+    .picker-grid button:hover { border-color: var(--accent); background: rgba(6, 182, 212, 0.12); }
+    .picker-grid button.current { border-color: var(--accent-2); background: rgba(139, 92, 246, 0.18); }
+    .picker-grid button.disabled { opacity: 0.4; cursor: help; }
+    .picker-grid .empty { grid-column: 1 / -1; color: var(--dim); font-size: 13px; padding: 12px; }
+    .picker-note { font-size: 11.5px; color: var(--dim); margin-top: 10px; line-height: 1.5; }
+    .picker-note:empty { display: none; }
+
+    .modal { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.85); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .modal-box { background: #fff; border-radius: 16px; max-width: 94vw; max-height: 90vh; position: relative; padding: 16px; display: flex; }
+    .modal-box img { max-width: calc(94vw - 32px); max-height: calc(90vh - 32px); object-fit: contain; }
+    .modal-close { position: absolute; top: -14px; right: -14px; width: 36px; height: 36px; border-radius: 50%; border: none; background: #0f172a; color: #fff; font-size: 18px; cursor: pointer; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #e2e8f0;
+      border: 1px solid var(--line-strong); border-radius: 12px; padding: 12px 18px; font-size: 13px; z-index: 400;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.5); max-width: calc(100vw - 32px);
+    }
+
+    @media (max-width: 760px) {
+      body { padding-top: 92px; }
+      .logo { font-size: 34px; }
+      .card { padding: 18px; border-radius: 18px; }
+      .item-main { flex-wrap: wrap; }
+      .meta { flex-basis: calc(100% - 110px); }
+      .arrow { display: none; }
+      .state { width: auto; flex: 1; text-align: left; }
+      .seg { grid-template-columns: 1fr; }
+      .trace-preview { grid-template-columns: 1fr; }
+      .frow { flex-wrap: wrap; }
+      .frow .flabel { width: auto; flex: 1; }
+      .frow .fouts { width: 100%; }
+      .picker { left: 12px !important; right: 12px; width: auto; bottom: 12px; top: auto !important; }
+      .picker-groups { width: 104px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="back-button" href="/" title="Voltar ao menu" id="back">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </a>
+
+  <header>
+    <div class="logo"><span class="logo-icon">🔁</span> CONVERSOR</div>
+    <div class="tagline">Qualquer arquivo para qualquer formato — inclusive <b>imagem → DXF</b> para CAD, CNC e corte a laser.<br>Tudo processado na sua máquina.</div>
+  </header>
+
+  <main class="wrap">
+    <section class="card drop" id="drop">
+      <div class="drop-icon">📂</div>
+      <button class="btn-primary" id="pick" type="button">📎 Escolher arquivos</button>
+      <div class="drop-hint">ou arraste para cá · <b>Ctrl+V</b> cola uma imagem · vários arquivos de uma vez</div>
+      <input type="file" id="file-input" multiple hidden>
+      <div class="presets" id="presets">
+        <div class="presets-label">Conversões populares</div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="queue-card">
+      <div class="queue-head">
+        <h2 id="q-title">Arquivos</h2>
+        <div class="queue-actions">
+          <span>Converter todos para</span>
+          <button class="fmt-btn" id="all-target" type="button"><span>escolher</span><span class="caret">▼</span></button>
+          <button class="btn-ghost" id="clear-done" type="button">Limpar concluídos</button>
+        </div>
+      </div>
+      <div id="queue"></div>
+      <div class="queue-foot">
+        <button class="btn-ghost" id="add-more" type="button">+ Adicionar arquivos</button>
+        <span class="summary" id="summary"></span>
+        <button class="btn-primary" id="convert-all" type="button">🔁 Converter</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="features">
+        <div class="feature"><div class="fi">📐</div><h3>Imagem → DXF de verdade</h3><p>Vetorização com o algoritmo potrace (o mesmo dos conversores online): contornos em curvas, linha central para CNC/laser ou camadas por cor. Tamanho real em mm e prévia antes de converter.</p></div>
+        <div class="feature"><div class="fi">✒️</div><h3>Vetor continua vetor</h3><p>PDF, SVG, AI, EPS, CorelDRAW e Visio viram DXF com a geometria original (linhas, curvas e texto), sem rasterizar. E DXF volta para PDF, SVG ou PNG.</p></div>
+        <div class="feature"><div class="fi">🔒</div><h3>Nada sai da máquina</h3><p>Sem upload para servidores e sem limite de tamanho. Os arquivos convertidos vão para a pasta <b>Downloads</b>, sem sobrescrever nada.</p></div>
+      </div>
+    </section>
+
+    <section class="card formats">
+      <h2>Formatos suportados</h2>
+      <p class="lead" id="formats-lead">Carregando…</p>
+      <input class="search" id="fmt-search" placeholder="Pergunte uma conversão, ex.: “png dxf”, “heic”, “mp4 mp3”" autocomplete="off">
+      <div class="fmt-answer" id="fmt-answer"></div>
+      <div id="fmt-table"></div>
+    </section>
+  </main>
+
+  <div class="picker hidden" id="picker" role="dialog" aria-label="Escolher formato">
+    <input id="picker-search" placeholder="Buscar formato (dxf, mp3, pdf…)" autocomplete="off">
+    <div class="picker-body">
+      <div class="picker-groups" id="picker-groups"></div>
+      <div class="picker-grid" id="picker-grid"></div>
+    </div>
+    <div class="picker-note" id="picker-note"></div>
+  </div>
+
+  <div class="modal hidden" id="modal">
+    <div class="modal-box"><button class="modal-close" id="modal-close" type="button">×</button><img id="modal-img" alt="Prévia"></div>
+  </div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // ---------- Estado ----------
+    let CAT = null;              // catálogo vindo de /conversor/formats
+    const items = [];            // fila de arquivos
+    let nextId = 1;
+    let preset = null;           // conversão popular escolhida (define o destino padrão)
+    const lastOut = {};          // último destino escolhido por formato/grupo de entrada
+    const MAX_PARALLEL = 2;
+
+    const $ = (sel, el = document) => el.querySelector(sel);
+    const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const fmtBytes = (b) => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(0) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
+    const COMPOUND = ['tar.gz', 'tar.bz2', 'tar.xz'];
+
+    function splitExt(name) {
+      const low = name.toLowerCase();
+      for (const c of COMPOUND) if (low.endsWith('.' + c)) return c;
+      const i = low.lastIndexOf('.');
+      return i > 0 ? low.slice(i + 1) : '';
+    }
+    const groupOf = (ext) => (CAT && CAT.formats[ext]) ? CAT.formats[ext].group : '';
+    const groupInfo = (g) => CAT.groups.find(x => x.id === g) || { label: g, icon: '📄' };
+    const outputsFor = (ext) => (CAT && CAT.routes[ext]) ? CAT.routes[ext] : {};
+
+    // ---------- Conversões populares ----------
+    const PRESETS = [
+      { label: 'PNG → DXF', out: 'dxf', accept: '.png', cad: true },
+      { label: 'JPG → DXF', out: 'dxf', accept: '.jpg,.jpeg', cad: true },
+      { label: 'PDF → DXF', out: 'dxf', accept: '.pdf', cad: true },
+      { label: 'SVG → DXF', out: 'dxf', accept: '.svg', cad: true },
+      { label: 'DXF → PDF', out: 'pdf', accept: '.dxf', cad: true },
+      { label: 'Imagem → SVG', out: 'svg', accept: 'image/*', cad: true },
+      { label: 'PDF → Word', out: 'docx', accept: '.pdf' },
+      { label: 'Word → PDF', out: 'pdf', accept: '.doc,.docx,.odt,.rtf' },
+      { label: 'HEIC → JPG', out: 'jpg', accept: '.heic,.heif' },
+      { label: 'WEBP → PNG', out: 'png', accept: '.webp' },
+      { label: 'MP4 → MP3', out: 'mp3', accept: 'video/*,.mkv,.avi,.mov' },
+      { label: 'Vídeo → GIF', out: 'gif', accept: 'video/*,.mkv,.avi,.mov' },
+      { label: 'Excel → CSV', out: 'csv', accept: '.xls,.xlsx,.ods' },
+      { label: 'OTF → TTF', out: 'ttf', accept: '.otf,.woff,.woff2' },
+    ];
+
+    function renderPresets() {
+      const box = $('#presets');
+      PRESETS.forEach((p) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip' + (p.cad ? ' cad' : '');
+        b.textContent = p.label;
+        b.addEventListener('click', () => {
+          preset = p;
+          box.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === b));
+          const input = $('#file-input');
+          input.accept = p.accept;
+          input.click();
+          setTimeout(() => { input.accept = ''; }, 500);
+        });
+        box.appendChild(b);
+      });
+    }
+
+    // ---------- Opções por tipo de conversão ----------
+    const LOSSY_AUDIO = ['mp3', 'aac', 'm4a', 'ogg', 'opus', 'wma', 'ac3', 'mp2', 'mp4'];
+    const DXF_VERSIONS = [['R2010', 'R2010 (recomendado)'], ['R2018', 'R2018'], ['R2013', 'R2013'], ['R2007', 'R2007'], ['R2004', 'R2004'], ['R2000', 'R2000'], ['R12', 'R12 (CNCs e programas antigos)']];
+    const OPTION_GROUPS = {
+      trace: { title: 'Vetorização', fields: [
+        { key: 'trace_mode', type: 'seg', def: 'outline', choices: [
+          ['outline', 'Contorno', 'Borda de cada forma, preenchida. Logos, silhuetas, corte a laser/plasma.'],
+          ['centerline', 'Linha central', 'Uma linha no meio de cada traço. Desenhos a traço, gravação, plotter, CNC.'],
+          ['color', 'Colorido', 'Separa as cores da imagem, uma camada por cor. Logos e ilustrações.'],
+        ] },
+        { key: 'threshold', label: 'Limiar preto/branco', type: 'threshold', def: 'auto', show: o => o.trace_mode !== 'color',
+          help: 'Pixels mais escuros que o limiar viram forma. “Auto” escolhe pelo histograma da imagem.' },
+        { key: 'colors', label: 'Número de cores', type: 'range', min: 2, max: 16, step: 1, def: 6, show: o => o.trace_mode === 'color' },
+        { key: 'despeckle', label: 'Ignorar manchas menores que (px)', type: 'range', min: 0, max: 100, step: 1, def: 2,
+          help: 'Remove sujeira e ruído de JPG.' },
+        { key: 'smooth', label: 'Suavidade das curvas', type: 'range', min: 0, max: 1.33, step: 0.01, def: 1.0, show: o => o.trace_mode !== 'centerline',
+          help: '0 = só cantos vivos (polígono) · 1,33 = curvas bem arredondadas.' },
+        { key: 'invert', label: 'Inverter (forma clara sobre fundo escuro)', type: 'check', def: false, show: o => o.trace_mode !== 'color' },
+        { key: 'keep_background', label: 'Manter a cor de fundo como camada', type: 'check', def: false, show: o => o.trace_mode === 'color' },
+      ] },
+      dxf: { title: 'DXF', fields: [
+        { key: 'dxf_entity', label: 'Tipo de entidade', type: 'select', def: 'polyline', choices: [
+          ['polyline', 'Polilinhas (LWPOLYLINE) — mais compatível'], ['spline', 'Splines — curvas exatas']],
+          help: 'Polilinhas abrem em qualquer CAD/CAM (CNC, laser, plasma). Splines mantêm a curva perfeita (AutoCAD, SolidWorks, Fusion).' },
+        { key: 'width_mm', label: 'Largura final (mm)', type: 'number', def: '', placeholder: 'automático (DPI)', show: (o, it) => groupOf(it.inExt) === 'image',
+          help: 'Vazio = tamanho real pelo DPI da imagem (ou 96 DPI).' },
+        { key: 'dxf_tolerance', label: 'Precisão das curvas', type: 'select', def: '0.05', show: o => o.dxf_entity !== 'spline', choices: [
+          ['0.01', '0,01 mm (máxima)'], ['0.05', '0,05 mm (padrão)'], ['0.2', '0,2 mm (arquivo leve)']] },
+        { key: 'dxf_version', label: 'Versão do DXF', type: 'select', def: 'R2010', choices: DXF_VERSIONS },
+        { key: 'dxf_hatch', label: 'Preencher as formas (hachura sólida, igual à prévia)', type: 'check',
+          def: (it) => groupOf(it.inExt) === 'image', show: (o, it) => !(groupOf(it.inExt) === 'image' && o.trace_mode === 'centerline'),
+          help: 'Sem preenchimento, o CAD mostra só as linhas de borda de cada forma. Os contornos continuam numa camada própria para CNC/laser.' },
+        { key: 'skip_text', label: 'Não incluir textos', type: 'check', def: false, show: (o, it) => groupOf(it.inExt) !== 'image' },
+      ] },
+      dxfversion: { title: 'DXF', fields: [
+        { key: 'dxf_version', label: 'Versão do DXF', type: 'select', def: 'R2010', choices: DXF_VERSIONS },
+      ] },
+      dwgversion: { title: 'DWG', fields: [
+        { key: 'dwg_version', label: 'Versão do DWG', type: 'select', def: 'R2018', choices: DXF_VERSIONS.filter(v => v[0] !== 'R12') },
+      ] },
+      raster: { title: 'Imagem', fields: [
+        { key: 'quality', label: 'Qualidade', type: 'range', min: 10, max: 100, step: 1, def: 90, showOut: ['jpg', 'webp', 'avif', 'heic', 'jp2'] },
+        { key: 'resize_width', label: 'Redimensionar para largura (px)', type: 'number', def: '', placeholder: 'original' },
+      ] },
+      pages: { title: 'Páginas', fields: [
+        { key: 'dpi', label: 'Resolução', type: 'select', def: '150', choices: [
+          ['72', '72 DPI (tela)'], ['150', '150 DPI (padrão)'], ['300', '300 DPI (impressão)'], ['600', '600 DPI (máxima)']] },
+        { key: 'transparent', label: 'Fundo transparente', type: 'check', def: false, showOut: ['png', 'webp', 'tiff'], show: (o, it) => groupOf(it.inExt) !== 'cad' },
+        { key: 'quality', label: 'Qualidade', type: 'range', min: 10, max: 100, step: 1, def: 90, showOut: ['jpg', 'webp'] },
+      ] },
+      cadview: { title: 'Desenho', fields: [
+        { key: 'cad_background', label: 'Fundo', type: 'select', def: 'white', choices: [['white', 'Branco (impressão)'], ['black', 'Preto (como no AutoCAD)']] },
+      ] },
+      audio: { title: 'Áudio', fields: [
+        { key: 'audio_bitrate', label: 'Qualidade do áudio', type: 'select', def: '192', showOut: LOSSY_AUDIO, choices: [
+          ['96', '96 kbps'], ['128', '128 kbps'], ['192', '192 kbps (padrão)'], ['256', '256 kbps'], ['320', '320 kbps (máxima)']] },
+      ] },
+      video: { title: 'Vídeo', fields: [
+        { key: 'video_quality', label: 'Qualidade', type: 'select', def: 'media', choices: [['alta', 'Alta (arquivo maior)'], ['media', 'Média (padrão)'], ['baixa', 'Baixa (arquivo menor)']] },
+        { key: 'video_height', label: 'Resolução', type: 'select', def: '0', choices: [['0', 'Original'], ['2160', '4K (2160p)'], ['1080', '1080p'], ['720', '720p'], ['480', '480p'], ['360', '360p']] },
+      ] },
+      gif: { title: 'GIF', fields: [
+        { key: 'gif_fps', label: 'Quadros por segundo', type: 'range', min: 5, max: 30, step: 1, def: 12 },
+        { key: 'gif_width', label: 'Largura', type: 'select', def: '480', choices: [['320', '320 px'], ['480', '480 px (padrão)'], ['640', '640 px'], ['800', '800 px'], ['1080', '1080 px']] },
+      ] },
+    };
+
+    function optGroupsFor(it) {
+      if (!it.out) return [];
+      return (outputsFor(it.inExt)[it.out] || []).filter(g => OPTION_GROUPS[g]);
+    }
+    function optVal(it, f) {
+      if (Object.prototype.hasOwnProperty.call(it.opts, f.key)) return it.opts[f.key];
+      return typeof f.def === 'function' ? f.def(it) : f.def;
+    }
+    function optsSnapshot(it) {
+      const o = {};
+      optGroupsFor(it).forEach(g => OPTION_GROUPS[g].fields.forEach(f => { o[f.key] = optVal(it, f); }));
+      return o;
+    }
+    function fieldVisible(it, f) {
+      if (f.showOut && !f.showOut.includes(it.out)) return false;
+      if (f.show && !f.show(optsSnapshot(it), it)) return false;
+      return true;
+    }
+
+    // ---------- Fila ----------
+    async function addFiles(fileList) {
+      const files = Array.from(fileList || []);
+      if (!files.length) return;
+      if (!CAT) await loadCatalog();
+      for (const file of files) {
+        const it = { id: nextId++, file, inExt: splitExt(file.name), opts: {}, out: null, status: 'ready',
+                     result: null, error: null, optsOpen: false, preview: null, thumbUrl: null };
+        if (!CAT.formats[it.inExt] || !CAT.routes[it.inExt]) {
+          it.inExt = await detectFormat(file) || it.inExt;
+        }
+        if (file.type.startsWith('image/') || groupOf(it.inExt) === 'image') {
+          try { it.thumbUrl = URL.createObjectURL(file); } catch (e) { /* sem miniatura */ }
+        }
+        it.out = pickDefaultOut(it);
+        items.push(it);
+      }
+      preset = null;
+      $('#presets').querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      render();
+      $('#queue-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    async function detectFormat(file) {
+      try {
+        const fd = new FormData();
+        fd.append('file', file.slice(0, 4 * 1048576), file.name);
+        const r = await fetch('/conversor/detect', { method: 'POST', body: fd });
+        const j = await r.json();
+        return j.success ? j.format : null;
+      } catch (e) { return null; }
+    }
+
+    function pickDefaultOut(it) {
+      const outs = outputsFor(it.inExt);
+      if (preset && outs[preset.out]) return preset.out;
+      const g = groupOf(it.inExt);
+      for (const k of [it.inExt, g]) if (lastOut[k] && outs[lastOut[k]]) return lastOut[k];
+      return null;
+    }
+
+    function setOut(it, out) {
+      it.out = out;
+      lastOut[it.inExt] = out;
+      lastOut[groupOf(it.inExt)] = out;
+      if (it.status !== 'converting') { it.status = 'ready'; it.result = null; it.error = null; }
+      it.preview = null;
+      if (optGroupsFor(it).includes('trace')) it.optsOpen = true;
+    }
+
+    function render() {
+      $('#queue-card').classList.toggle('hidden', items.length === 0);
+      const q = $('#queue');
+      const existing = new Map(Array.from(q.children).map(el => [+el.dataset.id, el]));
+      items.forEach((it, idx) => {
+        let el = existing.get(it.id);
+        if (!el) { el = document.createElement('div'); el.className = 'item'; el.dataset.id = it.id; }
+        existing.delete(it.id);
+        renderItem(it, el);
+        if (q.children[idx] !== el) q.insertBefore(el, q.children[idx] || null);
+      });
+      existing.forEach(el => el.remove());
+      updateSummary();
+    }
+
+    function stateHtml(it) {
+      if (it.status === 'converting') {
+        const t = Math.round((Date.now() - it.startedAt) / 1000);
+        const phase = it.uploadPct != null && it.uploadPct < 100 ? `Enviando ${it.uploadPct}%` : `Convertendo… ${t}s`;
+        return `<span class="spinner"></span>${phase}`;
+      }
+      if (it.status === 'done') return `<span class="ok">✓ Concluído</span><br>${fmtBytes(it.result.size)}`;
+      if (it.status === 'error') return `<span class="err">✕ Erro</span>`;
+      if (it.status === 'queued') return 'Na fila…';
+      if (!it.out) return `<span style="color:var(--warn)">Escolha o formato</span>`;
+      return 'Pronto';
+    }
+
+    function renderItem(it, el) {
+      el.className = 'item st-' + it.status;
+      const g = groupInfo(groupOf(it.inExt));
+      const busy = it.status === 'converting';
+      const hasOpts = optGroupsFor(it).length > 0;
+      el.innerHTML = `
+        <div class="item-main">
+          <div class="thumb">${it.thumbUrl ? `<img src="${it.thumbUrl}" alt="">` : g.icon}</div>
+          <div class="meta">
+            <div class="name" title="${esc(it.file.name)}">${esc(it.file.name)}</div>
+            <div class="sub"><span class="badge">${esc(it.inExt || '?')}</span>${fmtBytes(it.file.size)}</div>
+          </div>
+          <span class="arrow">para</span>
+          <button type="button" class="fmt-btn target ${it.out ? '' : 'empty'}" ${busy ? 'disabled' : ''}>
+            <span>${it.out ? esc(it.out.toUpperCase()) : 'escolher'}</span><span class="caret">▼</span></button>
+          <button type="button" class="icon-btn opts-toggle ${it.optsOpen ? 'on' : ''}" title="Opções" ${hasOpts && !busy ? '' : 'disabled'}>⚙️</button>
+          <div class="state">${stateHtml(it)}</div>
+          <button type="button" class="icon-btn remove" title="Remover" ${busy ? 'disabled' : ''}>✕</button>
+        </div>
+        ${busy ? `<div class="bar ${it.uploadPct != null && it.uploadPct < 100 ? '' : 'indet'}"><i style="width:${it.uploadPct != null && it.uploadPct < 100 ? it.uploadPct : 35}%"></i></div>` : ''}
+        <div class="item-opts ${it.optsOpen && hasOpts && !busy ? '' : 'hidden'}"></div>
+        <div class="item-result ${it.status === 'done' || it.status === 'error' ? '' : 'hidden'}"></div>`;
+
+      if (!CAT.routes[it.inExt]) {
+        el.querySelector('.state').innerHTML = `<span class="err">Formato não suportado</span>`;
+        el.querySelector('.target').disabled = true;
+      }
+      el.querySelector('.target').addEventListener('click', (e) => openPicker(e.currentTarget, it));
+      el.querySelector('.opts-toggle').addEventListener('click', () => { it.optsOpen = !it.optsOpen; renderItem(it, el); });
+      el.querySelector('.remove').addEventListener('click', () => {
+        const i = items.indexOf(it);
+        if (i >= 0) items.splice(i, 1);
+        if (it.thumbUrl) URL.revokeObjectURL(it.thumbUrl);
+        render();
+      });
+      if (it.optsOpen && hasOpts && !busy) renderOptions(it, el.querySelector('.item-opts'));
+      if (it.status === 'done' || it.status === 'error') renderResult(it, el.querySelector('.item-result'));
+    }
+
+    function renderOptions(it, box) {
+      const groups = optGroupsFor(it);
+      let html = '<div class="opts-grid">';
+      groups.forEach(gid => {
+        const grp = OPTION_GROUPS[gid];
+        const visible = grp.fields.filter(f => fieldVisible(it, f));
+        if (!visible.length) return;
+        html += `<div class="opts-title">${esc(grp.title)}</div>`;
+        visible.forEach(f => { html += fieldHtml(it, f); });
+      });
+      html += '</div>';
+      if (groups.includes('trace')) {
+        html += `
+          <div class="trace-preview">
+            <div class="pv-box"><span class="pv-tag">Original</span>${it.thumbUrl ? `<img src="${it.thumbUrl}" alt="Original">` : '<div class="pv-empty">Sem miniatura</div>'}</div>
+            <div class="pv-box pv-result"><span class="pv-tag">Vetor</span>${
+              it.preview && it.preview.url ? `<img src="${it.preview.url}" alt="Prévia do vetor">`
+              : `<div class="pv-empty">${it.preview && it.preview.loading ? '<span class="spinner"></span>Gerando prévia…' : it.preview && it.preview.error ? esc(it.preview.error) : 'Clique em “Ver prévia” para conferir o resultado antes de converter.'}</div>`}</div>
+          </div>
+          <div class="pv-actions"><button type="button" class="btn-ghost pv-btn">👁️ Ver prévia</button>
+            <span>${it.preview && it.preview.info ? esc(it.preview.info) : 'A prévia é atualizada sozinha quando você muda as opções.'}</span></div>`;
+      }
+      box.innerHTML = html;
+      bindOptions(it, box);
+    }
+
+    function fieldHtml(it, f) {
+      const v = optVal(it, f);
+      const id = `o${it.id}_${f.key}`;
+      const help = f.help ? `<div class="help">${esc(f.help)}</div>` : '';
+      if (f.type === 'seg') {
+        return `<div class="seg" data-key="${f.key}">${f.choices.map(c =>
+          `<button type="button" data-v="${c[0]}" class="${v === c[0] ? 'active' : ''}"><b>${esc(c[1])}</b><span>${esc(c[2])}</span></button>`).join('')}</div>`;
+      }
+      if (f.type === 'select') {
+        return `<div class="opt"><label class="lbl" for="${id}">${esc(f.label)}</label><select id="${id}" data-key="${f.key}">${
+          f.choices.map(c => `<option value="${c[0]}" ${String(v) === c[0] ? 'selected' : ''}>${esc(c[1])}</option>`).join('')}</select>${help}</div>`;
+      }
+      if (f.type === 'range') {
+        return `<div class="opt"><label class="lbl" for="${id}">${esc(f.label)}</label><div class="range-row"><input type="range" id="${id}" data-key="${f.key}" min="${f.min}" max="${f.max}" step="${f.step}" value="${v}"><output>${v}</output></div>${help}</div>`;
+      }
+      if (f.type === 'number') {
+        return `<div class="opt"><label class="lbl" for="${id}">${esc(f.label)}</label><input type="number" min="0" step="any" id="${id}" data-key="${f.key}" value="${esc(v)}" placeholder="${esc(f.placeholder || '')}">${help}</div>`;
+      }
+      if (f.type === 'check') {
+        return `<div class="opt"><label class="check"><input type="checkbox" data-key="${f.key}" ${v === true || v === '1' ? 'checked' : ''}>${esc(f.label)}</label>${help}</div>`;
+      }
+      if (f.type === 'threshold') {
+        const auto = v === 'auto';
+        return `<div class="opt"><label class="lbl" for="${id}">${esc(f.label)}</label><div class="range-row"><input type="range" id="${id}" data-thr="1" min="1" max="254" step="1" value="${auto ? 128 : v}" ${auto ? 'disabled' : ''}><output>${auto ? 'auto' : v}</output></div>
+          <label class="check"><input type="checkbox" data-thr-auto="1" ${auto ? 'checked' : ''}>Automático</label>${help}</div>`;
+      }
+      return '';
+    }
+
+    let previewTimers = {};
+    function bindOptions(it, box) {
+      const changed = (rerender) => {
+        if (it.status === 'done' || it.status === 'error') { it.status = 'ready'; it.result = null; it.error = null; }
+        if (rerender) { const el = box.closest('.item'); renderItem(it, el); }
+        else updateState(it);
+        if (optGroupsFor(it).includes('trace') && it.preview) {
+          clearTimeout(previewTimers[it.id]);
+          previewTimers[it.id] = setTimeout(() => runPreview(it), 650);
+        }
+      };
+      box.querySelectorAll('.seg').forEach(seg => seg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+        it.opts[seg.dataset.key] = b.dataset.v; changed(true);
+      })));
+      box.querySelectorAll('select[data-key]').forEach(s => s.addEventListener('change', () => { it.opts[s.dataset.key] = s.value; changed(true); }));
+      box.querySelectorAll('input[type=number][data-key]').forEach(n => n.addEventListener('change', () => { it.opts[n.dataset.key] = n.value; changed(false); }));
+      box.querySelectorAll('input[type=checkbox][data-key]').forEach(c => c.addEventListener('change', () => { it.opts[c.dataset.key] = c.checked; changed(true); }));
+      box.querySelectorAll('input[type=range][data-key]').forEach(r => {
+        r.addEventListener('input', () => { r.nextElementSibling.textContent = r.value; });
+        r.addEventListener('change', () => { it.opts[r.dataset.key] = r.value; changed(false); });
+      });
+      const thr = box.querySelector('input[data-thr]');
+      const thrAuto = box.querySelector('input[data-thr-auto]');
+      if (thr) {
+        thr.addEventListener('input', () => { thr.nextElementSibling.textContent = thr.value; });
+        thr.addEventListener('change', () => { it.opts.threshold = thr.value; changed(false); });
+        thrAuto.addEventListener('change', () => { it.opts.threshold = thrAuto.checked ? 'auto' : thr.value; changed(true); });
+      }
+      const pv = box.querySelector('.pv-btn');
+      if (pv) pv.addEventListener('click', () => runPreview(it));
+      box.querySelectorAll('.pv-box img').forEach(img => img.addEventListener('click', () => openModal(img.src)));
+    }
+
+    async function runPreview(it) {
+      if (it.preview && it.preview.url) URL.revokeObjectURL(it.preview.url);
+      it.preview = { loading: true };
+      refreshPreviewBox(it);
+      const fd = new FormData();
+      fd.append('file', it.file, it.file.name);
+      fd.append('target', it.out || 'svg');
+      const snap = optsSnapshot(it);
+      Object.entries(snap).forEach(([k, v]) => fd.append(k, typeof v === 'boolean' ? (v ? '1' : '0') : v));
+      const token = Symbol();
+      it.previewToken = token;
+      try {
+        const r = await fetch('/conversor/preview', { method: 'POST', body: fd });
+        const j = await r.json();
+        if (it.previewToken !== token) return;
+        if (!j.success) { it.preview = { error: j.error }; }
+        else {
+          const url = URL.createObjectURL(new Blob([j.svg], { type: 'image/svg+xml' }));
+          it.preview = { url, info: `${j.count} ${snap.trace_mode === 'centerline' ? 'linhas' : 'contornos'} em ${j.layers} camada(s)` };
+        }
+      } catch (e) {
+        if (it.previewToken === token) it.preview = { error: 'Falha ao gerar a prévia.' };
+      }
+      refreshPreviewBox(it);
+    }
+
+    function refreshPreviewBox(it) {
+      const el = document.querySelector(`.item[data-id="${it.id}"]`);
+      if (!el) return;
+      const box = el.querySelector('.item-opts');
+      if (box && !box.classList.contains('hidden')) renderOptions(it, box);
+    }
+
+    function renderResult(it, box) {
+      if (it.status === 'error') {
+        box.innerHTML = `<div class="res-info"><div class="errmsg">${esc(it.error)}</div></div>`;
+        return;
+      }
+      const r = it.result;
+      const notes = (r.notes || []).map(n => `<li>${esc(n)}</li>`).join('');
+      const inline = /\.(pdf|svg|png|jpe?g|webp|gif|txt|html|mp3|mp4|webm|ogg|wav|json|xml|csv)$/i.test(r.filename);
+      box.innerHTML = `
+        ${r.previewUrl ? `<div class="res-preview" title="Ampliar"><img src="${r.previewUrl}" alt="Prévia"></div>` : ''}
+        <div class="res-info">
+          <div><b>${esc(r.filename)}</b>${r.count > 1 ? ` — ${r.count} arquivos num ZIP` : ''}</div>
+          <div class="path">Salvo na pasta Downloads</div>
+          ${notes ? `<ul>${notes}</ul>` : ''}
+        </div>
+        <div class="res-actions">
+          <a class="btn-primary" href="/conversor/download/${encodeURIComponent(r.token)}" download>⬇️ Baixar</a>
+          ${inline ? `<a class="btn-ghost" href="/conversor/download/${encodeURIComponent(r.token)}?inline=1" target="_blank" rel="noopener">Abrir ↗</a>` : ''}
+        </div>`;
+      const pv = box.querySelector('.res-preview');
+      if (pv) pv.addEventListener('click', () => openModal(r.previewUrl));
+    }
+
+    function updateState(it) {
+      const el = document.querySelector(`.item[data-id="${it.id}"]`);
+      if (!el) return;
+      el.className = 'item st-' + it.status;
+      el.querySelector('.state').innerHTML = stateHtml(it);
+      const bar = el.querySelector('.bar');
+      if (bar && it.status === 'converting') {
+        const uploading = it.uploadPct != null && it.uploadPct < 100;
+        bar.classList.toggle('indet', !uploading);
+        bar.firstElementChild.style.width = (uploading ? it.uploadPct : 35) + '%';
+      }
+      const res = el.querySelector('.item-result');
+      if (res && it.status === 'ready') res.classList.add('hidden');
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const n = items.length;
+      const done = items.filter(i => i.status === 'done').length;
+      const conv = items.filter(i => i.status === 'converting').length;
+      const pending = items.filter(i => i.status === 'ready' || i.status === 'error');
+      const missing = pending.filter(i => !i.out).length;
+      $('#q-title').textContent = n === 1 ? '1 arquivo' : `${n} arquivos`;
+      let s = [];
+      if (done) s.push(`${done} concluído(s)`);
+      if (conv) s.push(`${conv} convertendo`);
+      if (missing) s.push(`${missing} sem formato escolhido`);
+      $('#summary').textContent = s.join(' · ');
+      const ready = pending.filter(i => i.out && CAT.routes[i.inExt]).length;
+      const btn = $('#convert-all');
+      btn.disabled = ready === 0;
+      btn.textContent = ready > 1 ? `🔁 Converter ${ready} arquivos` : '🔁 Converter';
+    }
+
+    // ---------- Conversão ----------
+    let running = 0;
+    function convertAll() {
+      const pending = items.filter(i => (i.status === 'ready' || i.status === 'error') && i.out && CAT.routes[i.inExt]);
+      pending.forEach(i => { i.status = 'queued'; });
+      pump();
+    }
+    function pump() {
+      while (running < MAX_PARALLEL) {
+        const it = items.find(i => i.status === 'queued');
+        if (!it) break;
+        running++;
+        convertOne(it).finally(() => { running--; pump(); });
+      }
+      items.filter(i => i.status === 'queued').forEach(updateState);
+    }
+
+    function convertOne(it) {
+      return new Promise((resolve) => {
+        it.status = 'converting'; it.startedAt = Date.now(); it.uploadPct = 0; it.optsOpen = false;
+        render();
+        const tick = setInterval(() => updateState(it), 1000);
+        const fd = new FormData();
+        fd.append('file', it.file, it.file.name);
+        fd.append('format', it.out);
+        const snap = optsSnapshot(it);
+        Object.entries(snap).forEach(([k, v]) => fd.append(k, typeof v === 'boolean' ? (v ? '1' : '0') : v));
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/conversor/convert');
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) { it.uploadPct = Math.round(e.loaded / e.total * 100); updateState(it); }
+        };
+        xhr.upload.onload = () => { it.uploadPct = 100; renderItemById(it); };
+        const finish = () => { clearInterval(tick); it.uploadPct = null; render(); resolve(); };
+        xhr.onload = () => {
+          let j = null;
+          try { j = JSON.parse(xhr.responseText); } catch (e) { /* resposta inválida */ }
+          if (j && j.success) {
+            it.status = 'done';
+            it.result = j;
+            if (j.preview_svg) it.result.previewUrl = URL.createObjectURL(new Blob([j.preview_svg], { type: 'image/svg+xml' }));
+            else if (/\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(j.filename)) it.result.previewUrl = `/conversor/download/${encodeURIComponent(j.token)}?inline=1`;
+          } else {
+            it.status = 'error';
+            it.error = (j && j.error) || `Erro no servidor (HTTP ${xhr.status}).`;
+          }
+          finish();
+        };
+        xhr.onerror = () => { it.status = 'error'; it.error = 'Falha de conexão com o servidor local.'; finish(); };
+        xhr.send(fd);
+      });
+    }
+    function renderItemById(it) {
+      const el = document.querySelector(`.item[data-id="${it.id}"]`);
+      if (el) renderItem(it, el);
+    }
+
+    // ---------- Seletor de formato ----------
+    let pickerCtx = null;
+    function openPicker(anchor, it) {
+      const allMode = it === null;
+      let outs;
+      if (allMode) {
+        const pend = items.filter(i => i.status !== 'converting' && CAT.routes[i.inExt]);
+        if (!pend.length) return;
+        // Só formatos que servem para todos os arquivos da fila
+        outs = Object.keys(outputsFor(pend[0].inExt)).filter(o => pend.every(i => outputsFor(i.inExt)[o]));
+      } else {
+        outs = Object.keys(outputsFor(it.inExt));
+      }
+      const byGroup = {};
+      outs.forEach(o => {
+        const g = groupOf(o) || 'document';
+        (byGroup[g] = byGroup[g] || []).push(o);
+      });
+      // DWG aparece desabilitado (com a explicação) onde o DXF é possível
+      const unavailable = Object.keys(CAT.unavailable || {}).filter(u => u === 'dwg' && !outs.includes('dwg') && outs.includes('dxf'));
+      unavailable.forEach(u => { const g = groupOf(u); (byGroup[g] = byGroup[g] || []).push({ disabled: u }); });
+
+      const groups = CAT.groups.filter(g => byGroup[g.id]);
+      const current = allMode ? null : it.out;
+      let active = (current && groups.find(g => g.id === groupOf(current))) ? groupOf(current) : (groups[0] && groups[0].id);
+      pickerCtx = { it, allMode, byGroup, groups, active, current };
+
+      const p = $('#picker');
+      p.classList.remove('hidden');
+      $('#picker-search').value = '';
+      $('#picker-note').textContent = allMode ? (outs.length ? 'Mostrando só os formatos que servem para todos os arquivos da fila.' : 'Não há um formato comum a todos os arquivos — escolha em cada um.') : '';
+      renderPicker();
+      const r = anchor.getBoundingClientRect();
+      const pw = Math.min(460, window.innerWidth - 24);
+      let left = Math.min(Math.max(12, r.right - pw), window.innerWidth - pw - 12);
+      let top = r.bottom + 8;
+      const ph = p.offsetHeight;
+      if (top + ph > window.innerHeight - 12) top = Math.max(12, r.top - ph - 8);
+      p.style.left = left + 'px';
+      p.style.top = top + 'px';
+      if (window.innerWidth > 760) $('#picker-search').focus();
+    }
+
+    function renderPicker() {
+      const c = pickerCtx;
+      const q = $('#picker-search').value.trim().toLowerCase().replace(/^\./, '');
+      $('#picker-groups').innerHTML = c.groups.map(g =>
+        `<button type="button" data-g="${g.id}" class="${!q && g.id === c.active ? 'active' : ''}">${g.icon} ${esc(g.label)}</button>`).join('');
+      $('#picker-groups').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+        c.active = b.dataset.g; $('#picker-search').value = ''; renderPicker();
+      }));
+      let list;
+      if (q) {
+        list = [];
+        c.groups.forEach(g => c.byGroup[g.id].forEach(o => {
+          const ext = typeof o === 'string' ? o : o.disabled;
+          const label = (CAT.formats[ext] && CAT.formats[ext].label || '').toLowerCase();
+          if (ext.includes(q) || label.includes(q)) list.push(o);
+        }));
+      } else {
+        list = c.byGroup[c.active] || [];
+      }
+      const grid = $('#picker-grid');
+      grid.innerHTML = list.length ? list.map(o => {
+        if (typeof o !== 'string') return `<button type="button" class="disabled" data-na="${o.disabled}" title="${esc(CAT.unavailable[o.disabled])}">${esc(o.disabled)}</button>`;
+        const label = CAT.formats[o] ? CAT.formats[o].label : o;
+        return `<button type="button" data-o="${o}" class="${o === c.current ? 'current' : ''}" title="${esc(label)}">${esc(o)}</button>`;
+      }).join('') : `<div class="empty">Nenhum formato encontrado.</div>`;
+      grid.querySelectorAll('button[data-o]').forEach(b => b.addEventListener('click', () => choose(b.dataset.o)));
+      grid.querySelectorAll('button[data-na]').forEach(b => b.addEventListener('click', () => {
+        $('#picker-note').textContent = CAT.unavailable[b.dataset.na];
+      }));
+    }
+
+    function choose(out) {
+      const c = pickerCtx;
+      closePicker();
+      if (c.allMode) {
+        items.forEach(i => { if (i.status !== 'converting' && outputsFor(i.inExt)[out]) setOut(i, out); });
+        $('#all-target').querySelector('span').textContent = out.toUpperCase();
+      } else {
+        setOut(c.it, out);
+      }
+      render();
+    }
+    function closePicker() { $('#picker').classList.add('hidden'); pickerCtx = null; }
+
+    $('#picker-search').addEventListener('input', renderPicker);
+    $('#picker-search').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { const b = $('#picker-grid button[data-o]'); if (b) choose(b.dataset.o); }
+      if (e.key === 'Escape') closePicker();
+    });
+    document.addEventListener('mousedown', (e) => {
+      if (pickerCtx && !$('#picker').contains(e.target) && !e.target.closest('.fmt-btn')) closePicker();
+    });
+    window.addEventListener('resize', closePicker);
+
+    // ---------- Modal ----------
+    function openModal(src) { $('#modal-img').src = src; $('#modal').classList.remove('hidden'); }
+    $('#modal-close').addEventListener('click', () => $('#modal').classList.add('hidden'));
+    $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') $('#modal').classList.add('hidden'); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { $('#modal').classList.add('hidden'); closePicker(); } });
+
+    // ---------- Tabela de formatos ----------
+    function renderFormats() {
+      const inputs = Object.keys(CAT.routes);
+      const outs = new Set();
+      let total = 0;
+      inputs.forEach(i => Object.keys(CAT.routes[i]).forEach(o => { outs.add(o); total++; }));
+      $('#formats-lead').textContent = `${inputs.length} formatos de entrada, ${outs.size} de saída e ${total} conversões diretas disponíveis nesta máquina.`;
+      drawFormatTable('');
+    }
+
+    function drawFormatTable(query) {
+      const q = query.trim().toLowerCase().replace(/\./g, '').split(/[\s,→>-]+/).filter(Boolean);
+      const [qa, qb] = q;
+      const answer = $('#fmt-answer');
+      answer.innerHTML = '';
+      if (qa && qb) {
+        const a = CAT.aliases[qa] && !CAT.routes[qa] ? CAT.aliases[qa] : qa;
+        const b = CAT.aliases[qb] || qb;
+        if (CAT.routes[a] && CAT.routes[a][b]) answer.innerHTML = `<span class="yes">✓ Sim: ${esc(a.toUpperCase())} → ${esc(b.toUpperCase())} é suportado.</span> Arraste o arquivo lá em cima.`;
+        else if (CAT.unavailable[b] || CAT.unavailable[a]) answer.innerHTML = `<span class="no">⚠ ${esc(CAT.unavailable[b] || CAT.unavailable[a])}</span>`;
+        else if (CAT.formats[a] && CAT.formats[b]) answer.innerHTML = `<span class="no">✕ ${esc(a.toUpperCase())} → ${esc(b.toUpperCase())} não tem conversão direta.</span>`;
+      }
+      let html = '';
+      CAT.groups.forEach(g => {
+        const rows = Object.keys(CAT.routes).filter(i => groupOf(i) === g.id).filter(i => {
+          if (!qa) return true;
+          const label = (CAT.formats[i].label || '').toLowerCase();
+          if (qb) return (i.includes(qa)) && Object.keys(CAT.routes[i]).some(o => o.includes(qb));
+          return i.includes(qa) || label.includes(qa) || Object.keys(CAT.routes[i]).some(o => o === qa);
+        });
+        if (!rows.length) return;
+        const nOut = new Set(rows.flatMap(i => Object.keys(CAT.routes[i]))).size;
+        html += `<details class="fgroup" ${qa ? 'open' : ''}><summary><span>${g.icon} ${esc(g.label)}</span><span class="cnt">${rows.length} de entrada → ${nOut} de saída</span></summary>`;
+        rows.forEach(i => {
+          const outs = Object.keys(CAT.routes[i]).sort();
+          html += `<div class="frow"><div class="fin"><span class="badge">${esc(i)}</span></div><div class="flabel">${esc(CAT.formats[i].label)}</div>
+            <div class="fouts">→ ${outs.map(o => `<span class="${(qb && o.includes(qb)) || (qa && !qb && o === qa) ? 'hl' : ''}">${esc(o.toUpperCase())}</span>`).join('')}</div></div>`;
+        });
+        html += '</details>';
+      });
+      $('#fmt-table').innerHTML = html || '<p class="fmt-answer">Nenhum formato encontrado.</p>';
+    }
+    $('#fmt-search').addEventListener('input', (e) => drawFormatTable(e.target.value));
+
+    // ---------- Eventos gerais ----------
+    const input = $('#file-input');
+    $('#pick').addEventListener('click', () => { preset = null; input.click(); });
+    $('#add-more').addEventListener('click', () => input.click());
+    input.addEventListener('change', () => { addFiles(input.files); input.value = ''; });
+    const drop = $('#drop');
+    ['dragenter', 'dragover'].forEach(ev => document.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(ev => document.addEventListener(ev, (e) => {
+      e.preventDefault();
+      if (ev === 'drop' || !e.relatedTarget) drop.classList.remove('dragover');
+    }));
+    document.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+    document.addEventListener('paste', (e) => {
+      const files = Array.from(e.clipboardData ? e.clipboardData.files : []);
+      if (!files.length) return;
+      const named = files.map((f, n) => new File([f], f.name && f.name !== 'image.png' ? f.name : `colado_${Date.now()}_${n + 1}.${(f.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}`, { type: f.type }));
+      addFiles(named);
+    });
+    $('#convert-all').addEventListener('click', convertAll);
+    $('#all-target').addEventListener('click', (e) => openPicker(e.currentTarget, null));
+    $('#clear-done').addEventListener('click', () => {
+      for (let i = items.length - 1; i >= 0; i--) if (items[i].status === 'done') items.splice(i, 1);
+      render();
+    });
+    window.addEventListener('beforeunload', (e) => {
+      if (items.some(i => i.status === 'converting' || i.status === 'queued')) { e.preventDefault(); e.returnValue = ''; }
+    });
+
+    function toast(msg) {
+      const t = document.createElement('div');
+      t.className = 'toast'; t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 4500);
+    }
+
+    async function loadCatalog() {
+      try {
+        const r = await fetch('/conversor/formats');
+        CAT = await r.json();
+        renderFormats();
+      } catch (e) {
+        toast('Não foi possível carregar a lista de formatos. Recarregue a página.');
+      }
+    }
+
+    renderPresets();
+    loadCatalog();
+  })();
+  </script>
+</body>
+</html>

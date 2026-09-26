@@ -2,7 +2,7 @@
 
 > Processamento 100% local. Dados sensíveis nunca saem da máquina do usuário.
 
-Suíte de 22 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
+Suíte de 23 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
 
 ---
 
@@ -29,6 +29,7 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | Download de Mídia          | yt-dlp                                        |
 | Manipulação de PDF        | PyPDF2 + img2pdf                              |
 | Office (Word/Excel/PPT)     | LibreOffice headless + python-docx/pptx/openpyxl |
+| Vetorização / CAD           | potrace (potracer) + scikit-image + ezdxf     |
 | Detecção de Objetos       | YOLOv8 (Censor)                               |
 | Web Scraping                | BeautifulSoup4 + requests                     |
 | Frontend                    | HTML/CSS/JS puro (zero frameworks)            |
@@ -47,6 +48,7 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | 🎨**Transparência**  | AI Vision      | Remoção de fundo com rembg + ONNX Runtime                        |
 | 🎤**Transcrever**     | AI NLP         | Áudio para texto com Whisper                                      |
 | 📁**Arquivos**        | Conversão     | Conversor universal 150+ formatos                                  |
+| 🔁**Conversor**       | Conversão / CAD | Estilo Convertio: fila de arquivos, 1.700+ rotas diretas, imagem → DXF com potrace (contorno, linha central ou por cor) e PDF/SVG/AI/EPS → DXF sem rasterizar |
 | 📄**PDFs**            | Documentos     | Dividir, comprimir, girar, converter, mesclar                      |
 | 🗃️**Office**          | Documentos     | Converte e repara Word/Excel/PowerPoint — recuperação em 5 níveis, incluindo extensão trocada |
 | 🔲**QR Code**         | Utilitário    | Gerador estático (URLs, Wi-Fi, vCard, PIX) sem rastreamento       |
@@ -85,6 +87,14 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 - Exportação para imagem (ex: PPTX → PNG) faz um passo intermediário por PDF e rasteriza cada página com PyMuPDF, evitando redesenhar texto manualmente
 - Reparo em cascata de 5 níveis: detecção do formato real pelo conteúdo (corrige extensão trocada, ex: um `.xlsx` que na verdade é um `.docx`), reconstrução tolerante do contêiner ZIP, validação com biblioteca nativa, reparo via LibreOffice e, por último, recuperação bruta de texto
 - Cada chamada ao LibreOffice roda em um perfil de usuário isolado (`-env:UserInstallation`) com timeout, evitando travamentos por lock entre conversões
+
+**Conversor (Imagem → DXF e conversão universal)**
+
+- Cada conversão é uma rota "entrada → saída" resolvida por um motor local: Pillow, potrace, ezdxf, PyMuPDF, Ghostscript, LibreOffice, FFmpeg, 7-Zip, fontTools e trimesh. Rotas que dependem de ferramenta ausente somem da interface em vez de falhar
+- Imagem → DXF/SVG/EPS com o algoritmo potrace (o mesmo dos conversores online), em 3 modos: contorno preenchido, linha central (esqueleto do traço, com poda de "esporões" nos cruzamentos, para CNC/laser/plotter) e colorido (camada por cor; a paleta sai só de regiões lisas e visíveis, então bordas antisserrilhadas e fundo transparente não viram camadas falsas)
+- DXF em mm pelo DPI da imagem (ou largura informada), polilinhas ou splines, hachura opcional e versões R12–R2018. Validado rasterizando o DXF de volta: IoU de 0,988 com a imagem original
+- PDF, SVG, AI, EPS, CorelDRAW e Visio → DXF extraindo os vetores reais (linhas, Béziers, cores e textos) em vez de rasterizar
+- DWG é formato fechado: é suportado automaticamente se o ODA File Converter ou o LibreDWG estiverem instalados
 
 **Ghost Tool (Anti-forensics)**
 
@@ -130,8 +140,9 @@ http://localhost:5000
 ## Estrutura
 
 ```
-├── app.py                        # Flask app — 70+ rotas, 22 apps
+├── app.py                        # Flask app — 70+ rotas, 23 apps
 ├── Office/                       # Conversor e reparador de Word/Excel/PowerPoint
+├── Conversor/                    # Conversor universal estilo Convertio (imagem → DXF, CAD, documentos, mídia...)
 ├── DevData/                      # Beautifier/minifier, dados mock, conversor de formatos, encode/decode
 ├── ImageStudio/                  # Crop & resize em massa, filtros/marca d'água, gerador de favicon
 ├── TextClean/                    # Text diff, sanitizador e contador estatístico
