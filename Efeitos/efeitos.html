@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Efeitos</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    :root {
+      --bg: #0a0f1e;
+      --card: rgba(15, 23, 42, 0.55);
+      --line: rgba(148, 163, 184, 0.12);
+      --line-strong: rgba(148, 163, 184, 0.25);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --dim: #64748b;
+      --accent: #ec4899;
+      --accent-2: #f59e0b;
+      --accent-3: #8b5cf6;
+      --ok: #22c55e;
+      --err: #f87171;
+      --warn: #fbbf24;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(at 0% 0%, rgba(236, 72, 153, 0.09) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.07) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.06) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 96px 16px 80px;
+    }
+    button, input, select { font-family: inherit; }
+    .hidden { display: none !important; }
+
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 50; color: #cbd5e1; text-decoration: none;
+    }
+    .back-button:hover { border-color: rgba(236, 72, 153, 0.5); color: var(--accent); transform: translateX(-6px); }
+
+    header { text-align: center; margin-bottom: 32px; }
+    .logo {
+      font-size: 46px; font-weight: 900; letter-spacing: 1px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .logo-icon { -webkit-text-fill-color: initial; background: none; }
+    .tagline { color: var(--muted); font-size: 15px; margin-top: 8px; line-height: 1.5; }
+    .tagline b { color: #cbd5e1; font-weight: 600; }
+
+    .wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 24px;
+      backdrop-filter: blur(40px); padding: 24px;
+    }
+
+    /* ---------- Envio ---------- */
+    .drop {
+      border: 2px dashed rgba(236, 72, 153, 0.3); text-align: center; padding: 44px 24px 36px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .drop.dragover { border-color: var(--accent); background: rgba(236, 72, 153, 0.08); }
+    .drop-icon { font-size: 52px; margin-bottom: 14px; }
+    .drop-hint { color: var(--dim); font-size: 13px; margin-top: 14px; line-height: 1.6; }
+    .drop-hint b { color: #cbd5e1; }
+    .btn-primary {
+      border: none; border-radius: 999px; padding: 14px 30px; font-size: 15px; font-weight: 700;
+      cursor: pointer; color: white;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent) 55%, var(--accent-3));
+      box-shadow: 0 8px 24px rgba(236, 72, 153, 0.25);
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(236, 72, 153, 0.35); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary.small { padding: 8px 16px; font-size: 13px; }
+    .btn-ghost {
+      border: 1px solid var(--line-strong); background: rgba(15, 23, 42, 0.6); color: #cbd5e1;
+      border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: border-color 0.2s, color 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: #fff; }
+
+    /* ---------- Arquivos ---------- */
+    .files { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 18px; align-items: stretch; }
+    .file {
+      flex: 0 0 auto; display: flex; align-items: center; gap: 10px; max-width: 260px;
+      border: 1px solid var(--line); border-radius: 14px; background: rgba(2, 6, 23, 0.45);
+      padding: 6px 8px 6px 6px; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative;
+    }
+    .file:hover { border-color: var(--line-strong); }
+    .file.active { border-color: var(--accent); background: rgba(236, 72, 153, 0.1); }
+    .file.error { border-color: rgba(248, 113, 113, 0.5); }
+    .file-thumb {
+      width: 44px; height: 44px; border-radius: 9px; overflow: hidden; flex-shrink: 0;
+      background: rgba(148, 163, 184, 0.1); display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .file-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .file-meta { min-width: 0; }
+    .file-name { font-size: 13px; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .file-sub { font-size: 11px; color: var(--dim); margin-top: 3px; white-space: nowrap; }
+    .file-sub.err { color: var(--err); white-space: normal; }
+    .file-x {
+      width: 26px; height: 26px; border-radius: 8px; border: none; background: transparent; color: var(--dim);
+      cursor: pointer; font-size: 14px; flex-shrink: 0;
+    }
+    .file-x:hover { background: rgba(148, 163, 184, 0.12); color: #fff; }
+    .file-add {
+      flex: 0 0 auto; border: 1.5px dashed var(--line-strong); border-radius: 14px; background: transparent;
+      color: var(--muted); padding: 0 18px; font-size: 13px; font-weight: 600; cursor: pointer; min-height: 58px;
+    }
+    .file-add:hover { border-color: var(--accent); color: #fff; }
+    .spin {
+      width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(236, 72, 153, 0.25);
+      border-top-color: var(--accent); animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---------- Área de trabalho ---------- */
+    .studio { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 22px; align-items: start; }
+    .stage-col { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .stage {
+      position: relative; border-radius: 18px; overflow: hidden; background:
+        repeating-conic-gradient(rgba(148,163,184,0.08) 0% 25%, transparent 0% 50%) 50% / 22px 22px, rgba(2, 6, 23, 0.6);
+      border: 1px solid var(--line); display: flex; align-items: center; justify-content: center;
+      min-height: 320px; max-height: 72vh; user-select: none; touch-action: none;
+    }
+    .compare { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
+    .compare img { display: block; max-width: 100%; max-height: 70vh; width: auto; height: auto; }
+    .compare .before { position: absolute; inset: 0; width: 100%; height: 100%; clip-path: inset(0 50% 0 0); }
+    .compare.no-split .before, .compare.no-split .handle, .compare.no-split .tag { display: none; }
+    .handle {
+      position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; background: #fff;
+      box-shadow: 0 0 12px rgba(0,0,0,0.6); cursor: ew-resize;
+    }
+    .handle::after {
+      content: '⇆'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 36px; height: 36px; border-radius: 50%; background: rgba(15, 23, 42, 0.85); border: 2px solid #fff;
+      color: #fff; font-size: 16px; line-height: 32px; text-align: center;
+    }
+    .tag {
+      position: absolute; top: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.4px; line-height: 1;
+      background: rgba(15, 23, 42, 0.78); color: #e2e8f0; padding: 6px 9px; border-radius: 8px; pointer-events: none;
+    }
+    .tag.l { left: 12px; } .tag.r { right: 12px; }
+    .stage-loading {
+      position: absolute; right: 14px; bottom: 14px; display: flex; align-items: center; gap: 8px;
+      background: rgba(15, 23, 42, 0.85); border-radius: 999px; padding: 7px 12px; font-size: 12px; color: #cbd5e1;
+    }
+    .stage-empty { color: var(--dim); font-size: 14px; text-align: center; padding: 30px; line-height: 1.6; }
+    .stage-info { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--dim); align-items: center; }
+    .stage-info b { color: #cbd5e1; font-weight: 600; }
+    .notice {
+      font-size: 12px; color: var(--warn); background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.25); border-radius: 10px; padding: 8px 12px; line-height: 1.5;
+    }
+
+    .panel-col { display: flex; flex-direction: column; gap: 16px; }
+    #gallery > div + div { margin-top: 18px; }
+    .group-title { font-size: 12px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); margin: 4px 0 10px; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .fx {
+      position: relative; border: 1.5px solid var(--line); border-radius: 14px; background: rgba(2, 6, 23, 0.45);
+      cursor: pointer; overflow: hidden; text-align: left; color: inherit; padding: 0;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .fx:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+    .fx.selected { border-color: rgba(236, 72, 153, 0.7); }
+    .fx.focused { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.25); }
+    .fx-img {
+      aspect-ratio: 4 / 3; background: rgba(148, 163, 184, 0.08); display: flex; align-items: center;
+      justify-content: center; font-size: 28px; overflow: hidden;
+    }
+    .fx-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .fx-name { font-size: 12px; font-weight: 700; padding: 7px 8px 8px; color: #f1f5f9; line-height: 1.25; }
+    .fx-check {
+      position: absolute; top: 6px; right: 6px; min-width: 22px; height: 22px; border-radius: 999px; padding: 0 6px;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: #fff; font-size: 11px; font-weight: 800;
+      display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .fx.selected .fx-check { display: flex; }
+    .fx-face {
+      position: absolute; top: 6px; left: 6px; font-size: 12px; line-height: 1; padding: 3px 5px; border-radius: 999px;
+      background: rgba(15, 23, 42, 0.8); color: #fff;
+    }
+    .fx[hidden] { display: none; }
+    .gallery-tools { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+    .fx-search {
+      width: 100%; background: rgba(15, 23, 42, 0.9); color: #f1f5f9; border: 1px solid var(--line-strong);
+      border-radius: 10px; padding: 9px 12px; font-size: 13px; outline: none;
+    }
+    .fx-search:focus { border-color: var(--accent); }
+    .jump { display: flex; flex-wrap: wrap; gap: 6px; }
+    .jump button {
+      border: 1px solid var(--line-strong); background: rgba(15, 23, 42, 0.7); color: #cbd5e1; border-radius: 999px;
+      padding: 5px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+    }
+    .jump button:hover { border-color: var(--accent); color: #fff; }
+    .no-fx { color: var(--dim); font-size: 13px; padding: 8px 2px; }
+
+    .settings h3 { font-size: 15px; color: #f8fafc; display: flex; align-items: center; gap: 8px; }
+    .settings .desc { font-size: 12.5px; color: var(--muted); margin: 6px 0 14px; line-height: 1.5; }
+    .settings-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .link-btn { background: none; border: none; color: var(--dim); font-size: 12px; cursor: pointer; font-weight: 600; }
+    .link-btn:hover { color: var(--accent); }
+    .field { margin-bottom: 14px; }
+    .field-top { display: flex; justify-content: space-between; font-size: 12.5px; color: #cbd5e1; margin-bottom: 7px; font-weight: 600; }
+    .field-top span:last-child { color: var(--dim); font-variant-numeric: tabular-nums; }
+    input[type=range] { width: 100%; accent-color: var(--accent); }
+    select {
+      width: 100%; background: rgba(15, 23, 42, 0.9); color: #f1f5f9; border: 1px solid var(--line-strong);
+      border-radius: 10px; padding: 9px 10px; font-size: 13px;
+    }
+    .color-row { display: flex; align-items: center; gap: 10px; }
+    input[type=color] { width: 44px; height: 34px; border: 1px solid var(--line-strong); border-radius: 8px; background: none; cursor: pointer; padding: 2px; }
+    .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 14px; }
+    .preset {
+      width: 44px; height: 24px; border-radius: 7px; border: 1px solid var(--line-strong); cursor: pointer;
+    }
+    .preset:hover { transform: translateY(-1px); border-color: #fff; }
+    .check { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #cbd5e1; cursor: pointer; font-weight: 600; }
+    .check input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+    .mode { display: flex; background: rgba(2, 6, 23, 0.55); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
+    .mode button {
+      flex: 1; border: none; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 700;
+      padding: 9px 8px; border-radius: 9px; cursor: pointer;
+    }
+    .mode button.on { background: rgba(236, 72, 153, 0.18); color: #fff; }
+    .combine-note {
+      font-size: 12px; color: #cbd5e1; line-height: 1.55; margin-top: 12px; padding: 10px 12px;
+      background: rgba(236, 72, 153, 0.07); border: 1px solid rgba(236, 72, 153, 0.22); border-radius: 10px;
+    }
+    .combine-note b { color: #fff; }
+    .outnames { font-size: 12.5px; color: var(--muted); line-height: 1.7; margin: 12px 0 14px; max-height: 150px; overflow: auto; }
+    .outnames code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #f1f5f9;
+      background: rgba(148, 163, 184, 0.1); border-radius: 6px; padding: 2px 6px; overflow-wrap: anywhere;
+      display: inline-block; max-width: 100%;
+    }
+    .apply { width: 100%; }
+    .apply-hint { font-size: 12px; color: var(--dim); text-align: center; margin-top: 10px; line-height: 1.5; }
+
+    /* ---------- Resultados ---------- */
+    .results-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+    .results-head h2 { font-size: 18px; color: #f8fafc; }
+    .job { border: 1px solid var(--line); border-radius: 16px; background: rgba(2, 6, 23, 0.45); padding: 14px; margin-bottom: 10px; }
+    .job.done { border-color: rgba(34, 197, 94, 0.35); }
+    .job.error { border-color: rgba(248, 113, 113, 0.35); }
+    .job-head { display: flex; align-items: center; gap: 12px; }
+    .job-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .job-state { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+    .bar { height: 6px; border-radius: 999px; background: rgba(148, 163, 184, 0.15); overflow: hidden; margin-top: 10px; }
+    .bar > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent-2), var(--accent), var(--accent-3)); transition: width 0.3s; }
+    .outs { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .out { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+    .out-name { flex: 1; min-width: 180px; color: #f1f5f9; font-weight: 600; word-break: break-all; }
+    .out-name small { display: block; color: var(--dim); font-weight: 500; margin-top: 2px; }
+    .out-note { width: 100%; font-size: 12px; color: var(--warn); }
+    .out.err .out-name { color: var(--err); }
+
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .feature { padding: 4px; }
+    .feature .fi { font-size: 24px; margin-bottom: 8px; }
+    .feature h3 { font-size: 14px; color: #f1f5f9; margin-bottom: 6px; }
+    .feature p { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+    .feature b { color: #cbd5e1; }
+
+    @media (max-width: 980px) {
+      .studio { grid-template-columns: 1fr; }
+      /* A prévia fica presa no topo enquanto a galeria rola por baixo */
+      .stage-col {
+        top: 0; z-index: 20; margin: 0 -8px; padding: 8px 8px 10px;
+        background: rgba(10, 15, 30, 0.94); backdrop-filter: blur(12px); border-radius: 0 0 16px 16px;
+      }
+      .stage { min-height: 180px; max-height: 42vh; }
+      .compare img { max-height: 40vh; }
+      .stage-info, .stage-col .notice { display: none; }
+      .back-button { position: absolute; }
+    }
+    @media (max-width: 560px) {
+      body { padding-top: 88px; }
+      .back-button { top: 16px; left: 16px; width: 48px; height: 48px; }
+      .logo { font-size: 34px; }
+      .card { padding: 16px; border-radius: 18px; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <a class="back-button" href="/" title="Voltar ao menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </a>
+
+  <header>
+    <div class="logo"><span class="logo-icon">🪄</span> EFEITOS</div>
+    <div class="tagline">43 efeitos para <b>fotos e vídeos</b>, dos clássicos aos engraçados — o arquivo sai no <b>mesmo formato</b>, com o nome do efeito:<br>
+      <b>praia.jpg</b> → <b>praia (Sépia).jpg</b>. Tudo processado na sua máquina.</div>
+  </header>
+
+  <main class="wrap">
+    <section class="card drop" id="drop">
+      <div class="drop-icon">🖼️🎬</div>
+      <button class="btn-primary" id="pick" type="button">📎 Escolher fotos ou vídeos</button>
+      <div class="drop-hint">ou arraste para cá · <b>Ctrl+V</b> cola uma imagem · vários arquivos de uma vez<br>
+        JPG, PNG, WEBP, HEIC, AVIF, TIFF, BMP, GIF animado, SVG… · MP4, MOV, MKV, WEBM, AVI, WMV, MPG, 3GP…</div>
+    </section>
+    <input type="file" id="file-input" multiple hidden accept="image/*,video/*,.heic,.heif,.avif,.svg,.mkv,.avi,.wmv,.flv,.mts,.m2ts,.ts,.vob,.3gp,.ogv">
+
+    <section class="card hidden" id="studio-card">
+      <div class="files" id="files"></div>
+      <div class="studio">
+        <div class="stage-col">
+          <div class="stage" id="stage"><div class="stage-empty">Enviando…</div></div>
+          <div class="stage-info" id="stage-info"></div>
+          <div class="notice hidden" id="stage-notice"></div>
+        </div>
+        <div class="panel-col">
+          <div class="gallery-tools">
+            <input class="fx-search" id="fx-search" type="search" placeholder="Buscar efeito (ex.: óculos, vhs, derreter)…" autocomplete="off">
+            <div class="jump" id="jump"></div>
+          </div>
+          <div id="gallery"></div>
+          <div class="card settings hidden" id="settings"></div>
+          <div class="card" id="output-card">
+            <div class="mode hidden" id="mode">
+              <button type="button" data-combine="0" class="on">Um arquivo por efeito</button>
+              <button type="button" data-combine="1">Combinar em um arquivo</button>
+            </div>
+            <div class="combine-note hidden" id="combine-note"></div>
+            <div class="outnames" id="outnames"></div>
+            <button class="btn-primary apply" id="apply" type="button" disabled>✨ Aplicar efeito</button>
+            <div class="apply-hint" id="apply-hint">Salvo na pasta <b>Downloads</b>, sem sobrescrever nada.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="results-card">
+      <div class="results-head">
+        <h2>Resultados</h2>
+        <button class="btn-ghost" id="clear-results" type="button">Limpar concluídos</button>
+      </div>
+      <div id="results"></div>
+    </section>
+
+    <section class="card">
+      <div class="features">
+        <div class="feature"><div class="fi">📁</div><h3>Mesmo formato, mesmo nome</h3><p>O resultado mantém o formato, a extensão, o EXIF, o perfil de cor e a transparência do original. Só ganha o efeito entre parênteses: <b>foto (Glitch).png</b>.</p></div>
+        <div class="feature"><div class="fi">🎬</div><h3>Vídeos com som</h3><p>Cada quadro recebe o efeito e o áudio original é copiado sem perda. Vídeos verticais de celular continuam na orientação certa.</p></div>
+        <div class="feature"><div class="fi">🧪</div><h3>Vários de uma vez</h3><p>Marque vários efeitos para gerar um arquivo de cada, ou combine-os em um só: <b>foto (Vintage + Vinheta).jpg</b>.</p></div>
+        <div class="feature"><div class="fi">🔒</div><h3>Nada sai da máquina</h3><p>Sem upload para servidores. A Silhueta pode usar IA local (rembg) para recortar o assunto da foto.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (s) => document.querySelector(s);
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const fmtSize = (b) => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(0) + ' KB' : b < 1073741824 ? (b / 1048576).toFixed(1) + ' MB' : (b / 1073741824).toFixed(2) + ' GB';
+    const fmtTime = (s) => { s = Math.round(s || 0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+    const store = {
+      get(k, d) { try { const v = localStorage.getItem('efeitos.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+      set(k, v) { try { localStorage.setItem('efeitos.' + k, JSON.stringify(v)); } catch (e) { /* sem armazenamento */ } },
+    };
+
+    let CATALOG = null;
+    const state = {
+      files: [],          // {key, file, name, status, meta, thumbs, error}
+      active: null,
+      selected: [],       // ids na ordem em que foram marcados
+      focused: null,
+      params: {},
+      combine: false,
+      split: 50,
+    };
+    let fileSeq = 0;
+
+    // ---------- Catálogo ----------
+    async function loadCatalog() {
+      const r = await fetch('/efeitos/effects');
+      CATALOG = await r.json();
+      const saved = store.get('params', {});
+      for (const eff of CATALOG.effects) {
+        state.params[eff.id] = defaults(eff);
+        if (saved[eff.id]) {
+          for (const p of eff.params) if (p.id in saved[eff.id]) state.params[eff.id][p.id] = saved[eff.id][p.id];
+        }
+      }
+      renderGallery();
+    }
+    const effById = (id) => CATALOG.effects.find((e) => e.id === id);
+    const defaults = (eff) => Object.fromEntries(eff.params.map((p) => [p.id, p.default]));
+
+    // ---------- Envio ----------
+    const input = $('#file-input');
+    $('#pick').addEventListener('click', () => input.click());
+    input.addEventListener('change', () => { addFiles(input.files); input.value = ''; });
+    const drop = $('#drop');
+    ['dragenter', 'dragover'].forEach((ev) => document.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach((ev) => document.addEventListener(ev, (e) => {
+      e.preventDefault();
+      if (ev === 'drop' || !e.relatedTarget) drop.classList.remove('dragover');
+    }));
+    document.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+    document.addEventListener('paste', (e) => {
+      const files = Array.from(e.clipboardData?.files || []);
+      if (files.length) addFiles(files);
+    });
+
+    let uploading = false;
+    function addFiles(list) {
+      for (const file of Array.from(list)) {
+        state.files.push({ key: ++fileSeq, file, name: file.name || 'colado.png', status: 'waiting', meta: null, thumbs: null });
+      }
+      if (!state.active && state.files.length) state.active = state.files[0].key;
+      $('#drop').classList.add('hidden');
+      $('#studio-card').classList.remove('hidden');
+      renderFiles();
+      renderStage();
+      pumpUploads();
+    }
+
+    // Um envio por vez: vídeos grandes não disputam o disco
+    async function pumpUploads() {
+      if (uploading) return;
+      const next = state.files.find((f) => f.status === 'waiting');
+      if (!next) return;
+      uploading = true;
+      next.status = 'uploading';
+      renderFiles();
+      try {
+        const fd = new FormData();
+        fd.append('file', next.file, next.name);
+        const r = await fetch('/efeitos/upload', { method: 'POST', body: fd });
+        const j = await r.json();
+        if (!j.success) throw new Error(j.error || 'Falha no envio.');
+        next.meta = j;
+        next.status = 'ready';
+        next.file = null; // o servidor já tem o arquivo
+        if (!state.files.includes(next)) forget(j.id);
+      } catch (e) {
+        next.status = 'error';
+        next.error = e.message || String(e);
+      }
+      uploading = false;
+      renderFiles();
+      if (next.key === state.active) { renderStage(); loadThumbs(next); schedulePreview(); }
+      updateOutput();
+      pumpUploads();
+    }
+
+    function forget(id) {
+      if (!id) return;
+      fetch('/efeitos/forget', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }).catch(() => {});
+    }
+
+    function activeFile() { return state.files.find((f) => f.key === state.active) || null; }
+
+    function renderFiles() {
+      const box = $('#files');
+      box.innerHTML = '';
+      for (const f of state.files) {
+        const el = document.createElement('div');
+        el.className = 'file' + (f.key === state.active ? ' active' : '') + (f.status === 'error' ? ' error' : '');
+        const icon = f.meta?.kind === 'video' ? '🎬' : '🖼️';
+        const thumb = f.meta?.thumb ? `<img src="${f.meta.thumb}" alt="">` : (f.status === 'uploading' ? '<div class="spin"></div>' : icon);
+        let sub = '';
+        if (f.status === 'waiting') sub = 'na fila de envio';
+        else if (f.status === 'uploading') sub = 'enviando…';
+        else if (f.status === 'error') sub = esc(f.error);
+        else if (f.meta.kind === 'video') sub = `vídeo · ${f.meta.width}×${f.meta.height} · ${fmtTime(f.meta.duration)}`;
+        else sub = `${f.meta.format || f.meta.kind.toUpperCase()} · ${f.meta.width}×${f.meta.height}` + (f.meta.frames > 1 ? ` · ${f.meta.frames} quadros` : '');
+        el.innerHTML = `<div class="file-thumb">${thumb}</div>
+          <div class="file-meta"><div class="file-name" title="${esc(f.name)}">${esc(f.name)}</div>
+          <div class="file-sub${f.status === 'error' ? ' err' : ''}">${sub}</div></div>
+          <button class="file-x" type="button" title="Remover">✕</button>`;
+        el.addEventListener('click', (e) => {
+          if (e.target.closest('.file-x')) return removeFile(f.key);
+          if (state.active === f.key) return;
+          state.active = f.key;
+          renderFiles(); renderStage(); updateOutput();
+          if (f.status === 'ready') { loadThumbs(f); schedulePreview(); }
+          else renderGalleryThumbs();
+        });
+        box.appendChild(el);
+      }
+      const add = document.createElement('button');
+      add.className = 'file-add';
+      add.type = 'button';
+      add.textContent = '＋ Adicionar';
+      add.addEventListener('click', () => input.click());
+      box.appendChild(add);
+    }
+
+    function removeFile(key) {
+      const i = state.files.findIndex((f) => f.key === key);
+      if (i < 0) return;
+      const [f] = state.files.splice(i, 1);
+      if (f.meta) forget(f.meta.id);
+      if (state.active === key) state.active = state.files[Math.min(i, state.files.length - 1)]?.key ?? null;
+      if (!state.files.length) {
+        $('#studio-card').classList.add('hidden');
+        $('#drop').classList.remove('hidden');
+      }
+      renderFiles(); renderStage(); renderGalleryThumbs(); updateOutput();
+      const a = activeFile();
+      if (a && a.status === 'ready') { loadThumbs(a); schedulePreview(); }
+    }
+
+    // ---------- Galeria de efeitos ----------
+    function renderGallery() {
+      const box = $('#gallery');
+      box.innerHTML = '';
+      const jump = $('#jump');
+      jump.innerHTML = '';
+      for (const g of CATALOG.groups) {
+        const wrap = document.createElement('div');
+        wrap.dataset.group = g.id;
+        wrap.innerHTML = `<div class="group-title" id="grupo-${g.id}">${g.icon} ${esc(g.label)}</div><div class="grid"></div>`;
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.textContent = `${g.icon} ${g.label.split(' ')[0]}`;
+        chip.addEventListener('click', () => {
+          $('#fx-search').value = '';
+          filterGallery();
+          document.getElementById('grupo-' + g.id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        jump.appendChild(chip);
+        const grid = wrap.querySelector('.grid');
+        for (const eff of CATALOG.effects.filter((e) => e.group === g.id)) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'fx';
+          b.dataset.id = eff.id;
+          b.title = eff.desc;
+          b.innerHTML = `<div class="fx-img">${eff.icon}</div><div class="fx-name">${esc(eff.label)}</div><div class="fx-check"></div>` +
+            (eff.face ? '<div class="fx-face" title="Usa detecção de rosto">🙂</div>' : '');
+          b.dataset.search = fold(eff.label + ' ' + eff.desc + ' ' + eff.id);
+          b.addEventListener('click', () => toggleEffect(eff.id));
+          grid.appendChild(b);
+        }
+        box.appendChild(wrap);
+      }
+      box.insertAdjacentHTML('beforeend', '<div class="no-fx hidden" id="no-fx">Nenhum efeito com esse nome.</div>');
+      renderGallerySelection();
+    }
+
+    // Busca sem acento: "oculos" acha Thug Life pela descrição, "derreter" acha Derretendo
+    const fold = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    function filterGallery() {
+      const terms = fold($('#fx-search').value).split(/\s+/).filter(Boolean)
+        .map((t) => (t.length > 5 && /[aei]r$/.test(t) ? t.slice(0, -2) : t));
+      let shown = 0;
+      document.querySelectorAll('#gallery [data-group]').forEach((wrap) => {
+        let any = false;
+        wrap.querySelectorAll('.fx').forEach((b) => {
+          const ok = terms.every((t) => b.dataset.search.includes(t));
+          b.hidden = !ok;
+          any = any || ok;
+        });
+        wrap.classList.toggle('hidden', !any);
+        shown += any ? 1 : 0;
+      });
+      $('#no-fx').classList.toggle('hidden', shown > 0);
+    }
+    $('#fx-search').addEventListener('input', filterGallery);
+
+    // Ao combinar, o servidor aplica os efeitos por camada (CATALOG.order), não
+    // na ordem do clique; a interface mostra essa mesma ordem.
+    const ordered = (ids) => [...ids].sort((a, b) => CATALOG.order.indexOf(a) - CATALOG.order.indexOf(b));
+
+    function renderGallerySelection() {
+      const order = ordered(state.selected);
+      document.querySelectorAll('.fx').forEach((b) => {
+        const i = order.indexOf(b.dataset.id);
+        b.classList.toggle('selected', i >= 0);
+        b.classList.toggle('focused', b.dataset.id === state.focused);
+        b.querySelector('.fx-check').textContent = state.combine && order.length > 1 ? String(i + 1) : '✓';
+      });
+    }
+
+    function renderGalleryThumbs() {
+      const f = activeFile();
+      document.querySelectorAll('.fx').forEach((b) => {
+        const eff = effById(b.dataset.id);
+        const src = f?.thumbs?.[b.dataset.id];
+        b.querySelector('.fx-img').innerHTML = src ? `<img src="${src}" alt="">` : eff.icon;
+      });
+    }
+
+    async function loadThumbs(f) {
+      if (f.thumbs) return renderGalleryThumbs();
+      renderGalleryThumbs();
+      try {
+        const r = await fetch('/efeitos/thumbs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: f.meta.id }) });
+        const j = await r.json();
+        if (j.success) f.thumbs = j.thumbs;
+      } catch (e) { /* galeria fica só com os ícones */ }
+      if (f.key === state.active) renderGalleryThumbs();
+    }
+
+    // Clique: marca e abre os ajustes; clique no efeito aberto desmarca
+    function toggleEffect(id) {
+      const i = state.selected.indexOf(id);
+      if (i < 0) { state.selected.push(id); state.focused = id; }
+      else if (state.focused === id) {
+        state.selected.splice(i, 1);
+        state.focused = state.selected[state.selected.length - 1] || null;
+      } else state.focused = id;
+      renderGallerySelection();
+      renderSettings();
+      updateOutput();
+      schedulePreview();
+    }
+
+    // ---------- Ajustes ----------
+    function renderSettings() {
+      const box = $('#settings');
+      const eff = state.focused && effById(state.focused);
+      if (!eff) { box.classList.add('hidden'); return; }
+      box.classList.remove('hidden');
+      const vals = state.params[eff.id];
+      let html = `<div class="settings-head"><h3>${eff.icon} ${esc(eff.label)}</h3>
+        <button class="link-btn" type="button" id="reset">Restaurar padrão</button></div>
+        <div class="desc">${esc(eff.desc)}</div>`;
+      for (const p of eff.params) {
+        if (p.type === 'range') {
+          html += `<div class="field"><div class="field-top"><span>${esc(p.label)}</span><span data-val="${p.id}">${fmtVal(p, vals[p.id])}</span></div>
+            <input type="range" data-p="${p.id}" min="${p.min}" max="${p.max}" step="${p.step}" value="${vals[p.id]}"></div>`;
+        } else if (p.type === 'select') {
+          html += `<div class="field"><div class="field-top"><span>${esc(p.label)}</span></div><select data-p="${p.id}">` +
+            p.options.map((o) => `<option value="${esc(o.value)}"${o.value === vals[p.id] ? ' selected' : ''}>${esc(o.label)}</option>`).join('') + '</select></div>';
+        } else if (p.type === 'color') {
+          html += `<div class="field color-row"><input type="color" data-p="${p.id}" value="${vals[p.id]}"><span class="field-top" style="margin:0">${esc(p.label)}</span></div>`;
+        } else if (p.type === 'check') {
+          html += `<div class="field"><label class="check"><input type="checkbox" data-p="${p.id}"${vals[p.id] ? ' checked' : ''}> ${esc(p.label)}</label></div>`;
+        }
+      }
+      if (eff.presets) {
+        html += '<div class="field-top"><span>Combinações prontas</span></div><div class="presets">' +
+          eff.presets.map((c, i) => `<button type="button" class="preset" data-preset="${i}" title="${c[0]} + ${c[1]}" style="background:linear-gradient(90deg, ${c[0]} 50%, ${c[1]} 50%)"></button>`).join('') + '</div>';
+      }
+      box.innerHTML = html;
+      box.querySelectorAll('[data-p]').forEach((el) => {
+        const p = eff.params.find((x) => x.id === el.dataset.p);
+        el.addEventListener('input', () => {
+          vals[p.id] = p.type === 'range' ? Number(el.value) : p.type === 'check' ? el.checked : el.value;
+          const out = box.querySelector(`[data-val="${p.id}"]`);
+          if (out) out.textContent = fmtVal(p, vals[p.id]);
+          paramsChanged();
+        });
+      });
+      box.querySelectorAll('[data-preset]').forEach((el) => el.addEventListener('click', () => {
+        const [c1, c2] = eff.presets[Number(el.dataset.preset)];
+        vals.cor1 = c1; vals.cor2 = c2;
+        renderSettings(); paramsChanged();
+      }));
+      $('#reset').addEventListener('click', () => { state.params[eff.id] = defaults(eff); renderSettings(); paramsChanged(); });
+    }
+    function fmtVal(p, v) {
+      if (p.id === 'limiar' && Number(v) === 0) return 'automático';
+      return v + (p.unit || '');
+    }
+    function paramsChanged() {
+      store.set('params', state.params);
+      schedulePreview();
+    }
+
+    // ---------- Prévia ----------
+    let previewTimer = null;
+    let previewSeq = 0;
+    let lastPreview = null;
+
+    function previewChain() {
+      if (!state.selected.length) return null;
+      const ids = state.combine ? ordered(state.selected) : [state.focused || state.selected[0]];
+      return ids.map((id) => ({ id, params: state.params[id] }));
+    }
+
+    function schedulePreview() {
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(runPreview, 160);
+    }
+
+    async function runPreview() {
+      const f = activeFile();
+      const chain = previewChain();
+      if (!f || f.status !== 'ready') return;
+      if (!chain) { lastPreview = null; renderStage(); return; }
+      const seq = ++previewSeq;
+      setLoading(true);
+      try {
+        const r = await fetch('/efeitos/preview', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: f.meta.id, chain }),
+        });
+        const j = await r.json();
+        if (seq !== previewSeq) return;
+        if (!j.success) throw new Error(j.error);
+        lastPreview = { key: f.key, image: j.image, notes: j.notes || [] };
+        renderStage();
+      } catch (e) {
+        if (seq !== previewSeq) return;
+        lastPreview = { key: f.key, error: e.message || String(e) };
+        renderStage();
+      } finally {
+        if (seq === previewSeq) setLoading(false);
+      }
+    }
+
+    function setLoading(on) {
+      let el = $('#stage-loading');
+      if (on && !el) {
+        el = document.createElement('div');
+        el.className = 'stage-loading';
+        el.id = 'stage-loading';
+        el.innerHTML = '<div class="spin"></div> aplicando…';
+        $('#stage').appendChild(el);
+      } else if (!on && el) el.remove();
+    }
+
+    function renderStage() {
+      const stage = $('#stage');
+      const info = $('#stage-info');
+      const notice = $('#stage-notice');
+      const f = activeFile();
+      notice.classList.add('hidden');
+      if (!f) { stage.innerHTML = ''; info.innerHTML = ''; return; }
+      if (f.status !== 'ready') {
+        stage.innerHTML = f.status === 'error'
+          ? `<div class="stage-empty">❌ ${esc(f.error)}</div>`
+          : '<div class="stage-empty"><div class="spin" style="margin:0 auto 12px"></div>Enviando e preparando a prévia…</div>';
+        info.innerHTML = '';
+        return;
+      }
+      const m = f.meta;
+      const hasFx = lastPreview && lastPreview.key === f.key && lastPreview.image && state.selected.length;
+      const after = hasFx ? lastPreview.image : m.preview;
+      stage.innerHTML = `<div class="compare${hasFx ? '' : ' no-split'}" id="compare">
+          <img class="after" src="${after}" alt="Prévia com efeito" draggable="false">
+          <img class="before" src="${m.preview}" alt="Original" draggable="false" style="clip-path: inset(0 ${100 - state.split}% 0 0)">
+          <div class="handle" style="left:${state.split}%"></div>
+          <span class="tag l">ORIGINAL</span><span class="tag r">${esc(hasFx ? previewChain().map((c) => effById(c.id).label).join(' + ').toUpperCase() : '')}</span>
+        </div>`;
+      bindCompare();
+      const bits = [`<span><b>${esc(m.name)}</b></span>`, `<span>${m.width}×${m.height}</span>`, `<span>${fmtSize(m.size)}</span>`];
+      if (m.kind === 'video') bits.push(`<span>${fmtTime(m.duration)} · ${m.fps} fps${m.audio ? ' · com áudio' : ''}</span>`);
+      info.innerHTML = bits.join('');
+      const notes = [];
+      if (m.kind === 'video') notes.push('A prévia mostra um quadro do vídeo; o arquivo final recebe o efeito em todos os quadros.');
+      if (m.frames > 1) notes.push(`GIF/animação com ${m.frames} quadros: a prévia mostra o primeiro, o arquivo final sai animado.`);
+      if (m.kind === 'svg') notes.push('SVG: o efeito é aplicado em pixels e o resultado continua sendo um .svg (com a imagem embutida).');
+      if (lastPreview && lastPreview.key === f.key) {
+        if (lastPreview.error) notes.push('⚠️ ' + lastPreview.error);
+        notes.push(...(lastPreview.notes || []));
+      }
+      if (notes.length) { notice.innerHTML = notes.map(esc).join('<br>'); notice.classList.remove('hidden'); }
+    }
+
+    function bindCompare() {
+      const box = $('#compare');
+      if (!box || box.classList.contains('no-split')) return;
+      const before = box.querySelector('.before');
+      const handle = box.querySelector('.handle');
+      const move = (clientX) => {
+        const r = box.getBoundingClientRect();
+        state.split = Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100));
+        before.style.clipPath = `inset(0 ${100 - state.split}% 0 0)`;
+        handle.style.left = state.split + '%';
+      };
+      box.addEventListener('pointerdown', (e) => {
+        box.setPointerCapture(e.pointerId);
+        move(e.clientX);
+        const onMove = (ev) => move(ev.clientX);
+        const onUp = () => { box.removeEventListener('pointermove', onMove); box.removeEventListener('pointerup', onUp); };
+        box.addEventListener('pointermove', onMove);
+        box.addEventListener('pointerup', onUp);
+      });
+    }
+
+    // ---------- Saída ----------
+    document.querySelectorAll('#mode button').forEach((b) => b.addEventListener('click', () => {
+      state.combine = b.dataset.combine === '1';
+      document.querySelectorAll('#mode button').forEach((x) => x.classList.toggle('on', x === b));
+      renderGallerySelection();
+      updateOutput();
+      schedulePreview();
+    }));
+
+    function outputChains() {
+      if (!state.selected.length) return [];
+      const item = (id) => ({ id, params: state.params[id] });
+      return state.combine ? [ordered(state.selected).map(item)] : state.selected.map((id) => [item(id)]);
+    }
+
+    function outName(name, chain) {
+      const dot = name.lastIndexOf('.');
+      const base = dot > 0 ? name.slice(0, dot) : name;
+      const ext = dot > 0 ? name.slice(dot) : '';
+      return `${base} (${chain.map((c) => effById(c.id).label).join(' + ')})${ext}`;
+    }
+
+    function updateOutput() {
+      $('#mode').classList.toggle('hidden', state.selected.length < 2);
+      if (state.selected.length < 2 && state.combine) {
+        state.combine = false;
+        document.querySelectorAll('#mode button').forEach((x) => x.classList.toggle('on', x.dataset.combine === '0'));
+      }
+      renderCombineNote();
+      const ready = state.files.filter((f) => f.status === 'ready');
+      const chains = outputChains();
+      const btn = $('#apply');
+      const box = $('#outnames');
+      if (!chains.length) {
+        box.innerHTML = 'Escolha um ou mais efeitos na galeria. Clique de novo no efeito aberto para desmarcar.';
+        btn.disabled = true;
+        btn.textContent = '✨ Aplicar efeito';
+        return;
+      }
+      const f = activeFile();
+      const sample = f ? f.name : (ready[0]?.name || 'arquivo.jpg');
+      const names = chains.map((c) => `<code>${esc(outName(sample, c))}</code>`);
+      const total = chains.length * ready.length;
+      box.innerHTML = `Vai gerar${ready.length > 1 ? ` (para cada um dos ${ready.length} arquivos)` : ''}:<br>` + names.join('<br>');
+      btn.disabled = !ready.length;
+      btn.textContent = total > 1 ? `✨ Gerar ${total} arquivos` : '✨ Aplicar efeito';
+    }
+
+    function renderCombineNote() {
+      const box = $('#combine-note');
+      if (!state.combine || state.selected.length < 2) { box.classList.add('hidden'); return; }
+      const ids = ordered(state.selected);
+      const label = (id) => esc(effById(id).label);
+      const lines = [`Aplicados por camada, para um não apagar o outro: <b>${ids.map(label).join(' → ')}</b>.`];
+      const tints = ids.filter((id) => CATALOG.tones.includes(id));
+      if (tints.length > 1) {
+        lines.push(`${tints.map(label).join(' e ')} dividem a foto pela luz: <b>${label(tints[0])}</b> nas sombras` +
+          (tints.length > 2 ? `, <b>${label(tints[1])}</b> nos meios-tons` : '') + ` e <b>${label(tints[tints.length - 1])}</b> nas luzes.`);
+      }
+      if (ids.includes('pb') && tints.length) {
+        lines.push(`O Preto e Branco vira a base (filtro de lente e contraste) e ${tints.map(label).join(' e ')} colore${tints.length > 1 ? 'm' : ''} por cima.`);
+      }
+      box.innerHTML = lines.join('<br>');
+      box.classList.remove('hidden');
+    }
+
+    $('#apply').addEventListener('click', async () => {
+      const chains = outputChains();
+      const ready = state.files.filter((f) => f.status === 'ready');
+      if (!chains.length || !ready.length) return;
+      $('#results-card').classList.remove('hidden');
+      for (const f of ready) {
+        const job = { file: f.name, kind: f.meta.kind, id: null, data: null, error: null };
+        const el = document.createElement('div');
+        el.className = 'job';
+        $('#results').prepend(el);
+        job.el = el;
+        renderJob(job);
+        try {
+          const r = await fetch('/efeitos/apply', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: f.meta.id, chains }),
+          });
+          const j = await r.json();
+          if (!j.success) throw new Error(j.error);
+          job.id = j.job;
+          pollJob(job);
+        } catch (e) {
+          job.error = e.message || String(e);
+          renderJob(job);
+        }
+      }
+      $('#results-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    async function pollJob(job) {
+      try {
+        const r = await fetch('/efeitos/jobs/' + encodeURIComponent(job.id));
+        const j = await r.json();
+        if (!j.success) throw new Error(j.error);
+        job.data = j.job;
+      } catch (e) {
+        job.error = e.message || String(e);
+      }
+      renderJob(job);
+      if (!job.error && job.data && ['queued', 'running'].includes(job.data.status)) {
+        setTimeout(() => pollJob(job), job.kind === 'video' ? 900 : 450);
+      }
+    }
+
+    function renderJob(job) {
+      const d = job.data;
+      const running = !job.error && (!d || ['queued', 'running'].includes(d.status));
+      const pct = d ? Math.round(d.progress * 100) : 0;
+      let st;
+      if (job.error) st = 'erro';
+      else if (!d || d.status === 'queued') st = 'na fila';
+      else if (d.status === 'running') st = `${pct}%` + (d.current ? ` · ${esc(d.current)}` : '');
+      else st = d.outputs.length ? `✅ ${d.outputs.length} arquivo${d.outputs.length > 1 ? 's' : ''}` : 'erro';
+      job.el.className = 'job' + (running ? '' : (job.error || !d.outputs.length ? ' error' : ' done'));
+      let html = `<div class="job-head"><div class="job-title">${job.kind === 'video' ? '🎬' : '🖼️'} ${esc(job.file)}</div>
+        <div class="job-state">${st}</div>` +
+        (running && job.id ? `<button class="btn-ghost" type="button" data-cancel>Cancelar</button>` : '') + '</div>';
+      if (running) html += `<div class="bar"><div style="width:${pct}%"></div></div>`;
+      if (job.error) html += `<div class="outs"><div class="out err"><div class="out-name">${esc(job.error)}</div></div></div>`;
+      if (d && (d.outputs.length || d.errors.length)) {
+        html += '<div class="outs">';
+        for (const o of d.outputs) {
+          const url = '/efeitos/download/' + encodeURIComponent(o.token);
+          html += `<div class="out"><div class="out-name">${esc(o.filename)}<small>${fmtSize(o.size)} · salvo em Downloads</small></div>
+            <a class="btn-primary small" href="${url}" download>⬇️ Baixar</a>
+            <a class="btn-ghost" href="${url}?inline=1" target="_blank" rel="noopener">Abrir ↗</a>
+            ${(o.notes || []).map((n) => `<div class="out-note">⚠️ ${esc(n)}</div>`).join('')}</div>`;
+        }
+        for (const e of d.errors) html += `<div class="out err"><div class="out-name">${esc(e.label)}: ${esc(e.error)}</div></div>`;
+        html += '</div>';
+      }
+      job.el.innerHTML = html;
+      const c = job.el.querySelector('[data-cancel]');
+      if (c) c.addEventListener('click', () => {
+        c.disabled = true;
+        fetch('/efeitos/jobs/' + encodeURIComponent(job.id) + '/cancel', { method: 'POST' }).catch(() => {});
+      });
+    }
+
+    $('#clear-results').addEventListener('click', () => {
+      document.querySelectorAll('#results .job.done, #results .job.error').forEach((el) => el.remove());
+      if (!$('#results').children.length) $('#results-card').classList.add('hidden');
+    });
+
+    loadCatalog().then(() => {
+      renderSettings();
+      updateOutput();
+      if (CATALOG && !CATALOG.ffmpeg) {
+        $('.drop-hint').insertAdjacentHTML('beforeend', '<br><span style="color:var(--warn)">FFmpeg não encontrado: só fotos funcionam até ele ser instalado.</span>');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -36,3 +36,4 @@ markdown
 scikit-image
 scipy
 PyYAML
+opencv-python-headless

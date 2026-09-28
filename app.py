@@ -63,6 +63,8 @@ from WhatsSaver.whatssaver_templates import WHATSSAVER_HTML
 from WhatsSaver import whatssaver_engine
 from Conversor.conversor_templates import CONVERSOR_HTML
 from Conversor import conversor_engine
+from Efeitos.efeitos_templates import EFEITOS_HTML
+from Efeitos import efeitos_engine
 
 app = Flask(__name__)
 
@@ -636,6 +638,10 @@ MENU_HTML = """
     <a href="/whatssaver" class="app">
       <div class="app-icon">💬</div>
       <div class="app-name">WhatsSaver</div>
+    </a>
+    <a href="/efeitos" class="app">
+      <div class="app-icon">🪄</div>
+      <div class="app-name">Efeitos</div>
     </a>
   </main>
   <p class="empty" id="empty">Nenhum app encontrado. Veja o guia completo em <a href="/instructions">Instruções</a>.</p>
@@ -2131,6 +2137,79 @@ def conversor_convert():
 @app.route("/conversor/download/<token>", methods=["GET"], strict_slashes=False)
 def conversor_download(token):
     path = conversor_engine.output_path(token)
+    if not path:
+        return Response("Arquivo não encontrado (ele pode ter sido movido da pasta Downloads).",
+                        status=404, mimetype='text/plain; charset=utf-8')
+    inline = request.args.get('inline') == '1'
+    return send_file(path, as_attachment=not inline, download_name=os.path.basename(path))
+
+# --- Efeitos: filtros e efeitos em fotos e vídeos, no mesmo formato do original ---
+# O arquivo enviado fica numa pasta temporária (identificado por um id) para as
+# prévias não precisarem reenviar o vídeo inteiro a cada ajuste. A renderização
+# roda em segundo plano e o resultado vai para Downloads como "nome (Efeito).ext".
+
+@app.route("/efeitos", strict_slashes=False)
+def efeitos():
+    return Response(EFEITOS_HTML(), mimetype='text/html')
+
+@app.route("/efeitos/effects", methods=["GET"], strict_slashes=False)
+def efeitos_effects():
+    return jsonify(efeitos_engine.catalog())
+
+@app.route("/efeitos/upload", methods=["POST"], strict_slashes=False)
+def efeitos_upload():
+    try:
+        return jsonify({'success': True, **efeitos_engine.register_upload(request.files.get('file'))})
+    except efeitos_engine.EffectError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro ao abrir o arquivo: {e}'})
+
+@app.route("/efeitos/thumbs", methods=["POST"], strict_slashes=False)
+def efeitos_thumbs():
+    data = request.get_json(silent=True) or {}
+    try:
+        return jsonify({'success': True, 'thumbs': efeitos_engine.thumbnails(data.get('id'))})
+    except efeitos_engine.EffectError as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route("/efeitos/preview", methods=["POST"], strict_slashes=False)
+def efeitos_preview():
+    data = request.get_json(silent=True) or {}
+    try:
+        return jsonify({'success': True, **efeitos_engine.preview(data.get('id'), data.get('chain'))})
+    except efeitos_engine.EffectError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro ao gerar a prévia: {e}'})
+
+@app.route("/efeitos/apply", methods=["POST"], strict_slashes=False)
+def efeitos_apply():
+    data = request.get_json(silent=True) or {}
+    try:
+        return jsonify({'success': True, 'job': efeitos_engine.start_job(data.get('id'), data.get('chains'))})
+    except efeitos_engine.EffectError as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route("/efeitos/jobs/<job_id>", methods=["GET"], strict_slashes=False)
+def efeitos_job(job_id):
+    job = efeitos_engine.job_status(job_id)
+    if not job:
+        return jsonify({'success': False, 'error': 'Tarefa não encontrada.'}), 404
+    return jsonify({'success': True, 'job': job})
+
+@app.route("/efeitos/jobs/<job_id>/cancel", methods=["POST"], strict_slashes=False)
+def efeitos_job_cancel(job_id):
+    return jsonify({'success': efeitos_engine.cancel_job(job_id)})
+
+@app.route("/efeitos/forget", methods=["POST"], strict_slashes=False)
+def efeitos_forget():
+    efeitos_engine.forget_upload((request.get_json(silent=True) or {}).get('id'))
+    return jsonify({'success': True})
+
+@app.route("/efeitos/download/<token>", methods=["GET"], strict_slashes=False)
+def efeitos_download(token):
+    path = efeitos_engine.output_path(token)
     if not path:
         return Response("Arquivo não encontrado (ele pode ter sido movido da pasta Downloads).",
                         status=404, mimetype='text/plain; charset=utf-8')

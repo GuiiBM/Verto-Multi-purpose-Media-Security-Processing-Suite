@@ -2,7 +2,7 @@
 
 > Processamento 100% local. Dados sensíveis nunca saem da máquina do usuário.
 
-Suíte de 23 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
+Suíte de 24 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
 
 ---
 
@@ -31,6 +31,7 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | Office (Word/Excel/PPT)     | LibreOffice headless + python-docx/pptx/openpyxl |
 | Vetorização / CAD           | potrace (potracer) + scikit-image + ezdxf     |
 | Detecção de Objetos       | YOLOv8 (Censor)                               |
+| Detecção de Rostos        | YuNet via OpenCV (Efeitos)                    |
 | Web Scraping                | BeautifulSoup4 + requests                     |
 | Frontend                    | HTML/CSS/JS puro (zero frameworks)            |
 
@@ -48,6 +49,7 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | 🎨**Transparência**  | AI Vision      | Remoção de fundo com rembg + ONNX Runtime                        |
 | 🎤**Transcrever**     | AI NLP         | Áudio para texto com Whisper                                      |
 | 📁**Arquivos**        | Conversão     | Conversor universal 150+ formatos                                  |
+| 🪄**Efeitos**         | Mídia         | 43 efeitos em fotos e vídeos: clássicos (Sépia, P&B, Vintage, Glitch, Pop Art...), engraçados com detecção de rosto (Thug Life, Olhos de Desenho, Nariz de Palhaço, Cabeção), deformações, câmeras (VHS, CCTV, Visão Noturna, Matrix) e estilos (Quadrinhos, Lápis, Neon...); o arquivo sai no mesmo formato, como `foto (Sépia).jpg` |
 | 🔁**Conversor**       | Conversão / CAD | Estilo Convertio: fila de arquivos, 1.700+ rotas diretas, imagem → DXF com potrace (contorno, linha central ou por cor) e PDF/SVG/AI/EPS → DXF sem rasterizar |
 | 📄**PDFs**            | Documentos     | Dividir, comprimir, girar, converter, mesclar                      |
 | 🗃️**Office**          | Documentos     | Converte e repara Word/Excel/PowerPoint — recuperação em 5 níveis, incluindo extensão trocada |
@@ -96,6 +98,16 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 - PDF, SVG, AI, EPS, CorelDRAW e Visio → DXF extraindo os vetores reais (linhas, Béziers, cores e textos) em vez de rasterizar
 - DWG é formato fechado: é suportado automaticamente se o ODA File Converter ou o LibreDWG estiverem instalados
 
+**Efeitos (fotos e vídeos)**
+
+- Cada efeito é uma função numpy sobre um quadro RGB(A): prévia, foto, GIF animado e vídeo usam o mesmo código, então a prévia mostra exatamente o resultado final
+- A saída mantém o formato do original (lido pelo conteúdo, não pela extensão), EXIF, perfil de cor, DPI, transparência e animação; o nome ganha o efeito entre parênteses (`praia (Vintage + Vinheta).jpg`) e nunca sobrescreve nada
+- Combinações são aplicadas por camada (composição → cor → tom → filme → lente → textura), não na ordem do clique, para um efeito não apagar o outro; P&B vira a base dos tons e Sépia/Ciano/Duotone juntos se dividem entre sombras e luzes (split toning) pela distribuição de luz da própria imagem
+- Efeitos de rosto com o detector YuNet do OpenCV (`FaceDetectorYN`, modelo ONNX de 230 KB, licença MIT, incluído em `Efeitos/modelos/`): caixa do rosto + olhos, nariz e boca, detectados a cada quadro para acompanhar o rosto no vídeo
+- Efeitos animados no vídeo usam o tempo de cada quadro: óculos do Thug Life descendo, pupilas balançando, derretimento progressivo, relógio do VHS/CCTV contando
+- Fotos acima de 8 MP são processadas em faixas horizontais com coordenadas globais (vinheta e grão sem emendas): uma foto de 45 MP usa ~1 GB de RAM em vez de mais de 3,5 GB
+- Vídeos: FFmpeg decodifica em quadros crus a taxa constante, os quadros passam pelo efeito em paralelo (limitado pela RAM livre) e voltam no mesmo contêiner, com o áudio original copiado sem recodificar
+
 **Ghost Tool (Anti-forensics)**
 
 - Remove metadados de 150+ formatos sem recodificar o conteúdo
@@ -140,8 +152,9 @@ http://localhost:5000
 ## Estrutura
 
 ```
-├── app.py                        # Flask app — 70+ rotas, 23 apps
+├── app.py                        # Flask app — 70+ rotas, 24 apps
 ├── Office/                       # Conversor e reparador de Word/Excel/PowerPoint
+├── Efeitos/                     # Efeitos em fotos e vídeos, saída no mesmo formato do original
 ├── Conversor/                    # Conversor universal estilo Convertio (imagem → DXF, CAD, documentos, mídia...)
 ├── DevData/                      # Beautifier/minifier, dados mock, conversor de formatos, encode/decode
 ├── ImageStudio/                  # Crop & resize em massa, filtros/marca d'água, gerador de favicon
