@@ -4,432 +4,203 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clean Reader - Limpador de Distração</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.06) 0px, transparent 50%);
-      color: #e2e8f0;
-      min-height: 100vh;
-      padding: 40px 15px;
-    }
-    .back-button {
-      position: fixed;
-      top: 24px;
-      left: 24px;
-      width: 56px;
-      height: 56px;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(40px);
-      border-radius: 16px;
-      border: 1.5px solid rgba(148, 163, 184, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      z-index: 1000;
-      color: #cbd5e1;
-      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
-    }
-    .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(59, 130, 246, 0.4);
-      color: #3b82f6;
-      transform: translateX(-6px);
-    }
-    .logo {
-      font-size: 64px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: 8px;
-      text-transform: uppercase;
-      filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.7));
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .tagline {
-      color: #64748b;
-      font-size: 15px;
-      margin-bottom: 48px;
-      font-weight: 500;
-      text-align: center;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    .input-section {
-      background: rgba(15, 23, 42, 0.4);
-      border-radius: 28px;
-      padding: 32px;
-      margin-bottom: 24px;
-      border: 1px solid rgba(148, 163, 184, 0.08);
-      backdrop-filter: blur(40px);
-    }
-    h2 {
-      font-size: 20px;
-      color: #3b82f6;
-      margin-bottom: 20px;
-      font-weight: 700;
-    }
-    .input-group {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    input[type="url"] {
-      flex: 1;
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.8);
-      color: #f1f5f9;
-      font-size: 14px;
-      outline: none;
-      transition: all 0.2s;
-    }
-    input[type="url"]:focus {
-      border-color: #3b82f6;
-      background: rgba(15, 23, 42, 0.95);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-    button {
-      padding: 12px 28px;
-      border: none;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-    }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .status {
-      margin-top: 12px;
-      font-size: 13px;
-      color: #94a3b8;
-    }
-    .status.error {
-      color: #ef4444;
-    }
-    .status.success {
-      color: #22c55e;
-    }
-    .content-section {
-      background: rgba(15, 23, 42, 0.4);
-      border-radius: 28px;
-      padding: 32px;
-      border: 1px solid rgba(148, 163, 184, 0.08);
-      backdrop-filter: blur(40px);
-      display: none;
-    }
-    .content-section.show {
-      display: block;
-    }
-    .content-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .content-title {
-      font-size: 24px;
-      color: #f1f5f9;
-      font-weight: 700;
-      flex: 1;
-    }
-    .export-buttons {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .export-btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 8px;
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #3b82f6;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .export-btn:hover {
-      background: rgba(59, 130, 246, 0.2);
-      border-color: #3b82f6;
-      transform: translateY(-2px);
-    }
-    .content-body {
-      background: white;
-      color: #1a1a1a;
-      padding: 40px;
-      border-radius: 16px;
-      line-height: 1.8;
-      font-size: 16px;
-    }
-    .content-body h1, .content-body h2, .content-body h3 {
-      color: #0f172a;
-      margin: 24px 0 16px;
-      font-weight: 700;
-    }
-    .content-body h1 { font-size: 28px; }
-    .content-body h2 { font-size: 24px; }
-    .content-body h3 { font-size: 20px; }
-    .content-body p {
-      margin-bottom: 16px;
-    }
-    .content-body img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-      margin: 16px 0;
-    }
-    .content-body a {
-      color: #3b82f6;
-      text-decoration: none;
-      border-bottom: 1px solid rgba(59, 130, 246, 0.3);
-    }
-    .content-body a:hover {
-      border-bottom-color: #3b82f6;
-    }
-    .reader-mode {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: #ffffff;
-      z-index: 2000;
-      overflow-y: auto;
-      display: none;
-      padding: 60px 20px 40px;
-    }
-    .reader-mode.show {
-      display: block;
-    }
-    .reader-content {
-      max-width: 700px;
-      margin: 0 auto;
-      color: #1a1a1a;
-      line-height: 1.8;
-      font-size: 18px;
-    }
-    .reader-content h1 {
-      font-size: 36px;
-      margin-bottom: 24px;
-      color: #0f172a;
-    }
-    .reader-close {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      width: 48px;
-      height: 48px;
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      font-size: 24px;
-      color: #1a1a1a;
-    }
-    .reader-close:hover {
-      background: rgba(0, 0, 0, 0.2);
-      transform: scale(1.1);
-    }
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 20px;
-      color: #94a3b8;
-    }
-    .loading.show {
-      display: block;
-    }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(59, 130, 246, 0.2);
-      border-top-color: #3b82f6;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    @media (max-width: 640px) {
-      .logo { font-size: 48px; letter-spacing: 4px; }
-      .content-body { padding: 24px; font-size: 15px; }
-      .input-group { flex-direction: column; }
-    }
-  </style>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/leitura.css">
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
-  
-  <div class="logo">CLEAN</div>
-  <div class="tagline">Limpador de Distração - Leitura Sem Anúncios</div>
-  
-  <div class="container">
-    <div class="input-section">
-      <h2>🧹 Cole a URL do Artigo</h2>
-      <div class="input-group">
-        <input type="url" id="url-input" placeholder="https://exemplo.com/artigo" />
-        <button id="extract-btn" onclick="extractContent()">Limpar</button>
+<body class="lt-body modo-leitura">
+  <div class="progresso" id="progresso" aria-hidden="true"><i></i></div>
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-texto)"><img src="/static/localtools/apps/clean.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Clean Reader</h1>
+    <p class="modo-sub">Cole o link de um artigo e leia só o texto: sem anúncios, pop-ups nem rastreadores.</p>
+  </header>
+
+  <main class="leitor">
+    <form class="barra" id="form" autocomplete="off">
+      <svg class="barra-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,50H160a38,38,0,0,0-32,17.55A38,38,0,0,0,96,50H24a6,6,0,0,0-6,6V200a6,6,0,0,0,6,6H96a26,26,0,0,1,26,26,6,6,0,0,0,12,0,26,26,0,0,1,26-26h72a6,6,0,0,0,6-6V56A6,6,0,0,0,232,50ZM96,194H30V62H96a26,26,0,0,1,26,26V204.31A37.86,37.86,0,0,0,96,194Zm130,0H160a37.87,37.87,0,0,0-26,10.32V88a26,26,0,0,1,26-26h66Z"/></svg>
+      <input type="url" id="url-input" placeholder="https://exemplo.com/um-artigo" aria-label="Link do artigo" required>
+      <button type="submit" id="extract-btn">Ler artigo</button>
+    </form>
+    <div class="selos"><span>Sem anúncios</span><span>Sem pop-ups</span><span>Exporta PDF, Markdown e EPUB</span></div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+
+    <!-- antes de abrir um artigo: uma página de exemplo, em branco -->
+    <section class="vazio" id="vazio" aria-hidden="true">
+      <div class="folha-modelo">
+        <i class="l t"></i><i class="l t2"></i>
+        <i class="l m"></i>
+        <i class="l"></i><i class="l"></i><i class="l"></i><i class="l c"></i>
+        <i class="l"></i><i class="l"></i><i class="l c2"></i>
       </div>
-      <div class="status" id="status"></div>
-    </div>
-    
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>Extraindo conteúdo limpo...</p>
-    </div>
-    
-    <div class="content-section" id="content-section">
-      <div class="content-header">
-        <h2 class="content-title" id="content-title">Título do Artigo</h2>
-        <div class="export-buttons">
-          <button class="export-btn" onclick="readMode()">👁️ Ler</button>
-          <button class="export-btn" onclick="exportContent('pdf')">📄 PDF</button>
-          <button class="export-btn" onclick="exportContent('markdown')">📝 Markdown</button>
-          <button class="export-btn" onclick="exportContent('epub')">📚 EPUB</button>
+      <p>O artigo aparece aqui, como uma página de livro.</p>
+    </section>
+
+    <!-- artigo -->
+    <article class="livro" id="livro" data-tema="sepia" hidden>
+      <div class="ferramentas">
+        <div class="fonte-info" id="fonte-info"></div>
+        <div class="controles">
+          <div class="grupo" role="group" aria-label="Tamanho do texto">
+            <button type="button" class="ctl" id="menor" aria-label="Diminuir o texto">A<small>−</small></button>
+            <button type="button" class="ctl" id="maior" aria-label="Aumentar o texto">A<small>+</small></button>
+          </div>
+          <div class="grupo temas" role="group" aria-label="Tom da página">
+            <button type="button" class="ctl tema" data-t="sepia" aria-label="Sépia"><i></i></button>
+            <button type="button" class="ctl tema" data-t="papel" aria-label="Papel"><i></i></button>
+            <button type="button" class="ctl tema" data-t="noite" aria-label="Noite"><i></i></button>
+          </div>
+          <button type="button" class="ctl texto" id="foco">Modo foco</button>
+          <div class="grupo exportar" role="group" aria-label="Exportar">
+            <button type="button" class="ctl texto" data-fmt="pdf">PDF</button>
+            <button type="button" class="ctl texto" data-fmt="markdown">Markdown</button>
+            <button type="button" class="ctl texto" data-fmt="epub">EPUB</button>
+          </div>
         </div>
       </div>
-      <div class="content-body" id="content-body"></div>
-    </div>
-  </div>
-  
+      <div class="pagina" id="pagina">
+        <header class="pagina-cab">
+          <div class="pagina-sobre" id="pagina-sobre"></div>
+          <h2 class="pagina-titulo" id="content-title"></h2>
+          <div class="ornamento" aria-hidden="true">⁂</div>
+        </header>
+        <div class="texto" id="content-body"></div>
+        <div class="fim" aria-hidden="true">fim</div>
+      </div>
+    </article>
+  </main>
+
+  <button type="button" class="sair-foco" id="sair-foco" aria-label="Sair do modo foco">×</button>
+
   <script>
-    let currentContent = '';
-    let currentTitle = '';
-    
-    async function extractContent() {
-      const url = document.getElementById('url-input').value.trim();
-      const status = document.getElementById('status');
-      const loading = document.getElementById('loading');
-      const contentSection = document.getElementById('content-section');
-      const extractBtn = document.getElementById('extract-btn');
-      
-      if (!url) {
-        status.textContent = 'Por favor, insira uma URL válida';
-        status.className = 'status error';
-        return;
-      }
-      
-      extractBtn.disabled = true;
-      loading.classList.add('show');
-      contentSection.classList.remove('show');
-      status.textContent = '';
-      
+    const $ = (id) => document.getElementById(id);
+    let atual = { title: '', content: '' };
+    const guardado = (k, padrao) => { try { return localStorage.getItem('clean.' + k) || padrao; } catch { return padrao; } };
+    const guardar = (k, v) => { try { localStorage.setItem('clean.' + k, v); } catch {} };
+
+    function status(msg, tipo) {
+      const s = $('status');
+      s.textContent = msg || '';
+      s.className = 'status' + (msg ? ' show' : '') + (tipo ? ' ' + tipo : '');
+    }
+
+    // links e imagens do artigo: endereço completo (o texto vem sem a página original)
+    // e nada de javascript: nos links
+    function arrumar(html, base) {
+      const t = document.createElement('template');
+      t.innerHTML = html;
+      t.content.querySelectorAll('a[href]').forEach((a) => {
+        try {
+          const u = new URL(a.getAttribute('href'), base);
+          if (!/^https?:$/.test(u.protocol)) { a.removeAttribute('href'); return; }
+          a.href = u.href; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        } catch { a.removeAttribute('href'); }
+      });
+      t.content.querySelectorAll('img[src]').forEach((img) => {
+        try { img.src = new URL(img.getAttribute('src'), base).href; } catch { img.remove(); return; }
+        img.loading = 'lazy'; img.referrerPolicy = 'no-referrer';
+        img.onerror = () => img.remove();
+      });
+      return t.innerHTML;
+    }
+
+    $('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = $('url-input').value.trim();
+      if (!url) { status('Cole o link de um artigo.', 'error'); return; }
+      const btn = $('extract-btn');
+      btn.disabled = true; btn.textContent = 'Buscando…';
+      status('');
+      $('livro').hidden = true;
+      $('vazio').hidden = false;
+      $('vazio').classList.add('carregando');
       try {
-        const response = await fetch('/clean/extract', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url })
+        const r = await fetch('/clean/extract', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url })
         });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          currentTitle = result.title;
-          currentContent = result.content;
-          
-          document.getElementById('content-title').textContent = result.title;
-          document.getElementById('content-body').innerHTML = result.content;
-          
-          loading.classList.remove('show');
-          contentSection.classList.add('show');
-          status.textContent = '✅ Conteúdo extraído com sucesso!';
-          status.className = 'status success';
-        } else {
-          loading.classList.remove('show');
-          status.textContent = '❌ Erro: ' + result.error;
-          status.className = 'status error';
-        }
-      } catch (error) {
-        loading.classList.remove('show');
-        status.textContent = '❌ Erro ao extrair conteúdo: ' + error.message;
-        status.className = 'status error';
+        const d = await r.json();
+        if (!d.success) throw new Error(d.error || 'Não foi possível abrir esse link.');
+        atual = { title: d.title || 'Artigo', content: d.content };
+        const palavras = (d.text || '').split(/\s+/).filter(Boolean).length;
+        const minutos = Math.max(1, Math.round(palavras / 230));
+        let host = '';
+        try { host = new URL(d.url || url).hostname.replace(/^www\./, ''); } catch {}
+        $('content-title').textContent = atual.title;
+        $('content-body').innerHTML = arrumar(d.content, d.url || url);
+        $('pagina-sobre').textContent = [host, `${minutos} min de leitura`].filter(Boolean).join('  ·  ');
+        $('fonte-info').innerHTML = host ? `<span class="ponto" aria-hidden="true"></span>${host}` : '';
+        $('vazio').hidden = true;
+        $('livro').hidden = false;
+        $('livro').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        atualizarProgresso();
+      } catch (err) {
+        status('Erro: ' + err.message, 'error');
       } finally {
-        extractBtn.disabled = false;
-      }
-    }
-    
-    async function exportContent(format) {
-      const status = document.getElementById('status');
-      
-      try {
-        status.textContent = `Exportando para ${format.toUpperCase()}...`;
-        status.className = 'status';
-        
-        const response = await fetch('/clean/export', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            format: format,
-            title: currentTitle,
-            content: currentContent
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          status.textContent = `✅ ${result.filename} salvo em Downloads!`;
-          status.className = 'status success';
-        } else {
-          status.textContent = '❌ Erro ao exportar: ' + result.error;
-          status.className = 'status error';
-        }
-      } catch (error) {
-        status.textContent = '❌ Erro ao exportar: ' + error.message;
-        status.className = 'status error';
-      }
-    }
-    
-    document.getElementById('url-input').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        extractContent();
+        $('vazio').classList.remove('carregando');
+        btn.disabled = false; btn.textContent = 'Ler artigo';
       }
     });
-    
-    function readMode() {
-      const readerMode = document.createElement('div');
-      readerMode.className = 'reader-mode show';
-      readerMode.innerHTML = `
-        <div class="reader-close" onclick="this.parentElement.remove()">×</div>
-        <div class="reader-content">
-          <h1>${currentTitle}</h1>
-          ${currentContent}
-        </div>
-      `;
-      document.body.appendChild(readerMode);
+
+    // exportar
+    document.querySelectorAll('[data-fmt]').forEach((b) => b.addEventListener('click', async () => {
+      const fmt = b.dataset.fmt;
+      status(`Exportando para ${fmt.toUpperCase()}…`);
+      try {
+        const r = await fetch('/clean/export', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ format: fmt, title: atual.title, content: atual.content })
+        });
+        const d = await r.json();
+        if (!d.success) throw new Error(d.error);
+        status(`${d.filename} salvo em Downloads`, 'success');
+      } catch (err) { status('Erro ao exportar: ' + err.message, 'error'); }
+    }));
+
+    // tamanho do texto e tom da página (lembrados neste navegador)
+    let tamanho = Number(guardado('tamanho', 21));
+    function aplicarTamanho() {
+      tamanho = Math.min(28, Math.max(16, tamanho));
+      $('pagina').style.setProperty('--tam', tamanho + 'px');
+      guardar('tamanho', tamanho);
     }
+    $('menor').onclick = () => { tamanho -= 1; aplicarTamanho(); };
+    $('maior').onclick = () => { tamanho += 1; aplicarTamanho(); };
+    function aplicarTema(t) {
+      $('livro').dataset.tema = t;
+      document.querySelectorAll('.tema').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.t === t)));
+      guardar('tema', t);
+    }
+    document.querySelectorAll('.tema').forEach((b) => b.onclick = () => aplicarTema(b.dataset.t));
+    aplicarTamanho();
+    aplicarTema(guardado('tema', 'sepia'));
+
+    // modo foco: só a página, sem o resto do app (Esc sai)
+    function foco(on) {
+      document.body.classList.toggle('em-foco', on);
+      if (on) $('livro').scrollIntoView({ block: 'start' });
+    }
+    $('foco').onclick = () => foco(true);
+    $('sair-foco').onclick = () => foco(false);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') foco(false); });
+
+    // barra de leitura no topo
+    function atualizarProgresso() {
+      const p = $('pagina'), barra = $('progresso');
+      if ($('livro').hidden) { barra.classList.remove('on'); return; }
+      const r = p.getBoundingClientRect();
+      const total = r.height - innerHeight;
+      const feito = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : (r.top < innerHeight ? 1 : 0);
+      barra.classList.add('on');
+      barra.firstElementChild.style.transform = `scaleX(${feito})`;
+    }
+    addEventListener('scroll', atualizarProgresso, { passive: true });
+    addEventListener('resize', atualizarProgresso);
   </script>
 </body>
 </html>

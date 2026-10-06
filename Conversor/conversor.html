@@ -4,11 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Conversor Universal</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     :root {
       --bg: #0a0f1e;
-      --card: rgba(15, 23, 42, 0.55);
+      --card: rgba(24, 26, 31, 0.55);
       --card-solid: #0f172a;
       --line: rgba(148, 163, 184, 0.12);
       --line-strong: rgba(148, 163, 184, 0.25);
@@ -26,8 +29,8 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       background-image:
-        radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.09) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.09) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(96, 165, 250, 0.08) 0px, transparent 50%),
         radial-gradient(at 50% 100%, rgba(34, 197, 94, 0.04) 0px, transparent 50%);
       background-attachment: fixed;
       color: var(--text);
@@ -40,12 +43,12 @@
 
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 50; color: #cbd5e1; text-decoration: none;
     }
-    .back-button:hover { border-color: rgba(6, 182, 212, 0.5); color: var(--accent); transform: translateX(-6px); }
+    .back-button:hover { border-color: rgba(56, 189, 248, 0.5); color: var(--accent); transform: translateX(-6px); }
 
     header { text-align: center; margin-bottom: 32px; }
     .logo {
@@ -65,23 +68,23 @@
 
     /* ---------- Área de envio ---------- */
     .drop {
-      border: 2px dashed rgba(6, 182, 212, 0.3); text-align: center; padding: 44px 24px 28px;
+      border: 2px dashed rgba(56, 189, 248, 0.3); text-align: center; padding: 44px 24px 28px;
       transition: border-color 0.2s, background 0.2s;
     }
-    .drop.dragover { border-color: var(--accent); background: rgba(6, 182, 212, 0.08); }
+    .drop.dragover { border-color: var(--accent); background: rgba(56, 189, 248, 0.08); }
     .drop-icon { font-size: 52px; margin-bottom: 14px; }
     .btn-primary {
       border: none; border-radius: 999px; padding: 14px 34px; font-size: 15px; font-weight: 700;
       cursor: pointer; color: white;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.25);
+      box-shadow: 0 8px 24px rgba(56, 189, 248, 0.25);
       transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
       display: inline-flex; align-items: center; gap: 10px;
     }
-    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(139, 92, 246, 0.35); }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(96, 165, 250, 0.35); }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-ghost {
-      border: 1px solid var(--line-strong); background: rgba(15, 23, 42, 0.6); color: #cbd5e1;
+      border: 1px solid var(--line-strong); background: rgba(24, 26, 31, 0.6); color: #cbd5e1;
       border-radius: 999px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
       transition: border-color 0.2s, color 0.2s;
     }
@@ -90,12 +93,12 @@
     .presets { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
     .presets-label { color: var(--dim); font-size: 12px; margin-right: 4px; width: 100%; margin-bottom: 2px; }
     .chip {
-      border: 1px solid var(--line-strong); background: rgba(15, 23, 42, 0.7); color: #cbd5e1;
+      border: 1px solid var(--line-strong); background: rgba(24, 26, 31, 0.7); color: #cbd5e1;
       border-radius: 999px; padding: 7px 13px; font-size: 12px; font-weight: 600; cursor: pointer;
       transition: all 0.2s;
     }
     .chip:hover { border-color: var(--accent); color: #fff; transform: translateY(-1px); }
-    .chip.cad { border-color: rgba(139, 92, 246, 0.45); }
+    .chip.cad { border-color: rgba(96, 165, 250, 0.45); }
     .chip.active { background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(139,92,246,0.25)); border-color: var(--accent); color: #fff; }
 
     /* ---------- Fila ---------- */
@@ -103,12 +106,12 @@
     .queue-head h2 { font-size: 18px; color: #f8fafc; }
     .queue-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
     .item {
-      border: 1px solid var(--line); border-radius: 16px; background: rgba(2, 6, 23, 0.45);
+      border: 1px solid var(--line); border-radius: 16px; background: rgba(12, 13, 16, 0.45);
       margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s;
     }
     .item.st-done { border-color: rgba(34, 197, 94, 0.35); }
     .item.st-error { border-color: rgba(248, 113, 113, 0.35); }
-    .item.st-converting { border-color: rgba(6, 182, 212, 0.45); }
+    .item.st-converting { border-color: rgba(56, 189, 248, 0.45); }
     .item-main { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
     .thumb {
       width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0; overflow: hidden;
@@ -124,7 +127,7 @@
     }
     .arrow { color: var(--dim); font-size: 13px; flex-shrink: 0; }
     .fmt-btn {
-      min-width: 92px; border: 1px solid var(--line-strong); background: rgba(15, 23, 42, 0.9);
+      min-width: 92px; border: 1px solid var(--line-strong); background: rgba(24, 26, 31, 0.9);
       color: #f8fafc; border-radius: 10px; padding: 9px 12px; font-size: 13px; font-weight: 700;
       cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; gap: 8px;
       transition: border-color 0.2s, box-shadow 0.2s; flex-shrink: 0;
@@ -145,7 +148,7 @@
     .state .err { color: var(--err); font-weight: 600; }
     .spinner {
       display: inline-block; width: 13px; height: 13px; border-radius: 50%; vertical-align: -2px; margin-right: 6px;
-      border: 2px solid rgba(6, 182, 212, 0.25); border-top-color: var(--accent); animation: spin 0.7s linear infinite;
+      border: 2px solid rgba(56, 189, 248, 0.25); border-top-color: var(--accent); animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     .bar { height: 3px; background: rgba(148,163,184,0.1); position: relative; overflow: hidden; }
@@ -154,12 +157,12 @@
     @keyframes indet { 0% { left: -35%; } 100% { left: 100%; } }
 
     /* Opções */
-    .item-opts { border-top: 1px solid var(--line); padding: 16px 18px; background: rgba(15, 23, 42, 0.35); }
+    .item-opts { border-top: 1px solid var(--line); padding: 16px 18px; background: rgba(24, 26, 31, 0.35); }
     .opts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px 18px; }
     .opt label.lbl { display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 7px; }
     .opt .help { font-size: 11px; color: var(--dim); margin-top: 5px; line-height: 1.4; }
     .opt select, .opt input[type=number] {
-      width: 100%; background: rgba(2, 6, 23, 0.7); color: var(--text); border: 1px solid var(--line-strong);
+      width: 100%; background: rgba(12, 13, 16, 0.7); color: var(--text); border: 1px solid var(--line-strong);
       border-radius: 8px; padding: 8px 10px; font-size: 13px;
     }
     .opt input[type=range] { width: 100%; accent-color: var(--accent); }
@@ -169,12 +172,12 @@
     .check input { accent-color: var(--accent); width: 16px; height: 16px; }
     .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; grid-column: 1 / -1; }
     .seg button {
-      text-align: left; border: 1px solid var(--line-strong); background: rgba(2, 6, 23, 0.6); color: #cbd5e1;
+      text-align: left; border: 1px solid var(--line-strong); background: rgba(12, 13, 16, 0.6); color: #cbd5e1;
       border-radius: 12px; padding: 10px 12px; cursor: pointer; transition: all 0.2s;
     }
     .seg button b { display: block; font-size: 13px; margin-bottom: 3px; color: #f1f5f9; }
     .seg button span { font-size: 11px; color: var(--dim); line-height: 1.35; display: block; }
-    .seg button.active { border-color: var(--accent); background: rgba(6, 182, 212, 0.1); }
+    .seg button.active { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); }
     .opt-wide { grid-column: 1 / -1; }
     .opts-title { font-size: 11px; font-weight: 800; letter-spacing: 1px; color: var(--dim); text-transform: uppercase; margin: 4px 0 10px; grid-column: 1 / -1; }
     .opts-title:not(:first-child) { margin-top: 10px; }
@@ -208,7 +211,7 @@
 
     /* ---------- Destaques ---------- */
     .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-    .feature { border: 1px solid var(--line); border-radius: 16px; padding: 18px; background: rgba(2, 6, 23, 0.35); }
+    .feature { border: 1px solid var(--line); border-radius: 16px; padding: 18px; background: rgba(12, 13, 16, 0.35); }
     .feature .fi { font-size: 26px; margin-bottom: 8px; }
     .feature h3 { font-size: 14px; color: #f1f5f9; margin-bottom: 6px; }
     .feature p { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
@@ -217,14 +220,14 @@
     .formats h2 { font-size: 18px; color: #f8fafc; margin-bottom: 6px; }
     .formats .lead { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
     .search {
-      width: 100%; background: rgba(2, 6, 23, 0.7); color: var(--text); border: 1px solid var(--line-strong);
+      width: 100%; background: rgba(12, 13, 16, 0.7); color: var(--text); border: 1px solid var(--line-strong);
       border-radius: 12px; padding: 12px 14px; font-size: 14px; outline: none;
     }
-    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12); }
+    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12); }
     .fmt-answer { margin: 12px 0 0; font-size: 13px; min-height: 18px; }
     .fmt-answer .yes { color: var(--ok); font-weight: 600; }
     .fmt-answer .no { color: var(--warn); }
-    .fgroup { margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; background: rgba(2, 6, 23, 0.3); }
+    .fgroup { margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; background: rgba(12, 13, 16, 0.3); }
     .fgroup summary { font-size: 13px; color: #cbd5e1; font-weight: 700; padding: 12px 0; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
     .fgroup summary::-webkit-details-marker { display: none; }
     .fgroup summary .cnt { color: var(--dim); font-weight: 500; }
@@ -245,7 +248,7 @@
       box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6); padding: 12px;
     }
     .picker input {
-      width: 100%; background: rgba(2, 6, 23, 0.8); color: var(--text); border: 1px solid var(--line-strong);
+      width: 100%; background: rgba(12, 13, 16, 0.8); color: var(--text); border: 1px solid var(--line-strong);
       border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; margin-bottom: 10px;
     }
     .picker input:focus { border-color: var(--accent); }
@@ -256,20 +259,20 @@
       border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600;
     }
     .picker-groups button:hover { color: #fff; background: rgba(148, 163, 184, 0.08); }
-    .picker-groups button.active { color: #fff; background: rgba(6, 182, 212, 0.15); }
+    .picker-groups button.active { color: #fff; background: rgba(56, 189, 248, 0.15); }
     .picker-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; align-content: start; }
     .picker-grid button {
-      background: rgba(2, 6, 23, 0.6); border: 1px solid var(--line); color: #f1f5f9; border-radius: 8px;
+      background: rgba(12, 13, 16, 0.6); border: 1px solid var(--line); color: #f1f5f9; border-radius: 8px;
       padding: 9px 4px; font-size: 12.5px; font-weight: 700; cursor: pointer; text-transform: uppercase; transition: all 0.15s;
     }
-    .picker-grid button:hover { border-color: var(--accent); background: rgba(6, 182, 212, 0.12); }
-    .picker-grid button.current { border-color: var(--accent-2); background: rgba(139, 92, 246, 0.18); }
+    .picker-grid button:hover { border-color: var(--accent); background: rgba(56, 189, 248, 0.12); }
+    .picker-grid button.current { border-color: var(--accent-2); background: rgba(96, 165, 250, 0.18); }
     .picker-grid button.disabled { opacity: 0.4; cursor: help; }
     .picker-grid .empty { grid-column: 1 / -1; color: var(--dim); font-size: 13px; padding: 12px; }
     .picker-note { font-size: 11.5px; color: var(--dim); margin-top: 10px; line-height: 1.5; }
     .picker-note:empty { display: none; }
 
-    .modal { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.85); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .modal { position: fixed; inset: 0; background: rgba(12, 13, 16, 0.85); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 24px; }
     .modal-box { background: #fff; border-radius: 16px; max-width: 94vw; max-height: 90vh; position: relative; padding: 16px; display: flex; }
     .modal-box img { max-width: calc(94vw - 32px); max-height: calc(90vh - 32px); object-fit: contain; }
     .modal-close { position: absolute; top: -14px; right: -14px; width: 36px; height: 36px; border-radius: 50%; border: none; background: #0f172a; color: #fff; font-size: 18px; cursor: pointer; }
@@ -297,23 +300,64 @@
       .picker-groups { width: 104px; }
     }
   </style>
+  <style>
+    /* ---------- Visual LocalTools: grupo Conversão (azul) ---------- */
+    :root {
+      --bg: var(--lt-bg);
+      --card: rgba(255, 255, 255, 0.035);
+      --card-solid: #16181c;
+      --line: var(--lt-line);
+      --line-strong: var(--lt-line-2);
+      --text: var(--lt-ink);
+      --muted: var(--lt-muted);
+      --dim: var(--lt-faint);
+      --accent: var(--lt-cat-conversao);
+      --accent-2: #60a5fa;
+      --ok: var(--lt-green);
+      --err: var(--lt-danger);
+    }
+    html { overflow-x: clip; }
+    body.lt-body { font-family: var(--lt-sans); padding-top: 28px; }
+    body > * { position: relative; z-index: 1; }
+    .topo { display: flex; justify-content: center; margin-bottom: 22px; }
+    header.lt-head { margin-bottom: 30px; }
+    .lt-head p b { color: var(--lt-ink); font-weight: 600; }
+    .card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)); box-shadow: var(--lt-shadow); backdrop-filter: none; }
+    .drop { border: 2px dashed color-mix(in srgb, var(--accent) 35%, transparent); }
+    .drop-icon { display: flex; justify-content: center; margin-bottom: 18px; font-size: inherit; }
+    .btn-primary {
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: linear-gradient(180deg, #0278b5, #075985);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 0 #0c4a6e, 0 14px 26px -10px rgba(56, 189, 248, 0.5);
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 5px 0 #0c4a6e, 0 18px 30px -10px rgba(56, 189, 248, 0.55); }
+    .btn-primary:active:not(:disabled) { transform: translateY(3px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 0 #0c4a6e; }
+    .btn-ghost { border-radius: 11px; background: linear-gradient(180deg, #23262c, #191b20); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 2px 0 rgba(0, 0, 0, 0.45); }
+    .picker-grid button.current { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+    select, input[type="text"], input[type="number"], input[type="search"] { background-color: rgba(255, 255, 255, 0.04); border-color: var(--lt-line); }
+    .feature .fi { margin-bottom: 14px; font-size: inherit; }
+    @media (max-width: 760px) { body.lt-body { padding-top: 72px; } }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-planta.css">
 </head>
-<body>
-  <a class="back-button" href="/" title="Voltar ao menu" id="back">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+<body class="lt-body tema-planta">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu" id="back">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </a>
 
-  <header>
-    <div class="logo"><span class="logo-icon">🔁</span> CONVERSOR</div>
-    <div class="tagline">Qualquer arquivo para qualquer formato — inclusive <b>imagem → DXF</b> para CAD, CNC e corte a laser.<br>Tudo processado na sua máquina.</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-conversao)"><img src="/static/localtools/apps/conversor.webp" alt="" width="76" height="76"></span>
+    <h1>Conversor</h1>
+    <p>Qualquer arquivo para qualquer formato, inclusive <b>imagem → DXF</b> para CAD, CNC e corte a laser. Tudo processado na sua máquina.</p>
   </header>
 
   <main class="wrap">
     <section class="card drop" id="drop">
-      <div class="drop-icon">📂</div>
-      <button class="btn-primary" id="pick" type="button">📎 Escolher arquivos</button>
+      <div class="drop-icon" aria-hidden="true"><span class="lt-key" style="--hue: var(--lt-cat-conversao)"><svg class="lt-icon"><use href="/static/localtools/icons.svg#folders"/></svg></span></div>
+      <button class="btn-primary" id="pick" type="button">Escolher arquivos</button>
       <div class="drop-hint">ou arraste para cá · <b>Ctrl+V</b> cola uma imagem · vários arquivos de uma vez</div>
       <input type="file" id="file-input" multiple hidden>
       <div class="presets" id="presets">
@@ -334,15 +378,15 @@
       <div class="queue-foot">
         <button class="btn-ghost" id="add-more" type="button">+ Adicionar arquivos</button>
         <span class="summary" id="summary"></span>
-        <button class="btn-primary" id="convert-all" type="button">🔁 Converter</button>
+        <button class="btn-primary" id="convert-all" type="button">Converter</button>
       </div>
     </section>
 
     <section class="card">
       <div class="features">
-        <div class="feature"><div class="fi">📐</div><h3>Imagem → DXF de verdade</h3><p>Vetorização com o algoritmo potrace (o mesmo dos conversores online): contornos em curvas, linha central para CNC/laser ou camadas por cor. Tamanho real em mm e prévia antes de converter.</p></div>
-        <div class="feature"><div class="fi">✒️</div><h3>Vetor continua vetor</h3><p>PDF, SVG, AI, EPS, CorelDRAW e Visio viram DXF com a geometria original (linhas, curvas e texto), sem rasterizar. E DXF volta para PDF, SVG ou PNG.</p></div>
-        <div class="feature"><div class="fi">🔒</div><h3>Nada sai da máquina</h3><p>Sem upload para servidores e sem limite de tamanho. Os arquivos convertidos vão para a pasta <b>Downloads</b>, sem sobrescrever nada.</p></div>
+        <div class="feature"><div class="fi"><span class="lt-key sm" style="--hue: var(--lt-cat-conversao)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#scan"/></svg></span></div><h3>Imagem → DXF de verdade</h3><p>Vetorização com o algoritmo potrace (o mesmo dos conversores online): contornos em curvas, linha central para CNC/laser ou camadas por cor. Tamanho real em mm e prévia antes de converter.</p></div>
+        <div class="feature"><div class="fi"><span class="lt-key sm" style="--hue: var(--lt-cat-conversao)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#paint-brush"/></svg></span></div><h3>Vetor continua vetor</h3><p>PDF, SVG, AI, EPS, CorelDRAW e Visio viram DXF com a geometria original (linhas, curvas e texto), sem rasterizar. E DXF volta para PDF, SVG ou PNG.</p></div>
+        <div class="feature"><div class="fi"><span class="lt-key sm" style="--hue: var(--lt-cat-conversao)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#fingerprint"/></svg></span></div><h3>Nada sai da máquina</h3><p>Sem upload para servidores e sem limite de tamanho. Os arquivos convertidos vão para a pasta <b>Downloads</b>, sem sobrescrever nada.</p></div>
       </div>
     </section>
 
@@ -810,7 +854,7 @@
       const ready = pending.filter(i => i.out && CAT.routes[i.inExt]).length;
       const btn = $('#convert-all');
       btn.disabled = ready === 0;
-      btn.textContent = ready > 1 ? `🔁 Converter ${ready} arquivos` : '🔁 Converter';
+      btn.textContent = ready > 1 ? `Converter ${ready} arquivos` : 'Converter';
     }
 
     // ---------- Conversão ----------

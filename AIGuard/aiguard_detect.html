@@ -4,15 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Detector de IA</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/analise.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -21,7 +24,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -30,7 +33,7 @@
     .back-button.locked { pointer-events: none; opacity: 0.4; }
     .logo {
       font-size: 42px; font-weight: 900;
-      background: linear-gradient(135deg, #ef4444 0%, #8b5cf6 50%, #3b82f6 100%);
+      background: linear-gradient(135deg, #ef4444 0%, #0f9488 50%, #2dd4bf 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-align: center; margin-bottom: 10px;
     }
@@ -38,7 +41,7 @@
     .layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; max-width: 1400px; margin: 0 auto; align-items: start; }
     @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 26px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 24px; padding: 26px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
     }
     h2 { font-size: 15px; color: #f8fafc; margin-bottom: 16px; }
@@ -67,8 +70,8 @@
     .progress-wrap { margin-top: 14px; display: none; }
     .progress-wrap.show { display: block; }
     .progress-label { font-size: 11.5px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
-    .progress-track { width: 100%; height: 8px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
-    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #ef4444, #8b5cf6); transition: width 0.15s ease; }
+    .progress-track { width: 100%; height: 8px; border-radius: 999px; background: rgba(24, 26, 31, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #ef4444, #0f9488); transition: width 0.15s ease; }
     .heatmap-title { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.6px; margin: 24px 0 12px; display: flex; justify-content: space-between; align-items: center; }
     .heatmap-title .hint { text-transform: none; letter-spacing: 0; font-size: 11px; color: #475569; }
     .heatmap {
@@ -94,26 +97,28 @@
     .disclaimer { margin-top: 18px; font-size: 11.5px; color: #64748b; line-height: 1.6; background: rgba(148,163,184,0.06); border-radius: 10px; padding: 12px; }
   </style>
 </head>
-<body>
-  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/aiguard'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-analise">
+  <a class="lt-back" href="/aiguard" title="Voltar para AI Guard & Diff" aria-label="Voltar para AI Guard & Diff">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🔍 Detector de IA</div>
-  <div class="tagline">Estimativa heurística local — sem limite de tamanho de texto, processado em lotes para não travar o navegador</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/aiguard">AI Guard & Diff</a> / Detector de IA</nav>
+    <h1 class="modo-titulo">Detector de IA</h1>
+    <p class="modo-sub">Estimativa heurística local — sem limite de tamanho de texto, processado em lotes para não travar o navegador</p>
+  </header>
 
   <div class="layout">
     <div class="card">
       <h2>Texto</h2>
       <div class="input-toolbar">
-        <div class="file-btn" onclick="document.getElementById('file-input').click()">📁 Carregar arquivo (TXT/PDF/DOCX)</div>
+        <div class="file-btn" onclick="document.getElementById('file-input').click()">Carregar arquivo (TXT/PDF/DOCX)</div>
         <input type="file" id="file-input" accept=".txt,.pdf,.docx">
         <span class="char-count" id="char-count"></span>
       </div>
       <textarea id="input" placeholder="Cole ou carregue o texto que deseja analisar — capítulos, artigos inteiros, sem limite prático de tamanho..." oninput="updateCharCount()"></textarea>
-      <button class="action" id="analyze-btn" onclick="analyze()">🔍 Analisar</button>
+      <button class="action" id="analyze-btn" onclick="analyze()">Analisar</button>
 
       <div class="progress-wrap" id="progress-wrap">
         <div class="progress-label"><span id="progress-stage">Processando...</span><span id="progress-pct">0%</span></div>

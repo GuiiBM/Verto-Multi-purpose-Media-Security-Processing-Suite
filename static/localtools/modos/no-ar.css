@@ -1,0 +1,32 @@
+/* Smart Studio · modo no ar: luz "NO AR" e espuma acústica. */
+body.modo-no-ar { --acc: #fbbf24; --rec: #ef4444; }
+body.modo-no-ar .modo-cab::before {
+  content: 'NO AR';
+  padding: 5px 14px; border-radius: 6px;
+  font: 700 12px var(--lt-mono); letter-spacing: 0.3em; color: #fff;
+  background: linear-gradient(180deg, #ef4444, #b91c1c);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 0 24px rgba(239, 68, 68, 0.45);
+}
+body.modo-no-ar .tool-card, body.modo-no-ar .card {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 120%, rgba(0, 0, 0, 0.35) 0 40%, transparent 41%) 0 0 / 22px 22px,
+    radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.04) 0 40%, transparent 41%) 11px 11px / 22px 22px,
+    linear-gradient(180deg, #1d1f24, #16181c) !important;
+  border-radius: 20px !important;
+}
+body.modo-no-ar .tool-icon { color: var(--acc); }
+body.modo-no-ar .timer { font-family: var(--lt-mono) !important; color: var(--rec) !important; }
+
+body.modo-no-ar .btn-primary, body.modo-no-ar button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-no-ar button[type="submit"], body.modo-no-ar .action-btn, body.modo-no-ar .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #dc2626, #b91c1c) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #6b1010, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-no-ar .btn-primary:hover, body.modo-no-ar button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-no-ar button[type="submit"]:hover, body.modo-no-ar .action-btn:hover, body.modo-no-ar .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-no-ar .btn-primary:active, body.modo-no-ar button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-no-ar button[type="submit"]:active, body.modo-no-ar .action-btn:active, body.modo-no-ar .process-btn:active { transform: translateY(2px); }

@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor de Vídeo</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --ig: linear-gradient(135deg, #f58529 0%, #dd2a7b 45%, #8134af 75%, #515bd4 100%);
+      --card: rgba(24, 26, 31, 0.5);
+      --line: rgba(148, 163, 184, 0.12);
+      --muted: #94a3b8;
+      --dim: #64748b;
+      --pink: #ec4899;
+      --ok: #34d399;
+      --bad: #f87171;
+      --pausa: #f87171;
+      --retomada: #fb923c;
+      --manual: #a78bfa;
+      --borda: #475569;
+    }
+    body {
+      font-family: var(--lt-sans); background: #0a0f1e;
+      background-image: radial-gradient(at 0% 0%, rgba(221, 42, 123, 0.08) 0px, transparent 50%),
+                        radial-gradient(at 100% 0%, rgba(81, 91, 212, 0.08) 0px, transparent 50%);
+      color: #e2e8f0; min-height: 100vh; padding: 100px 16px 60px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px; background: rgba(24, 26, 31, 0.8);
+      backdrop-filter: blur(40px); border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; z-index: 50; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(236, 72, 153, 0.45); color: var(--pink); transform: translateX(-6px); }
+    .wrap { max-width: 1120px; margin: 0 auto; }
+    .logo {
+      font-size: 50px; font-weight: 900; text-align: center; background: var(--ig); -webkit-background-clip: text;
+      background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 25px rgba(221, 42, 123, 0.4));
+    }
+    .tagline { color: var(--dim); font-size: 15px; margin: 8px auto 32px; text-align: center; font-weight: 500; max-width: 640px; line-height: 1.5; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 24px; backdrop-filter: blur(40px); margin-bottom: 18px; }
+    .card-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+    .card-head h2 { font-size: 19px; font-weight: 800; color: #f8fafc; flex: 1; min-width: 200px; }
+    .card-head h2 small { display: block; font-size: 13px; color: var(--muted); font-weight: 500; margin-top: 3px; overflow-wrap: anywhere; }
+    .help { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .help code { font: 500 12px var(--lt-mono); background: rgba(148, 163, 184, 0.12); padding: 1px 6px; border-radius: 6px; color: #e2e8f0; }
+
+    .btn {
+      border: 0; cursor: pointer; border-radius: 13px; font: 700 14px var(--lt-sans); padding: 11px 17px; color: #fff;
+      background: var(--ig); transition: transform .15s, opacity .15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity: .45; cursor: default; transform: none; }
+    .btn.ghost { background: rgba(148, 163, 184, 0.1); color: #e2e8f0; border: 1px solid var(--line); }
+    .btn.ghost:hover { border-color: rgba(236, 72, 153, 0.4); }
+    .btn.sm { padding: 7px 11px; font-size: 12.5px; border-radius: 10px; }
+    .btn.danger:hover { border-color: rgba(248, 113, 113, 0.5); color: #fecaca; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .drop {
+      border: 2px dashed rgba(148, 163, 184, 0.25); border-radius: 18px; padding: 28px 18px; text-align: center; cursor: pointer;
+      transition: border-color .2s, background .2s; background: rgba(12, 13, 16, 0.35);
+    }
+    .drop:hover, .drop.over { border-color: rgba(236, 72, 153, 0.55); background: rgba(236, 72, 153, 0.05); }
+    .drop .big { font-size: 17px; font-weight: 800; color: #f8fafc; }
+    .drop .small { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .drop .file { margin-top: 10px; font: 500 13px var(--lt-mono); color: var(--pink); overflow-wrap: anywhere; }
+    .alt { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+    .alt input[type=text] { flex: 1; min-width: 220px; }
+    input[type=text], input[type=number], select {
+      background: rgba(12, 13, 16, 0.55); border: 1px solid var(--line); color: #f8fafc; border-radius: 11px; padding: 9px 12px;
+      font: 500 13px var(--lt-sans); outline: 0;
+    }
+    input[type=text] { font-family: var(--lt-mono); }
+    input:focus, select:focus { border-color: rgba(236, 72, 153, 0.45); }
+    input[type=number] { width: 92px; }
+
+    .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 22px; margin-top: 20px; }
+    .opt h4 { font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip {
+      border: 1px solid var(--line); background: rgba(12, 13, 16, 0.45); color: #cbd5e1; border-radius: 11px; padding: 8px 12px;
+      font: 600 13px var(--lt-sans); cursor: pointer; transition: all .15s; text-align: left;
+    }
+    .chip:hover { border-color: rgba(236, 72, 153, 0.35); }
+    .card-head h2 { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; }
+    .card-head h2 .lt-key { grid-row: span 2; }
+    .card-head h2 small { grid-column: 2; }
+    .chip.on { border-color: transparent; background: var(--ig); color: #fff; }
+    .chip small { display: block; font-weight: 500; font-size: 11.5px; opacity: .8; margin-top: 2px; }
+    .custom { display: none; gap: 8px; align-items: center; margin-top: 8px; font-size: 13px; color: var(--muted); }
+    .custom.on { display: flex; }
+    .toggles { display: flex; flex-direction: column; gap: 8px; }
+    .tg { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; cursor: pointer; color: #e2e8f0; }
+    .tg input { accent-color: #dd2a7b; width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; }
+    .tg small { display: block; color: var(--muted); font-size: 12px; }
+    .row2 { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .go { margin-top: 22px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+    .jobs { display: flex; flex-direction: column; gap: 10px; }
+    .job { border: 1px solid var(--line); background: rgba(12, 13, 16, 0.4); border-radius: 15px; padding: 14px 16px; }
+    .job .top { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .job .nm { font-weight: 700; color: #f8fafc; flex: 1; min-width: 180px; overflow-wrap: anywhere; }
+    .job .meta { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+    .pill { font-size: 11.5px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: rgba(148, 163, 184, 0.14); color: #cbd5e1; white-space: nowrap; }
+    .pill.revisao { background: rgba(251, 191, 36, 0.15); color: #fcd34d; }
+    .pill.pronto { background: rgba(52, 211, 153, 0.15); color: var(--ok); }
+    .pill.erro { background: rgba(248, 113, 113, 0.15); color: var(--bad); }
+    .pill.analisando, .pill.renderizando { background: rgba(236, 72, 153, 0.15); color: #f9a8d4; }
+    .bar { height: 6px; border-radius: 999px; background: rgba(148, 163, 184, 0.12); margin-top: 10px; overflow: hidden; }
+    .bar i { display: block; height: 100%; background: var(--ig); width: 0; transition: width .4s; }
+    .job .err { color: #fecaca; font-size: 13px; margin-top: 8px; }
+    .job .outs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .empty { color: var(--dim); font-size: 14px; padding: 14px 2px; }
+
+    /* Revisão */
+    #rev { display: none; }
+    #rev.open { display: block; }
+    .rev-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 20px; }
+    .player { position: relative; background: #000; border-radius: 16px; overflow: hidden; }
+    .player video { display: block; width: 100%; max-height: 62vh; background: #000; }
+    .cap {
+      position: absolute; left: 6%; right: 6%; bottom: 14%; text-align: center; pointer-events: none;
+      font: 900 clamp(14px, 2.6vw, 24px) var(--lt-sans); color: #fff; text-transform: uppercase;
+      text-shadow: 0 0 4px #000, 0 2px 3px #000, 2px 0 3px #000, -2px 0 3px #000;
+    }
+    .cap b { color: #ffd700; }
+    .stats { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); margin: 12px 2px; }
+    .stats b { color: #f8fafc; }
+    .timeline { position: relative; height: 34px; border-radius: 10px; background: rgba(52, 211, 153, 0.22); cursor: pointer; overflow: hidden; margin-top: 4px; }
+    .timeline .cut { position: absolute; top: 0; bottom: 0; }
+    .timeline .cut.pausa { background: var(--pausa); opacity: .75; }
+    .timeline .cut.retomada { background: var(--retomada); opacity: .85; }
+    .timeline .cut.manual { background: var(--manual); opacity: .85; }
+    .timeline .cut.inicio, .timeline .cut.fim { background: var(--borda); opacity: .9; }
+    .timeline .cut.kept { background: repeating-linear-gradient(45deg, rgba(248, 113, 113, .35) 0 4px, transparent 4px 8px); opacity: 1; }
+    .timeline .head { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #fff; box-shadow: 0 0 6px #fff; pointer-events: none; }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 8px; }
+    .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+    .tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+    .words {
+      background: rgba(12, 13, 16, 0.45); border: 1px solid var(--line); border-radius: 14px; padding: 14px; line-height: 2;
+      max-height: 44vh; overflow-y: auto; font-size: 15px; user-select: none;
+    }
+    .w { padding: 2px 3px; border-radius: 5px; cursor: pointer; transition: background .1s; }
+    .w:hover { background: rgba(148, 163, 184, 0.16); }
+    .w.now { background: rgba(236, 72, 153, 0.3); color: #fff; }
+    .w.sel { outline: 2px solid #60a5fa; }
+    .w.retomada { color: var(--retomada); text-decoration: line-through; }
+    .w.manual { color: var(--manual); text-decoration: line-through; }
+    .w.low { border-bottom: 2px dotted #fbbf24; }
+    .gap { display: inline-block; font-size: 11px; font-weight: 800; padding: 0 6px; border-radius: 6px; margin: 0 3px; cursor: pointer; vertical-align: 1px; line-height: 1.6; }
+    .gap.pausa { background: rgba(248, 113, 113, 0.18); color: #fca5a5; }
+    .gap.kept { background: rgba(148, 163, 184, 0.12); color: var(--muted); text-decoration: line-through; }
+    .w input { font: inherit; color: #fff; background: #1e293b; border: 1px solid var(--pink); border-radius: 5px; padding: 0 4px; width: 9em; }
+    .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .quick label { font-size: 12px; color: var(--dim); font-weight: 700; display: block; margin-bottom: 5px; }
+    .quick select { width: 100%; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0; background: #0f172a;
+      border: 1px solid var(--line); color: #e2e8f0; padding: 12px 18px; border-radius: 12px; font-size: 14px; transition: all .25s; z-index: 200;
+      pointer-events: none; max-width: calc(100% - 32px);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.bad { border-color: rgba(239, 68, 68, 0.4); color: #fecaca; }
+
+    @media (max-width: 860px) {
+      .rev-grid, .opts, .quick { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      body { padding-top: 92px; }
+      .logo { font-size: 38px; }
+      .card { padding: 18px; }
+    }
+  </style>
+  <style>
+    /* ---------- Visual LocalTools: tokens da suíte, cor do grupo (Imagem e vídeo) ---------- */
+    :root {
+      --ig: linear-gradient(180deg, #db2777, #be185d);
+      --pink: #ec4899;
+      --card: rgba(255, 255, 255, 0.035);
+      --line: var(--lt-line);
+      --muted: var(--lt-muted);
+      --dim: var(--lt-faint);
+      --ok: var(--lt-green);
+      --bad: var(--lt-danger);
+    }
+    html { overflow-x: clip; }
+    body.lt-body { padding-top: 28px; }
+    body > * { position: relative; z-index: 1; }
+    .topo { display: flex; justify-content: center; margin-bottom: 22px; }
+    .lt-head { margin-bottom: 30px; }
+    .card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)); box-shadow: var(--lt-shadow); backdrop-filter: none; }
+    .btn {
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 0 #9d174d, 0 12px 22px -10px color-mix(in srgb, #ec4899 55%, transparent);
+    }
+    .btn:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 0 #9d174d; }
+    .btn.ghost { background: linear-gradient(180deg, #23262c, #191b20); color: var(--lt-ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 2px 0 rgba(0, 0, 0, 0.45); }
+    .btn.ghost:hover { border-color: color-mix(in srgb, #ec4899 45%, transparent); }
+    .chip.on { color: #fff; }
+    @media (max-width: 760px) { body.lt-body { padding-top: 72px; } }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-timeline.css">
+</head>
+<body class="lt-body tema-timeline">
+  <a class="lt-back" href="/automacoes" title="Voltar às Automações" aria-label="Voltar às Automações">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+
+  <div class="wrap">
+    <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+    <header class="lt-head">
+      <span class="lt-key lg" style="--hue: var(--lt-cat-imagem)"><img src="/static/localtools/apps/editor.webp" alt="" width="76" height="76"></span>
+      <nav class="modo-trilha" aria-label="Você está em"><a href="/automacoes">Automações</a> / Editor de vídeo</nav>
+      <h1>Editor de Vídeo</h1>
+      <p>Corta pausas e retomadas, legenda palavra por palavra e enquadra no formato do Reels, do feed ou do YouTube. Tudo no seu computador.</p>
+    </header>
+
+    <!-- Revisão -->
+    <section class="card" id="rev">
+      <div class="card-head">
+        <h2 id="revTitulo">Revisão <small id="revSub"></small></h2>
+        <div class="actions">
+          <button class="btn ghost sm" id="revFechar">Fechar</button>
+          <button class="btn ghost sm" id="revSalvar">Salvar</button>
+          <button class="btn" id="revExportar">Exportar</button>
+        </div>
+      </div>
+      <div class="rev-grid">
+        <div>
+          <div class="player"><video id="vid" controls playsinline preload="metadata"></video><div class="cap" id="cap"></div></div>
+          <div class="stats">
+            <span>Original <b id="sOrig">—</b></span><span>Final <b id="sFinal">—</b></span>
+            <span>Cortes <b id="sCortes">—</b></span>
+            <label class="tg" style="margin-left:auto"><input type="checkbox" id="pularCortes" checked>Prévia pulando os cortes</label>
+          </div>
+          <div class="timeline" id="tl"><div class="head" id="head"></div></div>
+          <div class="legend">
+            <span><i style="background:rgba(52,211,153,.45)"></i>fica</span>
+            <span><i style="background:var(--pausa)"></i>pausa</span>
+            <span><i style="background:var(--retomada)"></i>retomada</span>
+            <span><i style="background:var(--manual)"></i>removido por você</span>
+            <span><i style="background:var(--borda)"></i>início/fim</span>
+          </div>
+          <div class="quick">
+            <div><label for="qFormato">Formato</label><select id="qFormato"></select></div>
+            <div><label for="qIntensidade">Cortes</label><select id="qIntensidade"></select></div>
+            <div><label for="qLegenda">Legenda</label><select id="qLegenda"></select></div>
+            <div><label for="qEnquadramento">Enquadramento</label><select id="qEnquadramento"></select></div>
+          </div>
+        </div>
+        <div>
+          <div class="tools">
+            <button class="btn ghost sm" id="tRemover" title="Remove as palavras selecionadas (tecla Delete)">Remover seleção</button>
+            <button class="btn ghost sm" id="tRestaurar" title="Volta as palavras selecionadas (tecla R)">↺ Restaurar seleção</button>
+            <span class="help">Clique numa palavra para ir até ela, Shift+clique para selecionar um trecho e clique duplo para corrigir o texto.</span>
+          </div>
+          <div class="words" id="words"></div>
+          <div class="help" style="margin-top:10px">
+            <b style="color:#fca5a5">⏸ 0,8s</b> é uma pausa que vai ser cortada: clique para manter. Palavras <span style="color:var(--retomada);text-decoration:line-through">riscadas em laranja</span> são uma retomada (você repetiu a frase); <span style="color:var(--manual);text-decoration:line-through">em roxo</span>, você removeu. Sublinhado pontilhado = o Whisper não teve certeza.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Novo vídeo -->
+    <section class="card">
+      <div class="card-head"><h2><span class="lt-key sm" style="--hue: var(--lt-cat-imagem)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#film-reel"/></svg></span>Novo vídeo <small>Escolha o vídeo e como ele deve sair</small></h2></div>
+      <div class="drop" id="drop">
+        <div class="big">Solte o vídeo aqui ou clique para escolher</div>
+        <div class="small">MP4, MOV, MKV, WEBM… Vídeo de celular (fps variável e girado) é tratado sozinho.</div>
+        <div class="file" id="fileName"></div>
+        <input type="file" id="file" accept="video/*,.mkv,.mov" hidden>
+      </div>
+      <div class="alt">
+        <input type="text" id="local" placeholder="…ou o caminho de um vídeo neste computador (não precisa copiar)" spellcheck="false">
+        <label class="btn ghost sm" title="Reabre uma edição exportada antes: escolha o vídeo original e o .cortes.json dele">
+          📄 <span id="mapaNome">Reabrir edição (.cortes.json)</span><input type="file" id="mapa" accept=".json" hidden>
+        </label>
+      </div>
+
+      <div class="opts">
+        <div class="opt"><h4>Formato</h4><div class="chips" id="cFormato"></div>
+          <div class="custom" id="customBox"><input type="number" id="cw" min="240" max="4096" step="2" value="1080"> × <input type="number" id="ch" min="240" max="4096" step="2" value="1920"> px</div></div>
+        <div class="opt"><h4>Cortes</h4><div class="chips" id="cIntensidade"></div></div>
+        <div class="opt"><h4>Legenda</h4><div class="chips" id="cLegenda"></div></div>
+        <div class="opt"><h4>Enquadramento</h4><div class="chips" id="cEnquadramento"></div></div>
+        <div class="opt"><h4>Ajustes</h4>
+          <div class="toggles">
+            <label class="tg"><input type="checkbox" id="oRetomadas"><span>Remover retomadas<small>Quando você repete a frase porque errou, fica só a última.</small></span></label>
+            <label class="tg"><input type="checkbox" id="oAudio"><span>Tratar o áudio<small>Tira o ronco grave, comprime de leve e nivela em -14 LUFS (o volume das redes).</small></span></label>
+            <label class="tg"><input type="checkbox" id="oVoz"><span>Isolar a voz para analisar (Demucs)<small>Melhora muito com música ou ruído de fundo, mas é bem mais lento.</small></span></label>
+            <label class="tg"><input type="checkbox" id="oRevisar"><span>Revisar antes de exportar<small>Desmarcado, o vídeo sai direto, sem parar para revisão.</small></span></label>
+          </div>
+        </div>
+        <div class="opt"><h4>Transcrição</h4>
+          <div class="row2">
+            <select id="oModelo" title="Modelo do Whisper"></select>
+            <select id="oIdioma" title="Idioma da fala">
+              <option value="pt">Português</option><option value="en">Inglês</option><option value="es">Espanhol</option><option value="">Detectar</option>
+            </select>
+          </div>
+          <div class="help" style="margin-top:8px">Na primeira vez o modelo é baixado (o equilibrado tem ~460 MB).</div>
+          <h4 style="margin-top:16px">Presets</h4>
+          <div class="row2">
+            <select id="presetSel"><option value="">Padrão</option></select>
+            <button class="btn ghost sm" id="presetSalvar">Salvar como…</button>
+            <button class="btn ghost sm danger" id="presetRemover" title="Apagar o preset escolhido">🗑</button>
+          </div>
+        </div>
+      </div>
+      <div class="go">
+        <button class="btn" id="go">Editar vídeo</button>
+        <span class="help" id="goHint">O resultado vai para Downloads como “nome (Reels 9x16).mp4”, com a legenda .srt e o .cortes.json ao lado.</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><span class="lt-key sm" style="--hue: var(--lt-cat-imagem)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#list-checks"/></svg></span>Trabalhos <small>Um vídeo por vez, em ordem. Exporte de novo em outro formato sem refazer a análise.</small></h2>
+      </div>
+      <div class="jobs" id="jobs"><div class="empty">Nenhum vídeo ainda.</div></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><span class="lt-key sm" style="--hue: var(--lt-cat-imagem)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#tray-arrow-down"/></svg></span>Pasta de entrada <small id="entradaPath">…</small></h2>
+        <div class="actions">
+          <button class="btn ghost sm" id="entradaAbrir">Abrir</button>
+          <button class="btn ghost sm" id="entradaProcessar">Processar agora</button>
+        </div>
+      </div>
+      <div class="help">
+        Vídeos colocados nessa pasta saem sozinhos, sem revisão, com o preset marcado como “da pasta” (ou o padrão). Ela é conferida
+        quando o Verto liga e quando você clica em <b>Processar agora</b>: nada fica olhando a pasta o tempo todo. Depois de
+        exportado, o original vai para <code>Processados/</code>.
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const mmss = s => { s = Math.max(0, Math.round(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  const seg = s => (s ?? 0).toFixed(1).replace('.', ',') + 's';
+  let toastT;
+  function toast(msg, bad) {
+    const t = $('toast'); t.textContent = msg; t.className = 'toast show' + (bad ? ' bad' : '');
+    clearTimeout(toastT); toastT = setTimeout(() => t.className = 'toast', 4000);
+  }
+  async function api(path, body, form) {
+    const opt = form ? { method: 'POST', body: form }
+      : body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+    const res = await fetch('/automacoes/editor/' + path, opt);
+    const data = await res.json().catch(() => ({ success: false, error: 'Resposta inválida do servidor.' }));
+    if (!data.success) throw new Error(data.error || 'Falhou.');
+    return data;
+  }
+
+  // ---------- opções ----------
+  let CAT = null, PRESETS = null, opc = {};
+  // O JSON chega com as chaves em ordem alfabética: esta é a ordem de mostrar.
+  const ORDEM = {
+    formatos: ['9x16', '4x5', '1x1', '16x9', 'custom'], intensidades: ['natural', 'dinamico', 'agressivo'],
+    legendas: ['classico', 'caixa', 'minimal', 'nenhuma'], enquadramentos: ['rosto', 'centro', 'desfocado'], modelos: ['base', 'small', 'medium'],
+  };
+  const ordenar = (obj, chave) => Object.fromEntries((ORDEM[chave] || Object.keys(obj)).filter(k => k in obj).map(k => [k, obj[k]]));
+  const ESTADOS = { fila: 'Na fila', analisando: 'Analisando', revisao: 'Para revisar', renderizando: 'Renderizando', pronto: 'Pronto', erro: 'Falhou' };
+
+  function chips(id, itens, chave, onPick) {
+    const box = $(id); box.innerHTML = '';
+    for (const [k, v] of Object.entries(itens)) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.dataset.k = k;
+      b.innerHTML = esc(v.nome || v) + (v.desc ? `<small>${esc(v.desc)}</small>` : '');
+      b.addEventListener('click', () => { opc[chave] = k; pintar(); onPick && onPick(k); });
+      box.appendChild(b);
+    }
+  }
+  function pintar() {
+    for (const [id, chave] of [['cFormato', 'formato'], ['cIntensidade', 'intensidade'], ['cLegenda', 'legenda'], ['cEnquadramento', 'enquadramento']])
+      $(id).querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.k === opc[chave]));
+    $('customBox').classList.toggle('on', opc.formato === 'custom');
+    $('cw').value = opc.largura; $('ch').value = opc.altura;
+    $('oRetomadas').checked = opc.retomadas; $('oAudio').checked = opc.tratar_audio;
+    $('oVoz').checked = opc.isolar_voz; $('oRevisar').checked = opc.revisar;
+    $('oModelo').value = opc.modelo; $('oIdioma').value = opc.idioma;
+    const f = CAT.formatos[opc.formato];
+    $('goHint').textContent = `O resultado vai para Downloads como “nome (${f ? f.nome : `${opc.largura}x${opc.altura}`}).mp4”, com a legenda .srt e o .cortes.json ao lado.`;
+  }
+  function lerOpcoes() {
+    opc.largura = +$('cw').value || 1080; opc.altura = +$('ch').value || 1920;
+    opc.retomadas = $('oRetomadas').checked; opc.tratar_audio = $('oAudio').checked;
+    opc.isolar_voz = $('oVoz').checked; opc.revisar = $('oRevisar').checked;
+    opc.modelo = $('oModelo').value; opc.idioma = $('oIdioma').value;
+    return { ...opc };
+  }
+  function montarOpcoes() {
+    const formatos = Object.fromEntries(Object.entries(CAT.formatos).map(([k, v]) => [k, { nome: k.replace('x', ':'), desc: v.nome.replace(/ \d+x\d+$/, '') }]));
+    formatos.custom = { nome: 'Personalizado', desc: 'largura × altura' };
+    Object.assign(CAT, { intensidades: ordenar(CAT.intensidades, 'intensidades'), legendas: ordenar(CAT.legendas, 'legendas'),
+                         enquadramentos: ordenar(CAT.enquadramentos, 'enquadramentos'), modelos: ordenar(CAT.modelos, 'modelos') });
+    const fmts = ordenar(formatos, 'formatos');
+    chips('cFormato', fmts, 'formato');
+    chips('cIntensidade', CAT.intensidades, 'intensidade');
+    chips('cLegenda', CAT.legendas, 'legenda');
+    chips('cEnquadramento', CAT.enquadramentos, 'enquadramento');
+    $('oModelo').innerHTML = Object.entries(CAT.modelos).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+    // Seletores rápidos da revisão
+    $('qFormato').innerHTML = Object.entries(fmts).map(([k, v]) => `<option value="${k}">${esc(v.nome)} · ${esc(v.desc)}</option>`).join('');
+    $('qIntensidade').innerHTML = Object.entries(CAT.intensidades).map(([k, v]) => `<option value="${k}">${esc(v.nome)}</option>`).join('');
+    $('qLegenda').innerHTML = Object.entries(CAT.legendas).map(([k, v]) => `<option value="${k}">${esc(v.nome)}</option>`).join('');
+    $('qEnquadramento').innerHTML = Object.entries(CAT.enquadramentos).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+  }
+  function montarPresets() {
+    const sel = $('presetSel'), atual = sel.value;
+    sel.innerHTML = '<option value="">Padrão</option>' + Object.entries(PRESETS.meus).map(([k, v]) =>
+      `<option value="${esc(k)}">${esc(k)}${v.pasta ? ' · da pasta' : ''}</option>`).join('');
+    if (atual in PRESETS.meus) sel.value = atual;
+  }
+  $('presetSel').addEventListener('change', () => {
+    const p = $('presetSel').value ? PRESETS.meus[$('presetSel').value] : PRESETS.padrao;
+    opc = { ...PRESETS.padrao, ...p }; pintar();
+  });
+  $('presetSalvar').addEventListener('click', async () => {
+    const nome = prompt('Nome do preset:', $('presetSel').value || 'Meu Reels');
+    if (!nome) return;
+    const pasta = confirm('Usar este preset nos vídeos da pasta de entrada?');
+    try { const d = await api('presets', { nome, opcoes: lerOpcoes(), pasta }); PRESETS.meus = d.meus; montarPresets(); $('presetSel').value = nome; toast('Preset salvo.'); }
+    catch (e) { toast(e.message, true); }
+  });
+  $('presetRemover').addEventListener('click', async () => {
+    const nome = $('presetSel').value;
+    if (!nome) return toast('O padrão não pode ser apagado.');
+    if (!confirm(`Apagar o preset “${nome}”?`)) return;
+    try { const d = await api('presets', { remover: nome }); PRESETS.meus = d.meus; montarPresets(); $('presetSel').value = ''; toast('Preset apagado.'); }
+    catch (e) { toast(e.message, true); }
+  });
+
+  // ---------- envio ----------
+  let arquivo = null, mapaArq = null;
+  const drop = $('drop');
+  drop.addEventListener('click', () => $('file').click());
+  $('file').addEventListener('change', e => pegar(e.target.files[0]));
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => pegar(e.dataTransfer.files[0]));
+  function pegar(f) {
+    if (!f) return;
+    arquivo = f; $('local').value = '';
+    $('fileName').textContent = `${f.name} · ${(f.size / 1048576).toFixed(1).replace('.', ',')} MB`;
+  }
+  $('mapa').addEventListener('change', e => {
+    mapaArq = e.target.files[0] || null;
+    $('mapaNome').textContent = mapaArq ? `Reabrir: ${mapaArq.name}` : 'Reabrir edição (.cortes.json)';
+  });
+  $('go').addEventListener('click', async () => {
+    const o = lerOpcoes(), caminho = $('local').value.trim();
+    if (!arquivo && !caminho) return toast('Escolha um vídeo primeiro.');
+    const b = $('go'); b.disabled = true; const txt = b.textContent;
+    try {
+      if (caminho && !mapaArq) {
+        await api('local', { caminho, opcoes: o });
+      } else {
+        if (!arquivo) throw new Error('Para reabrir uma edição, escolha também o vídeo original.');
+        const fd = new FormData();
+        fd.append('arquivo', arquivo); fd.append('opcoes', JSON.stringify(o));
+        if (mapaArq) fd.append('mapa', mapaArq);
+        b.textContent = 'Enviando…';
+        await api('enviar', undefined, fd);
+      }
+      toast('Vídeo na fila. A análise começa em instantes.');
+      arquivo = null; mapaArq = null; $('file').value = ''; $('mapa').value = ''; $('fileName').textContent = '';
+      $('mapaNome').textContent = 'Reabrir edição (.cortes.json)';
+      atualizar();
+    } catch (e) { toast(e.message, true); }
+    finally { b.disabled = false; b.textContent = txt; }
+  });
+
+  // ---------- trabalhos ----------
+  let timer = null, aberto = null;
+  function rotuloFormato(o) { const f = CAT.formatos[o.formato]; return f ? f.nome : `${o.largura}x${o.altura}`; }
+  function renderJobs(lista) {
+    const box = $('jobs');
+    if (!lista.length) { box.innerHTML = '<div class="empty">Nenhum vídeo ainda.</div>'; return; }
+    box.innerHTML = lista.map(j => {
+      const ativo = ['fila', 'analisando', 'renderizando'].includes(j.estado);
+      const dur = j.duracao ? `${mmss(j.duracao)}${j.duracao_final ? ' → ' + mmss(j.duracao_final) : ''}` : '';
+      const outs = (j.saidas || []).map((s, n) =>
+        `<a class="btn ghost sm" href="/automacoes/editor/${j.id}/saida/${n}?baixar=1">⬇ ${esc(s.formato)}</a>
+         <a class="btn ghost sm" href="/automacoes/editor/${j.id}/saida/${n}" target="_blank" rel="noopener">▶</a>`).join('');
+      return `<div class="job" data-id="${j.id}">
+        <div class="top"><div class="nm">${esc(j.nome)}</div><span class="pill ${j.estado}">${ESTADOS[j.estado] || j.estado}</span>
+          <div class="actions">
+            ${['revisao', 'pronto'].includes(j.estado) ? `<button class="btn sm" data-acao="abrir">${j.estado === 'pronto' ? 'Editar / exportar de novo' : 'Revisar'}</button>` : ''}
+            ${j.estado === 'erro' ? '<button class="btn ghost sm" data-acao="tentar">↻ Tentar de novo</button>' : ''}
+            ${!ativo ? '<button class="btn ghost sm danger" data-acao="remover" title="Remove o trabalho (os arquivos exportados ficam)">🗑</button>' : ''}
+          </div></div>
+        <div class="meta">${[rotuloFormato(j.opcoes), CAT.intensidades[j.opcoes.intensidade]?.nome, dur, j.retomadas ? `${j.retomadas} retomada(s)` : '', ativo ? esc(j.etapa) : ''].filter(Boolean).join(' · ')}</div>
+        ${ativo ? `<div class="bar"><i style="width:${Math.round((j.progresso || 0) * 100)}%"></i></div>` : ''}
+        ${j.erro ? `<div class="err">${esc(j.erro)}</div>` : ''}
+        ${outs ? `<div class="outs">${outs}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+  $('jobs').addEventListener('click', async e => {
+    const b = e.target.closest('[data-acao]'); if (!b) return;
+    const id = b.closest('.job').dataset.id, acao = b.dataset.acao;
+    try {
+      if (acao === 'abrir') return abrirRevisao(id);
+      if (acao === 'remover' && !confirm('Remover este trabalho? Os vídeos já exportados continuam em Downloads.')) return;
+      await api(`${id}/${acao}`, {});
+      if (acao === 'remover' && aberto && aberto.id === id) fecharRevisao();
+      atualizar();
+    } catch (err) { toast(err.message, true); }
+  });
+
+  let ultimoEstado = {};
+  async function atualizar() {
+    try {
+      const d = await api('estado');
+      if (!CAT) {
+        CAT = d.catalogo; PRESETS = d.presets; opc = { ...PRESETS.padrao };
+        montarOpcoes(); montarPresets(); pintar();
+      }
+      PRESETS = d.presets; montarPresets();
+      $('entradaPath').textContent = d.entrada;
+      renderJobs(d.trabalhos);
+      for (const j of d.trabalhos) {
+        if (ultimoEstado[j.id] && ultimoEstado[j.id] !== j.estado) {
+          if (j.estado === 'revisao') toast(`“${j.nome}” está pronto para revisar.`);
+          if (j.estado === 'pronto') toast(`“${j.nome}” foi exportado para Downloads.`);
+          if (j.estado === 'erro') toast(`“${j.nome}” falhou: ${j.erro}`, true);
+        }
+        ultimoEstado[j.id] = j.estado;
+      }
+      // Só fica perguntando enquanto há algo andando (e com a aba visível).
+      clearTimeout(timer);
+      if (d.trabalhos.some(j => ['fila', 'analisando', 'renderizando'].includes(j.estado))) timer = setTimeout(atualizar, 1500);
+    } catch (e) { toast(e.message, true); }
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) atualizar(); });
+
+  $('entradaAbrir').addEventListener('click', async () => { try { await api('pasta', { abrir: true }); } catch (e) { toast(e.message, true); } });
+  $('entradaProcessar').addEventListener('click', async () => {
+    try {
+      const d = await api('pasta', {});
+      toast(d.enfileirados ? `${d.enfileirados} vídeo(s) foram para a fila.` : 'Nenhum vídeo na pasta de entrada.');
+      atualizar();
+    } catch (e) { toast(e.message, true); }
+  });
+
+  // ---------- revisão ----------
+  let R = null;   // { id, palavras, mantidas, cortes, trechos, opcoes, info }
+  const vid = $('vid');
+  async function abrirRevisao(id) {
+    try {
+      const d = await api(id);
+      const t = d.trabalho;
+      R = { id, palavras: t.palavras, mantidas: new Set(t.mantidas), cortes: t.cortes, trechos: t.trechos, opcoes: { ...t.opcoes }, info: t.info, sel: null };
+      aberto = { id };
+      $('revTitulo').firstChild.textContent = t.nome + ' ';
+      const nRet = Array.isArray(t.retomadas) ? t.retomadas.length : t.retomadas;
+      $('revSub').textContent = t.palavras.length ? `${t.palavras.length} palavras · ${nRet} retomada(s) encontrada(s)` : 'Nenhuma fala reconhecida: o vídeo sai inteiro';
+      $('qFormato').value = R.opcoes.formato; $('qIntensidade').value = R.opcoes.intensidade;
+      $('qLegenda').value = R.opcoes.legenda; $('qEnquadramento').value = R.opcoes.enquadramento;
+      vid.src = `/automacoes/editor/${id}/video`;
+      $('rev').classList.add('open');
+      desenharPalavras(); desenharMapa();
+      $('rev').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) { toast(e.message, true); }
+  }
+  function fecharRevisao() { $('rev').classList.remove('open'); vid.pause(); vid.removeAttribute('src'); vid.load(); R = null; aberto = null; }
+  $('revFechar').addEventListener('click', fecharRevisao);
+
+  function pausasNaTela() {
+    // Cada corte de pausa (ou pausa mantida) aparece entre as duas palavras dele.
+    const m = new Map();
+    for (const c of R.cortes) if (c.motivo === 'pausa' && c.chave) m.set(c.chave, { ...c, kept: false });
+    for (const k of R.mantidas) {
+      const [a, b] = k.split('-').map(Number);
+      if (R.palavras[a] && R.palavras[b]) m.set(k, { chave: k, ini: R.palavras[a].fim, fim: R.palavras[b].ini, kept: true });
+    }
+    return m;
+  }
+  function desenharPalavras() {
+    const box = $('words'), pausas = pausasNaTela();
+    if (!R.palavras.length) { box.innerHTML = '<div class="empty">Sem fala reconhecida.</div>'; return; }
+    const html = [];
+    let anterior = null;
+    R.palavras.forEach((w, i) => {
+      if (anterior !== null) {
+        const p = pausas.get(`${anterior}-${i}`);
+        if (p) html.push(`<span class="gap ${p.kept ? 'kept' : 'pausa'}" data-chave="${p.chave}" title="${p.kept ? 'Pausa mantida: clique para cortar' : 'Pausa cortada: clique para manter'}">⏸ ${seg(p.fim - p.ini)}</span>`);
+      }
+      if (!w.removida) anterior = i;
+      const cls = ['w', w.removida || '', w.p < 0.5 ? 'low' : ''].join(' ');
+      html.push(`<span class="${cls}" data-i="${i}" title="${seg(w.ini)}${w.p < 0.5 ? ' · confiança baixa' : ''}">${esc(w.w)}</span> `);
+    });
+    box.innerHTML = html.join('');
+    marcarSelecao();
+  }
+  function desenharMapa() {
+    const tl = $('tl'), dur = R.info.duracao;
+    tl.querySelectorAll('.cut').forEach(n => n.remove());
+    const add = (a, b, cls, title, chave) => {
+      const d = document.createElement('div');
+      d.className = 'cut ' + cls; d.title = title;
+      d.style.left = (a / dur * 100) + '%'; d.style.width = Math.max(0.15, (b - a) / dur * 100) + '%';
+      if (chave) d.dataset.chave = chave;
+      tl.insertBefore(d, $('head'));
+    };
+    const nomes = { pausa: 'Pausa', retomada: 'Retomada', manual: 'Removido por você', inicio: 'Início sem fala', fim: 'Fim sem fala' };
+    for (const c of R.cortes) add(c.ini, c.fim, c.motivo, `${nomes[c.motivo]} · ${seg(c.fim - c.ini)} (${mmss(c.ini)})${c.motivo === 'pausa' ? ' · clique para manter' : ''}`, c.chave);
+    for (const [k, p] of pausasNaTela()) if (p.kept) add(p.ini, p.fim, 'kept', `Pausa mantida · ${seg(p.fim - p.ini)} · clique para cortar`, k);
+    const final = R.trechos.reduce((s, [a, b]) => s + b - a, 0);
+    $('sOrig').textContent = mmss(dur); $('sFinal').textContent = mmss(final);
+    $('sCortes').textContent = R.cortes.filter(c => ['pausa', 'retomada', 'manual'].includes(c.motivo)).length;
+  }
+
+  // Recalcula o mapa no servidor (rápido, sem FFmpeg) depois de cada mudança.
+  let recalcT;
+  function recalcular(salvar = false) {
+    clearTimeout(recalcT);
+    return new Promise(resolve => {
+      recalcT = setTimeout(async () => {
+        try {
+          const d = await api(`${R.id}/revisar`, corpoRevisao(salvar));
+          R.cortes = d.mapa.cortes; R.trechos = d.mapa.trechos;
+          desenharPalavras(); desenharMapa(); resolve(true);
+        } catch (e) { toast(e.message, true); resolve(false); }
+      }, salvar ? 0 : 200);
+    });
+  }
+  function corpoRevisao(salvar) {
+    return {
+      salvar,
+      palavras: R.palavras.map((w, i) => ({ i, w: w.w, removida: w.removida || null })),
+      mantidas: [...R.mantidas],
+      opcoes: { formato: $('qFormato').value, intensidade: $('qIntensidade').value, legenda: $('qLegenda').value, enquadramento: $('qEnquadramento').value },
+    };
+  }
+  ['qFormato', 'qIntensidade', 'qLegenda', 'qEnquadramento'].forEach(id => $(id).addEventListener('change', () => {
+    if (id === 'qFormato' && $('qFormato').value === 'custom') toast('O tamanho personalizado usa a largura e altura do “Novo vídeo”.');
+    recalcular();
+  }));
+
+  function alternarPausa(chave) {
+    if (R.mantidas.has(chave)) R.mantidas.delete(chave); else R.mantidas.add(chave);
+    recalcular();
+  }
+  $('tl').addEventListener('click', e => {
+    const c = e.target.closest('.cut');
+    if (c && c.dataset.chave) return alternarPausa(c.dataset.chave);
+    const r = $('tl').getBoundingClientRect();
+    vid.currentTime = (e.clientX - r.left) / r.width * R.info.duracao;
+  });
+  $('words').addEventListener('click', e => {
+    const g = e.target.closest('.gap');
+    if (g) return alternarPausa(g.dataset.chave);
+    const s = e.target.closest('.w'); if (!s || s.querySelector('input')) return;
+    const i = +s.dataset.i;
+    if (e.shiftKey && R.sel) R.sel = [Math.min(R.sel[0], i), Math.max(R.sel[1], i)];
+    else { R.sel = [i, i]; vid.currentTime = R.palavras[i].ini; }
+    marcarSelecao();
+  });
+  $('words').addEventListener('dblclick', e => {
+    const s = e.target.closest('.w'); if (!s) return;
+    const i = +s.dataset.i, w = R.palavras[i];
+    const inp = document.createElement('input'); inp.value = w.w;
+    s.textContent = ''; s.appendChild(inp); inp.focus(); inp.select();
+    const ok = () => { const v = inp.value.trim(); if (v && v !== w.w) { w.w = v; recalcular(); } else desenharPalavras(); };
+    inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') inp.blur(); if (ev.key === 'Escape') { inp.value = w.w; inp.blur(); } });
+    inp.addEventListener('blur', ok, { once: true });
+  });
+  function marcarSelecao() {
+    document.querySelectorAll('.w.sel').forEach(n => n.classList.remove('sel'));
+    if (!R || !R.sel) return;
+    for (let i = R.sel[0]; i <= R.sel[1]; i++) { const n = document.querySelector(`.w[data-i="${i}"]`); if (n) n.classList.add('sel'); }
+  }
+  function marcar(valor) {
+    if (!R || !R.sel) return toast('Clique numa palavra (Shift+clique para um trecho) primeiro.');
+    for (let i = R.sel[0]; i <= R.sel[1]; i++) R.palavras[i].removida = valor;
+    recalcular();
+  }
+  $('tRemover').addEventListener('click', () => marcar('manual'));
+  $('tRestaurar').addEventListener('click', () => marcar(null));
+  document.addEventListener('keydown', e => {
+    if (!R || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); marcar('manual'); }
+    if (e.key === 'r' || e.key === 'R') marcar(null);
+  });
+
+  // Prévia: pula os cortes, destaca a palavra falada e mostra a legenda.
+  vid.addEventListener('timeupdate', () => {
+    if (!R) return;
+    const t = vid.currentTime;
+    $('head').style.left = (t / R.info.duracao * 100) + '%';
+    if ($('pularCortes').checked && !vid.paused) {
+      const c = R.cortes.find(c => t >= c.ini && t < c.fim - 0.02);
+      if (c) { vid.currentTime = c.fim; return; }
+    }
+    let atual = -1;
+    for (let i = 0; i < R.palavras.length; i++) {
+      const w = R.palavras[i];
+      if (!w.removida && t >= w.ini - 0.05 && t <= w.fim + 0.05) { atual = i; break; }
+    }
+    document.querySelectorAll('.w.now').forEach(n => n.classList.remove('now'));
+    if (atual >= 0) {
+      const n = document.querySelector(`.w[data-i="${atual}"]`);
+      if (n) { n.classList.add('now'); if (!vid.paused) n.scrollIntoView({ block: 'nearest' }); }
+      const vivas = R.palavras.map((w, i) => [w, i]).filter(([w]) => !w.removida);
+      const k = vivas.findIndex(([, i]) => i === atual), ini = Math.floor(k / 3) * 3;
+      $('cap').innerHTML = R.opcoes && $('qLegenda').value === 'nenhuma' ? '' :
+        vivas.slice(ini, ini + 3).map(([w, i]) => i === atual ? `<b>${esc(w.w)}</b>` : esc(w.w)).join(' ');
+    } else $('cap').innerHTML = '';
+  });
+
+  $('revSalvar').addEventListener('click', async () => { if (await recalcular(true)) toast('Revisão salva.'); });
+  $('revExportar').addEventListener('click', async () => {
+    try {
+      const corpo = corpoRevisao(true);
+      if (corpo.opcoes.formato === 'custom') Object.assign(corpo.opcoes, { largura: +$('cw').value, altura: +$('ch').value });
+      await api(`${R.id}/exportar`, corpo);
+      toast('Exportando… acompanhe em Trabalhos.');
+      fecharRevisao(); atualizar();
+    } catch (e) { toast(e.message, true); }
+  });
+
+  // Link direto para uma revisão: /automacoes/editor#revisar=<id>
+  atualizar().then(() => {
+    const m = location.hash.match(/^#revisar=(\w+)/);
+    if (m) abrirRevisao(m[1]);
+  });
+  </script>
+</body>
+</html>

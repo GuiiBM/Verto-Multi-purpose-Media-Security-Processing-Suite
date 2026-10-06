@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Censor - Proteção Automática de Privacidade</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/tarja.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.06) 0px, transparent 50%);
+      font-family: var(--lt-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(124, 92, 224, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(109, 75, 216, 0.06) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       display: flex;
@@ -24,7 +28,7 @@
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -38,20 +42,20 @@
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
     }
     .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(59, 130, 246, 0.4);
-      color: #3b82f6;
+      background: rgba(24, 26, 31, 0.95);
+      border-color: rgba(124, 92, 224, 0.4);
+      color: #7c5ce0;
       transform: translateX(-6px);
     }
     .logo {
       font-size: 72px;
       font-weight: 900;
-      background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
+      background: linear-gradient(135deg, #7c5ce0 0%, #6d4bd8 50%, #a78bfa 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: 18px;
       text-transform: uppercase;
-      filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.7));
+      filter: drop-shadow(0 0 25px rgba(124, 92, 224, 0.7));
       margin-bottom: 10px;
     }
     .tagline {
@@ -61,7 +65,7 @@
       font-weight: 500;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -83,18 +87,18 @@
       line-height: 1.6;
     }
     .drop-zone {
-      border: 2px dashed rgba(59, 130, 246, 0.3);
+      border: 2px dashed rgba(124, 92, 224, 0.3);
       border-radius: 16px;
       padding: 40px;
       text-align: center;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       cursor: pointer;
       transition: all 0.3s;
       margin-bottom: 24px;
     }
     .drop-zone:hover, .drop-zone.dragover {
-      border-color: #3b82f6;
-      background: rgba(59, 130, 246, 0.1);
+      border-color: #7c5ce0;
+      background: rgba(124, 92, 224, 0.1);
       transform: scale(1.02);
     }
     .drop-zone-icon { font-size: 48px; margin-bottom: 16px; }
@@ -108,7 +112,7 @@
       margin-bottom: 24px;
     }
     .option {
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       border-radius: 12px;
       padding: 16px;
       border: 1px solid rgba(148, 163, 184, 0.1);
@@ -132,7 +136,7 @@
       padding: 12px;
       border-radius: 12px;
       border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       color: #f1f5f9;
       font-size: 14px;
       outline: none;
@@ -150,7 +154,7 @@
       position: relative;
       border-radius: 12px;
       overflow: hidden;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       border: 1px solid rgba(148, 163, 184, 0.1);
     }
     .image-item img {
@@ -170,7 +174,7 @@
       backdrop-filter: blur(10px);
     }
     .image-status.pending { color: #fbbf24; }
-    .image-status.processing { color: #3b82f6; }
+    .image-status.processing { color: #7c5ce0; }
     .image-status.done { color: #22c55e; }
     .remove-btn {
       position: absolute;
@@ -196,7 +200,7 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      background: linear-gradient(135deg, #7c5ce0, #6d4bd8);
       color: white;
       display: flex;
       align-items: center;
@@ -204,20 +208,20 @@
       gap: 8px;
       transition: all 0.3s;
     }
-    button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); }
+    button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(124, 92, 224, 0.4); }
     button:disabled { opacity: 0.6; cursor: default; transform: none; }
     .progress {
       margin-top: 16px;
       padding: 16px;
-      background: rgba(59, 130, 246, 0.1);
+      background: rgba(124, 92, 224, 0.1);
       border-radius: 12px;
-      border: 1px solid rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(124, 92, 224, 0.2);
       display: none;
     }
     .progress.show { display: block; }
     .progress-text {
       font-size: 13px;
-      color: #60a5fa;
+      color: #c4b5fd;
       font-weight: 600;
       text-align: center;
     }
@@ -232,22 +236,24 @@
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-tarja">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">CENSOR</div>
-  <div class="tagline">Proteção Automática de Privacidade com IA</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-privacidade)"><img src="/static/localtools/apps/censor.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Censor</h1>
+    <p class="modo-sub">Proteção Automática de Privacidade com IA</p>
+  </header>
   
   <div class="card">
-    <h1>🔒 Censor Automático</h1>
-    <p class="subtitle">🤖 Detecta e censura automaticamente rostos, CPF, RG, CNH, placas, e-mails, telefones, cartões, sites, nomes, @IDs e mais. Processamento 100% local no navegador.</p>
+    <h1>Censor Automático</h1>
+    <p class="subtitle">Detecta e censura automaticamente rostos, CPF, RG, CNH, placas, e-mails, telefones, cartões, sites, nomes, @IDs e mais. Processamento 100% local no navegador.</p>
 
     <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
-      <div class="drop-zone-icon">🖼️</div>
+      <div class="drop-zone-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34ZM48,46H208a2,2,0,0,1,2,2V154H179.31a13.9,13.9,0,0,0-9.89,4.1L150.1,177.41a2,2,0,0,1-1.41.59H107.31a2,2,0,0,1-1.41-.59L86.59,158.1a13.94,13.94,0,0,0-9.9-4.1H46V48A2,2,0,0,1,48,46ZM208,210H48a2,2,0,0,1-2-2V166H76.69a2,2,0,0,1,1.41.59L97.41,185.9a13.94,13.94,0,0,0,9.9,4.1h41.38a13.9,13.9,0,0,0,9.89-4.1l19.32-19.31a2,2,0,0,1,1.41-.59H210v42A2,2,0,0,1,208,210ZM91.76,108.24a6,6,0,0,1,0-8.48l32-32a6,6,0,0,1,8.48,0l32,32a6,6,0,1,1-8.48,8.48L134,86.49V152a6,6,0,0,1-12,0V86.49l-21.76,21.75A6,6,0,0,1,91.76,108.24Z"/></svg></div>
       <div class="drop-zone-text">Arraste imagens aqui ou clique para selecionar</div>
       <div class="drop-zone-hint">Até 20 imagens por vez</div>
     </div>
@@ -258,49 +264,49 @@
       <div class="option">
         <label>
           <input type="checkbox" id="detect-faces" checked>
-          <span>👤 Rostos</span>
+          <span>Rostos</span>
         </label>
       </div>
       <div class="option">
         <label>
           <input type="checkbox" id="detect-text" checked>
-          <span>🔤 CPF/RG/CNH</span>
+          <span>CPF/RG/CNH</span>
         </label>
       </div>
       <div class="option">
         <label>
           <input type="checkbox" id="detect-plates" checked>
-          <span>🚗 Placas</span>
+          <span>Placas</span>
         </label>
       </div>
       <div class="option">
         <label>
           <input type="checkbox" id="detect-emails" checked>
-          <span>✉️ E-mails</span>
+          <span>E-mails</span>
         </label>
       </div>
       <div class="option">
         <label>
           <input type="checkbox" id="detect-phones" checked>
-          <span>📞 Telefones</span>
+          <span>Telefones</span>
         </label>
       </div>
       <div class="option">
         <label>
           <input type="checkbox" id="detect-cards" checked>
-          <span>💳 Cartões</span>
+          <span>Cartões</span>
         </label>
       </div>
       <div class="option">
         <label>
           <input type="checkbox" id="detect-urls" checked>
-          <span>🌐 Sites/URLs</span>
+          <span>Sites/URLs</span>
         </label>
       </div>
       <div class="option">
         <label>
           <input type="checkbox" id="detect-names" checked>
-          <span>👤 Nomes</span>
+          <span>Nomes</span>
         </label>
       </div>
       <div class="option">
@@ -316,7 +322,7 @@
           <option value="pixelate">Pixelizar</option>
           <option value="black">Tarja Preta</option>
           <option value="white">Tarja Branca</option>
-          <option value="emoji">😎 Emoji</option>
+          <option value="emoji">Emoji</option>
           <option value="gradient">Gradiente</option>
           <option value="redact">Redação ████</option>
           <option value="noise">Ruído</option>
@@ -325,7 +331,7 @@
       <div class="option">
         <label>Intensidade:</label>
         <select id="intensity">
-          <option value="auto">🤖 Automática</option>
+          <option value="auto">Automática</option>
           <option value="low">Baixa</option>
           <option value="medium" selected>Média</option>
           <option value="high">Alta</option>
@@ -336,11 +342,11 @@
     <div class="images-grid" id="images-grid"></div>
     
     <button id="process-btn" onclick="processImages()" disabled>
-      <span>🚀 Processar Imagens</span>
+      <span>Processar Imagens</span>
     </button>
     
-    <button id="download-btn" onclick="downloadAll()" disabled style="margin-top: 12px; background: linear-gradient(135deg, #22c55e, #16a34a);">
-      <span>⬇️ Baixar Todas</span>
+    <button id="download-btn" onclick="downloadAll()" disabled style="margin-top: 12px;">
+      <span>Baixar Todas</span>
     </button>
     
     <div class="progress" id="progress">
@@ -451,11 +457,11 @@
           const processed = await processImage(images[i], detectFaces, detectText, detectPlates, detectEmails, detectPhones, detectCards, detectUrls, detectNames, detectHandles, censorType, intensity);
           processedImages.push(processed);
           statusEl.className = 'image-status done';
-          statusEl.textContent = '✅ Pronto';
+          statusEl.textContent = 'Pronto';
         } catch (error) {
           console.error('Erro:', error);
           statusEl.className = 'image-status pending';
-          statusEl.textContent = '❌ Erro';
+          statusEl.textContent = 'Erro';
         }
       }
       

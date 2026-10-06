@@ -1,0 +1,52 @@
+/* Efeitos · tema "laboratório": a tira de teste do laboratório de revelação
+   (a mesma cena em vários tons, lado a lado) embaixo do título, e o efeito
+   escolhido ganha uma moldura em prisma. */
+body.tema-laboratorio {
+  --acc: #f472b6;
+  --prisma: conic-gradient(from 180deg, #f472b6, #fbbf24, #4ade80, #38bdf8, #a78bfa, #f472b6);
+  background-image:
+    radial-gradient(900px 520px at 8% -10%, rgba(244, 114, 182, 0.13), transparent 62%),
+    radial-gradient(800px 520px at 94% -6%, rgba(167, 139, 250, 0.1), transparent 62%),
+    radial-gradient(900px 500px at 50% 110%, rgba(251, 191, 36, 0.05), transparent 65%);
+}
+
+/* tira de teste: o mesmo degradê de "cena" em sete tratamentos */
+body.tema-laboratorio .lt-head h1::after {
+  content: '';
+  display: block;
+  width: min(420px, 80vw);
+  height: 26px;
+  margin: 16px auto 0;
+  border-radius: 4px;
+  background: linear-gradient(90deg,
+    #d9a066 0.00% calc(14.29% - 3px),
+    transparent calc(14.29% - 3px) 14.29%,
+    #8a8a8a 14.29% calc(28.57% - 3px),
+    transparent calc(28.57% - 3px) 28.57%,
+    #5fa3c9 28.57% calc(42.86% - 3px),
+    transparent calc(42.86% - 3px) 42.86%,
+    #e8784a 42.86% calc(57.14% - 3px),
+    transparent calc(57.14% - 3px) 57.14%,
+    #9fc46a 57.14% calc(71.43% - 3px),
+    transparent calc(71.43% - 3px) 71.43%,
+    #6a4fbf 71.43% calc(85.71% - 3px),
+    transparent calc(85.71% - 3px) 85.71%,
+    #f2d06b 85.71% 100%);
+  box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.8);
+  filter: saturate(0.9);
+}
+body.tema-laboratorio .lt-head h1 { letter-spacing: -0.04em; }
+
+/* efeito selecionado: moldura em prisma */
+body.tema-laboratorio .fx { border-radius: 12px; }
+body.tema-laboratorio .fx.selected {
+  border-color: transparent;
+  background:
+    linear-gradient(#141519, #141519) padding-box,
+    var(--prisma) border-box;
+}
+body.tema-laboratorio .fx:hover { transform: translateY(-2px); }
+body.tema-laboratorio .fx-name { font-weight: 600; }
+body.tema-laboratorio .group-title { font-family: var(--lt-mono); font-size: 11px; letter-spacing: 0.18em; }
+body.tema-laboratorio .card { border-radius: 20px; }
+body.tema-laboratorio .drop { border-radius: 20px; }

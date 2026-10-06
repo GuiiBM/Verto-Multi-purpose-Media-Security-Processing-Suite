@@ -1,0 +1,21 @@
+{
+  "intensidades": {
+    "natural":   {"nome": "Natural",   "desc": "Corta só pausas longas (acima de 0,7 s)",        "pausa": 0.7,  "folga": 0.15, "zoom": false},
+    "dinamico":  {"nome": "Dinâmico",  "desc": "Ritmo de Reels: pausas acima de 0,4 s e zoom alternado", "pausa": 0.4,  "folga": 0.10, "zoom": true},
+    "agressivo": {"nome": "Agressivo", "desc": "Quase sem respiro: pausas acima de 0,25 s",       "pausa": 0.25, "folga": 0.08, "zoom": true}
+  },
+  "padrao": {
+    "formato": "9x16",
+    "largura": 1080,
+    "altura": 1920,
+    "intensidade": "dinamico",
+    "legenda": "classico",
+    "enquadramento": "rosto",
+    "retomadas": true,
+    "tratar_audio": true,
+    "isolar_voz": false,
+    "modelo": "small",
+    "idioma": "pt",
+    "revisar": true
+  }
+}

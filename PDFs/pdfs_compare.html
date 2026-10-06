@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Comparar PDFs</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/pdfs-papel.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(217, 83, 79, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -22,7 +26,7 @@
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -35,14 +39,14 @@
       color: #cbd5e1;
     }
     .back-button:hover {
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #ef4444;
+      border-color: rgba(217, 83, 79, 0.4);
+      color: #d9534f;
       transform: translateX(-6px);
     }
     .logo {
       font-size: 48px;
       font-weight: 900;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      background: linear-gradient(135deg, #d9534f 0%, #c2413d 50%, #a8332f 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       text-align: center;
@@ -55,7 +59,7 @@
       text-align: center;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       border: 1px solid rgba(148, 163, 184, 0.08);
@@ -87,16 +91,16 @@
       width: 100%;
       padding: 40px;
       border-radius: 12px;
-      border: 2px dashed rgba(239, 68, 68, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      border: 2px dashed rgba(217, 83, 79, 0.3);
+      background: rgba(24, 26, 31, 0.6);
       text-align: center;
       cursor: pointer;
       transition: all 0.3s;
       margin-bottom: 24px;
     }
     .file-upload-area:hover {
-      border-color: rgba(239, 68, 68, 0.5);
-      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(217, 83, 79, 0.5);
+      background: rgba(24, 26, 31, 0.8);
     }
     .upload-icon {
       font-size: 48px;
@@ -120,8 +124,8 @@
     }
     .file-item {
       padding: 12px;
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.2);
+      background: rgba(217, 83, 79, 0.1);
+      border: 1px solid rgba(217, 83, 79, 0.2);
       border-radius: 8px;
       margin-bottom: 8px;
       display: flex;
@@ -141,9 +145,9 @@
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: rgba(239, 68, 68, 0.2);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #ef4444;
+      background: rgba(217, 83, 79, 0.2);
+      border: 1px solid rgba(217, 83, 79, 0.3);
+      color: #d9534f;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -152,7 +156,7 @@
       transition: all 0.2s;
     }
     .file-remove:hover {
-      background: rgba(239, 68, 68, 0.3);
+      background: rgba(217, 83, 79, 0.3);
       transform: scale(1.1);
     }
     button {
@@ -164,7 +168,7 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
+      background: linear-gradient(135deg, #d9534f, #c2413d);
       color: white;
     }
     .results {
@@ -176,7 +180,7 @@
     }
     .comparison-item {
       padding: 16px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: 12px;
       margin-bottom: 12px;
@@ -209,9 +213,9 @@
       border: 1px solid rgba(251, 191, 36, 0.3);
     }
     .similarity-badge.low {
-      background: rgba(239, 68, 68, 0.2);
+      background: rgba(217, 83, 79, 0.2);
       color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      border: 1px solid rgba(217, 83, 79, 0.3);
     }
     .differences {
       font-size: 12px;
@@ -231,7 +235,7 @@
     }
     .diff-item {
       padding: 8px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       border-radius: 6px;
       margin-bottom: 6px;
       font-size: 11px;
@@ -242,14 +246,14 @@
       color: #94a3b8;
     }
     .diff-item.different {
-      border-left: 3px solid #ef4444;
+      border-left: 3px solid #d9534f;
       color: #cbd5e1;
     }
     .diff-highlight {
-      background: rgba(239, 68, 68, 0.2);
+      background: rgba(217, 83, 79, 0.2);
       padding: 2px 4px;
       border-radius: 4px;
-      color: #ef4444;
+      color: #d9534f;
       font-weight: 600;
     }
     .status {
@@ -265,21 +269,24 @@
       border: 1px solid rgba(34, 197, 94, 0.3);
     }
     .status.err {
-      background: rgba(239, 68, 68, 0.1);
+      background: rgba(217, 83, 79, 0.1);
       color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      border: 1px solid rgba(217, 83, 79, 0.3);
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/pdfs'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body pdf-papel">
+  <a class="lt-back" href="/pdfs" title="Voltar aos PDFs" aria-label="Voltar aos PDFs">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">🔍 COMPARAR PDFs</div>
-  <div class="tagline">Compare múltiplos PDFs e veja as diferenças</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="pdf-cab">
+    <span class="pdf-selo"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M104,34H64A14,14,0,0,0,50,48V208a14,14,0,0,0,14,14h40a14,14,0,0,0,14-14V48A14,14,0,0,0,104,34Zm2,174a2,2,0,0,1-2,2H64a2,2,0,0,1-2-2V48a2,2,0,0,1,2-2h40a2,2,0,0,1,2,2ZM192,34H152a14,14,0,0,0-14,14V208a14,14,0,0,0,14,14h40a14,14,0,0,0,14-14V48A14,14,0,0,0,192,34Zm2,174a2,2,0,0,1-2,2H152a2,2,0,0,1-2-2V48a2,2,0,0,1,2-2h40a2,2,0,0,1,2,2Z"/></svg></span>
+    <nav class="pdf-trilha" aria-label="Você está em"><a href="/pdfs">PDFs</a> / Comparar</nav>
+    <h1 class="pdf-titulo">Comparar</h1>
+    <p class="pdf-sub">Compare múltiplos PDFs e veja as diferenças</p>
+  </header>
   
   <div class="card">
     <h1>Selecione os PDFs</h1>
@@ -288,7 +295,7 @@
     <form method="POST" enctype="multipart/form-data" id="compare-form">
       <label>Arquivos PDF</label>
       <div class="file-upload-area" id="upload-area" onclick="document.getElementById('files').click()">
-        <div class="upload-icon">📄</div>
+        <div class="upload-icon"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H190v20h18a6,6,0,0,1,0,12H190v18a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h32A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm84,8a34,34,0,0,1-34,34H112a6,6,0,0,1-6-6V152a6,6,0,0,1,6-6h16A34,34,0,0,1,162,180Zm-12,0a22,22,0,0,0-22-22H118v44h10A22,22,0,0,0,150,180ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>
         <div class="upload-text">Clique ou arraste arquivos aqui</div>
         <div class="upload-hint">Suporta múltiplos arquivos PDF</div>
       </div>
@@ -296,7 +303,7 @@
       
       <div class="files-list" id="files-list"></div>
       
-      <button type="submit">🔍 Comparar PDFs</button>
+      <button type="submit">Comparar PDFs</button>
     </form>
     
     <div class="results" id="results">
@@ -304,7 +311,7 @@
         {% for comp in comparisons %}
         <div class="comparison-item">
           <div class="comparison-header">
-            <div class="comparison-files">📄 {{ comp.file1 }} ↔️ {{ comp.file2 }}</div>
+            <div class="comparison-files">{{ comp.file1 }} ↔️ {{ comp.file2 }}</div>
             <div class="similarity-badge {% if comp.similarity >= 70 %}high{% elif comp.similarity >= 50 %}medium{% else %}low{% endif %}">
               {{ comp.similarity }}% Similar
             </div>
@@ -313,7 +320,7 @@
           <div class="differences">
             {% if comp.similarities %}
             <div class="diff-section">
-              <div class="diff-title">✅ Trechos Similares:</div>
+              <div class="diff-title">Trechos Similares:</div>
               {% for sim in comp.similarities %}
               <div class="diff-item similar">{{ sim }}...</div>
               {% endfor %}
@@ -322,7 +329,7 @@
             
             {% if comp.differences %}
             <div class="diff-section">
-              <div class="diff-title">⚠️ Diferenças Encontradas:</div>
+              <div class="diff-title">Diferenças Encontradas:</div>
               {% for diff in comp.differences %}
               <div class="diff-item different">{{ diff }}</div>
               {% endfor %}
@@ -368,16 +375,16 @@
     
     uploadArea.addEventListener('dragover', (e) => {
       e.preventDefault();
-      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+      uploadArea.style.borderColor = 'rgba(217, 83, 79, 0.5)';
     });
     
     uploadArea.addEventListener('dragleave', () => {
-      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+      uploadArea.style.borderColor = 'rgba(217, 83, 79, 0.3)';
     });
     
     uploadArea.addEventListener('drop', (e) => {
       e.preventDefault();
-      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+      uploadArea.style.borderColor = 'rgba(217, 83, 79, 0.3)';
       const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.pdf'));
       selectedFiles = files;
       const dt = new DataTransfer();

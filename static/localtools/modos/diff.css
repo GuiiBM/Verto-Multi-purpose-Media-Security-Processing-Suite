@@ -1,0 +1,39 @@
+/* Text Clean & Diff · modo diff: calha de linhas numeradas com marcas + e −. */
+body.modo-diff { --acc: #2dd4bf; --mais: #34d399; --menos: #f87171; }
+body.modo-diff .modo-cab::after {
+  content: '+ adicionado   − removido   ~ alterado';
+  margin-top: 4px; font: 500 12px var(--lt-mono); color: var(--lt-faint); white-space: pre;
+}
+body.modo-diff .tool-card, body.modo-diff .card {
+  position: relative;
+  border-radius: 10px !important;
+  padding-left: 58px !important;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 40px, transparent 40px),
+    linear-gradient(180deg, #1b1e23, #15171b) !important;
+}
+body.modo-diff .tool-card::before, body.modo-diff .card::before {
+  content: '1\A 2\A 3\A 4\A 5\A 6';
+  white-space: pre; position: absolute; left: 0; top: 22px; width: 40px; text-align: center;
+  font: 500 11px/1.9 var(--lt-mono); color: rgba(255, 255, 255, 0.22);
+}
+body.modo-diff .tool-card::after, body.modo-diff .card::after {
+  content: ''; position: absolute; left: 40px; top: 18px; bottom: 18px; width: 3px; border-radius: 2px;
+  background: linear-gradient(180deg, var(--mais) 0 34%, transparent 34% 40%, var(--menos) 40% 62%, transparent 62% 70%, var(--acc) 70%);
+  opacity: 0.85;
+}
+body.modo-diff .tool-title, body.modo-diff .pane-label { font-family: var(--lt-mono); letter-spacing: -0.02em; }
+body.modo-diff .tool-card:hover { border-color: rgba(45, 212, 191, 0.5) !important; }
+
+body.modo-diff .btn-primary, body.modo-diff button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-diff button[type="submit"], body.modo-diff .action-btn, body.modo-diff .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, #0f9488, #0b6f66) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #063b36, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-diff .btn-primary:hover, body.modo-diff button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-diff button[type="submit"]:hover, body.modo-diff .action-btn:hover, body.modo-diff .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-diff .btn-primary:active, body.modo-diff button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-diff button[type="submit"]:active, body.modo-diff .action-btn:active, body.modo-diff .process-btn:active { transform: translateY(2px); }

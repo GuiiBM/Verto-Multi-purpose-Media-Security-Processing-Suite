@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tempo - Relógio e Calendário</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/calendario.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b0c0f;
       background-image: 
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(96, 165, 250, 0.06) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(147, 197, 253, 0.05) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(234, 88, 12, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(251, 146, 60, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(253, 186, 116, 0.05) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       display: flex;
@@ -50,7 +54,7 @@
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px) saturate(180%);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -64,29 +68,29 @@
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
     }
     .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(59, 130, 246, 0.4);
-      color: #3b82f6;
+      background: rgba(24, 26, 31, 0.95);
+      border-color: rgba(234, 88, 12, 0.4);
+      color: #ea580c;
       transform: translateX(-6px);
     }
     .logo {
       font-size: 64px;
       font-weight: 900;
-      background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
+      background: linear-gradient(135deg, #ea580c 0%, #fb923c 50%, #fdba74 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       letter-spacing: 6px;
       text-transform: uppercase;
-      filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.7));
+      filter: drop-shadow(0 0 25px rgba(234, 88, 12, 0.7));
       animation: glow-pulse-blue 3s ease-in-out infinite;
       margin-bottom: 10px;
       position: relative;
       z-index: 1;
     }
     @keyframes glow-pulse-blue {
-      0%, 100% { filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.7)); }
-      50% { filter: drop-shadow(0 0 35px rgba(59, 130, 246, 0.9)); }
+      0%, 100% { filter: drop-shadow(0 0 25px rgba(234, 88, 12, 0.7)); }
+      50% { filter: drop-shadow(0 0 35px rgba(234, 88, 12, 0.9)); }
     }
     .tagline {
       color: #64748b;
@@ -107,7 +111,7 @@
       z-index: 1;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 32px;
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -133,10 +137,10 @@
     .digital-clock {
       font-size: 64px;
       font-weight: 700;
-      color: #3b82f6;
+      color: #ea580c;
       text-align: center;
       margin-bottom: 16px;
-      text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+      text-shadow: 0 0 20px rgba(234, 88, 12, 0.5);
     }
     .date-display {
       font-size: 18px;
@@ -148,22 +152,22 @@
       width: 280px;
       height: 280px;
       border-radius: 50%;
-      background: rgba(15, 23, 42, 0.6);
-      border: 4px solid rgba(59, 130, 246, 0.3);
+      background: rgba(24, 26, 31, 0.6);
+      border: 4px solid rgba(234, 88, 12, 0.3);
       position: relative;
-      box-shadow: 0 0 40px rgba(59, 130, 246, 0.2), inset 0 0 40px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 40px rgba(234, 88, 12, 0.2), inset 0 0 40px rgba(0, 0, 0, 0.3);
       margin: 0 auto;
     }
     .clock-number {
       position: absolute;
       font-size: 18px;
       font-weight: 700;
-      color: #3b82f6;
-      text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+      color: #ea580c;
+      text-shadow: 0 0 10px rgba(234, 88, 12, 0.5);
     }
     .clock-mark {
       position: absolute;
-      background: rgba(59, 130, 246, 0.4);
+      background: rgba(234, 88, 12, 0.4);
       transform-origin: bottom center;
       left: 50%;
       bottom: 50%;
@@ -172,7 +176,7 @@
       width: 3px;
       height: 12px;
       margin-left: -1.5px;
-      background: rgba(59, 130, 246, 0.6);
+      background: rgba(234, 88, 12, 0.6);
     }
     .clock-mark.minute {
       width: 1px;
@@ -184,13 +188,13 @@
       position: absolute;
       width: 12px;
       height: 12px;
-      background: #3b82f6;
+      background: #ea580c;
       border-radius: 50%;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 10;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+      box-shadow: 0 0 10px rgba(234, 88, 12, 0.8);
     }
     .hand {
       position: absolute;
@@ -202,16 +206,16 @@
     .hour-hand {
       width: 6px;
       height: 70px;
-      background: linear-gradient(to top, #3b82f6, #60a5fa);
+      background: linear-gradient(to top, #ea580c, #fb923c);
       margin-left: -3px;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 10px rgba(234, 88, 12, 0.5);
     }
     .minute-hand {
       width: 4px;
       height: 100px;
-      background: linear-gradient(to top, #60a5fa, #93c5fd);
+      background: linear-gradient(to top, #fb923c, #fdba74);
       margin-left: -2px;
-      box-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
+      box-shadow: 0 0 8px rgba(251, 146, 60, 0.5);
     }
     .second-hand {
       width: 2px;
@@ -232,22 +236,22 @@
     }
     .calendar-header h2 {
       font-size: 20px;
-      color: #3b82f6;
+      color: #ea580c;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.3s;
     }
     .calendar-header h2:hover {
-      color: #60a5fa;
+      color: #fb923c;
       transform: scale(1.05);
     }
     .nav-btn {
       width: 36px;
       height: 36px;
       border-radius: 8px;
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #3b82f6;
+      background: rgba(234, 88, 12, 0.1);
+      border: 1px solid rgba(234, 88, 12, 0.3);
+      color: #ea580c;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -257,8 +261,8 @@
       transition: all 0.3s;
     }
     .nav-btn:hover {
-      background: rgba(59, 130, 246, 0.2);
-      border-color: #3b82f6;
+      background: rgba(234, 88, 12, 0.2);
+      border-color: #ea580c;
       transform: scale(1.1);
     }
     .calendar-grid {
@@ -287,7 +291,7 @@
       font-size: 13px;
       font-weight: 600;
       color: #94a3b8;
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border: 1px solid rgba(148, 163, 184, 0.1);
       transition: all 0.3s;
     }
@@ -300,14 +304,14 @@
     .calendar-day.header {
       background: transparent;
       border: none;
-      color: #3b82f6;
+      color: #ea580c;
       font-weight: 700;
     }
     .calendar-day.today {
-      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      background: linear-gradient(135deg, #ea580c, #fb923c);
       color: white;
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-      border-color: #3b82f6;
+      box-shadow: 0 0 20px rgba(234, 88, 12, 0.5);
+      border-color: #ea580c;
     }
     .calendar-day.other-month {
       opacity: 0.3;
@@ -355,9 +359,9 @@
       font-weight: 700;
     }
     .calendar-day.holiday-facultativo {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1));
-      border-color: rgba(59, 130, 246, 0.4);
-      color: #60a5fa;
+      background: linear-gradient(135deg, rgba(234, 88, 12, 0.2), rgba(37, 99, 235, 0.1));
+      border-color: rgba(234, 88, 12, 0.4);
+      color: #fb923c;
       font-weight: 700;
     }
     .calendar-day.holiday-fatec {
@@ -390,8 +394,8 @@
       cursor: pointer;
     }
     .calendar-day.selectable:hover {
-      background: rgba(59, 130, 246, 0.2);
-      border-color: #3b82f6;
+      background: rgba(234, 88, 12, 0.2);
+      border-color: #ea580c;
       transform: scale(1.05);
     }
     .holiday-toggle {
@@ -411,7 +415,7 @@
     .calendar-checkbox {
       width: 40px;
       height: 40px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       border: 2px solid rgba(148, 163, 184, 0.2);
       border-radius: 8px;
       display: flex;
@@ -446,18 +450,18 @@
       transition: all 0.3s;
     }
     input[type="checkbox"]:checked + .calendar-checkbox {
-      background: rgba(59, 130, 246, 0.2);
-      border-color: #3b82f6;
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+      background: rgba(234, 88, 12, 0.2);
+      border-color: #ea580c;
+      box-shadow: 0 0 12px rgba(234, 88, 12, 0.4);
     }
     input[type="checkbox"]:checked + .calendar-checkbox::before {
-      background: #3b82f6;
+      background: #ea580c;
     }
     input[type="checkbox"]:checked + .calendar-checkbox .calendar-checkbox-cell {
-      background: #60a5fa;
+      background: #fb923c;
     }
     .holiday-toggle:hover .calendar-checkbox {
-      border-color: #60a5fa;
+      border-color: #fb923c;
     }
     .holiday-toggle label.text-label {
       font-size: 14px;
@@ -512,7 +516,7 @@
     .holiday-item {
       padding: 12px 14px;
       margin-bottom: 8px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       border-radius: 12px;
       border-left: 4px solid var(--cat-color);
     }
@@ -557,15 +561,17 @@
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-calendario">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">TEMPO</div>
-  <div class="tagline">Relógio e Calendário</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-dev)"><img src="/static/localtools/apps/tempo.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Tempo</h1>
+    <p class="modo-sub">Relógio e Calendário</p>
+  </header>
   
   <div class="container">
     <div class="card">
@@ -602,7 +608,7 @@
     </div>
     
     <div class="card holidays" id="holidays-card">
-      <h3>🎉 Feriados e Datas Comemorativas</h3>
+      <h3>Feriados e Datas Comemorativas</h3>
       <p class="subtitle">Feriados nacionais, estaduais, das cidades do Litoral Norte e pontos facultativos são calculados automaticamente para qualquer ano. Dias sem aula da Fatec são cadastrados manualmente ano a ano, conforme o calendário acadêmico oficial.</p>
       <div class="legend">
         <div class="legend-chip" style="--cat-color:#ef4444"><span class="dot"></span>Feriado Nacional</div>
@@ -611,7 +617,7 @@
         <div class="legend-chip" style="--cat-color:#eab308"><span class="dot"></span>Ubatuba</div>
         <div class="legend-chip" style="--cat-color:#06b6d4"><span class="dot"></span>Caraguatatuba</div>
         <div class="legend-chip" style="--cat-color:#ec4899"><span class="dot"></span>Ilhabela</div>
-        <div class="legend-chip" style="--cat-color:#3b82f6"><span class="dot"></span>Ponto Facultativo</div>
+        <div class="legend-chip" style="--cat-color:#ea580c"><span class="dot"></span>Ponto Facultativo</div>
         <div class="legend-chip" style="--cat-color:#22c55e"><span class="dot"></span>Sem Aula (Fatec/Escolas)</div>
         <div class="legend-chip" style="--cat-color:#94a3b8"><span class="dot"></span>Data Comemorativa (tem aula/expediente normal)</div>
       </div>
@@ -636,7 +642,7 @@
       caraguatatuba: { label: 'Caraguatatuba',            color: '#06b6d4' },
       ilhabela:      { label: 'Ilhabela',                 color: '#ec4899' },
       fatec:         { label: 'Sem Aula (Fatec/Escolas)', color: '#22c55e' },
-      facultativo:   { label: 'Ponto Facultativo',        color: '#3b82f6' },
+      facultativo:   { label: 'Ponto Facultativo',        color: '#ea580c' },
       comemorativa:  { label: 'Data Comemorativa',        color: '#94a3b8' }
     };
     const CATEGORY_PRIORITY = ['nacional', 'estadual', 'saosebastiao', 'ubatuba', 'caraguatatuba', 'ilhabela', 'fatec', 'facultativo', 'comemorativa'];

@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Social Preview - Estúdio de Preview de Redes Sociais</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/feed.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.06) 0px, transparent 50%);
+      font-family: var(--lt-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(219, 39, 119, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.06) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -21,7 +25,7 @@
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -35,20 +39,20 @@
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
     }
     .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(59, 130, 246, 0.4);
-      color: #3b82f6;
+      background: rgba(24, 26, 31, 0.95);
+      border-color: rgba(219, 39, 119, 0.4);
+      color: #db2777;
       transform: translateX(-6px);
     }
     .logo {
       font-size: 64px;
       font-weight: 900;
-      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+      background: linear-gradient(135deg, #db2777 0%, #be185d 50%, #ec4899 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: 8px;
       text-transform: uppercase;
-      filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.7));
+      filter: drop-shadow(0 0 25px rgba(219, 39, 119, 0.7));
       margin-bottom: 10px;
       text-align: center;
     }
@@ -64,7 +68,7 @@
       margin: 0 auto;
     }
     .editor-section {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 32px;
       margin-bottom: 24px;
@@ -73,7 +77,7 @@
     }
     h2 {
       font-size: 20px;
-      color: #3b82f6;
+      color: #db2777;
       margin-bottom: 20px;
       font-weight: 700;
     }
@@ -95,7 +99,7 @@
       padding: 12px;
       border-radius: 12px;
       border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       color: #f1f5f9;
       font-size: 14px;
       outline: none;
@@ -103,9 +107,9 @@
       font-family: inherit;
     }
     input:focus, textarea:focus {
-      border-color: #3b82f6;
-      background: rgba(15, 23, 42, 0.95);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-color: #db2777;
+      background: rgba(24, 26, 31, 0.95);
+      box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.1);
     }
     textarea {
       resize: vertical;
@@ -116,7 +120,7 @@
       padding: 16px;
       border-radius: 12px;
       border: 2px dashed rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1;
       font-size: 14px;
       cursor: pointer;
@@ -127,23 +131,23 @@
       padding: 12px 28px;
       border: none;
       border-radius: 999px;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      background: linear-gradient(135deg, #db2777, #be185d);
       color: white;
       font-weight: 600;
       font-size: 14px;
       cursor: pointer;
       margin-right: 16px;
       transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 4px 12px rgba(219, 39, 119, 0.2);
     }
     input[type="file"]::file-selector-button:hover {
       background: linear-gradient(135deg, #2563eb, #7c3aed);
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 6px 16px rgba(219, 39, 119, 0.3);
     }
     input[type="file"]:hover {
-      border-color: rgba(59, 130, 246, 0.5);
-      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(219, 39, 119, 0.5);
+      background: rgba(24, 26, 31, 0.8);
       border-style: solid;
     }
     .tabs {
@@ -155,7 +159,7 @@
     .tab {
       padding: 14px 32px;
       border-radius: 12px;
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border: 1px solid rgba(148, 163, 184, 0.2);
       color: #cbd5e1;
       font-weight: 600;
@@ -163,14 +167,14 @@
       transition: all 0.3s;
     }
     .tab:hover {
-      background: rgba(15, 23, 42, 0.6);
-      border-color: rgba(59, 130, 246, 0.4);
+      background: rgba(24, 26, 31, 0.6);
+      border-color: rgba(219, 39, 119, 0.4);
     }
     .tab.active {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      background: linear-gradient(135deg, #db2777, #be185d);
       border-color: transparent;
       color: white;
-      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 4px 16px rgba(219, 39, 119, 0.3);
     }
     .device-view {
       display: none;
@@ -196,7 +200,7 @@
     }
 
     .preview-card {
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       border-radius: 20px;
       padding: 24px;
       border: 1px solid rgba(148, 163, 184, 0.1);
@@ -584,18 +588,18 @@
       padding: 16px;
       border: none;
       border-radius: 999px;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      background: linear-gradient(135deg, #db2777, #be185d);
       color: white;
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.3s;
-      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 4px 16px rgba(219, 39, 119, 0.2);
       margin-top: 20px;
     }
     button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 8px 24px rgba(219, 39, 119, 0.3);
     }
     @media (max-width: 768px) {
       .preview-grid {
@@ -604,19 +608,21 @@
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-feed">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">SOCIAL</div>
-  <div class="tagline">Estúdio de Preview de Redes Sociais</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-imagem)"><img src="/static/localtools/apps/social.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Social Preview</h1>
+    <p class="modo-sub">Estúdio de Preview de Redes Sociais</p>
+  </header>
   
   <div class="container">
     <div class="editor-section">
-      <h2>📝 Editor de Conteúdo</h2>
+      <h2>Editor de Conteúdo</h2>
       <div class="form-grid">
         <div>
           <label for="image">Imagem</label>
@@ -645,20 +651,20 @@
         <label for="description">Descrição (Open Graph / Meta)</label>
         <textarea id="description" placeholder="Descrição que aparece em links compartilhados">Uma descrição detalhada do conteúdo que será exibida quando o link for compartilhado nas redes sociais.</textarea>
       </div>
-      <button onclick="downloadAll()">📦 Baixar Todos os Formatos (.zip)</button>
+      <button onclick="downloadAll()">Baixar Todos os Formatos (.zip)</button>
     </div>
     
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('mobile')">📱 Mobile</div>
-      <div class="tab" onclick="switchTab('desktop')">💻 Desktop</div>
-      <div class="tab" onclick="switchTab('tablet')">📡 Tablet</div>
+      <div class="tab active" onclick="switchTab('mobile')">Mobile</div>
+      <div class="tab" onclick="switchTab('desktop')">Desktop</div>
+      <div class="tab" onclick="switchTab('tablet')">Tablet</div>
     </div>
     
     <div class="device-view active" id="mobile-view">
       <div class="preview-grid mobile">
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">🐦</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M174,68a10,10,0,1,1-10-10A10,10,0,0,1,174,68Zm64,12a6,6,0,0,1-2.67,5L214,99.21V120A102.12,102.12,0,0,1,112,222H24a14,14,0,0,1-10.93-22.75l.07-.09L98,97.35V76.89C98,44.57,123.89,18.15,155.72,18H156a58,58,0,0,1,55.51,41.13L235.33,75A6,6,0,0,1,238,80Zm-16.82,0L203,67.88a6,6,0,0,1-2.48-3.48A46,46,0,0,0,156,30h-.23C130.53,30.12,110,51.16,110,76.89V99.52a6,6,0,0,1-1.39,3.85L22.43,206.78A2,2,0,0,0,24,210H51.86l71.53-85.84a6,6,0,0,1,9.22,7.68L67.48,210H112a90.1,90.1,0,0,0,90-90V96a6,6,0,0,1,2.67-5Z"/></svg></div>
           <div class="preview-title">Twitter / X</div>
         </div>
         <div class="preview-content">
@@ -678,7 +684,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">💼</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M106,112a6,6,0,0,1,6-6h32a6,6,0,0,1,0,12H112A6,6,0,0,1,106,112ZM230,72V200a14,14,0,0,1-14,14H40a14,14,0,0,1-14-14V72A14,14,0,0,1,40,58H82V48a22,22,0,0,1,22-22h48a22,22,0,0,1,22,22V58h42A14,14,0,0,1,230,72ZM94,58h68V48a10,10,0,0,0-10-10H104A10,10,0,0,0,94,48ZM38,72v42.79A186,186,0,0,0,128,138a185.91,185.91,0,0,0,90-23.22V72a2,2,0,0,0-2-2H40A2,2,0,0,0,38,72ZM218,200V128.37A198.12,198.12,0,0,1,128,150a198.05,198.05,0,0,1-90-21.62V200a2,2,0,0,0,2,2H216A2,2,0,0,0,218,200Z"/></svg></div>
           <div class="preview-title">LinkedIn</div>
         </div>
         <div class="preview-content">
@@ -698,7 +704,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">👥</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M243.6,148.8a6,6,0,0,1-8.4-1.2A53.58,53.58,0,0,0,192,126a6,6,0,0,1,0-12,26,26,0,1,0-25.18-32.5,6,6,0,0,1-11.62-3,38,38,0,1,1,59.91,39.63A65.69,65.69,0,0,1,244.8,140.4,6,6,0,0,1,243.6,148.8ZM189.19,213a6,6,0,0,1-2.19,8.2,5.9,5.9,0,0,1-3,.81,6,6,0,0,1-5.2-3,59,59,0,0,0-101.62,0,6,6,0,1,1-10.38-6A70.1,70.1,0,0,1,103,182.55a46,46,0,1,1,50.1,0A70.1,70.1,0,0,1,189.19,213ZM128,178a34,34,0,1,0-34-34A34,34,0,0,0,128,178ZM70,120a6,6,0,0,0-6-6A26,26,0,1,1,89.18,81.49a6,6,0,1,0,11.62-3,38,38,0,1,0-59.91,39.63A65.69,65.69,0,0,0,11.2,140.4a6,6,0,1,0,9.6,7.2A53.58,53.58,0,0,1,64,126,6,6,0,0,0,70,120Z"/></svg></div>
           <div class="preview-title">Facebook</div>
         </div>
         <div class="preview-content">
@@ -718,7 +724,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">💬</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,26A102,102,0,0,0,38.35,176.69L26.73,211.56a14,14,0,0,0,17.71,17.71l34.87-11.62A102,102,0,1,0,128,26Zm0,192a90,90,0,0,1-45.06-12.08,6.09,6.09,0,0,0-3-.81,6.2,6.2,0,0,0-1.9.31L40.65,217.88a2,2,0,0,1-2.53-2.53L50.58,178a6,6,0,0,0-.5-4.91A90,90,0,1,1,128,218Z"/></svg></div>
           <div class="preview-title">WhatsApp</div>
         </div>
         <div class="preview-content">
@@ -734,7 +740,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">🔗</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M238,88.18a52.42,52.42,0,0,1-15.4,35.66l-34.75,34.75A52.28,52.28,0,0,1,150.62,174h-.05A52.63,52.63,0,0,1,98,119.9a6,6,0,0,1,6-5.84h.17a6,6,0,0,1,5.83,6.16A40.62,40.62,0,0,0,150.58,162h0a40.4,40.4,0,0,0,28.73-11.9l34.75-34.74A40.63,40.63,0,0,0,156.63,57.9l-11,11a6,6,0,0,1-8.49-8.49l11-11a52.62,52.62,0,0,1,74.43,0A52.83,52.83,0,0,1,238,88.18Zm-127.62,98.9-11,11A40.36,40.36,0,0,1,70.6,210h0a40.63,40.63,0,0,1-28.7-69.36L76.62,105.9A40.63,40.63,0,0,1,146,135.77a6,6,0,0,0,5.83,6.16H152a6,6,0,0,0,6-5.84A52.63,52.63,0,0,0,68.14,97.42L33.38,132.16A52.63,52.63,0,0,0,70.56,222h0a52.26,52.26,0,0,0,37.22-15.42l11-11a6,6,0,1,0-8.49-8.48Z"/></svg></div>
           <div class="preview-title">Open Graph (Link Preview)</div>
         </div>
         <div class="preview-content">
@@ -751,7 +757,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">📷</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,58H179.21L165,36.67A6,6,0,0,0,160,34H96a6,6,0,0,0-5,2.67L76.78,58H48A22,22,0,0,0,26,80V192a22,22,0,0,0,22,22H208a22,22,0,0,0,22-22V80A22,22,0,0,0,208,58Zm10,134a10,10,0,0,1-10,10H48a10,10,0,0,1-10-10V80A10,10,0,0,1,48,70H80a6,6,0,0,0,5-2.67L99.21,46h57.57L171,67.33A6,6,0,0,0,176,70h32a10,10,0,0,1,10,10ZM128,90a42,42,0,1,0,42,42A42,42,0,0,0,128,90Zm0,72a30,30,0,1,1,30-30A30,30,0,0,1,128,162Z"/></svg></div>
           <div class="preview-title">Instagram</div>
         </div>
         <div class="preview-content">
@@ -771,7 +777,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">📱</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M176,18H80A22,22,0,0,0,58,40V216a22,22,0,0,0,22,22h96a22,22,0,0,0,22-22V40A22,22,0,0,0,176,18ZM70,62H186V194H70ZM80,30h96a10,10,0,0,1,10,10V50H70V40A10,10,0,0,1,80,30Zm96,196H80a10,10,0,0,1-10-10V206H186v10A10,10,0,0,1,176,226Z"/></svg></div>
           <div class="preview-title">Instagram Story</div>
         </div>
         <div class="preview-content">
@@ -788,16 +794,16 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">🎬</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,106H86.68L209.53,73.57a6,6,0,0,0,4.26-7.38l-8.16-30a13.94,13.94,0,0,0-17-9.72L36.32,66.67a13.77,13.77,0,0,0-8.48,6.47,13.57,13.57,0,0,0-1.36,10.42L34,111.34c0,.22,0,.44,0,.66v88a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V112A6,6,0,0,0,216,106ZM125.75,55.48l33,19.07-42.43,11.2-33-19.07Zm66-17.41a1.92,1.92,0,0,1,2.34,1.26l6.57,24.18L175.26,70.2l-33-19.07ZM38.23,79.14a1.85,1.85,0,0,1,1.15-.87L66.86,71l33,19.08L44.66,104.68l-6.6-24.27A1.63,1.63,0,0,1,38.23,79.14ZM210,200a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V118H210Z"/></svg></div>
           <div class="preview-title">Instagram Reels</div>
         </div>
         <div class="preview-content">
           <div class="reels-preview">
             <img class="reels-image" id="reels-image" style="display:none;">
             <div class="reels-sidebar">
-              <div class="reels-action">❤️</div>
-              <div class="reels-action">💬</div>
-              <div class="reels-action">🔖</div>
+              <div class="reels-action"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M178,42c-21,0-39.26,9.47-50,25.34C117.26,51.47,99,42,78,42a60.07,60.07,0,0,0-60,60c0,29.2,18.2,59.59,54.1,90.31a334.68,334.68,0,0,0,53.06,37,6,6,0,0,0,5.68,0,334.68,334.68,0,0,0,53.06-37C219.8,161.59,238,131.2,238,102A60.07,60.07,0,0,0,178,42ZM128,217.11C111.59,207.64,30,157.72,30,102A48.05,48.05,0,0,1,78,54c20.28,0,37.31,10.83,44.45,28.27a6,6,0,0,0,11.1,0C140.69,64.83,157.72,54,178,54a48.05,48.05,0,0,1,48,48C226,157.72,144.41,207.64,128,217.11Z"/></svg></div>
+              <div class="reels-action"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,26A102,102,0,0,0,38.35,176.69L26.73,211.56a14,14,0,0,0,17.71,17.71l34.87-11.62A102,102,0,1,0,128,26Zm0,192a90,90,0,0,1-45.06-12.08,6.09,6.09,0,0,0-3-.81,6.2,6.2,0,0,0-1.9.31L40.65,217.88a2,2,0,0,1-2.53-2.53L50.58,178a6,6,0,0,0-.5-4.91A90,90,0,1,1,128,218Z"/></svg></div>
+              <div class="reels-action"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M184,34H72A14,14,0,0,0,58,48V224a6,6,0,0,0,9.18,5.09l60.81-38,60.83,38A6,6,0,0,0,198,224V48A14,14,0,0,0,184,34Zm2,179.17-54.83-34.26a6,6,0,0,0-6.36,0L70,213.17V48a2,2,0,0,1,2-2H184a2,2,0,0,1,2,2Z"/></svg></div>
               <div class="reels-action">…</div>
             </div>
             <div class="reels-bottom">
@@ -817,7 +823,7 @@
       <div class="preview-grid desktop">
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">🐦</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M174,68a10,10,0,1,1-10-10A10,10,0,0,1,174,68Zm64,12a6,6,0,0,1-2.67,5L214,99.21V120A102.12,102.12,0,0,1,112,222H24a14,14,0,0,1-10.93-22.75l.07-.09L98,97.35V76.89C98,44.57,123.89,18.15,155.72,18H156a58,58,0,0,1,55.51,41.13L235.33,75A6,6,0,0,1,238,80Zm-16.82,0L203,67.88a6,6,0,0,1-2.48-3.48A46,46,0,0,0,156,30h-.23C130.53,30.12,110,51.16,110,76.89V99.52a6,6,0,0,1-1.39,3.85L22.43,206.78A2,2,0,0,0,24,210H51.86l71.53-85.84a6,6,0,0,1,9.22,7.68L67.48,210H112a90.1,90.1,0,0,0,90-90V96a6,6,0,0,1,2.67-5Z"/></svg></div>
           <div class="preview-title">Twitter Desktop</div>
         </div>
         <div class="preview-content">
@@ -837,7 +843,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">💼</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M106,112a6,6,0,0,1,6-6h32a6,6,0,0,1,0,12H112A6,6,0,0,1,106,112ZM230,72V200a14,14,0,0,1-14,14H40a14,14,0,0,1-14-14V72A14,14,0,0,1,40,58H82V48a22,22,0,0,1,22-22h48a22,22,0,0,1,22,22V58h42A14,14,0,0,1,230,72ZM94,58h68V48a10,10,0,0,0-10-10H104A10,10,0,0,0,94,48ZM38,72v42.79A186,186,0,0,0,128,138a185.91,185.91,0,0,0,90-23.22V72a2,2,0,0,0-2-2H40A2,2,0,0,0,38,72ZM218,200V128.37A198.12,198.12,0,0,1,128,150a198.05,198.05,0,0,1-90-21.62V200a2,2,0,0,0,2,2H216A2,2,0,0,0,218,200Z"/></svg></div>
           <div class="preview-title">LinkedIn Desktop</div>
         </div>
         <div class="preview-content">
@@ -857,7 +863,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">👥</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M243.6,148.8a6,6,0,0,1-8.4-1.2A53.58,53.58,0,0,0,192,126a6,6,0,0,1,0-12,26,26,0,1,0-25.18-32.5,6,6,0,0,1-11.62-3,38,38,0,1,1,59.91,39.63A65.69,65.69,0,0,1,244.8,140.4,6,6,0,0,1,243.6,148.8ZM189.19,213a6,6,0,0,1-2.19,8.2,5.9,5.9,0,0,1-3,.81,6,6,0,0,1-5.2-3,59,59,0,0,0-101.62,0,6,6,0,1,1-10.38-6A70.1,70.1,0,0,1,103,182.55a46,46,0,1,1,50.1,0A70.1,70.1,0,0,1,189.19,213ZM128,178a34,34,0,1,0-34-34A34,34,0,0,0,128,178ZM70,120a6,6,0,0,0-6-6A26,26,0,1,1,89.18,81.49a6,6,0,1,0,11.62-3,38,38,0,1,0-59.91,39.63A65.69,65.69,0,0,0,11.2,140.4a6,6,0,1,0,9.6,7.2A53.58,53.58,0,0,1,64,126,6,6,0,0,0,70,120Z"/></svg></div>
           <div class="preview-title">Facebook Desktop</div>
         </div>
         <div class="preview-content">
@@ -877,7 +883,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">💬</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,26A102,102,0,0,0,38.35,176.69L26.73,211.56a14,14,0,0,0,17.71,17.71l34.87-11.62A102,102,0,1,0,128,26Zm0,192a90,90,0,0,1-45.06-12.08,6.09,6.09,0,0,0-3-.81,6.2,6.2,0,0,0-1.9.31L40.65,217.88a2,2,0,0,1-2.53-2.53L50.58,178a6,6,0,0,0-.5-4.91A90,90,0,1,1,128,218Z"/></svg></div>
           <div class="preview-title">WhatsApp Desktop</div>
         </div>
         <div class="preview-content">
@@ -893,7 +899,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">🔗</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M238,88.18a52.42,52.42,0,0,1-15.4,35.66l-34.75,34.75A52.28,52.28,0,0,1,150.62,174h-.05A52.63,52.63,0,0,1,98,119.9a6,6,0,0,1,6-5.84h.17a6,6,0,0,1,5.83,6.16A40.62,40.62,0,0,0,150.58,162h0a40.4,40.4,0,0,0,28.73-11.9l34.75-34.74A40.63,40.63,0,0,0,156.63,57.9l-11,11a6,6,0,0,1-8.49-8.49l11-11a52.62,52.62,0,0,1,74.43,0A52.83,52.83,0,0,1,238,88.18Zm-127.62,98.9-11,11A40.36,40.36,0,0,1,70.6,210h0a40.63,40.63,0,0,1-28.7-69.36L76.62,105.9A40.63,40.63,0,0,1,146,135.77a6,6,0,0,0,5.83,6.16H152a6,6,0,0,0,6-5.84A52.63,52.63,0,0,0,68.14,97.42L33.38,132.16A52.63,52.63,0,0,0,70.56,222h0a52.26,52.26,0,0,0,37.22-15.42l11-11a6,6,0,1,0-8.49-8.48Z"/></svg></div>
           <div class="preview-title">Open Graph Desktop</div>
         </div>
         <div class="preview-content">
@@ -910,7 +916,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">📸</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,82a46,46,0,1,0,46,46A46.06,46.06,0,0,0,128,82Zm0,80a34,34,0,1,1,34-34A34,34,0,0,1,128,162ZM176,26H80A54.06,54.06,0,0,0,26,80v96a54.06,54.06,0,0,0,54,54h96a54.06,54.06,0,0,0,54-54V80A54.06,54.06,0,0,0,176,26Zm42,150a42,42,0,0,1-42,42H80a42,42,0,0,1-42-42V80A42,42,0,0,1,80,38h96a42,42,0,0,1,42,42ZM190,76a10,10,0,1,1-10-10A10,10,0,0,1,190,76Z"/></svg></div>
           <div class="preview-title">Instagram Desktop</div>
         </div>
         <div class="preview-content">
@@ -930,7 +936,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">📲</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M176,18H80A22,22,0,0,0,58,40V216a22,22,0,0,0,22,22h96a22,22,0,0,0,22-22V40A22,22,0,0,0,176,18Zm10,198a10,10,0,0,1-10,10H80a10,10,0,0,1-10-10V40A10,10,0,0,1,80,30h96a10,10,0,0,1,10,10ZM138,60a10,10,0,1,1-10-10A10,10,0,0,1,138,60Z"/></svg></div>
           <div class="preview-title">Instagram Story Desktop</div>
         </div>
         <div class="preview-content">
@@ -947,16 +953,16 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">🎥</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M250.83,74.71a6,6,0,0,0-6.16.3L206,100.79V72a14,14,0,0,0-14-14H32A14,14,0,0,0,18,72V184a14,14,0,0,0,14,14H192a14,14,0,0,0,14-14V155.21L244.67,181a6,6,0,0,0,9.33-5V80A6,6,0,0,0,250.83,74.71ZM194,184a2,2,0,0,1-2,2H32a2,2,0,0,1-2-2V72a2,2,0,0,1,2-2H192a2,2,0,0,1,2,2Zm48-19.21-36-24V115.21l36-24Z"/></svg></div>
           <div class="preview-title">Instagram Reels Desktop</div>
         </div>
         <div class="preview-content">
           <div class="reels-preview">
             <img class="reels-image" id="reels-desktop-image" style="display:none;">
             <div class="reels-sidebar">
-              <div class="reels-action">❤️</div>
-              <div class="reels-action">💬</div>
-              <div class="reels-action">🔖</div>
+              <div class="reels-action"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M178,42c-21,0-39.26,9.47-50,25.34C117.26,51.47,99,42,78,42a60.07,60.07,0,0,0-60,60c0,29.2,18.2,59.59,54.1,90.31a334.68,334.68,0,0,0,53.06,37,6,6,0,0,0,5.68,0,334.68,334.68,0,0,0,53.06-37C219.8,161.59,238,131.2,238,102A60.07,60.07,0,0,0,178,42ZM128,217.11C111.59,207.64,30,157.72,30,102A48.05,48.05,0,0,1,78,54c20.28,0,37.31,10.83,44.45,28.27a6,6,0,0,0,11.1,0C140.69,64.83,157.72,54,178,54a48.05,48.05,0,0,1,48,48C226,157.72,144.41,207.64,128,217.11Z"/></svg></div>
+              <div class="reels-action"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,26A102,102,0,0,0,38.35,176.69L26.73,211.56a14,14,0,0,0,17.71,17.71l34.87-11.62A102,102,0,1,0,128,26Zm0,192a90,90,0,0,1-45.06-12.08,6.09,6.09,0,0,0-3-.81,6.2,6.2,0,0,0-1.9.31L40.65,217.88a2,2,0,0,1-2.53-2.53L50.58,178a6,6,0,0,0-.5-4.91A90,90,0,1,1,128,218Z"/></svg></div>
+              <div class="reels-action"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M184,34H72A14,14,0,0,0,58,48V224a6,6,0,0,0,9.18,5.09l60.81-38,60.83,38A6,6,0,0,0,198,224V48A14,14,0,0,0,184,34Zm2,179.17-54.83-34.26a6,6,0,0,0-6.36,0L70,213.17V48a2,2,0,0,1,2-2H184a2,2,0,0,1,2,2Z"/></svg></div>
               <div class="reels-action">…</div>
             </div>
             <div class="reels-bottom">
@@ -976,7 +982,7 @@
       <div class="preview-grid tablet">
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">🐦</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M174,68a10,10,0,1,1-10-10A10,10,0,0,1,174,68Zm64,12a6,6,0,0,1-2.67,5L214,99.21V120A102.12,102.12,0,0,1,112,222H24a14,14,0,0,1-10.93-22.75l.07-.09L98,97.35V76.89C98,44.57,123.89,18.15,155.72,18H156a58,58,0,0,1,55.51,41.13L235.33,75A6,6,0,0,1,238,80Zm-16.82,0L203,67.88a6,6,0,0,1-2.48-3.48A46,46,0,0,0,156,30h-.23C130.53,30.12,110,51.16,110,76.89V99.52a6,6,0,0,1-1.39,3.85L22.43,206.78A2,2,0,0,0,24,210H51.86l71.53-85.84a6,6,0,0,1,9.22,7.68L67.48,210H112a90.1,90.1,0,0,0,90-90V96a6,6,0,0,1,2.67-5Z"/></svg></div>
           <div class="preview-title">Twitter Tablet</div>
         </div>
         <div class="preview-content">
@@ -996,7 +1002,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">💼</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M106,112a6,6,0,0,1,6-6h32a6,6,0,0,1,0,12H112A6,6,0,0,1,106,112ZM230,72V200a14,14,0,0,1-14,14H40a14,14,0,0,1-14-14V72A14,14,0,0,1,40,58H82V48a22,22,0,0,1,22-22h48a22,22,0,0,1,22,22V58h42A14,14,0,0,1,230,72ZM94,58h68V48a10,10,0,0,0-10-10H104A10,10,0,0,0,94,48ZM38,72v42.79A186,186,0,0,0,128,138a185.91,185.91,0,0,0,90-23.22V72a2,2,0,0,0-2-2H40A2,2,0,0,0,38,72ZM218,200V128.37A198.12,198.12,0,0,1,128,150a198.05,198.05,0,0,1-90-21.62V200a2,2,0,0,0,2,2H216A2,2,0,0,0,218,200Z"/></svg></div>
           <div class="preview-title">LinkedIn Tablet</div>
         </div>
         <div class="preview-content">
@@ -1016,7 +1022,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">👥</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M243.6,148.8a6,6,0,0,1-8.4-1.2A53.58,53.58,0,0,0,192,126a6,6,0,0,1,0-12,26,26,0,1,0-25.18-32.5,6,6,0,0,1-11.62-3,38,38,0,1,1,59.91,39.63A65.69,65.69,0,0,1,244.8,140.4,6,6,0,0,1,243.6,148.8ZM189.19,213a6,6,0,0,1-2.19,8.2,5.9,5.9,0,0,1-3,.81,6,6,0,0,1-5.2-3,59,59,0,0,0-101.62,0,6,6,0,1,1-10.38-6A70.1,70.1,0,0,1,103,182.55a46,46,0,1,1,50.1,0A70.1,70.1,0,0,1,189.19,213ZM128,178a34,34,0,1,0-34-34A34,34,0,0,0,128,178ZM70,120a6,6,0,0,0-6-6A26,26,0,1,1,89.18,81.49a6,6,0,1,0,11.62-3,38,38,0,1,0-59.91,39.63A65.69,65.69,0,0,0,11.2,140.4a6,6,0,1,0,9.6,7.2A53.58,53.58,0,0,1,64,126,6,6,0,0,0,70,120Z"/></svg></div>
           <div class="preview-title">Facebook Tablet</div>
         </div>
         <div class="preview-content">
@@ -1036,7 +1042,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">💬</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,26A102,102,0,0,0,38.35,176.69L26.73,211.56a14,14,0,0,0,17.71,17.71l34.87-11.62A102,102,0,1,0,128,26Zm0,192a90,90,0,0,1-45.06-12.08,6.09,6.09,0,0,0-3-.81,6.2,6.2,0,0,0-1.9.31L40.65,217.88a2,2,0,0,1-2.53-2.53L50.58,178a6,6,0,0,0-.5-4.91A90,90,0,1,1,128,218Z"/></svg></div>
           <div class="preview-title">WhatsApp Tablet</div>
         </div>
         <div class="preview-content">
@@ -1052,7 +1058,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">🔗</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M238,88.18a52.42,52.42,0,0,1-15.4,35.66l-34.75,34.75A52.28,52.28,0,0,1,150.62,174h-.05A52.63,52.63,0,0,1,98,119.9a6,6,0,0,1,6-5.84h.17a6,6,0,0,1,5.83,6.16A40.62,40.62,0,0,0,150.58,162h0a40.4,40.4,0,0,0,28.73-11.9l34.75-34.74A40.63,40.63,0,0,0,156.63,57.9l-11,11a6,6,0,0,1-8.49-8.49l11-11a52.62,52.62,0,0,1,74.43,0A52.83,52.83,0,0,1,238,88.18Zm-127.62,98.9-11,11A40.36,40.36,0,0,1,70.6,210h0a40.63,40.63,0,0,1-28.7-69.36L76.62,105.9A40.63,40.63,0,0,1,146,135.77a6,6,0,0,0,5.83,6.16H152a6,6,0,0,0,6-5.84A52.63,52.63,0,0,0,68.14,97.42L33.38,132.16A52.63,52.63,0,0,0,70.56,222h0a52.26,52.26,0,0,0,37.22-15.42l11-11a6,6,0,1,0-8.49-8.48Z"/></svg></div>
           <div class="preview-title">Open Graph Tablet</div>
         </div>
         <div class="preview-content">
@@ -1069,7 +1075,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">📸</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,82a46,46,0,1,0,46,46A46.06,46.06,0,0,0,128,82Zm0,80a34,34,0,1,1,34-34A34,34,0,0,1,128,162ZM176,26H80A54.06,54.06,0,0,0,26,80v96a54.06,54.06,0,0,0,54,54h96a54.06,54.06,0,0,0,54-54V80A54.06,54.06,0,0,0,176,26Zm42,150a42,42,0,0,1-42,42H80a42,42,0,0,1-42-42V80A42,42,0,0,1,80,38h96a42,42,0,0,1,42,42ZM190,76a10,10,0,1,1-10-10A10,10,0,0,1,190,76Z"/></svg></div>
           <div class="preview-title">Instagram Tablet</div>
         </div>
         <div class="preview-content">
@@ -1089,7 +1095,7 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">📲</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M176,18H80A22,22,0,0,0,58,40V216a22,22,0,0,0,22,22h96a22,22,0,0,0,22-22V40A22,22,0,0,0,176,18Zm10,198a10,10,0,0,1-10,10H80a10,10,0,0,1-10-10V40A10,10,0,0,1,80,30h96a10,10,0,0,1,10,10ZM138,60a10,10,0,1,1-10-10A10,10,0,0,1,138,60Z"/></svg></div>
           <div class="preview-title">Instagram Story Tablet</div>
         </div>
         <div class="preview-content">
@@ -1106,16 +1112,16 @@
       
       <div class="preview-card">
         <div class="preview-header">
-          <div class="preview-icon">🎥</div>
+          <div class="preview-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M250.83,74.71a6,6,0,0,0-6.16.3L206,100.79V72a14,14,0,0,0-14-14H32A14,14,0,0,0,18,72V184a14,14,0,0,0,14,14H192a14,14,0,0,0,14-14V155.21L244.67,181a6,6,0,0,0,9.33-5V80A6,6,0,0,0,250.83,74.71ZM194,184a2,2,0,0,1-2,2H32a2,2,0,0,1-2-2V72a2,2,0,0,1,2-2H192a2,2,0,0,1,2,2Zm48-19.21-36-24V115.21l36-24Z"/></svg></div>
           <div class="preview-title">Instagram Reels Tablet</div>
         </div>
         <div class="preview-content">
           <div class="reels-preview">
             <img class="reels-image" id="reels-tablet-image" style="display:none;">
             <div class="reels-sidebar">
-              <div class="reels-action">❤️</div>
-              <div class="reels-action">💬</div>
-              <div class="reels-action">🔖</div>
+              <div class="reels-action"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M178,42c-21,0-39.26,9.47-50,25.34C117.26,51.47,99,42,78,42a60.07,60.07,0,0,0-60,60c0,29.2,18.2,59.59,54.1,90.31a334.68,334.68,0,0,0,53.06,37,6,6,0,0,0,5.68,0,334.68,334.68,0,0,0,53.06-37C219.8,161.59,238,131.2,238,102A60.07,60.07,0,0,0,178,42ZM128,217.11C111.59,207.64,30,157.72,30,102A48.05,48.05,0,0,1,78,54c20.28,0,37.31,10.83,44.45,28.27a6,6,0,0,0,11.1,0C140.69,64.83,157.72,54,178,54a48.05,48.05,0,0,1,48,48C226,157.72,144.41,207.64,128,217.11Z"/></svg></div>
+              <div class="reels-action"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,26A102,102,0,0,0,38.35,176.69L26.73,211.56a14,14,0,0,0,17.71,17.71l34.87-11.62A102,102,0,1,0,128,26Zm0,192a90,90,0,0,1-45.06-12.08,6.09,6.09,0,0,0-3-.81,6.2,6.2,0,0,0-1.9.31L40.65,217.88a2,2,0,0,1-2.53-2.53L50.58,178a6,6,0,0,0-.5-4.91A90,90,0,1,1,128,218Z"/></svg></div>
+              <div class="reels-action"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M184,34H72A14,14,0,0,0,58,48V224a6,6,0,0,0,9.18,5.09l60.81-38,60.83,38A6,6,0,0,0,198,224V48A14,14,0,0,0,184,34Zm2,179.17-54.83-34.26a6,6,0,0,0-6.36,0L70,213.17V48a2,2,0,0,1,2-2H184a2,2,0,0,1,2,2Z"/></svg></div>
               <div class="reels-action">…</div>
             </div>
             <div class="reels-bottom">

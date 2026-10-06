@@ -1,0 +1,79 @@
+/* WhatsSaver · tema "conversa": o fundo de papel de parede do WhatsApp, a
+   frase do cabeçalho como um balão recebido (com o horário e os dois tiques)
+   e os painéis como a área da conversa. */
+body.tema-conversa {
+  --acc: #25d366;
+  --balao: #1f2c24;
+  --balao-meu: #134d37;
+  background-image:
+    radial-gradient(900px 520px at 10% -10%, rgba(37, 211, 102, 0.12), transparent 62%),
+    radial-gradient(800px 500px at 94% -4%, rgba(18, 140, 126, 0.12), transparent 62%);
+}
+/* papel de parede: bolinhas e tracinhos bem apagados */
+body.tema-conversa::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(circle at 12px 14px, rgba(255, 255, 255, 0.05) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 44px 40px, rgba(37, 211, 102, 0.06) 0 3px, transparent 3.5px),
+    linear-gradient(45deg, transparent 47%, rgba(255, 255, 255, 0.03) 47% 53%, transparent 53%);
+  background-size: 64px 64px, 64px 64px, 32px 32px;
+}
+
+/* o subtítulo vira um balão recebido */
+body.tema-conversa .lt-head p {
+  position: relative;
+  max-width: 54ch;
+  padding: 10px 14px 20px;
+  border-radius: 4px 16px 16px 16px;
+  background: var(--balao);
+  color: #dfe7e2;
+  text-align: left;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+body.tema-conversa .lt-head p::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -8px;
+  border-top: 10px solid var(--balao);
+  border-left: 10px solid transparent;
+}
+body.tema-conversa .lt-head p::after {
+  content: 'agora ✓✓';
+  position: absolute;
+  right: 12px;
+  bottom: 5px;
+  font: 500 11px var(--lt-sans);
+  color: #53bdeb;
+  letter-spacing: 0.02em;
+}
+body.tema-conversa .lt-head .lt-key { border-radius: 50%; }
+body.tema-conversa .lt-head .lt-key img { border-radius: 50%; }
+
+/* painéis e lista de conversas */
+body.tema-conversa .panel-card {
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(31, 44, 36, 0.55), rgba(17, 24, 20, 0.6));
+  border-color: rgba(37, 211, 102, 0.14);
+}
+body.tema-conversa .panel-card h2 { letter-spacing: -0.02em; }
+body.tema-conversa .steps li::before { background: var(--balao-meu); color: #d9fdd3; }
+body.tema-conversa .chat-item { border-radius: 12px; }
+body.tema-conversa .chat-item.active { background: rgba(37, 211, 102, 0.1); border-color: rgba(37, 211, 102, 0.3); }
+body.tema-conversa .chip.active { background: var(--balao-meu); border-color: rgba(37, 211, 102, 0.4); color: #d9fdd3; }
+
+/* botão principal: verde do WhatsApp, com tinta escura (contraste AA) */
+body.tema-conversa .btn:not(.ghost):not(.danger) {
+  background: linear-gradient(180deg, #2fe077, #1fb85a);
+  color: #04130a;
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 0 #0f6b39, 0 12px 22px -10px rgba(37, 211, 102, 0.55);
+}
+body.tema-conversa .btn:not(.ghost):not(.danger):active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 0 #0f6b39; }
+body.tema-conversa .btn.ghost { border-radius: 999px; }
+body.tema-conversa .search { border-radius: 999px; }

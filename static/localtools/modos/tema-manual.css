@@ -1,0 +1,87 @@
+/* Instruções · tema "manual": um manual impresso. Títulos em serifa, fio duplo
+   e a linha de edição embaixo do cabeçalho, categorias como capítulos e cada
+   app como uma seção com a margem lateral na cor do grupo. */
+@font-face { font-family: 'Instrument Serif'; font-weight: 400; font-style: normal; font-display: swap;
+  src: url('../fonts/InstrumentSerif-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Instrument Serif'; font-weight: 400; font-style: italic; font-display: swap;
+  src: url('../fonts/InstrumentSerif-Italic.woff2') format('woff2'); }
+
+body.tema-manual {
+  --acc: #e2e8f0;
+  --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  background-image:
+    radial-gradient(1000px 560px at 50% -12%, rgba(226, 232, 240, 0.07), transparent 64%),
+    radial-gradient(800px 500px at 100% 40%, rgba(226, 232, 240, 0.03), transparent 64%);
+}
+
+body.tema-manual .lt-head h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(48px, 6.5vw, 76px);
+  letter-spacing: -0.01em;
+}
+body.tema-manual .lt-head p { font-family: var(--serif); font-style: italic; font-size: clamp(18px, 1.6vw, 21px); color: #c9ced6; }
+/* fio duplo + linha de edição */
+body.tema-manual .lt-head::after {
+  content: 'MANUAL DE USO  ·  EDIÇÃO LOCAL  ·  TODOS OS APPS';
+  display: block;
+  width: min(560px, 90vw);
+  padding-top: 12px;
+  border-top: 3px double rgba(226, 232, 240, 0.28);
+  font: 500 10.5px var(--lt-mono);
+  letter-spacing: 0.24em;
+  color: var(--lt-faint);
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* categorias como capítulos */
+body.tema-manual .category-title { font-family: var(--serif); font-weight: 400; font-size: 34px; letter-spacing: 0; }
+body.tema-manual .category-header { padding-bottom: 12px; border-bottom: 1px solid var(--lt-line); }
+body.tema-manual .category-count { border-radius: 4px; }
+
+/* cada app: seção com margem lateral na cor do grupo */
+body.tema-manual .app-section {
+  border-radius: 6px;
+  padding-left: 34px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
+}
+body.tema-manual .app-section::before {
+  left: 0;
+  right: auto;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  height: auto;
+  opacity: 0.85;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hue) 85%, transparent), color-mix(in srgb, var(--hue) 25%, transparent));
+}
+body.tema-manual .app-title { font-family: var(--serif); font-weight: 400; font-size: 32px; letter-spacing: 0; }
+body.tema-manual .sub-title { font-family: var(--lt-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+body.tema-manual .note { border-radius: 4px; border-left: 3px solid rgba(226, 232, 240, 0.35); }
+body.tema-manual .search-box { border-radius: 8px; }
+body.tema-manual .chip { border-radius: 4px; }
+
+/* funções numeradas como itens do manual (01, 02…) no lugar dos emojis */
+body.tema-manual .features { counter-reset: item; }
+body.tema-manual .feature { counter-increment: item; border-radius: 4px; }
+body.tema-manual .feature-icon {
+  font-size: 0;
+  min-width: 26px;
+  padding-top: 1px;
+  line-height: 1;
+}
+body.tema-manual .feature-icon::before {
+  content: counter(item, decimal-leading-zero);
+  font: 500 12px/1.6 var(--lt-mono);
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--hue, #e2e8f0) 70%, #fff);
+}
+
+@media (max-width: 560px) {
+  body.tema-manual .lt-head::after { content: 'MANUAL DE USO  ·  EDIÇÃO LOCAL'; letter-spacing: 0.18em; }
+  body.tema-manual .app-section { padding-left: 24px; }
+  body.tema-manual .app-title { font-size: 26px; }
+  body.tema-manual .category-title { font-size: 28px; }
+}

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automações</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { overflow-x: clip; }
+    body.lt-body { min-height: 100vh; padding: 28px 20px 72px; }
+    body > * { position: relative; z-index: 1; }
+    .topo { display: flex; justify-content: center; margin-bottom: 22px; }
+    .lt-head { margin-bottom: 40px; }
+
+    /* ---------- mini menu: as duas automações, ligadas pelo trilho do fluxo ---------- */
+    .etapas {
+      position: relative;
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 28px;
+    }
+    .etapa {
+      --hue: var(--lt-cat-downloads);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      padding: 26px 26px 22px;
+      border-radius: 18px;
+      color: inherit;
+      text-decoration: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.018));
+      border: 1px solid var(--lt-line);
+      box-shadow: var(--lt-shadow);
+      transition: transform 240ms var(--lt-ease-out), border-color 240ms var(--lt-ease-out), box-shadow 240ms var(--lt-ease-out);
+    }
+    .etapa.editor { --hue: var(--lt-cat-imagem); }
+    .etapa::before {
+      content: '';
+      position: absolute;
+      left: 26px;
+      right: 26px;
+      top: 0;
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--hue), transparent);
+      opacity: 0.7;
+    }
+    .etapa:hover, .etapa:focus-visible {
+      transform: translateY(-4px);
+      border-color: color-mix(in srgb, var(--hue) 45%, transparent);
+      box-shadow: 0 24px 44px -24px color-mix(in srgb, var(--hue) 45%, transparent), var(--lt-shadow);
+      outline: none;
+    }
+    .etapa:active { transform: translateY(-1px) scale(0.995); transition-duration: 90ms; }
+    .e-topo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .num { font: 500 12px var(--lt-mono); letter-spacing: 0.12em; color: var(--lt-faint); }
+    .etapa h2 { font-size: 23px; font-weight: 720; letter-spacing: -0.025em; margin-bottom: 8px; }
+    .etapa > p { font-size: 14.5px; line-height: 1.6; color: var(--lt-muted); }
+    .itens { list-style: none; margin: 18px 0 22px; display: grid; gap: 9px; font-size: 13.5px; color: #c9ced6; flex: 1; }
+    .itens li { display: flex; gap: 10px; align-items: baseline; }
+    .itens li::before { content: ''; flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--hue); transform: translateY(-1px); }
+    .e-base { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; border-top: 1px solid var(--lt-line); }
+    .estado { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; color: var(--lt-muted); }
+    .estado b { color: var(--lt-ink); font-weight: 600; }
+    .estado .luz { width: 8px; height: 8px; flex-shrink: 0; border-radius: 50%; background: #5b616b; }
+    .estado .luz.on { background: var(--lt-green); box-shadow: 0 0 10px rgba(74, 222, 128, 0.7); }
+    .estado .luz.trabalhando { background: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.6); }
+    .abrir { flex-shrink: 0; font-size: 13.5px; font-weight: 650; color: color-mix(in srgb, var(--hue) 80%, #fff); transition: transform 200ms var(--lt-ease-out); }
+    .etapa:hover .abrir, .etapa:focus-visible .abrir { transform: translateX(4px); }
+
+    .nota { max-width: 960px; margin: 34px auto 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 22px; font-size: 13px; color: var(--lt-faint); }
+    .nota span::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%; background: var(--lt-green); vertical-align: 1px; }
+
+    @media (max-width: 760px) {
+      body.lt-body { padding-top: 72px; }
+      .etapas { grid-template-columns: 1fr; gap: 22px; }
+    }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-fluxo.css">
+</head>
+<body class="lt-body tema-fluxo">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-downloads)"><img src="/static/localtools/apps/automacoes.webp" alt="" width="76" height="76"></span>
+    <h1>Automações</h1>
+    <p>Tarefas que rodam sozinhas enquanto o Verto está ligado. Escolha uma.</p>
+  </header>
+
+  <main class="etapas">
+    <a class="etapa organizador" href="/automacoes/organizador">
+      <div class="e-topo">
+        <span class="lt-key" style="--hue: var(--lt-cat-downloads)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#folders"/></svg></span>
+        <span class="num" aria-hidden="true">01</span>
+      </div>
+      <h2>Organizador do InstaSaver</h2>
+      <p>Leva o que o InstaSaver e o VscoSaver baixaram de Downloads para Documentos, uma pasta por perfil.</p>
+      <ul class="itens">
+        <li>Stories, Destaques, Posts, Reels, Fotos de Perfil e VSCO separados</li>
+        <li>ZIPs abertos com segurança e cópias repetidas descartadas</li>
+        <li>Lista de perfis editável e registro do que foi feito</li>
+      </ul>
+      <div class="e-base">
+        <span class="estado" id="estOrg"><span class="luz" aria-hidden="true"></span><span>Verificando…</span></span>
+        <span class="abrir" aria-hidden="true">Abrir →</span>
+      </div>
+    </a>
+
+    <a class="etapa editor" href="/automacoes/editor">
+      <div class="e-topo">
+        <span class="lt-key" style="--hue: var(--lt-cat-imagem)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#film-reel"/></svg></span>
+        <span class="num" aria-hidden="true">02</span>
+      </div>
+      <h2>Editor automático de vídeo</h2>
+      <p>Corta pausas e retomadas, legenda palavra por palavra e enquadra para Reels, feed ou YouTube.</p>
+      <ul class="itens">
+        <li>Transcrição com o Whisper, no seu computador</li>
+        <li>Ritmo Natural, Dinâmico ou Agressivo, e frases repetidas removidas</li>
+        <li>Segue o rosto em 9:16, 4:5, 1:1 ou 16:9, com revisão antes de exportar</li>
+      </ul>
+      <div class="e-base">
+        <span class="estado" id="estEd"><span class="luz" aria-hidden="true"></span><span>Verificando…</span></span>
+        <span class="abrir" aria-hidden="true">Abrir →</span>
+      </div>
+    </a>
+  </main>
+  <div class="nota"><span>Tudo processado neste computador</span><span>Nada fica olhando as pastas sem motivo</span></div>
+
+  <script>
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    function mostrar(id, luz, html) {
+      const el = document.getElementById(id);
+      el.querySelector('.luz').className = 'luz' + (luz ? ' ' + luz : '');
+      el.lastElementChild.innerHTML = html;
+    }
+    async function ler(url) {
+      const r = await fetch(url);
+      const d = await r.json();
+      if (!d.success) throw new Error(d.error || 'erro');
+      return d;
+    }
+    // só lê o que já está na memória do Verto (a pasta de entrada não é varrida aqui)
+    ler('/automacoes/estado').then((d) => {
+      const auto = d.config && d.config.vigia_ativo;
+      const perfis = d.perfis || 0;
+      mostrar('estOrg', auto ? 'on' : '', `<b>${auto ? 'Automático' : 'Manual'}</b> · ${perfis} perfi${perfis === 1 ? 'l' : 's'}`);
+    }).catch(() => mostrar('estOrg', '', 'Estado indisponível'));
+    ler('/automacoes/editor/estado').then((d) => {
+      const t = d.trabalhos || [];
+      const andando = t.filter((j) => !['revisao', 'pronto', 'erro'].includes(j.estado)).length;
+      const revisar = t.filter((j) => j.estado === 'revisao').length;
+      const prontos = t.filter((j) => j.estado === 'pronto').length;
+      if (andando) mostrar('estEd', 'trabalhando', `<b>${andando} em edição</b>${revisar ? ` · ${revisar} para revisar` : ''}`);
+      else if (revisar) mostrar('estEd', 'on', `<b>${revisar} para revisar</b>${prontos ? ` · ${prontos} pronto${prontos > 1 ? 's' : ''}` : ''}`);
+      else if (prontos) mostrar('estEd', 'on', `<b>${prontos} vídeo${prontos > 1 ? 's' : ''} pronto${prontos > 1 ? 's' : ''}</b>`);
+      else mostrar('estEd', '', 'Nenhum vídeo na fila');
+    }).catch(() => mostrar('estEd', '', 'Estado indisponível'));
+  </script>
+</body>
+</html>

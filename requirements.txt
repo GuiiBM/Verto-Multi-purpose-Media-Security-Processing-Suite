@@ -37,3 +37,5 @@ scikit-image
 scipy
 PyYAML
 opencv-python-headless
+Send2Trash
+faster-whisper

@@ -1,0 +1,54 @@
+/* Office · modo pastas: cards como pastas de arquivo com orelha colorida (Word, Excel, PowerPoint). */
+body.modo-pastas { --acc: #fb7185; --word: #4f8ff7; --excel: #34b37a; --ppt: #f08a4b; }
+body.modo-pastas .modo-cab::after {
+  content: '';
+  width: 120px; height: 6px; border-radius: 3px; margin-top: 4px;
+  background: linear-gradient(90deg, var(--word) 0 33%, var(--excel) 33% 66%, var(--ppt) 66%);
+}
+body.modo-pastas .tool-card, body.modo-pastas .card {
+  position: relative;
+  margin-top: 22px;
+  border-radius: 4px 18px 18px 18px !important;
+  background: linear-gradient(180deg, #23262c, #1a1c21) !important;
+}
+body.modo-pastas .tool-card::before, body.modo-pastas .card::before {
+  content: attr(data-orelha);
+  position: absolute; left: -1px; top: -22px; height: 23px; width: 46%;
+  border-radius: 10px 14px 0 0;
+  background: linear-gradient(180deg, #2a2d34, #23262c);
+  border: 1px solid var(--lt-line); border-bottom: 0;
+  box-shadow: inset 0 3px 0 var(--tab, var(--acc));
+}
+body.modo-pastas .tool-card:nth-child(3n+1) { --tab: var(--word); }
+body.modo-pastas .tool-card:nth-child(3n+2) { --tab: var(--excel); }
+body.modo-pastas .tool-card:nth-child(3n) { --tab: var(--ppt); }
+body.modo-pastas .tool-card:hover { transform: translateY(-4px) rotate(-0.4deg); }
+body.modo-pastas .tool-icon { color: var(--tab, var(--acc)); }
+body.modo-pastas .format-btn.active, body.modo-pastas .format-btn.selected { border-color: var(--fam, var(--acc)) !important; }
+
+body.modo-pastas .btn-primary, body.modo-pastas button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-pastas button[type="submit"], body.modo-pastas .action-btn, body.modo-pastas .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #e0566b, #be3a50) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #7a2131, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-pastas .btn-primary:hover, body.modo-pastas button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-pastas button[type="submit"]:hover, body.modo-pastas .action-btn:hover, body.modo-pastas .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-pastas .btn-primary:active, body.modo-pastas button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-pastas button[type="submit"]:active, body.modo-pastas .action-btn:active, body.modo-pastas .process-btn:active { transform: translateY(2px); }
+
+/* Converter: cada família de formato usa a cor da sua pasta (Word, Excel, PowerPoint; imagens no rosa do app) */
+body.modo-pastas .format-category { --fam: var(--acc); }
+body.modo-pastas .format-category:nth-child(1 of .format-category) { --fam: var(--word); }
+body.modo-pastas .format-category:nth-child(2 of .format-category) { --fam: var(--excel); }
+body.modo-pastas .format-category:nth-child(3 of .format-category) { --fam: var(--ppt); }
+body.modo-pastas .format-btn:hover { border-color: color-mix(in srgb, var(--fam) 45%, transparent); }
+body.modo-pastas .format-btn.active {
+  border-color: var(--fam);
+  background: color-mix(in srgb, var(--fam) 12%, transparent);
+  color: color-mix(in srgb, var(--fam) 70%, #fff);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--fam) 22%, transparent);
+}
+body.modo-pastas .format-category .category-title { color: color-mix(in srgb, var(--fam) 55%, #cbd5e1); }

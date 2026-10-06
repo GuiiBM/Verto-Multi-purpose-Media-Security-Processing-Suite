@@ -1,0 +1,46 @@
+/* Dev/Data · modo terminal: cada ferramenta é uma janela de terminal. */
+body.modo-terminal { --acc: #fb923c; --term: #0d0f12; }
+body.modo-terminal .modo-titulo { font-family: var(--lt-mono) !important; font-weight: 600 !important; letter-spacing: -0.04em !important; }
+body.modo-terminal .modo-titulo::before { content: '~/'; color: var(--acc); opacity: 0.85; }
+body.modo-terminal .modo-titulo::after { content: '_'; color: var(--acc); margin-left: 0.08em; animation: cursor-pisca 1.1s steps(1) infinite; }
+@keyframes cursor-pisca { 50% { opacity: 0; } }
+body.modo-terminal .modo-sub { font-family: var(--lt-mono); font-size: 14px; }
+body.modo-terminal .tool-card, body.modo-terminal .card {
+  background: var(--term) !important;
+  border: 1px solid rgba(251, 146, 60, 0.18) !important;
+  border-radius: 12px !important;
+  padding-top: 46px !important;
+}
+body.modo-terminal .tool-card::before, body.modo-terminal .card::before {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 0; height: 30px;
+  border-radius: 12px 12px 0 0;
+  background:
+    radial-gradient(circle at 18px 15px, #ff5f57 5px, transparent 5.5px),
+    radial-gradient(circle at 36px 15px, #febc2e 5px, transparent 5.5px),
+    radial-gradient(circle at 54px 15px, #28c840 5px, transparent 5.5px),
+    linear-gradient(180deg, #1c1f24, #16181c);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+body.modo-terminal .card { position: relative; }
+body.modo-terminal .tool-title { font-family: var(--lt-mono); font-size: 16px; font-weight: 600; }
+body.modo-terminal .tool-title::before { content: '$ '; color: var(--acc); }
+body.modo-terminal .tool-desc { font-family: var(--lt-mono); font-size: 12.5px; line-height: 1.65; color: #9aa1ac; }
+body.modo-terminal .tool-icon { font-size: 26px; position: absolute; top: 2px; right: 14px; margin: 0; opacity: 0.9; }
+body.modo-terminal .tool-card:hover { border-color: rgba(251, 146, 60, 0.55) !important; box-shadow: 0 0 0 1px rgba(251, 146, 60, 0.25), var(--lt-shadow); }
+body.modo-terminal textarea, body.modo-terminal pre, body.modo-terminal code { font-family: var(--lt-mono) !important; }
+body.modo-terminal .formats-note { font-family: var(--lt-mono); font-size: 12.5px; }
+@media (prefers-reduced-motion: reduce) { .modo-terminal .modo-titulo::after { animation: none; } }
+
+body.modo-terminal .btn-primary, body.modo-terminal button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-terminal button[type="submit"], body.modo-terminal .action-btn, body.modo-terminal .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, #c2410c, #9a3412) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #5c1f0a, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-terminal .btn-primary:hover, body.modo-terminal button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-terminal button[type="submit"]:hover, body.modo-terminal .action-btn:hover, body.modo-terminal .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-terminal .btn-primary:active, body.modo-terminal button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-terminal button[type="submit"]:active, body.modo-terminal .action-btn:active, body.modo-terminal .process-btn:active { transform: translateY(2px); }

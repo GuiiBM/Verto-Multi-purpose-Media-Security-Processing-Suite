@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Office - Conversor e Reparador</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/pastas.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image:
         radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
         radial-gradient(at 100% 0%, rgba(34, 197, 94, 0.06) 0px, transparent 50%),
@@ -25,7 +29,7 @@
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -74,7 +78,7 @@
       margin: 0 auto 40px;
     }
     .tool-card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 20px;
       padding: 24px;
       border: 1px solid rgba(148, 163, 184, 0.08);
@@ -93,7 +97,7 @@
     .formats-note {
       max-width: 900px;
       margin: 0 auto;
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border: 1px solid rgba(148, 163, 184, 0.08);
       border-radius: 16px;
       padding: 20px 24px;
@@ -104,28 +108,30 @@
     .formats-note b { color: #cbd5e1; }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-pastas">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">Office</div>
-  <div class="tagline">Conversão e recuperação de arquivos Word, Excel e PowerPoint</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-documentos)"><img src="/static/localtools/apps/office.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Office</h1>
+    <p class="modo-sub">Conversão e recuperação de arquivos Word, Excel e PowerPoint</p>
+  </header>
 
   <div class="tools-grid">
-    <div class="tool-card" onclick="window.location.href='/office/convert'">
-      <div class="tool-icon">🔄</div>
+    <a class="tool-card" href="/office/convert">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M212.24,171.76a6,6,0,0,1,0,8.48l-32,32a6,6,0,0,1-8.48-8.48L193.51,182H48a6,6,0,0,1,0-12H193.51l-21.75-21.76a6,6,0,0,1,8.48-8.48ZM75.76,116.24a6,6,0,0,0,8.48-8.48L62.49,86H208a6,6,0,0,0,0-12H62.49L84.24,52.24a6,6,0,0,0-8.48-8.48l-32,32a6,6,0,0,0,0,8.48Z"/></svg></div>
       <div class="tool-title">Converter</div>
       <div class="tool-desc">DOCX, XLSX, PPTX, ODT/ODS/ODP, PDF e imagens (PNG/JPG por página ou slide) - renderizado pelo motor do LibreOffice, sem problemas de fonte ou acentuação</div>
-    </div>
+    </a>
 
-    <div class="tool-card" onclick="window.location.href='/office/repair'">
-      <div class="tool-icon">🩺</div>
+    <a class="tool-card" href="/office/repair">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,58H174V48a22,22,0,0,0-22-22H104A22,22,0,0,0,82,48V58H40A14,14,0,0,0,26,72V200a14,14,0,0,0,14,14H216a14,14,0,0,0,14-14V72A14,14,0,0,0,216,58ZM94,48a10,10,0,0,1,10-10h48a10,10,0,0,1,10,10V58H94ZM218,200a2,2,0,0,1-2,2H40a2,2,0,0,1-2-2V72a2,2,0,0,1,2-2H216a2,2,0,0,1,2,2Zm-60-64a6,6,0,0,1-6,6H134v18a6,6,0,0,1-12,0V142H104a6,6,0,0,1,0-12h18V112a6,6,0,0,1,12,0v18h18A6,6,0,0,1,158,136Z"/></svg></div>
       <div class="tool-title">Reparar e Recuperar</div>
       <div class="tool-desc">Recupera arquivos corrompidos ou com extensão trocada (ex: um .docx que na verdade é um .xlsx por dentro), em até 5 níveis de tentativa</div>
-    </div>
+    </a>
   </div>
 
   <div class="formats-note">

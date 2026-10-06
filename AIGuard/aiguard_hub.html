@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Guard & Diff</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/analise.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image:
         radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.06) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+        radial-gradient(at 100% 0%, rgba(15, 148, 136, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(45, 212, 191, 0.05) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -21,7 +25,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -29,7 +33,7 @@
     .back-button:hover { border-color: rgba(239, 68, 68, 0.4); color: #ef4444; transform: translateX(-6px); }
     .logo {
       font-size: 50px; font-weight: 900;
-      background: linear-gradient(135deg, #ef4444 0%, #8b5cf6 50%, #3b82f6 100%);
+      background: linear-gradient(135deg, #ef4444 0%, #0f9488 50%, #2dd4bf 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       letter-spacing: 1px;
       filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.5));
@@ -46,7 +50,7 @@
       gap: 20px; max-width: 1050px; margin: 0 auto 40px;
     }
     .tool-card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 20px; padding: 24px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 20px; padding: 24px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
       cursor: pointer; transition: all 0.3s;
     }
@@ -55,39 +59,41 @@
     .tool-title { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }
     .tool-desc { font-size: 13px; color: #94a3b8; line-height: 1.6; }
     .formats-note {
-      max-width: 1050px; margin: 0 auto; background: rgba(15, 23, 42, 0.4);
+      max-width: 1050px; margin: 0 auto; background: rgba(24, 26, 31, 0.4);
       border: 1px solid rgba(148, 163, 184, 0.08); border-radius: 16px;
       padding: 20px 24px; font-size: 13px; color: #94a3b8; line-height: 1.8;
     }
     .formats-note b { color: #cbd5e1; }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-analise">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">AI Guard & Diff</div>
-  <div class="tagline">Detector heurístico de IA, reescritor e comparador de plágio interno — 100% local</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-texto)"><img src="/static/localtools/apps/aiguard.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">AI Guard & Diff</h1>
+    <p class="modo-sub">Detector heurístico de IA, reescritor e comparador de plágio interno — 100% local</p>
+  </header>
 
   <div class="tools-grid">
-    <div class="tool-card" onclick="window.location.href='/aiguard/detect'">
-      <div class="tool-icon">🔍</div>
+    <a class="tool-card" href="/aiguard/detect">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M228.24,219.76l-51.38-51.38a86.15,86.15,0,1,0-8.48,8.48l51.38,51.38a6,6,0,0,0,8.48-8.48ZM38,112a74,74,0,1,1,74,74A74.09,74.09,0,0,1,38,112Z"/></svg></div>
       <div class="tool-title">Detector de IA</div>
       <div class="tool-desc">Mapa de calor por frase com burstiness, repetição de n-gramas e aberturas de frase — carregue TXT/PDF/DOCX inteiros, sem limite de tamanho</div>
-    </div>
-    <div class="tool-card" onclick="window.location.href='/aiguard/humanize'">
-      <div class="tool-icon">✍️</div>
+    </a>
+    <a class="tool-card" href="/aiguard/humanize">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M225.91,74.79,181.22,30.1a14,14,0,0,0-19.8,0L38.1,153.41a13.94,13.94,0,0,0-4.1,9.9V208a14,14,0,0,0,14,14H216a6,6,0,0,0,0-12H110.49L225.91,94.59A14,14,0,0,0,225.91,74.79ZM76.49,188,164,100.48,183.52,120,96,207.51ZM68,179.52,48.49,160,136,72.49,155.52,92ZM46,208V174.48L81.52,210H48A2,2,0,0,1,46,208ZM217.42,86.1,192,111.52,144.49,64,169.9,38.59a2,2,0,0,1,2.83,0l44.69,44.68A2,2,0,0,1,217.42,86.1Z"/></svg></div>
       <div class="tool-title">Reescritor & Diff</div>
       <div class="tool-desc">Gera variações com ajuste de tom, compara com o original e mantém histórico de até 5 iterações</div>
-    </div>
-    <div class="tool-card" onclick="window.location.href='/aiguard/plagiarism'">
-      <div class="tool-icon">📋</div>
+    </a>
+    <a class="tool-card" href="/aiguard/plagiarism">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,34H88a6,6,0,0,0-6,6V82H40a6,6,0,0,0-6,6V216a6,6,0,0,0,6,6H168a6,6,0,0,0,6-6V174h42a6,6,0,0,0,6-6V40A6,6,0,0,0,216,34ZM162,210H46V94H162Zm48-48H174V88a6,6,0,0,0-6-6H94V46H210Z"/></svg></div>
       <div class="tool-title">Plágio Interno</div>
       <div class="tool-desc">Carregue TXT, PDF ou DOCX da sua própria base e verifique trechos duplicados ou muito similares</div>
-    </div>
+    </a>
   </div>
 
   <div class="formats-note">

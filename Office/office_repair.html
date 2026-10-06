@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reparar Office</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/pastas.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -18,7 +22,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -33,7 +37,7 @@
     }
     .tagline { color: #64748b; font-size: 15px; margin-bottom: 40px; text-align: center; }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 40px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 28px; padding: 40px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
       max-width: 600px; margin: 0 auto;
     }
@@ -45,10 +49,10 @@
     fieldset:disabled .file-upload-area { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
     .file-upload-area {
       width: 100%; padding: 40px; border-radius: 12px;
-      border: 2px dashed rgba(249, 115, 22, 0.3); background: rgba(15, 23, 42, 0.6);
+      border: 2px dashed rgba(249, 115, 22, 0.3); background: rgba(24, 26, 31, 0.6);
       text-align: center; cursor: pointer; transition: all 0.3s; margin-bottom: 24px;
     }
-    .file-upload-area:hover { border-color: rgba(249, 115, 22, 0.5); background: rgba(15, 23, 42, 0.8); }
+    .file-upload-area:hover { border-color: rgba(249, 115, 22, 0.5); background: rgba(24, 26, 31, 0.8); }
     .file-upload-area.dragover { border-color: #f97316; background: rgba(249, 115, 22, 0.1); }
     .upload-icon { font-size: 48px; margin-bottom: 16px; }
     .upload-text { color: #cbd5e1; font-size: 14px; margin-bottom: 8px; }
@@ -103,7 +107,7 @@
     .progress-percent { font-size: 22px; font-weight: 800; color: #fb923c; font-variant-numeric: tabular-nums; }
     .progress-track {
       width: 100%; height: 16px; border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15);
+      background: rgba(24, 26, 31, 0.9); border: 1px solid rgba(148, 163, 184, 0.15);
       overflow: hidden; position: relative;
       box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
     }
@@ -132,15 +136,17 @@
     .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
   </style>
 </head>
-<body>
-  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/office'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-pastas">
+  <a class="lt-back" href="/office" title="Voltar para Office" aria-label="Voltar para Office">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🩺 REPARAR OFFICE</div>
-  <div class="tagline">Recupere documentos Word, Excel e PowerPoint corrompidos</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/office">Office</a> / Reparar e recuperar</nav>
+    <h1 class="modo-titulo">Reparar e recuperar</h1>
+    <p class="modo-sub">Recupere documentos Word, Excel e PowerPoint corrompidos</p>
+  </header>
 
   <div class="card">
     <h1>Selecione o arquivo</h1>
@@ -150,7 +156,7 @@
       <fieldset id="fieldset">
         <label>Arquivo Corrompido</label>
         <div class="file-upload-area" id="upload-area" onclick="document.getElementById('file').click()">
-          <div class="upload-icon">🩺</div>
+          <div class="upload-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34ZM48,46H208a2,2,0,0,1,2,2V154H179.31a13.9,13.9,0,0,0-9.89,4.1L150.1,177.41a2,2,0,0,1-1.41.59H107.31a2,2,0,0,1-1.41-.59L86.59,158.1a13.94,13.94,0,0,0-9.9-4.1H46V48A2,2,0,0,1,48,46ZM208,210H48a2,2,0,0,1-2-2V166H76.69a2,2,0,0,1,1.41.59L97.41,185.9a13.94,13.94,0,0,0,9.9,4.1h41.38a13.9,13.9,0,0,0,9.89-4.1l19.32-19.31a2,2,0,0,1,1.41-.59H210v42A2,2,0,0,1,208,210ZM91.76,108.24a6,6,0,0,1,0-8.48l32-32a6,6,0,0,1,8.48,0l32,32a6,6,0,1,1-8.48,8.48L134,86.49V152a6,6,0,0,1-12,0V86.49l-21.76,21.75A6,6,0,0,1,91.76,108.24Z"/></svg></div>
           <div class="upload-text">Clique ou arraste o arquivo aqui</div>
           <div class="upload-hint">doc, docx, odt, xls, xlsx, ods, ppt, pptx, odp (mesmo que a extensão esteja errada)</div>
         </div>
@@ -162,7 +168,7 @@
         </div>
 
         <div class="repair-info">
-          <div class="repair-info-title">🛠️ Estratégias de Recuperação (5 níveis):</div>
+          <div class="repair-info-title">Estratégias de Recuperação (5 níveis):</div>
           <ul class="repair-info-list" id="repair-stages">
             <li data-stage="1"><strong>Nível 1:</strong> Detecção do formato real pelo conteúdo (corrige extensão trocada)</li>
             <li data-stage="2"><strong>Nível 2:</strong> Reconstrução do contêiner ZIP a partir das partes legíveis</li>
@@ -175,7 +181,7 @@
         <label class="cleanup-option" for="cleanup-columns">
           <input type="checkbox" id="cleanup-columns" name="cleanup_columns">
           <span class="cleanup-option-text">
-            <b>🧹 Limpar colunas vazias</b><br>
+            <b>Limpar colunas vazias</b><br>
             Se o arquivo for uma planilha Excel, remove colunas sem nenhum valor (inclusive as
             que sobram "fantasmas" por formatação, deixando o arquivo com milhares de colunas
             vazias). Deixa o arquivo menor e mais fácil de manter.
@@ -185,7 +191,7 @@
 
       <button type="submit" id="submit-btn">
         <span class="btn-spinner"></span>
-        <span id="submit-label">🩺 Reparar Arquivo</span>
+        <span id="submit-label">Reparar Arquivo</span>
       </button>
     </form>
 
@@ -270,7 +276,7 @@
       fieldset.disabled = locked;
       submitBtn.disabled = locked;
       backButton.classList.toggle('locked', locked);
-      submitLabel.textContent = locked ? 'Reparando...' : '🩺 Reparar Arquivo';
+      submitLabel.textContent = locked ? 'Reparando...' : 'Reparar Arquivo';
     }
 
     function updateStageHighlight(frac) {
@@ -317,7 +323,7 @@
 
     function showResult(ok, message) {
       statusBox.className = 'status show ' + (ok ? 'ok' : 'err');
-      statusBox.textContent = (ok ? '✅ ' : '❌ ') + message;
+      statusBox.textContent = (ok ? '' : '') + message;
     }
 
     async function submitRepair(evt) {

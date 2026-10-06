@@ -1,0 +1,286 @@
+/* LocalTools · componentes compartilhados pelos apps (usa os tokens de base.css)
+ *
+ * .lt-key     ícone do app, igual ao do menu (placa no tom do grupo): defina --hue
+ * .lt-back    botão de voltar ao menu
+ * .lt-brand   o V do Verto + LOCALTOOLS em relevo (versão pequena)
+ * .lt-btn     botão (primário verde, .ghost, .sm)
+ * .lt-card    superfície de vidro escuro
+ * .lt-input   campo de texto
+ * .lt-chip    filtro/etiqueta arredondada (com --hue opcional)
+ */
+
+/* ---------- Ícone do app (o mesmo do menu) ----------
+ * Com <img>: a peça 3D renderizada do app (static/localtools/apps/<id>.webp), placa inclusa.
+ * Com <svg class="lt-icon">: o mesmo visual feito em CSS (placa de grafite, símbolo na cor do grupo). */
+.lt-key {
+  --hue: var(--lt-green);
+  --size: 56px;
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  flex-shrink: 0;
+  border-radius: 24%;
+  display: grid;
+  place-items: center;
+  font-size: calc(var(--size) * 0.52);
+  color: var(--hue);
+  background: linear-gradient(180deg, #30343d, #15171b);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.35),
+    0 2px 2px rgba(0, 0, 0, 0.5),
+    0 10px 14px -4px rgba(0, 0, 0, 0.55);
+}
+.lt-key .lt-icon {
+  filter: drop-shadow(0 1px 0 color-mix(in oklab, var(--hue) 55%, #000)) drop-shadow(0 2px 0 color-mix(in oklab, var(--hue) 40%, #000)) drop-shadow(0 5px 5px rgba(0, 0, 0, 0.5));
+}
+.lt-key:has(img) { background: none; box-shadow: none; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.55)); }
+.lt-key img { display: block; width: 100%; height: 100%; }
+.lt-key.lg { --size: 76px; }
+.lt-key.sm { --size: 40px; }
+
+/* ---------- Voltar ---------- */
+.lt-back {
+  position: fixed;
+  top: 22px;
+  left: 22px;
+  z-index: 60;
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  color: var(--lt-ink);
+  background: linear-gradient(180deg, #23262c, #16181c);
+  border: 1px solid var(--lt-line-2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 4px 0 rgba(0, 0, 0, 0.45), 0 14px 26px -12px rgba(0, 0, 0, 0.9);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform var(--lt-dur-fast) var(--lt-ease-out), color var(--lt-dur-fast) var(--lt-ease-out), border-color var(--lt-dur-fast) var(--lt-ease-out);
+}
+.lt-back:hover { color: var(--lt-green); border-color: rgba(74, 222, 128, 0.45); transform: translateX(-3px); }
+.lt-back:active { transform: translateY(3px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(0, 0, 0, 0.45); }
+.lt-back:focus-visible { outline: 2px solid var(--lt-green); outline-offset: 3px; }
+.lt-back svg { width: 22px; height: 22px; }
+@media (max-width: 760px) { .lt-back { position: absolute; top: 16px; left: 16px; width: 44px; height: 44px; } }
+
+/* ---------- Marca pequena ---------- */
+.lt-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-size: 15px;
+  line-height: 1;
+}
+.lt-brand img { width: 30px; height: 30px; filter: drop-shadow(0 6px 10px rgba(34, 197, 94, 0.3)); }
+.lt-brand span {
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  margin-right: -0.24em;
+  background: linear-gradient(100deg, #bbf7d0, #4ade80 30%, #5eead4 58%, #60a5fa 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 0 #0c3a24) drop-shadow(0 3px 0 #0a3020);
+}
+
+/* ---------- Cabeçalho de app: tecla + título + subtítulo ---------- */
+.lt-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+.lt-head h1 {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  color: var(--lt-ink);
+  text-wrap: balance;
+}
+.lt-head p {
+  color: var(--lt-muted);
+  font-size: clamp(15px, 1.3vw, 17px);
+  line-height: 1.55;
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+/* ---------- Botões ---------- */
+.lt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, #5ee68f, #34c56e);
+  color: #06210f;
+  font: 650 14px var(--lt-sans);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 0 #1d7a43, 0 12px 22px -10px rgba(74, 222, 128, 0.55);
+  transition: transform var(--lt-dur-fast) var(--lt-ease-out), box-shadow var(--lt-dur-fast) var(--lt-ease-out), filter var(--lt-dur-fast) var(--lt-ease-out);
+}
+.lt-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.lt-btn:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 0 #1d7a43; }
+.lt-btn:focus-visible { outline: 2px solid var(--lt-green); outline-offset: 3px; }
+.lt-btn:disabled { opacity: 0.45; cursor: default; transform: none; filter: none; }
+.lt-btn.ghost {
+  background: linear-gradient(180deg, #23262c, #191b20);
+  color: var(--lt-ink);
+  border-color: var(--lt-line-2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 3px 0 rgba(0, 0, 0, 0.45);
+}
+.lt-btn.ghost:hover { border-color: rgba(74, 222, 128, 0.4); }
+.lt-btn.sm { min-height: 34px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
+
+/* ---------- Card, campo e chip ---------- */
+.lt-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--lt-line);
+  border-radius: var(--lt-r-lg);
+  box-shadow: var(--lt-shadow);
+}
+.lt-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--lt-line);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lt-ink);
+  font: 450 15px var(--lt-sans);
+  outline: none;
+  transition: border-color var(--lt-dur) var(--lt-ease-out), box-shadow var(--lt-dur) var(--lt-ease-out);
+}
+.lt-input::placeholder { color: var(--lt-faint); }
+.lt-input:focus { border-color: rgba(74, 222, 128, 0.5); box-shadow: 0 0 0 4px var(--lt-ring); }
+.lt-chip {
+  --hue: var(--lt-green);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--lt-line);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--lt-muted);
+  font: 500 13px var(--lt-sans);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--lt-dur-fast) var(--lt-ease-out), border-color var(--lt-dur-fast) var(--lt-ease-out), background-color var(--lt-dur-fast) var(--lt-ease-out);
+}
+.lt-chip:hover { color: var(--lt-ink); border-color: color-mix(in srgb, var(--hue) 45%, transparent); }
+.lt-chip.on, .lt-chip[aria-pressed="true"] {
+  color: #fff;
+  border-color: color-mix(in srgb, var(--hue) 70%, transparent);
+  background: color-mix(in srgb, var(--hue) 16%, transparent);
+}
+.lt-chip:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; }
+.lt-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--hue) 55%, #fff), var(--hue));
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--hue) 45%, #000), 0 0 10px color-mix(in srgb, var(--hue) 50%, transparent);
+}
+
+/* ---------- Páginas com modo próprio (scripts/visual_modos.py) ----------
+ * Só a estrutura; a identidade de cada app fica em modos/<modo>.css. */
+html:has(body.lt-body) { overflow-x: clip; }
+body.lt-body[class*="modo-"] { font-family: var(--lt-sans); padding-top: 28px !important; }
+body.lt-body[class*="modo-"] > *:not(.lt-back) { position: relative; z-index: 1; }
+.topo { display: flex; justify-content: center; margin-bottom: 22px; }
+.modo-cab { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; margin: 0 auto 32px; max-width: 760px; }
+.modo-cab h1.modo-titulo {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 54px);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  color: var(--lt-ink);
+  text-wrap: balance;
+}
+.modo-cab-ferramenta h1.modo-titulo { font-size: clamp(30px, 4.2vw, 46px); }
+.modo-sub { color: var(--lt-muted); font-size: clamp(15px, 1.3vw, 17px); line-height: 1.55; max-width: 62ch; margin: 0; text-wrap: pretty; }
+.modo-trilha { font-size: 13px; color: var(--lt-faint); letter-spacing: 0.02em; }
+.modo-trilha a { color: var(--lt-muted); text-decoration: none; border-bottom: 1px solid transparent; }
+.modo-trilha a:hover { color: var(--lt-ink); border-bottom-color: currentColor; }
+.traco { width: 1em; height: 1em; fill: currentColor; display: block; }
+/* ícone de formato (Converter do PDFs, Office) e ícones que vieram no lugar de emoji: centrados */
+.format-icon .traco { width: 26px; height: 26px; margin: 0 auto; }
+:is(.preview-icon, .privacy-badge-icon, .security-badge-icon, .file-selected-icon) .traco { margin: 0 auto; }
+a.tool-card { color: inherit; text-decoration: none; display: block; }
+a.tool-card:focus-visible { outline: 2px solid var(--acc, var(--lt-green)); outline-offset: 3px; }
+@media (max-width: 760px) { body.lt-body[class*="modo-"] { padding-top: 72px !important; } }
+
+/* Base neutra dos elementos que quase todo app usa; cada modo reinterpreta. */
+body[class*="modo-"] { --acc: var(--lt-green); --acc-forte: #34c56e; --acc-tinta: #06210f; }
+body[class*="modo-"] .card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
+  border: 1px solid var(--lt-line);
+  box-shadow: var(--lt-shadow);
+  backdrop-filter: none;
+}
+body[class*="modo-"] input[type="text"], body[class*="modo-"] input[type="number"], body[class*="modo-"] input[type="password"],
+body[class*="modo-"] input[type="url"], body[class*="modo-"] input[type="search"], body[class*="modo-"] textarea, body[class*="modo-"] select {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: var(--lt-line);
+  color: var(--lt-ink);
+  font-family: var(--lt-sans);
+}
+body[class*="modo-"] input:focus, body[class*="modo-"] textarea:focus, body[class*="modo-"] select:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--acc) 60%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc) 18%, transparent);
+}
+body[class*="modo-"] select option { background: #16181c; color: var(--lt-ink); }
+body[class*="modo-"] input[type="range"], body[class*="modo-"] input[type="checkbox"], body[class*="modo-"] input[type="radio"] { accent-color: var(--acc); }
+/* hubs */
+body[class*="modo-"] .tools-grid {
+  max-width: 1080px;
+  margin: 0 auto 28px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 320px));
+  justify-content: center;
+  gap: 18px;
+}
+body[class*="modo-"] .tool-card {
+  position: relative;
+  padding: 24px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--lt-line);
+  box-shadow: var(--lt-shadow);
+  backdrop-filter: none;
+  transition: transform 220ms var(--lt-ease-out), border-color 220ms var(--lt-ease-out), box-shadow 220ms var(--lt-ease-out);
+}
+body[class*="modo-"] .tool-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--acc) 45%, transparent); }
+body[class*="modo-"] .tool-card:active { transform: translateY(-1px) scale(0.99); }
+body[class*="modo-"] .tool-icon { font-size: 34px; color: var(--acc); margin-bottom: 16px; line-height: 0; }
+body[class*="modo-"] .tool-title { font-size: 18px; font-weight: 700; letter-spacing: -0.015em; color: var(--lt-ink); margin-bottom: 8px; }
+body[class*="modo-"] .tool-desc { font-size: 14px; line-height: 1.55; color: var(--lt-muted); }
+body[class*="modo-"] .group-title { max-width: 1080px; margin: 34px auto 14px; font-size: 13px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: var(--lt-faint); }
+body[class*="modo-"] .formats-note { max-width: 760px; margin: 8px auto 0; text-align: center; font-size: 13.5px; line-height: 1.6; color: var(--lt-faint); background: none; border: 0; }
+body[class*="modo-"] .formats-note b { color: var(--lt-muted); }
+body[class*="modo-"] :is(.upload-icon, .drop-zone-icon, .drop-icon) { color: var(--acc); line-height: 0; }
+body[class*="modo-"] :is(.upload-icon, .drop-zone-icon, .drop-icon) .traco { margin: 0 auto; }
+/* botão secundário: vidro neutro com a cor do modo (no lugar dos azuis e ardósias antigos) */
+body[class*="modo-"] .btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--lt-line);
+  color: var(--lt-ink);
+}
+body[class*="modo-"] .btn-secondary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--acc) 12%, transparent);
+  border-color: color-mix(in srgb, var(--acc) 45%, transparent);
+}

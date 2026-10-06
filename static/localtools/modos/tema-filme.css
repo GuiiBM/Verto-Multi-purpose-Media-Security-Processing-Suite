@@ -1,0 +1,79 @@
+/* VscoSaver · tema "filme": monocromático, com grão, a inscrição da borda do
+   negativo no cabeçalho e as fotos da grade como cópias de papel com margem. */
+body.tema-filme {
+  --acc: #e8e4da;
+  --papel: #efebe2;
+  --borda-filme: #e3a254;
+  background-image:
+    radial-gradient(1000px 560px at 50% -12%, rgba(232, 228, 218, 0.07), transparent 64%);
+}
+/* grão do filme sobre a página inteira */
+body.tema-filme::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+body.tema-filme .lt-head h1 { font-weight: 300; letter-spacing: 0.22em; text-transform: lowercase; }
+body.tema-filme .lt-head .lt-key { filter: grayscale(0.35) contrast(1.05); }
+/* inscrição da borda do negativo */
+body.tema-filme .lt-head::after {
+  content: '▸ 24   VSCO 400   ▸ 24A   ▸ 25   VSCO 400   ▸ 25A';
+  display: block;
+  margin-top: 14px;
+  white-space: pre;
+  overflow: hidden;
+  max-width: 100%;
+  font: 600 10.5px var(--lt-mono);
+  letter-spacing: 0.24em;
+  color: var(--borda-filme);
+  opacity: 0.75;
+}
+
+/* botões: papel claro com tinta preta */
+body.tema-filme .btn:not(.ghost) {
+  background: linear-gradient(180deg, #f7f4ec, #dcd7cb);
+  color: #141414;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 #fff, 0 3px 0 #8f8a7f, 0 12px 22px -12px rgba(0, 0, 0, 0.8);
+}
+body.tema-filme .btn:not(.ghost):active:not(:disabled) { box-shadow: inset 0 1px 0 #fff, 0 1px 0 #8f8a7f; }
+body.tema-filme .btn.ghost { border-radius: 4px; }
+body.tema-filme .btn.ghost:hover { border-color: rgba(232, 228, 218, 0.45); }
+body.tema-filme .search { border-radius: 6px; }
+body.tema-filme .search:focus-within { border-color: rgba(232, 228, 218, 0.5); box-shadow: 0 0 0 4px rgba(232, 228, 218, 0.1), var(--lt-shadow); }
+body.tema-filme .tab.active { border-image: linear-gradient(90deg, #f7f4ec, #b9b4a8) 1; }
+body.tema-filme .profile { border-radius: 6px; }
+
+/* cada foto da grade é uma cópia em papel, com margem e a base mais larga */
+body.tema-filme .grid { gap: 16px; }
+body.tema-filme .card {
+  border-radius: 2px;
+  border: 0;
+  background: var(--papel);
+  padding: 7px 7px 22px;
+  aspect-ratio: 4 / 5;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5), 0 12px 22px -10px rgba(0, 0, 0, 0.7);
+  transition: transform 220ms var(--lt-ease-out);
+}
+body.tema-filme .card img { border-radius: 1px; }
+body.tema-filme .card:nth-child(3n+1) { transform: rotate(-0.6deg); }
+body.tema-filme .card:nth-child(3n+2) { transform: rotate(0.5deg); }
+body.tema-filme .card:hover { transform: translateY(-3px) rotate(0deg); }
+body.tema-filme .card .meta { left: 7px; right: 7px; bottom: 22px; }
+body.tema-filme .card .dl { bottom: 30px; right: 14px; }
+body.tema-filme .card .dl:hover { background: #f7f4ec; color: #141414; }
+body.tema-filme .card .badges { top: 14px; right: 14px; }
+body.tema-filme .card.focus { outline-color: var(--borda-filme); }
+body.tema-filme .spinner { border-color: rgba(232, 228, 218, 0.15); border-top-color: var(--acc); }
+body.tema-filme .session b { color: var(--borda-filme); }
+
+@media (max-width: 760px) {
+  body.tema-filme .grid { gap: 8px; }
+  body.tema-filme .card { padding: 4px 4px 12px; }
+  body.tema-filme .card .dl { bottom: 16px; right: 8px; }
+}

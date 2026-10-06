@@ -31,3 +31,9 @@ InstaSaver/.doc_ids.json
 WhatsSaver/dados/
 WhatsSaver/bridge/node_modules/
 WhatsSaver/bridge/runtime/
+
+# Encurtador: token da Cloudflare e cópia local dos links
+Encurtador/dados/
+
+# Automações: configuração e histórico locais
+Automacoes/dados/

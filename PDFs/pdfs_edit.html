@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Editar PDF</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/pdfs-papel.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(217, 83, 79, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -22,7 +26,7 @@
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -35,14 +39,14 @@
       color: #cbd5e1;
     }
     .back-button:hover {
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #ef4444;
+      border-color: rgba(217, 83, 79, 0.4);
+      color: #d9534f;
       transform: translateX(-6px);
     }
     .logo {
       font-size: 48px;
       font-weight: 900;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      background: linear-gradient(135deg, #d9534f 0%, #c2413d 50%, #a8332f 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       text-align: center;
@@ -55,7 +59,7 @@
       text-align: center;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       border: 1px solid rgba(148, 163, 184, 0.08);
@@ -87,19 +91,19 @@
       width: 100%;
       padding: 40px;
       border-radius: 12px;
-      border: 2px dashed rgba(239, 68, 68, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      border: 2px dashed rgba(217, 83, 79, 0.3);
+      background: rgba(24, 26, 31, 0.6);
       text-align: center;
       cursor: pointer;
       transition: all 0.3s;
     }
     .file-upload-area:hover {
-      border-color: rgba(239, 68, 68, 0.5);
-      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(217, 83, 79, 0.5);
+      background: rgba(24, 26, 31, 0.8);
     }
     .file-upload-area.dragover {
-      border-color: #ef4444;
-      background: rgba(239, 68, 68, 0.1);
+      border-color: #d9534f;
+      background: rgba(217, 83, 79, 0.1);
     }
     .upload-icon {
       font-size: 48px;
@@ -126,7 +130,7 @@
       gap: 6px;
       margin-bottom: 12px;
       padding: 12px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       border-radius: 10px;
       border: 1px solid rgba(148, 163, 184, 0.2);
       flex-wrap: wrap;
@@ -145,7 +149,7 @@
       padding: 8px 12px;
       border-radius: 6px;
       border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1;
       cursor: pointer;
       font-size: 11px;
@@ -154,19 +158,19 @@
       white-space: nowrap;
     }
     .toolbar-btn:hover {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: #ef4444;
+      background: rgba(217, 83, 79, 0.2);
+      border-color: #d9534f;
     }
     .toolbar-btn.active {
-      background: rgba(239, 68, 68, 0.3);
-      border-color: #ef4444;
-      color: #ef4444;
+      background: rgba(217, 83, 79, 0.3);
+      border-color: #d9534f;
+      color: #d9534f;
     }
     select.toolbar-select {
       padding: 6px 10px;
       border-radius: 6px;
       border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1;
       font-size: 11px;
       font-weight: 600;
@@ -200,7 +204,7 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
+      background: linear-gradient(135deg, #d9534f, #c2413d);
       color: white;
     }
     .status {
@@ -216,9 +220,9 @@
       border: 1px solid rgba(34, 197, 94, 0.3);
     }
     .status.err {
-      background: rgba(239, 68, 68, 0.1);
+      background: rgba(217, 83, 79, 0.1);
       color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      border: 1px solid rgba(217, 83, 79, 0.3);
     }
     .loading {
       text-align: center;
@@ -228,15 +232,18 @@
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/pdfs'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body pdf-papel">
+  <a class="lt-back" href="/pdfs" title="Voltar aos PDFs" aria-label="Voltar aos PDFs">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">📝 EDITAR PDF</div>
-  <div class="tagline">Extraia e edite o texto do seu PDF com formatação</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="pdf-cab">
+    <span class="pdf-selo"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M225.91,74.79,181.22,30.1a14,14,0,0,0-19.8,0L38.1,153.41a13.94,13.94,0,0,0-4.1,9.9V208a14,14,0,0,0,14,14H216a6,6,0,0,0,0-12H110.49L225.91,94.59A14,14,0,0,0,225.91,74.79ZM93.52,210H48a2,2,0,0,1-2-2V163.31a2,2,0,0,1,.59-1.41L136,72.49,183.52,120ZM217.42,86.1,192,111.52,144.49,64,169.9,38.59a2,2,0,0,1,2.83,0l44.69,44.68A2,2,0,0,1,217.42,86.1Z"/></svg></span>
+    <nav class="pdf-trilha" aria-label="Você está em"><a href="/pdfs">PDFs</a> / Editar</nav>
+    <h1 class="pdf-titulo">Editar</h1>
+    <p class="pdf-sub">Extraia e edite o texto do seu PDF com formatação</p>
+  </header>
   
   <div class="card">
     <h1>Selecione o PDF</h1>
@@ -244,7 +251,7 @@
     
     <label>Arquivo PDF</label>
     <div class="file-upload-area" id="upload-area" onclick="document.getElementById('file').click()">
-      <div class="upload-icon">📄</div>
+      <div class="upload-icon"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H190v20h18a6,6,0,0,1,0,12H190v18a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h32A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm84,8a34,34,0,0,1-34,34H112a6,6,0,0,1-6-6V152a6,6,0,0,1,6-6h16A34,34,0,0,1,162,180Zm-12,0a22,22,0,0,0-22-22H118v44h10A22,22,0,0,0,150,180ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>
       <div class="upload-text">Clique ou arraste o arquivo aqui</div>
       <div class="upload-hint">Suporta apenas arquivos PDF</div>
     </div>
@@ -253,8 +260,8 @@
     <div class="editor-container" id="editor-container">
       <div class="editor-toolbar">
         <div class="toolbar-group">
-          <button class="toolbar-btn" onclick="execCmd('undo')" title="Desfazer">↶</button>
-          <button class="toolbar-btn" onclick="execCmd('redo')" title="Refazer">↷</button>
+          <button class="toolbar-btn" onclick="execCmd('undo')" title="Desfazer"></button>
+          <button class="toolbar-btn" onclick="execCmd('redo')" title="Refazer"></button>
         </div>
         <div class="toolbar-group">
           <select class="toolbar-select" onchange="changeFontSize(this.value)">
@@ -291,7 +298,7 @@
           <button class="toolbar-btn" onclick="execCmd('insertOrderedList')" title="Lista numerada">1.</button>
         </div>
         <div class="toolbar-group">
-          <button class="toolbar-btn" onclick="execCmd('removeFormat')" title="Limpar formatação">🗑️</button>
+          <button class="toolbar-btn" onclick="execCmd('removeFormat')" title="Limpar formatação"></button>
         </div>
       </div>
       
@@ -302,7 +309,7 @@
       <form method="POST" id="save-form">
         <input type="hidden" name="edited_text" id="edited-text">
         <input type="hidden" name="filename" id="filename">
-        <button type="submit" class="save-btn">💾 Salvar PDF Editado</button>
+        <button type="submit" class="save-btn">Salvar PDF Editado</button>
       </form>
     </div>
     
@@ -362,20 +369,20 @@
           document.getElementById('filename').value = file.name;
           editorContainer.classList.add('show');
           uploadArea.innerHTML = `
-            <div class="upload-icon">✅</div>
+            <div class="upload-icon"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H190v20h18a6,6,0,0,1,0,12H190v18a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h32A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm84,8a34,34,0,0,1-34,34H112a6,6,0,0,1-6-6V152a6,6,0,0,1,6-6h16A34,34,0,0,1,162,180Zm-12,0a22,22,0,0,0-22-22H118v44h10A22,22,0,0,0,150,180ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>
             <div class="upload-text">PDF carregado: ${file.name}</div>
             <div class="upload-hint">Edite o texto abaixo</div>
           `;
         } else {
           uploadArea.innerHTML = `
-            <div class="upload-icon">❌</div>
+            <div class="upload-icon"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H190v20h18a6,6,0,0,1,0,12H190v18a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h32A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm84,8a34,34,0,0,1-34,34H112a6,6,0,0,1-6-6V152a6,6,0,0,1,6-6h16A34,34,0,0,1,162,180Zm-12,0a22,22,0,0,0-22-22H118v44h10A22,22,0,0,0,150,180ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>
             <div class="upload-text">Erro ao extrair texto</div>
             <div class="upload-hint">${result.error || 'Tente novamente'}</div>
           `;
         }
       } catch (error) {
         uploadArea.innerHTML = `
-          <div class="upload-icon">❌</div>
+          <div class="upload-icon"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H190v20h18a6,6,0,0,1,0,12H190v18a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h32A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm84,8a34,34,0,0,1-34,34H112a6,6,0,0,1-6-6V152a6,6,0,0,1,6-6h16A34,34,0,0,1,162,180Zm-12,0a22,22,0,0,0-22-22H118v44h10A22,22,0,0,0,150,180ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>
           <div class="upload-text">Erro ao processar PDF</div>
           <div class="upload-hint">Tente novamente</div>
         `;

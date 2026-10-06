@@ -1,0 +1,29 @@
+/* Isolador de Voz · modo mesa de som: canal com medidor de LED e fader. */
+body.modo-mesa-de-som { --acc: #fbbf24; }
+body.modo-mesa-de-som .card, body.modo-mesa-de-som .container > .card { position: relative; padding-left: 64px !important; border-radius: 16px !important; }
+body.modo-mesa-de-som .card::before {
+  content: ''; position: absolute; left: 22px; top: 26px; bottom: 26px; width: 8px; border-radius: 3px;
+  background: linear-gradient(0deg, #22c55e 0 55%, #facc15 55% 80%, #ef4444 80%);
+  -webkit-mask: repeating-linear-gradient(0deg, #000 0 5px, transparent 5px 8px);
+  mask: repeating-linear-gradient(0deg, #000 0 5px, transparent 5px 8px);
+  opacity: 0.75;
+}
+body.modo-mesa-de-som .card::after {
+  content: ''; position: absolute; left: 38px; top: 26px; bottom: 26px; width: 3px; border-radius: 2px;
+  background: linear-gradient(transparent 0 38%, #d1d5db 38% 44%, transparent 44%), rgba(255, 255, 255, 0.08);
+}
+body.modo-mesa-de-som .stem-btn { border-radius: 8px !important; font-family: var(--lt-mono); letter-spacing: 0.02em; }
+body.modo-mesa-de-som .stem-btn.active, body.modo-mesa-de-som .stem-btn.selected { box-shadow: 0 0 0 2px var(--acc) inset !important; }
+
+body.modo-mesa-de-som .btn-primary, body.modo-mesa-de-som button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-mesa-de-som button[type="submit"], body.modo-mesa-de-som .action-btn, body.modo-mesa-de-som .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, #facc15, #eab308) !important;
+  color: #1a1405 !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #854d0e, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-mesa-de-som .btn-primary:hover, body.modo-mesa-de-som button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-mesa-de-som button[type="submit"]:hover, body.modo-mesa-de-som .action-btn:hover, body.modo-mesa-de-som .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-mesa-de-som .btn-primary:active, body.modo-mesa-de-som button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-mesa-de-som button[type="submit"]:active, body.modo-mesa-de-som .action-btn:active, body.modo-mesa-de-som .process-btn:active { transform: translateY(2px); }

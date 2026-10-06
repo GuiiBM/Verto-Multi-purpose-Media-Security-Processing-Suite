@@ -1,0 +1,27 @@
+/* Arquivos · modo fichário: fichas catalográficas com furos e etiqueta. */
+body.modo-fichario { --acc: #38bdf8; }
+body.modo-fichario .card {
+  position: relative; border-radius: 6px !important; padding-left: 52px !important;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 31px, rgba(56, 189, 248, 0.07) 31px 32px),
+    linear-gradient(180deg, #1c1f24, #16181c) !important;
+}
+body.modo-fichario .card::before {
+  content: ''; position: absolute; left: 16px; top: 0; bottom: 0; width: 14px;
+  background: radial-gradient(circle at 7px 50%, #0b0c0f 0 6px, rgba(255, 255, 255, 0.12) 6.5px 7.5px, transparent 8px) 0 24px / 14px 64px repeat-y;
+}
+body.modo-fichario .format-btn, body.modo-fichario .format-item { font-family: var(--lt-mono) !important; border-radius: 4px !important; }
+body.modo-fichario .format-btn.active, body.modo-fichario .format-btn.selected { border-color: var(--acc) !important; color: #fff !important; }
+
+body.modo-fichario .btn-primary, body.modo-fichario button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-fichario button[type="submit"], body.modo-fichario .action-btn, body.modo-fichario .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 6px !important;
+  background: linear-gradient(180deg, #0278b5, #075985) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #073b57, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-fichario .btn-primary:hover, body.modo-fichario button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-fichario button[type="submit"]:hover, body.modo-fichario .action-btn:hover, body.modo-fichario .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-fichario .btn-primary:active, body.modo-fichario button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-fichario button[type="submit"]:active, body.modo-fichario .action-btn:active, body.modo-fichario .process-btn:active { transform: translateY(2px); }

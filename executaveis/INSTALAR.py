@@ -180,7 +180,12 @@ def main():
         "markdown",
         "scikit-image",
         "scipy",
-        "PyYAML"
+        "PyYAML",
+        # Automações: lixeira para os ZIPs organizados, transcrição palavra por
+        # palavra e detector de rosto (YuNet) do editor de vídeo
+        "Send2Trash",
+        "faster-whisper",
+        "opencv-python-headless"
     ]
     
     total_etapas = len(packages) + 4  # pacotes + FFmpeg + LibreOffice + runtime JS (Deno) + WhatsSaver

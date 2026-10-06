@@ -1,0 +1,30 @@
+/* Image Studio · modo mesa de luz: fundo xadrez de transparência e marcas de corte. */
+body.modo-mesa-de-luz { --acc: #f472b6; --xadrez: repeating-conic-gradient(rgba(255, 255, 255, 0.07) 0 25%, transparent 0 50%) 0 0 / 16px 16px; }
+body.modo-mesa-de-luz .tool-card, body.modo-mesa-de-luz .card { position: relative; border-radius: 4px !important; overflow: visible !important; }
+body.modo-mesa-de-luz .tool-card::before, body.modo-mesa-de-luz .card::before {
+  content: ''; position: absolute; inset: -10px; pointer-events: none;
+  background:
+    linear-gradient(#cfd4dc, #cfd4dc) 0 10px / 7px 1px no-repeat, linear-gradient(#cfd4dc, #cfd4dc) 10px 0 / 1px 7px no-repeat,
+    linear-gradient(#cfd4dc, #cfd4dc) 100% 10px / 7px 1px no-repeat, linear-gradient(#cfd4dc, #cfd4dc) calc(100% - 10px) 0 / 1px 7px no-repeat,
+    linear-gradient(#cfd4dc, #cfd4dc) 0 calc(100% - 10px) / 7px 1px no-repeat, linear-gradient(#cfd4dc, #cfd4dc) 10px 100% / 1px 7px no-repeat,
+    linear-gradient(#cfd4dc, #cfd4dc) 100% calc(100% - 10px) / 7px 1px no-repeat, linear-gradient(#cfd4dc, #cfd4dc) calc(100% - 10px) 100% / 1px 7px no-repeat;
+  opacity: 0.55;
+}
+body.modo-mesa-de-luz .tool-icon {
+  width: 64px; height: 64px; display: grid; place-items: center; border-radius: 6px;
+  background: var(--xadrez), #1c1f24; border: 1px solid var(--lt-line);
+}
+body.modo-mesa-de-luz .stage-outer, body.modo-mesa-de-luz .empty-stage, body.modo-mesa-de-luz .preview { background: var(--xadrez), #121417 !important; }
+
+body.modo-mesa-de-luz .btn-primary, body.modo-mesa-de-luz button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-mesa-de-luz button[type="submit"], body.modo-mesa-de-luz .action-btn, body.modo-mesa-de-luz .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 6px !important;
+  background: linear-gradient(180deg, #db2777, #be185d) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #6d0e35, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-mesa-de-luz .btn-primary:hover, body.modo-mesa-de-luz button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-mesa-de-luz button[type="submit"]:hover, body.modo-mesa-de-luz .action-btn:hover, body.modo-mesa-de-luz .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-mesa-de-luz .btn-primary:active, body.modo-mesa-de-luz button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-mesa-de-luz button[type="submit"]:active, body.modo-mesa-de-luz .action-btn:active, body.modo-mesa-de-luz .process-btn:active { transform: translateY(2px); }

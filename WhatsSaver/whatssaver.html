@@ -4,19 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WhatsSaver</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --wa: linear-gradient(135deg, #5cf08f 0%, #25d366 45%, #128c7e 100%);
       --accent: #25d366;
       --ink: #04130a;
-      --card: rgba(15, 23, 42, 0.45);
+      --card: rgba(24, 26, 31, 0.45);
       --line: rgba(148, 163, 184, 0.1);
       --muted: #94a3b8;
     }
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--lt-sans);
       background: #0a0f1e;
       background-image:
         radial-gradient(at 0% 0%, rgba(37, 211, 102, 0.07) 0px, transparent 50%),
@@ -26,7 +29,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 50; color: #cbd5e1;
@@ -41,7 +44,7 @@
     .tagline { color: #64748b; font-size: 15px; margin: 8px 0 32px; text-align: center; font-weight: 500; }
 
     .btn {
-      border: 0; cursor: pointer; border-radius: 14px; font: 700 14px 'Inter', sans-serif;
+      border: 0; cursor: pointer; border-radius: 14px; font: 700 14px var(--lt-sans);
       padding: 12px 18px; color: var(--ink); background: var(--accent); transition: transform .15s, opacity .15s, border-color .15s; white-space: nowrap;
       display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
     }
@@ -83,7 +86,7 @@
     }
     .qr-box img { width: 100%; height: 100%; display: block; }
     .qr-box .qr-wait { display: flex; flex-direction: column; align-items: center; gap: 14px; color: #0f172a; font-size: 13px; font-weight: 600; text-align: center; padding: 20px; }
-    .qr-box .qr-wait .spinner { border-color: rgba(15, 23, 42, 0.12); border-top-color: #128c7e; }
+    .qr-box .qr-wait .spinner { border-color: rgba(24, 26, 31, 0.12); border-top-color: #128c7e; }
     .steps { counter-reset: s; list-style: none; display: grid; gap: 12px; margin: 16px 0 20px; }
     .steps li { counter-increment: s; display: flex; gap: 12px; font-size: 14.5px; color: #cbd5e1; line-height: 1.5; }
     .steps li::before {
@@ -94,8 +97,8 @@
     .pair { border-top: 1px solid var(--line); padding-top: 18px; }
     .pair-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     .input {
-      flex: 1; min-width: 180px; background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(148, 163, 184, 0.18); border-radius: 12px;
-      color: #f8fafc; font: 500 15px 'Inter', sans-serif; padding: 11px 14px; outline: 0;
+      flex: 1; min-width: 180px; background: rgba(12, 13, 16, 0.6); border: 1px solid rgba(148, 163, 184, 0.18); border-radius: 12px;
+      color: #f8fafc; font: 500 15px var(--lt-sans); padding: 11px 14px; outline: 0;
     }
     .input:focus { border-color: rgba(37, 211, 102, 0.5); box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.08); }
     .pair-code {
@@ -128,15 +131,15 @@
     }
     .side-head { padding: 14px; border-bottom: 1px solid var(--line); }
     .search {
-      display: flex; align-items: center; gap: 8px; background: rgba(2, 6, 23, 0.55); border: 1px solid rgba(148, 163, 184, 0.14);
+      display: flex; align-items: center; gap: 8px; background: rgba(12, 13, 16, 0.55); border: 1px solid rgba(148, 163, 184, 0.14);
       border-radius: 12px; padding: 0 12px;
     }
     .search:focus-within { border-color: rgba(37, 211, 102, 0.45); }
-    .search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: #f8fafc; font: 500 14px 'Inter', sans-serif; padding: 10px 0; }
+    .search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: #f8fafc; font: 500 14px var(--lt-sans); padding: 10px 0; }
     .search svg { color: #64748b; flex-shrink: 0; }
     .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
     .chip {
-      border: 1px solid rgba(148, 163, 184, 0.15); background: rgba(15, 23, 42, 0.6); color: #94a3b8; font: 600 12.5px 'Inter', sans-serif;
+      border: 1px solid rgba(148, 163, 184, 0.15); background: rgba(24, 26, 31, 0.6); color: #94a3b8; font: 600 12.5px var(--lt-sans);
       padding: 6px 11px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: all .15s;
     }
     .chip:hover { color: #e2e8f0; border-color: rgba(37, 211, 102, 0.35); }
@@ -246,7 +249,7 @@
 
     /* Visualizador */
     .viewer {
-      position: fixed; inset: 0; background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(10px); z-index: 100;
+      position: fixed; inset: 0; background: rgba(12, 13, 16, 0.95); backdrop-filter: blur(10px); z-index: 100;
       display: none; align-items: center; justify-content: center; padding: 20px;
     }
     .viewer.open { display: flex; }
@@ -274,7 +277,7 @@
     .tag { font-size: 11.5px; font-weight: 600; padding: 4px 8px; border-radius: 8px; background: rgba(148, 163, 184, 0.12); color: #cbd5e1; }
     .tag.file { background: rgba(14, 116, 144, 0.3); color: #a5f3fc; }
     .v-close, .v-nav {
-      position: fixed; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--line); color: #e2e8f0; cursor: pointer;
+      position: fixed; background: rgba(24, 26, 31, 0.85); border: 1px solid var(--line); color: #e2e8f0; cursor: pointer;
       width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; z-index: 101; font-size: 22px;
     }
     .v-close { top: 20px; right: 20px; }
@@ -285,7 +288,7 @@
     /* Progresso do .zip */
     .dock {
       position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 90; width: min(620px, calc(100% - 32px));
-      background: rgba(15, 23, 42, 0.96); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 16px; padding: 12px 14px;
+      background: rgba(24, 26, 31, 0.96); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 16px; padding: 12px 14px;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45); display: none;
     }
     .dock.show { display: block; }
@@ -328,15 +331,49 @@
       .qr-box { width: 260px; height: 260px; }
     }
   </style>
+  <style>
+    /* ---------- Visual LocalTools: grupo Downloads (verde) ---------- */
+    :root {
+      --wa: linear-gradient(180deg, #5ee68f, #34c56e);
+      --accent: var(--lt-cat-downloads);
+      --ink: #06210f;
+      --card: rgba(255, 255, 255, 0.035);
+      --line: var(--lt-line);
+      --muted: var(--lt-muted);
+    }
+    html { overflow-x: clip; }
+    body.lt-body { font-family: var(--lt-sans); padding-top: 28px; }
+    body > * { position: relative; z-index: 1; }
+    .topo { display: flex; justify-content: center; margin-bottom: 22px; }
+    .lt-head { margin-bottom: 28px; }
+    .btn {
+      color: #06210f;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 0 #1d7a43, 0 12px 22px -10px rgba(74, 222, 128, 0.5);
+    }
+    .btn:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 0 #1d7a43; }
+    .btn.ghost { background: linear-gradient(180deg, #23262c, #191b20); color: var(--lt-ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 2px 0 rgba(0, 0, 0, 0.45); }
+    .btn.ghost:hover { border-color: rgba(74, 222, 128, 0.4); }
+    .panel-card, .sidebar, .chat-card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)); box-shadow: var(--lt-shadow); backdrop-filter: none; }
+    .search { background: rgba(255, 255, 255, 0.04); }
+    .search:focus-within { border-color: rgba(74, 222, 128, 0.5); box-shadow: 0 0 0 4px var(--lt-ring); }
+    .search input::placeholder { color: var(--lt-faint); }
+    @media (max-width: 760px) { body.lt-body { padding-top: 72px; } }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-conversa.css">
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'" title="Voltar">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </div>
+<body class="lt-body tema-conversa">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
   <div class="wrap">
-    <div class="logo">WhatsSaver</div>
-    <div class="tagline">Todas as fotos e vídeos de uma conversa do WhatsApp, inclusive os enviados como arquivo, direto do WhatsApp</div>
+    <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+    <header class="lt-head">
+      <span class="lt-key lg" style="--hue: var(--lt-cat-downloads)"><img src="/static/localtools/apps/whatssaver.webp" alt="" width="76" height="76"></span>
+      <h1>WhatsSaver</h1>
+      <p>Todas as fotos e vídeos de uma conversa do WhatsApp, inclusive os enviados como arquivo, direto do WhatsApp.</p>
+    </header>
 
     <!-- Carregando -->
     <div class="loading-screen" id="scrLoading"><div class="spinner"></div></div>
@@ -415,7 +452,7 @@
 
         <main class="pane">
           <div class="pane-empty" id="paneEmpty">
-            <div class="big">💬</div>
+            <div class="big"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,26A102,102,0,0,0,38.35,176.69L26.73,211.56a14,14,0,0,0,17.71,17.71l34.87-11.62A102,102,0,1,0,128,26Zm0,192a90,90,0,0,1-45.06-12.08,6.09,6.09,0,0,0-3-.81,6.2,6.2,0,0,0-1.9.31L40.65,217.88a2,2,0,0,1-2.53-2.53L50.58,178a6,6,0,0,0-.5-4.91A90,90,0,1,1,128,218Z"/></svg></div>
             <b>Escolha uma conversa</b>
             Você vê todas as fotos e vídeos dela, os normais e os enviados como arquivo, mesmo o que o celular nunca baixou, e baixa só o que quiser.
           </div>
@@ -432,9 +469,9 @@
               </div>
               <div class="ch-stats" id="chStats"></div>
               <div class="ch-actions">
-                <button class="btn sm" id="zipAllBtn">⬇ Baixar tudo (.zip)</button>
-                <button class="btn ghost sm" id="histBtn">🕰 Buscar mensagens antigas</button>
-                <button class="btn ghost sm" id="selAllBtn">☑ Selecionar</button>
+                <button class="btn sm" id="zipAllBtn">Baixar tudo (.zip)</button>
+                <button class="btn ghost sm" id="histBtn">Buscar mensagens antigas</button>
+                <button class="btn ghost sm" id="selAllBtn">Selecionar</button>
               </div>
               <div class="hist-line" id="histLine"></div>
             </div>
@@ -459,7 +496,7 @@
             <div class="fresh hidden" id="freshBar"><span id="freshText"></span><button class="btn ghost xs" id="freshBtn">Atualizar</button></div>
             <div class="selbar hidden" id="selBar">
               <b id="selCount"></b>
-              <button class="btn xs" id="selDl">⬇ Baixar</button>
+              <button class="btn xs" id="selDl">Baixar</button>
               <button class="btn ghost xs" id="selAll">Selecionar todos</button>
               <button class="btn ghost xs" id="selClear">Limpar</button>
             </div>
@@ -623,10 +660,10 @@
   function renderSetup(setup) {
     show('scrSetup');
     const nodeLine = setup.node
-      ? `✅ <span>Node.js <b>${esc(setup.node)}</b> encontrado</span>`
-      : '⬇️ <span>Node.js não encontrado: o instalador baixa uma cópia portátil (~30 MB) só para o WhatsSaver</span>';
-    const depLine = setup.deps ? '✅ <span>Biblioteca do WhatsApp (<b>Baileys</b>) instalada</span>'
-      : '⬇️ <span>Biblioteca do WhatsApp (<b>Baileys</b>): será instalada pelo npm</span>';
+      ? `<span>Node.js <b>${esc(setup.node)}</b> encontrado</span>`
+      : '<span>Node.js não encontrado: o instalador baixa uma cópia portátil (~30 MB) só para o WhatsSaver</span>';
+    const depLine = setup.deps ? '<span>Biblioteca do WhatsApp (<b>Baileys</b>) instalada</span>'
+      : '<span>Biblioteca do WhatsApp (<b>Baileys</b>): será instalada pelo npm</span>';
     $('setupChecks').innerHTML = `<li>${nodeLine}</li><li>${depLine}</li>`;
     $('setupBtn').disabled = setup.installing;
     $('setupBtn').innerHTML = setup.installing ? '<div class="spinner sm"></div> Instalando...' : 'Instalar agora';
@@ -635,7 +672,7 @@
     const atBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 10;
     log.textContent = setup.log.join('\n');
     if (atBottom) log.scrollTop = log.scrollHeight;
-    $('setupErr').textContent = setup.error ? '⚠ ' + setup.error : '';
+    $('setupErr').textContent = setup.error ? '' + setup.error : '';
   }
   $('setupBtn').addEventListener('click', async () => {
     $('setupBtn').disabled = true;
@@ -909,7 +946,7 @@
         : `<span>${known}</span>`;
     }
     $('histBtn').disabled = !!(h && h.running);
-    $('histBtn').textContent = c.history_end ? '🕰 Procurar de novo' : '🕰 Buscar mensagens antigas';
+    $('histBtn').textContent = c.history_end ? 'Procurar de novo' : 'Buscar mensagens antigas';
   }
 
   $('histBtn').addEventListener('click', async () => {
@@ -1064,10 +1101,10 @@
     const n = S.selected.size;
     $('selBar').classList.toggle('hidden', !n && !S.selecting);
     $('selCount').textContent = n ? `${nf(n)} selecionado${n > 1 ? 's' : ''}` : 'Toque nas mídias para selecionar';
-    $('selDl').textContent = n > 1 ? `⬇ Baixar ${nf(n)} (.zip)` : '⬇ Baixar';
+    $('selDl').textContent = n > 1 ? `Baixar ${nf(n)} (.zip)` : 'Baixar';
     $('selDl').disabled = !n;
     $('grid').classList.toggle('selecting', S.selecting || n > 0);
-    $('selAllBtn').textContent = S.selecting ? '✕ Parar de selecionar' : '☑ Selecionar';
+    $('selAllBtn').textContent = S.selecting ? '✕ Parar de selecionar' : 'Selecionar';
   }
   $('selAllBtn').addEventListener('click', () => {
     S.selecting = !S.selecting;
@@ -1160,7 +1197,7 @@
       $('dockAction').onclick = () => saveAs('/whatssaver/zip/download?' + q({ id: z.id }));
       renderDock.t = setTimeout(() => { if (S.zip === z) { S.zip = null; renderDock(); } }, 20000);
     } else {
-      $('dockText').innerHTML = z.state === 'cancelled' ? '.zip cancelado' : '⚠ Nenhum arquivo pôde ser baixado';
+      $('dockText').innerHTML = z.state === 'cancelled' ? '.zip cancelado' : 'Nenhum arquivo pôde ser baixado';
       $('dockSub').textContent = z.state === 'cancelled' ? '' : (z.last_error || '');
       $('dockAction').textContent = 'Fechar';
       $('dockAction').onclick = () => { S.zip = null; renderDock(); updateZipBtn(); };
@@ -1201,7 +1238,7 @@
       if (!S.viewer || S.viewer.token !== token) return;
       drawSide();
       if (!r.success) {
-        $('vWait').innerHTML = `<span>⚠ ${esc(r.error)}</span><button class="btn sm" id="vRetry">Tentar de novo</button>`;
+        $('vWait').innerHTML = `<span>${esc(r.error)}</span><button class="btn sm" id="vRetry">Tentar de novo</button>`;
         $('vRetry').onclick = () => drawViewer();
         return;
       }

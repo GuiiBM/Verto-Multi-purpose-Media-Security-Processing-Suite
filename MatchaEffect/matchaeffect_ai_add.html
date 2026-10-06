@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Efeito Matcha por IA — Adicionar</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/matcha.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: radial-gradient(at 0% 0%, rgba(139, 195, 74, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -18,7 +22,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -42,7 +46,7 @@
     .banner.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
     .layout { display: flex; gap: 20px; max-width: 1180px; margin: 0 auto; flex-wrap: wrap; align-items: flex-start; }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 24px; padding: 28px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
     }
     .stage-col { flex: 1 1 560px; min-width: 320px; }
@@ -84,7 +88,7 @@
     .field-hint { font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.5; }
     input[type="range"] { width: 100%; accent-color: #8bc34a; }
     input[type="number"], input[type="text"] {
-      width: 100%; padding: 9px 11px; border-radius: 10px; background: rgba(15, 23, 42, 0.8);
+      width: 100%; padding: 9px 11px; border-radius: 10px; background: rgba(24, 26, 31, 0.8);
       border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 13px; font-family: inherit; outline: none;
     }
     .status { margin-top: 16px; font-size: 13px; padding: 12px 14px; border-radius: 12px; display: none; }
@@ -94,15 +98,17 @@
     .note { font-size: 11.5px; color: #64748b; line-height: 1.6; margin-top: 10px; }
   </style>
 </head>
-<body>
-  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/matchaeffect'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-matcha">
+  <a class="lt-back" href="/matchaeffect" title="Voltar para Matcha Effect" aria-label="Voltar para Matcha Effect">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🍵 Efeito Matcha por IA</div>
-  <div class="tagline">Stable Diffusion (img2img) + ControlNet SoftEdge — o mesmo tipo de pipeline usado pelo filtro viral, rodando localmente</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/matchaeffect">Matcha Effect</a> / Adicionar com IA</nav>
+    <h1 class="modo-titulo">Adicionar com IA</h1>
+    <p class="modo-sub">Stable Diffusion (img2img) + ControlNet SoftEdge — o mesmo tipo de pipeline usado pelo filtro viral, rodando localmente</p>
+  </header>
 
   <div class="banner" id="capability-banner"></div>
 
@@ -120,7 +126,7 @@
           <img id="original-img" alt="Original">
         </div>
         <div class="compare-col">
-          <div class="cap">🍵 Com efeito (IA)</div>
+          <div class="cap">Com efeito (IA)</div>
           <img id="result-img" alt="Resultado">
         </div>
       </div>
@@ -130,9 +136,9 @@
       </div>
 
       <div class="toolbar">
-        <button class="action btn-primary" id="generate-btn" onclick="generate()" disabled>🍵 Gerar efeito matcha real (IA)</button>
-        <button class="action btn-secondary" id="download-original-btn" onclick="downloadOriginal()" disabled>⬇️ Baixar original</button>
-        <button class="action btn-secondary" id="download-result-btn" onclick="downloadResult()" disabled>⬇️ Baixar com efeito</button>
+        <button class="action btn-primary" id="generate-btn" onclick="generate()" disabled>Gerar efeito matcha real (IA)</button>
+        <button class="action btn-secondary" id="download-original-btn" onclick="downloadOriginal()" disabled>Baixar original</button>
+        <button class="action btn-secondary" id="download-result-btn" onclick="downloadResult()" disabled>Baixar com efeito</button>
       </div>
 
       <div class="status" id="status"></div>
@@ -144,7 +150,7 @@
 
     <div class="panel-col">
       <div class="card">
-        <div class="section-title">⚙️ Parâmetros (img2img)</div>
+        <div class="section-title">Parâmetros (img2img)</div>
         <div class="field">
           <div class="field-label">Denoising Strength <b id="denoise-val">0.60</b></div>
           <input type="range" id="denoise" min="0.35" max="0.85" step="0.01" value="0.60">
@@ -218,18 +224,18 @@
         const data = await res.json();
         if (!data.available) {
           capabilityBanner.className = 'banner show err';
-          capabilityBanner.textContent = '❌ ' + data.install_message;
+          capabilityBanner.textContent = '' + data.install_message;
           generateBtn.disabled = true;
         } else if (!data.gpu) {
           capabilityBanner.className = 'banner show warn';
-          capabilityBanner.textContent = '⚠️ Nenhuma GPU NVIDIA detectada — a geração roda na CPU e pode levar vários minutos por imagem, especialmente na primeira vez (carregamento do modelo).';
+          capabilityBanner.textContent = 'Nenhuma GPU NVIDIA detectada — a geração roda na CPU e pode levar vários minutos por imagem, especialmente na primeira vez (carregamento do modelo).';
         } else {
           capabilityBanner.className = 'banner show ok';
-          capabilityBanner.textContent = '✅ GPU detectada — geração deve ser rápida (segundos por imagem).';
+          capabilityBanner.textContent = 'GPU detectada — geração deve ser rápida (segundos por imagem).';
         }
       } catch (e) {
         capabilityBanner.className = 'banner show err';
-        capabilityBanner.textContent = '❌ Não foi possível verificar os recursos de IA no servidor local.';
+        capabilityBanner.textContent = 'Não foi possível verificar os recursos de IA no servidor local.';
       }
     }
     checkCapabilities();
@@ -304,9 +310,9 @@
         resultDataUrl = 'data:image/png;base64,' + job.image_b64;
         resultImg.src = resultDataUrl;
         downloadResultBtn.disabled = false;
-        showResult('ok', `✅ Efeito matcha gerado por IA em ${job.elapsed ?? '?'}s! Baixe os dois arquivos abaixo.`);
+        showResult('ok', `Efeito matcha gerado por IA em ${job.elapsed ?? '?'}s! Baixe os dois arquivos abaixo.`);
       } catch (e) {
-        showResult('err', '❌ ' + e.message);
+        showResult('err', '' + e.message);
       } finally {
         clearInterval(pollTimer);
         progressWrap.classList.remove('show');

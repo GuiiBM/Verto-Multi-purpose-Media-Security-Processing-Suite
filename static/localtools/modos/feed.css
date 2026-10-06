@@ -1,0 +1,21 @@
+/* Social Preview · modo feed: cards como telas de celular, anel de story. */
+body.modo-feed { --acc: #f472b6; }
+body.modo-feed .modo-cab .lt-key { padding: 3px; border-radius: 30%; background: conic-gradient(from 210deg, #f58529, #dd2a7b, #8134af, #515bd4, #f58529); }
+body.modo-feed .card, body.modo-feed .preview-card { position: relative; border-radius: 30px !important; padding-top: 34px !important; }
+body.modo-feed .card::before, body.modo-feed .preview-card::before {
+  content: ''; position: absolute; top: 12px; left: 50%; width: 64px; height: 6px; margin-left: -32px;
+  border-radius: 3px; background: rgba(255, 255, 255, 0.14);
+}
+
+body.modo-feed .btn-primary, body.modo-feed button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-feed button[type="submit"], body.modo-feed .action-btn, body.modo-feed .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, #db2777, #be185d) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #6d0e35, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-feed .btn-primary:hover, body.modo-feed button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-feed button[type="submit"]:hover, body.modo-feed .action-btn:hover, body.modo-feed .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-feed .btn-primary:active, body.modo-feed button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-feed button[type="submit"]:active, body.modo-feed .action-btn:active, body.modo-feed .process-btn:active { transform: translateY(2px); }

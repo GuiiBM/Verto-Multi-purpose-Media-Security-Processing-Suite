@@ -4,14 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Filtros & Marca d'Água</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/mesa-de-luz.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(219, 39, 119, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -19,16 +23,16 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
     }
-    .back-button:hover { border-color: rgba(168, 85, 247, 0.4); color: #a855f7; transform: translateX(-6px); }
+    .back-button:hover { border-color: rgba(219, 39, 119, 0.4); color: #db2777; transform: translateX(-6px); }
     .back-button.locked { pointer-events: none; opacity: 0.4; }
     .logo {
       font-size: 42px; font-weight: 900;
-      background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #3b82f6 100%);
+      background: linear-gradient(135deg, #db2777 0%, #ec4899 50%, #f472b6 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-align: center; margin-bottom: 10px;
     }
@@ -36,58 +40,58 @@
     .mode-toggle { display: flex; gap: 8px; justify-content: center; margin-bottom: 28px; }
     .mode-btn {
       padding: 10px 22px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.2s;
+      background: rgba(24, 26, 31, 0.6); color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.2s;
     }
-    .mode-btn.active { border-color: #a855f7; background: rgba(168, 85, 247, 0.15); color: #d8b4fe; box-shadow: 0 0 16px rgba(168, 85, 247, 0.2); }
+    .mode-btn.active { border-color: #db2777; background: rgba(219, 39, 119, 0.15); color: #f9a8d4; box-shadow: 0 0 16px rgba(219, 39, 119, 0.2); }
     .layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; max-width: 1350px; margin: 0 auto; align-items: start; }
     @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 26px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 24px; padding: 26px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
     }
     h2 { font-size: 15px; color: #f8fafc; margin-bottom: 16px; }
-    h3.section { font-size: 12px; color: #a855f7; margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 0.6px; }
+    h3.section { font-size: 12px; color: #db2777; margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 0.6px; }
     label.small { display: block; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; margin-top: 14px; }
     label.small:first-child { margin-top: 0; }
     .range-row { display: flex; align-items: center; gap: 10px; }
-    input[type="range"] { flex: 1; accent-color: #a855f7; }
+    input[type="range"] { flex: 1; accent-color: #db2777; }
     .range-val { font-size: 12px; color: #cbd5e1; min-width: 40px; text-align: right; }
     input[type="text"], input[type="number"], input[type="color"], select {
       width: 100%; padding: 9px 12px; border-radius: 10px;
-      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
-      color: #e2e8f0; font-family: 'Inter', sans-serif; font-size: 13px;
+      background: rgba(24, 26, 31, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #e2e8f0; font-family: var(--lt-sans); font-size: 13px;
     }
     input[type="color"] { padding: 4px; height: 38px; }
     .tabs-mini { display: flex; gap: 8px; }
     .tab-mini {
       flex: 1; text-align: center; padding: 8px; border-radius: 10px; cursor: pointer;
-      border: 1px solid rgba(148, 163, 184, 0.2); background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.2); background: rgba(24, 26, 31, 0.6);
       color: #94a3b8; font-size: 12px; font-weight: 700;
     }
-    .tab-mini.active { border-color: #a855f7; background: rgba(168, 85, 247, 0.15); color: #d8b4fe; }
+    .tab-mini.active { border-color: #db2777; background: rgba(219, 39, 119, 0.15); color: #f9a8d4; }
     .pos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
     .pos-btn {
       aspect-ratio: 1; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.6); cursor: pointer; display: flex; align-items: center; justify-content: center;
+      background: rgba(24, 26, 31, 0.6); cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
     .pos-btn .dot { width: 6px; height: 6px; border-radius: 50%; background: #64748b; }
-    .pos-btn.active { border-color: #a855f7; background: rgba(168, 85, 247, 0.15); }
-    .pos-btn.active .dot { background: #d8b4fe; }
+    .pos-btn.active { border-color: #db2777; background: rgba(219, 39, 119, 0.15); }
+    .pos-btn.active .dot { background: #f9a8d4; }
     .upload-area {
       margin-top: 16px; padding: 22px; border-radius: 14px;
-      border: 2px dashed rgba(168, 85, 247, 0.3); background: rgba(15, 23, 42, 0.6);
+      border: 2px dashed rgba(219, 39, 119, 0.3); background: rgba(24, 26, 31, 0.6);
       text-align: center; cursor: pointer; transition: all 0.3s;
     }
-    .upload-area:hover, .upload-area.dragover { border-color: #a855f7; background: rgba(168, 85, 247, 0.08); }
+    .upload-area:hover, .upload-area.dragover { border-color: #db2777; background: rgba(219, 39, 119, 0.08); }
     .upload-icon { font-size: 32px; margin-bottom: 8px; }
     .upload-text { color: #cbd5e1; font-size: 12.5px; }
     input[type="file"] { display: none; }
     button.action {
       width: 100%; padding: 13px; border-radius: 10px; border: none; cursor: pointer;
-      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #a855f7, #ec4899);
+      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #db2777, #ec4899);
       color: white; transition: all 0.25s; margin-top: 20px;
     }
-    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35); }
+    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(219, 39, 119, 0.35); }
     button.action:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-secondary {
       width: 100%; margin-top: 10px; padding: 11px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700;
@@ -107,7 +111,7 @@
     .grid.individual-mode { grid-template-columns: 1fr; max-height: none; }
     .grid.individual-mode .thumb {
       aspect-ratio: auto; height: 620px;
-      background: repeating-conic-gradient(#111827 0% 25%, #0a0f1e 0% 50%) 50% / 24px 24px;
+      background: repeating-conic-gradient(#111827 0% 25%, #0b0c0f 0% 50%) 50% / 24px 24px;
     }
     .grid.individual-mode .thumb canvas { object-fit: contain; }
     .thumb .remove {
@@ -122,18 +126,20 @@
     .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
   </style>
 </head>
-<body>
-  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/imagestudio'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-mesa-de-luz">
+  <a class="lt-back" href="/imagestudio" title="Voltar para Image Studio" aria-label="Voltar para Image Studio">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🎨 Filtros & Marca d'Água</div>
-  <div class="tagline">Ajustes de imagem e marca d'água — preview em tempo real</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/imagestudio">Image Studio</a> / Filtros & Marca d’água</nav>
+    <h1 class="modo-titulo">Filtros & Marca d’água</h1>
+    <p class="modo-sub">Ajustes de imagem e marca d'água — preview em tempo real</p>
+  </header>
   <div class="mode-toggle">
-    <div class="mode-btn active" data-mode="batch" onclick="setMode('batch')">🗂️ Em lote (até 100 → ZIP)</div>
-    <div class="mode-btn" data-mode="individual" onclick="setMode('individual')">🖼️ Individual (1 imagem → download direto)</div>
+    <div class="mode-btn active" data-mode="batch" onclick="setMode('batch')">Em lote (até 100 → ZIP)</div>
+    <div class="mode-btn" data-mode="individual" onclick="setMode('individual')">Individual (1 imagem → download direto)</div>
   </div>
 
   <div class="layout">
@@ -165,7 +171,7 @@
       <div id="wm-logo-opts" style="display:none;">
         <label class="small">Imagem do logo</label>
         <input type="file" id="wm-logo-input" accept="image/*" onchange="handleLogoUpload(event)">
-        <div class="btn-secondary" style="text-align:center;" onclick="document.getElementById('wm-logo-input').click()">📎 Escolher logo</div>
+        <div class="btn-secondary" style="text-align:center;" onclick="document.getElementById('wm-logo-input').click()">Escolher logo</div>
       </div>
 
       <div id="wm-common-opts" style="display:none;">
@@ -186,13 +192,13 @@
       </select>
 
       <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
-        <div class="upload-icon">📁</div>
+        <div class="upload-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34ZM48,46H208a2,2,0,0,1,2,2V154H179.31a13.9,13.9,0,0,0-9.89,4.1L150.1,177.41a2,2,0,0,1-1.41.59H107.31a2,2,0,0,1-1.41-.59L86.59,158.1a13.94,13.94,0,0,0-9.9-4.1H46V48A2,2,0,0,1,48,46ZM208,210H48a2,2,0,0,1-2-2V166H76.69a2,2,0,0,1,1.41.59L97.41,185.9a13.94,13.94,0,0,0,9.9,4.1h41.38a13.9,13.9,0,0,0,9.89-4.1l19.32-19.31a2,2,0,0,1,1.41-.59H210v42A2,2,0,0,1,208,210ZM91.76,108.24a6,6,0,0,1,0-8.48l32-32a6,6,0,0,1,8.48,0l32,32a6,6,0,1,1-8.48,8.48L134,86.49V152a6,6,0,0,1-12,0V86.49l-21.76,21.75A6,6,0,0,1,91.76,108.24Z"/></svg></div>
         <div class="upload-text" id="upload-text">Clique ou arraste até 100 imagens</div>
       </div>
       <input type="file" id="file-input" accept="image/*" multiple>
 
-      <button class="action" id="process-btn" onclick="processAll()" disabled>🎨 Aplicar e baixar ZIP</button>
-      <button class="btn-secondary" onclick="clearImages()">🗑️ Limpar tudo</button>
+      <button class="action" id="process-btn" onclick="processAll()" disabled>Aplicar e baixar ZIP</button>
+      <button class="btn-secondary" onclick="clearImages()">Limpar tudo</button>
 
       <div class="status" id="status"></div>
     </div>
@@ -314,7 +320,7 @@
     function renderGrid() {
       countBadge.textContent = mode === 'individual' ? `${images.length} / 1` : `${images.length} / 100`;
       processBtn.disabled = images.length === 0;
-      processBtn.textContent = mode === 'individual' ? '🎨 Baixar imagem' : '🎨 Aplicar e baixar ZIP';
+      processBtn.textContent = mode === 'individual' ? 'Baixar imagem' : 'Aplicar e baixar ZIP';
       if (!images.length) {
         grid.innerHTML = '';
         grid.appendChild(emptyState);
@@ -451,7 +457,7 @@
 
     function showResult(ok, message) {
       statusBox.className = 'status show ' + (ok ? 'ok' : 'err');
-      statusBox.textContent = (ok ? '✅ ' : '❌ ') + message;
+      statusBox.textContent = (ok ? '' : '') + message;
     }
 
     async function processAll() {
@@ -488,7 +494,7 @@
         showResult(false, 'Erro ao processar: ' + e.message);
       } finally {
         setLocked(false);
-        processBtn.textContent = '🎨 Aplicar e baixar ZIP';
+        processBtn.textContent = 'Aplicar e baixar ZIP';
       }
     }
 
@@ -515,7 +521,7 @@
         showResult(false, 'Erro ao processar: ' + e.message);
       } finally {
         setLocked(false);
-        processBtn.textContent = '🎨 Baixar imagem';
+        processBtn.textContent = 'Baixar imagem';
       }
     }
   </script>

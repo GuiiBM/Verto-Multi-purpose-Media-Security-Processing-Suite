@@ -1,0 +1,73 @@
+/* Encurtador · modo bilhete: cada link é um ingresso com picote. */
+body.modo-bilhete { --acc: #fb923c; }
+body.modo-bilhete .modo-cab::after {
+  content: 'ADMIT ONE · gbm.pages.dev';
+  margin-top: 6px; padding: 6px 16px;
+  font: 600 11px var(--lt-mono); letter-spacing: 0.22em; color: #1b120a;
+  background: linear-gradient(180deg, #fdba74, #fb923c);
+  border-radius: 4px;
+  -webkit-mask: radial-gradient(circle 6px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
+                radial-gradient(circle 6px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 6px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
+        radial-gradient(circle 6px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+}
+/* superfícies neutras (sem o azul-marinho antigo) */
+body.modo-bilhete { --surface: #141517; --surface-2: #1b1a18; --surface-3: #24221f; --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14); }
+body.modo-bilhete .card { border-radius: 14px !important; }
+body.modo-bilhete .list-head { padding-bottom: 14px; border-bottom: 2px dashed rgba(251, 146, 60, 0.22); }
+
+/* cada link é um ingresso: o canhoto (cliques e ações) fica do outro lado
+   do picote, com os dois recortes redondos nas bordas */
+body.modo-bilhete .link {
+  --furo: #151518;
+  align-items: stretch;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #1e1c19, #181715);
+  border: 1px solid rgba(251, 146, 60, 0.16);
+}
+body.modo-bilhete .link > .fav, body.modo-bilhete .link > .l-main { align-self: center; }
+body.modo-bilhete .l-side {
+  position: relative;
+  justify-content: center;
+  padding-left: 18px;
+  border-left: 2px dashed rgba(251, 146, 60, 0.3);
+}
+body.modo-bilhete .l-side::before, body.modo-bilhete .l-side::after {
+  content: '';
+  position: absolute;
+  left: -9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--furo);
+  border: 1px solid rgba(251, 146, 60, 0.16);
+  pointer-events: none;
+}
+body.modo-bilhete .l-side::before { top: -23px; clip-path: inset(50% 0 0 0); }
+body.modo-bilhete .l-side::after { bottom: -23px; clip-path: inset(0 0 50% 0); }
+body.modo-bilhete .count { font-family: var(--lt-mono); font-weight: 700; letter-spacing: -0.02em; color: #fdba74; }
+body.modo-bilhete .count small { font-family: var(--lt-sans); letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; }
+body.modo-bilhete .l-short { color: #fdba74; }
+body.modo-bilhete .fav { border-radius: 6px; }
+
+@media (max-width: 640px) {
+  body.modo-bilhete .l-side { padding: 14px 0 0; border-left: 0; border-top: 2px dashed rgba(251, 146, 60, 0.3); }
+  body.modo-bilhete .l-side::before { top: -9px; left: -23px; clip-path: inset(0 0 0 50%); }
+  body.modo-bilhete .l-side::after { top: -9px; bottom: auto; left: auto; right: -23px; clip-path: inset(0 50% 0 0); }
+}
+body.modo-bilhete .chip, body.modo-bilhete .tag { border-radius: 4px !important; font-family: var(--lt-mono); }
+
+body.modo-bilhete .btn-primary, body.modo-bilhete button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-bilhete button[type="submit"], body.modo-bilhete .action-btn, body.modo-bilhete .process-btn, body.modo-bilhete .btn:not(.small):not(.ghost) {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, #c2410c, #9a3412) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #5c1f0a, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-bilhete .btn-primary:hover, body.modo-bilhete button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-bilhete button[type="submit"]:hover, body.modo-bilhete .action-btn:hover, body.modo-bilhete .process-btn:hover, body.modo-bilhete .btn:not(.small):not(.ghost):hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-bilhete .btn-primary:active, body.modo-bilhete button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-bilhete button[type="submit"]:active, body.modo-bilhete .action-btn:active, body.modo-bilhete .process-btn:active, body.modo-bilhete .btn:not(.small):not(.ghost):active { transform: translateY(2px); }
+body.modo-bilhete .chip-senha { display: inline-flex; align-items: center; gap: 5px; }
+body.modo-bilhete .chip-senha .traco { width: 12px; height: 12px; }

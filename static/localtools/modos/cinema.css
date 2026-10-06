@@ -1,0 +1,150 @@
+/* PurpleFlix · modo cinema: uma sala de cinema em 3D (static/localtools/purpleflix/sala.js).
+   No computador a sala ocupa a janela inteira, sem rolagem; os controles
+   flutuam num painel de vidro embaixo. No celular a sala fica em cima e os
+   controles logo abaixo. */
+@font-face { font-family: 'Instrument Serif'; font-weight: 400; font-style: normal; font-display: swap; src: url('../fonts/InstrumentSerif-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Instrument Serif'; font-weight: 400; font-style: italic; font-display: swap; src: url('../fonts/InstrumentSerif-Italic.woff2') format('woff2'); }
+
+body.modo-cinema {
+  --acc: #c084fc;
+  --serif: 'Instrument Serif', Georgia, serif;
+  margin: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #050407;
+}
+html:has(> body.modo-cinema) { height: 100%; overflow: hidden; }
+body.modo-cinema.lt-body { padding: 0; }
+body.modo-cinema::after { display: none; } /* o grão da base não passa por cima do 3D */
+body.modo-cinema *, body.modo-cinema *::before, body.modo-cinema *::after { box-sizing: border-box; }
+body.modo-cinema :is(h1, h2, p) { margin: 0; }
+
+/* ---------- a sala ---------- */
+body.lt-body.modo-cinema > .sala { position: fixed; inset: 0; overflow: hidden; background: #050407; }
+body.modo-cinema .css3d { position: absolute !important; inset: 0; z-index: 0; }
+body.modo-cinema .gl { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; pointer-events: none; }
+body.modo-cinema .tela-site { background: #000; }
+body.modo-cinema .tela-site iframe { display: block; width: 100%; height: 100%; border: 0; background: #000; }
+
+/* sem WebGL (ou sem JS): a tela em 2D, numa moldura de cinema */
+body.modo-cinema.sem-3d .sala { display: grid; place-items: center; padding: 72px 4vw 120px; background: radial-gradient(900px 500px at 50% 100%, rgba(147, 51, 234, 0.25), transparent 70%), #050407; }
+body.modo-cinema.sem-3d .tela-site, body.modo-cinema .sem-js { width: min(100%, 1400px); aspect-ratio: 16 / 9; height: auto; max-height: 100%; border: 0; border-radius: 6px; box-shadow: 0 0 0 10px #000, 0 40px 120px -30px rgba(147, 51, 234, 0.6); }
+
+/* véu de abertura: escurece e some enquanto a câmera entra na sala */
+body.modo-cinema .veu {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: #050407;
+  transition: opacity 1400ms cubic-bezier(0.22, 1, 0.36, 1) 200ms, visibility 0s linear 1600ms;
+  pointer-events: none;
+}
+body.modo-cinema .veu.fora { opacity: 0; visibility: hidden; }
+body.modo-cinema .veu-k { font: 600 11px var(--lt-mono); letter-spacing: 0.4em; text-transform: uppercase; color: rgba(216, 180, 254, 0.7); }
+body.modo-cinema .veu-t { font: 400 clamp(56px, 8vw, 104px)/1 var(--serif); color: #f5efff; letter-spacing: -0.01em; }
+
+/* ---------- marca e voltar por cima da sala ---------- */
+body.lt-body.modo-cinema > .topo { position: fixed; top: 22px; left: 0; right: 0; z-index: 20; display: flex; justify-content: center; pointer-events: none; }
+body.lt-body.modo-cinema > .topo a { pointer-events: auto; }
+body.modo-cinema .lt-back { z-index: 21; }
+
+/* ---------- painel de controle (vidro escuro) ---------- */
+body.lt-body.modo-cinema > .hud {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  z-index: 20;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 10px 10px 10px 12px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(28, 22, 38, 0.72), rgba(14, 11, 20, 0.78));
+  border: 1px solid rgba(216, 180, 254, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 24px 60px -20px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1), transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+body.modo-cinema .hud-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
+body.modo-cinema .hud-info .lt-key { width: 40px; height: 40px; flex-shrink: 0; }
+body.modo-cinema .hud-info .lt-key img { width: 40px; height: 40px; }
+body.modo-cinema .hud-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+body.modo-cinema .hud-k { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--lt-muted); white-space: nowrap; }
+body.modo-cinema .hud-t { font: 400 24px/1 var(--serif); color: #f5efff; letter-spacing: 0.005em; }
+body.modo-cinema .luz { width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%; background: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.6); }
+body.modo-cinema .luz.on { background: #c084fc; box-shadow: 0 0 10px rgba(192, 132, 252, 0.9); }
+body.modo-cinema .hud-acoes { display: flex; align-items: center; gap: 6px; }
+
+body.modo-cinema .cbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lt-ink);
+  font: 600 13.5px var(--lt-sans);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 160ms cubic-bezier(0.22, 1, 0.36, 1), border-color 160ms cubic-bezier(0.22, 1, 0.36, 1), transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+body.modo-cinema .cbtn svg { width: 18px; height: 18px; flex-shrink: 0; }
+body.modo-cinema .cbtn.ic { width: 44px; padding: 0; }
+body.modo-cinema .cbtn:hover { background: rgba(192, 132, 252, 0.1); border-color: rgba(192, 132, 252, 0.35); }
+body.modo-cinema .cbtn:active { transform: scale(0.97); }
+body.modo-cinema .cbtn:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+body.modo-cinema .cbtn[aria-pressed="true"] { background: rgba(192, 132, 252, 0.14); border-color: rgba(192, 132, 252, 0.4); }
+body.modo-cinema .cbtn.forte {
+  padding: 0 20px 0 16px;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, #a855f7, #7e22ce);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 3px 0 #3b0f63, 0 14px 30px -12px rgba(168, 85, 247, 0.7);
+}
+body.modo-cinema .cbtn.forte:hover { background: linear-gradient(180deg, #b26ef8, #8a2fd9); }
+body.modo-cinema .cbtn.forte:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 1px 0 #3b0f63; }
+
+body.lt-body.modo-cinema > .dica {
+  position: fixed; left: 0; right: 0; bottom: 92px; z-index: 19;
+  text-align: center; font-size: 12px; letter-spacing: 0.02em; color: rgba(226, 232, 240, 0.62);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 14px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+  transition: opacity 400ms;
+}
+
+/* assistindo: a interface recua e deixa o filme */
+body.modo-cinema.assistindo .topo, body.modo-cinema.assistindo .dica { opacity: 0; }
+body.lt-body.modo-cinema.assistindo > .hud { opacity: 0.22; transform: translateX(-50%) translateY(6px); }
+body.lt-body.modo-cinema.assistindo > .hud:hover, body.lt-body.modo-cinema.assistindo > .hud:has(:focus-visible) { opacity: 1; transform: translateX(-50%); }
+body.modo-cinema.assistindo .hud-info { display: none; }
+
+/* ---------- celular: a sala em cima, os controles embaixo, com rolagem ---------- */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1024px) {
+  html:has(> body.modo-cinema) { height: auto; overflow: auto; }
+  body.modo-cinema { height: auto; min-height: 100dvh; overflow: auto; }
+  body.lt-body.modo-cinema > .sala { position: relative; height: 66vh; height: 66svh; min-height: 380px; }
+  body.lt-body.modo-cinema > .topo { position: absolute; top: 26px; }
+  body.lt-body.modo-cinema > .hud {
+    position: relative; left: auto; bottom: auto; transform: none;
+    flex-direction: column; align-items: stretch; gap: 14px;
+    width: auto; max-width: none; margin: 14px 14px 0; padding: 16px;
+  }
+  body.modo-cinema .hud-acoes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+  body.modo-cinema .hud-acoes > .cbtn { grid-column: span 2; width: auto; min-width: 0; }
+  body.modo-cinema .hud-acoes > .cbtn.forte, body.modo-cinema .hud-acoes > #luzes { grid-column: span 3; padding: 0 12px; }
+  body.lt-body.modo-cinema > .dica { position: static; margin: 16px 20px 28px; }
+  body.lt-body.modo-cinema > .dica { visibility: hidden; height: 0; margin: 0 0 24px; }
+  body.modo-cinema.sem-3d .sala { padding: 80px 14px 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.modo-cinema .veu { transition: none; }
+}

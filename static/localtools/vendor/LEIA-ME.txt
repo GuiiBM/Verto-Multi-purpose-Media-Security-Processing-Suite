@@ -1,0 +1,5 @@
+Bibliotecas copiadas para o app funcionar sem CDN.
+- three 0.170.0 (MIT): build/three.module.min.js e examples/jsm (CSS3DRenderer, RoundedBoxGeometry, RectAreaLightUniformsLib/TexturesLib, BufferGeometryUtils)
+- gsap 3.12.5 (licença padrão GreenSock, uso gratuito): dist/gsap.min.js
+- three addons extras (MIT): objects/Reflector, postprocessing (EffectComposer, RenderPass, UnrealBloomPass, OutputPass, ShaderPass, MaskPass, Pass), shaders (Copy, LuminosityHighPass, Output)
+- three addons (MIT): environments/RoomEnvironment

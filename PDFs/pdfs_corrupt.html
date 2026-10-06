@@ -4,14 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Corromper PDF</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/pdfs-papel.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: 
-        radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%),
+        radial-gradient(at 0% 0%, rgba(217, 83, 79, 0.08) 0px, transparent 50%),
         radial-gradient(at 100% 0%, rgba(220, 38, 38, 0.06) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -24,7 +28,7 @@
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -37,14 +41,14 @@
       color: #cbd5e1;
     }
     .back-button:hover {
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #ef4444;
+      border-color: rgba(217, 83, 79, 0.4);
+      color: #d9534f;
       transform: translateX(-6px);
     }
     .logo {
       font-size: 48px;
       font-weight: 900;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      background: linear-gradient(135deg, #d9534f 0%, #c2413d 50%, #a8332f 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       text-align: center;
@@ -57,7 +61,7 @@
       text-align: center;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       border: 1px solid rgba(148, 163, 184, 0.08);
@@ -76,8 +80,8 @@
       margin-bottom: 32px;
     }
     .warning-box {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1.5px solid rgba(239, 68, 68, 0.3);
+      background: rgba(217, 83, 79, 0.1);
+      border: 1.5px solid rgba(217, 83, 79, 0.3);
       border-radius: 12px;
       padding: 16px;
       margin-bottom: 24px;
@@ -108,16 +112,16 @@
       width: 100%;
       padding: 32px;
       border-radius: 12px;
-      border: 2px dashed rgba(239, 68, 68, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      border: 2px dashed rgba(217, 83, 79, 0.3);
+      background: rgba(24, 26, 31, 0.6);
       text-align: center;
       cursor: pointer;
       transition: all 0.3s;
       margin-bottom: 24px;
     }
     .file-upload:hover {
-      border-color: #ef4444;
-      background: rgba(239, 68, 68, 0.1);
+      border-color: #d9534f;
+      background: rgba(217, 83, 79, 0.1);
     }
     .upload-icon {
       font-size: 48px;
@@ -142,19 +146,19 @@
       padding: 16px;
       border-radius: 12px;
       border: 1.5px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       cursor: pointer;
       transition: all 0.3s;
       text-align: center;
     }
     .level-card:hover {
-      border-color: rgba(239, 68, 68, 0.4);
-      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(217, 83, 79, 0.4);
+      background: rgba(24, 26, 31, 0.8);
     }
     .level-card.active {
-      border-color: #ef4444;
-      background: rgba(239, 68, 68, 0.15);
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+      border-color: #d9534f;
+      background: rgba(217, 83, 79, 0.15);
+      box-shadow: 0 0 20px rgba(217, 83, 79, 0.2);
     }
     .level-icon {
       font-size: 32px;
@@ -167,7 +171,7 @@
       margin-bottom: 4px;
     }
     .level-card.active .level-title {
-      color: #ef4444;
+      color: #d9534f;
     }
     .level-desc {
       font-size: 11px;
@@ -182,14 +186,14 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
+      background: linear-gradient(135deg, #d9534f, #c2413d);
       color: white;
       transition: all 0.3s;
     }
     button:hover {
-      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      background: linear-gradient(135deg, #c2413d, #a8332f);
       transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+      box-shadow: 0 8px 16px rgba(217, 83, 79, 0.3);
     }
     .status {
       margin-top: 16px;
@@ -198,7 +202,7 @@
       text-align: center;
       padding: 12px;
       border-radius: 8px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
     }
     .status.ok {
       color: #4ade80;
@@ -212,15 +216,18 @@
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/pdfs'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body pdf-papel">
+  <a class="lt-back" href="/pdfs" title="Voltar aos PDFs" aria-label="Voltar aos PDFs">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">💥 Corromper PDF</div>
-  <div class="tagline">Corrompa PDFs de forma controlada para testes</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="pdf-cab">
+    <span class="pdf-selo"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M122,136V80a6,6,0,0,1,12,0v56a6,6,0,0,1-12,0ZM230,91.55v72.9a13.92,13.92,0,0,1-4.1,9.9L174.35,225.9a13.92,13.92,0,0,1-9.9,4.1H91.55a13.92,13.92,0,0,1-9.9-4.1L30.1,174.35a13.92,13.92,0,0,1-4.1-9.9V91.55a13.92,13.92,0,0,1,4.1-9.9L81.65,30.1a13.92,13.92,0,0,1,9.9-4.1h72.9a13.92,13.92,0,0,1,9.9,4.1L225.9,81.65A13.92,13.92,0,0,1,230,91.55Zm-12,0a2,2,0,0,0-.59-1.42L165.87,38.59a2,2,0,0,0-1.42-.59H91.55a2,2,0,0,0-1.41.59L38.58,90.13A2,2,0,0,0,38,91.55v72.9a2,2,0,0,0,.59,1.42l51.54,51.54a2,2,0,0,0,1.42.59h72.9a2,2,0,0,0,1.41-.59l51.56-51.54a2,2,0,0,0,.58-1.42ZM128,162a10,10,0,1,0,10,10A10,10,0,0,0,128,162Z"/></svg></span>
+    <nav class="pdf-trilha" aria-label="Você está em"><a href="/pdfs">PDFs</a> / Corromper</nav>
+    <h1 class="pdf-titulo">Corromper</h1>
+    <p class="pdf-sub">Corrompa PDFs de forma controlada para testes</p>
+  </header>
   
   <div class="card">
     <h1>Configurações</h1>
@@ -237,7 +244,7 @@
     <form method="POST" enctype="multipart/form-data">
       <label for="file">Arquivo PDF</label>
       <label for="file" class="file-upload">
-        <div class="upload-icon">📄</div>
+        <div class="upload-icon"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H190v20h18a6,6,0,0,1,0,12H190v18a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h32A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm84,8a34,34,0,0,1-34,34H112a6,6,0,0,1-6-6V152a6,6,0,0,1,6-6h16A34,34,0,0,1,162,180Zm-12,0a22,22,0,0,0-22-22H118v44h10A22,22,0,0,0,150,180ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>
         <div class="upload-text" id="file-name">Selecione um PDF</div>
         <div class="upload-hint">Clique ou arraste um arquivo</div>
       </label>
@@ -271,7 +278,7 @@
       </div>
       <input type="hidden" name="level" id="level" value="light">
       
-      <button type="submit">💥 Corromper PDF</button>
+      <button type="submit">Corromper PDF</button>
     </form>
 
     {% if status %}

@@ -1,0 +1,95 @@
+/* LocalTools · base do design system (projeto Verto)
+ *
+ * Tudo aqui é local (fontes e ícones em static/localtools/), então funciona
+ * offline. Os apps usam os tokens --lt-*: trocar um valor aqui muda a suíte.
+ * Direção: grafite neutro + a luz verde/azul do Verto, parada (sem animação
+ * em loop), linhas finas e uma cor de destaque por categoria.
+ */
+
+@font-face {
+  font-family: 'Geist'; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url('fonts/Geist-Variable.woff2') format('woff2-variations'), url('fonts/Geist-Variable.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Geist'; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url('fonts/Geist-Variable-ext.woff2') format('woff2-variations'), url('fonts/Geist-Variable-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Geist Mono'; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url('fonts/GeistMono-Variable.woff2') format('woff2-variations'), url('fonts/GeistMono-Variable.woff2') format('woff2');
+}
+
+:root {
+  color-scheme: dark;
+  /* superfícies: grafite levemente frio, nunca preto puro */
+  --lt-bg: #0b0c0f;
+  --lt-surface: rgba(255, 255, 255, 0.035);
+  --lt-surface-2: rgba(255, 255, 255, 0.065);
+  --lt-line: rgba(255, 255, 255, 0.075);
+  --lt-line-2: rgba(255, 255, 255, 0.15);
+  /* texto */
+  --lt-ink: #eef0f3;
+  --lt-muted: #9aa1ac;
+  --lt-faint: #7d8490;
+  /* identidade Verto: verde e azul, usados como luz e como destaque */
+  --lt-green: #4ade80;
+  --lt-blue: #60a5fa;
+  --lt-accent: var(--lt-green);
+  --lt-ring: rgba(74, 222, 128, 0.22);
+  --lt-danger: #f87171;
+  /* uma cor por categoria de app */
+  --lt-cat-downloads: #4ade80;
+  --lt-cat-imagem: #f472b6;
+  --lt-cat-audio: #fbbf24;
+  --lt-cat-documentos: #fb7185;
+  --lt-cat-conversao: #38bdf8;
+  --lt-cat-privacidade: #a78bfa;
+  --lt-cat-texto: #2dd4bf;
+  --lt-cat-dev: #fb923c;
+  --lt-cat-ajuda: #e2e8f0;
+  /* tipografia */
+  --lt-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --lt-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  /* forma */
+  --lt-r-sm: 10px;
+  --lt-r-md: 16px;
+  --lt-r-lg: 24px;
+  --lt-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 18px 40px -20px rgba(0, 0, 0, 0.8);
+  /* movimento: respostas rápidas, ease-out forte, nada de loop */
+  --lt-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --lt-dur-fast: 140ms;
+  --lt-dur: 220ms;
+}
+
+/* Fundo da suíte: luz verde e azul paradas nos cantos + grão fino. */
+.lt-body {
+  background-color: var(--lt-bg);
+  background-image:
+    radial-gradient(900px 520px at 6% -8%, rgba(74, 222, 128, 0.11), transparent 62%),
+    radial-gradient(900px 560px at 96% -4%, rgba(96, 165, 250, 0.10), transparent 62%),
+    radial-gradient(1100px 600px at 50% 112%, rgba(45, 212, 191, 0.05), transparent 65%);
+  background-attachment: fixed;
+  color: var(--lt-ink);
+  font-family: var(--lt-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.lt-body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.lt-icon { width: 1em; height: 1em; fill: currentColor; flex-shrink: 0; }
+
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 1ms !important; animation: none !important; scroll-behavior: auto !important; }
+}

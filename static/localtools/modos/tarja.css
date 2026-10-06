@@ -1,0 +1,27 @@
+/* Censor · modo tarja: barras de censura de documento confidencial. */
+body.modo-tarja { --acc: #a78bfa; }
+body.modo-tarja .modo-cab::after {
+  content: ''; width: 260px; height: 14px; margin-top: 4px;
+  background: linear-gradient(90deg, #000 0 34%, transparent 34% 38%, #000 38% 70%, transparent 70% 74%, #000 74%);
+  border-radius: 2px; opacity: 0.85;
+}
+body.modo-tarja .card { position: relative; border-radius: 8px !important; }
+body.modo-tarja .card::after {
+  content: 'CONFIDENCIAL'; position: absolute; top: 16px; right: 18px; transform: rotate(6deg);
+  font: 700 10px var(--lt-mono); letter-spacing: 0.24em; color: rgba(167, 139, 250, 0.55);
+  border: 1.5px solid rgba(167, 139, 250, 0.45); padding: 3px 7px; border-radius: 3px; pointer-events: none;
+}
+body.modo-tarja .drop-zone, body.modo-tarja .upload-area { border-style: dashed !important; border-color: rgba(167, 139, 250, 0.4) !important; }
+
+body.modo-tarja .btn-primary, body.modo-tarja button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-tarja button[type="submit"], body.modo-tarja .action-btn, body.modo-tarja .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 6px !important;
+  background: linear-gradient(180deg, #6d4bd8, #5232b5) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #2c1a6b, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-tarja .btn-primary:hover, body.modo-tarja button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-tarja button[type="submit"]:hover, body.modo-tarja .action-btn:hover, body.modo-tarja .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-tarja .btn-primary:active, body.modo-tarja button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-tarja button[type="submit"]:active, body.modo-tarja .action-btn:active, body.modo-tarja .process-btn:active { transform: translateY(2px); }

@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Converter Office</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/pastas.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -18,7 +22,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -33,7 +37,7 @@
     }
     .tagline { color: #64748b; font-size: 15px; margin-bottom: 40px; text-align: center; }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 40px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 28px; padding: 40px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
       max-width: 800px; margin: 0 auto;
       transition: border-color 0.3s;
@@ -48,10 +52,10 @@
     fieldset:disabled select { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
     .file-upload-area {
       width: 100%; padding: 40px; border-radius: 12px;
-      border: 2px dashed rgba(59, 130, 246, 0.3); background: rgba(15, 23, 42, 0.6);
+      border: 2px dashed rgba(59, 130, 246, 0.3); background: rgba(24, 26, 31, 0.6);
       text-align: center; cursor: pointer; transition: all 0.3s;
     }
-    .file-upload-area:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(15, 23, 42, 0.8); }
+    .file-upload-area:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(24, 26, 31, 0.8); }
     .file-upload-area.dragover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
     .upload-icon { font-size: 48px; margin-bottom: 16px; }
     .upload-text { color: #cbd5e1; font-size: 14px; margin-bottom: 8px; }
@@ -72,7 +76,7 @@
     .format-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
     .format-btn {
       padding: 14px 8px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer;
+      background: rgba(24, 26, 31, 0.6); color: #94a3b8; cursor: pointer;
       text-align: center; font-size: 12px; transition: all 0.3s; font-weight: 600;
     }
     .format-btn:hover { border-color: rgba(59, 130, 246, 0.3); transform: translateY(-2px); }
@@ -83,8 +87,8 @@
     .format-icon { font-size: 24px; margin-bottom: 6px; }
     .dpi-row { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
     .dpi-row select {
-      background: rgba(15, 23, 42, 0.8); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 8px; padding: 8px 12px; font-size: 13px; font-family: 'Inter', sans-serif;
+      background: rgba(24, 26, 31, 0.8); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px; padding: 8px 12px; font-size: 13px; font-family: var(--lt-sans);
     }
     button[type="submit"] {
       margin-top: 24px; width: 100%; padding: 14px; border: none; border-radius: 999px;
@@ -110,7 +114,7 @@
     .progress-percent { font-size: 22px; font-weight: 800; color: #60a5fa; font-variant-numeric: tabular-nums; }
     .progress-track {
       width: 100%; height: 16px; border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15);
+      background: rgba(24, 26, 31, 0.9); border: 1px solid rgba(148, 163, 184, 0.15);
       overflow: hidden; position: relative;
       box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
     }
@@ -139,15 +143,17 @@
     .status.err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
   </style>
 </head>
-<body>
-  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/office'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-pastas">
+  <a class="lt-back" href="/office" title="Voltar para Office" aria-label="Voltar para Office">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🔄 CONVERTER OFFICE</div>
-  <div class="tagline">Word, Excel, PowerPoint, ODF, PDF e imagens - via LibreOffice</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/office">Office</a> / Converter</nav>
+    <h1 class="modo-titulo">Converter</h1>
+    <p class="modo-sub">Word, Excel, PowerPoint, ODF, PDF e imagens - via LibreOffice</p>
+  </header>
 
   <div class="card" id="card">
     <h1>Selecione o arquivo</h1>
@@ -157,7 +163,7 @@
       <fieldset id="fieldset">
         <label>Arquivo</label>
         <div class="file-upload-area" id="upload-area" onclick="document.getElementById('file').click()">
-          <div class="upload-icon">📎</div>
+          <div class="upload-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34ZM48,46H208a2,2,0,0,1,2,2V154H179.31a13.9,13.9,0,0,0-9.89,4.1L150.1,177.41a2,2,0,0,1-1.41.59H107.31a2,2,0,0,1-1.41-.59L86.59,158.1a13.94,13.94,0,0,0-9.9-4.1H46V48A2,2,0,0,1,48,46ZM208,210H48a2,2,0,0,1-2-2V166H76.69a2,2,0,0,1,1.41.59L97.41,185.9a13.94,13.94,0,0,0,9.9,4.1h41.38a13.9,13.9,0,0,0,9.89-4.1l19.32-19.31a2,2,0,0,1,1.41-.59H210v42A2,2,0,0,1,208,210ZM91.76,108.24a6,6,0,0,1,0-8.48l32-32a6,6,0,0,1,8.48,0l32,32a6,6,0,1,1-8.48,8.48L134,86.49V152a6,6,0,0,1-12,0V86.49l-21.76,21.75A6,6,0,0,1,91.76,108.24Z"/></svg></div>
           <div class="upload-text">Clique ou arraste o arquivo aqui</div>
           <div class="upload-hint">doc, docx, odt, rtf, xls, xlsx, ods, csv, ppt, pptx, odp, pdf</div>
         </div>
@@ -171,38 +177,38 @@
         <label style="margin-top: 24px;">Formato de saída</label>
 
         <div class="format-category">
-          <div class="category-title">📝 Documentos</div>
+          <div class="category-title">Documentos</div>
           <div class="format-grid">
-            <div class="format-btn active" onclick="setFormat('pdf', event)"><div class="format-icon">🗎</div>PDF</div>
-            <div class="format-btn" onclick="setFormat('docx', event)"><div class="format-icon">📝</div>DOCX</div>
-            <div class="format-btn" onclick="setFormat('odt', event)"><div class="format-icon">📄</div>ODT</div>
-            <div class="format-btn" onclick="setFormat('rtf', event)"><div class="format-icon">📄</div>RTF</div>
-            <div class="format-btn" onclick="setFormat('txt', event)"><div class="format-icon">📃</div>TXT</div>
+            <div class="format-btn active" onclick="setFormat('pdf', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H190v20h18a6,6,0,0,1,0,12H190v18a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h32A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm84,8a34,34,0,0,1-34,34H112a6,6,0,0,1-6-6V152a6,6,0,0,1,6-6h16A34,34,0,0,1,162,180Zm-12,0a22,22,0,0,0-22-22H118v44h10A22,22,0,0,0,150,180ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>PDF</div>
+            <div class="format-btn" onclick="setFormat('docx', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M52,146H36a6,6,0,0,0-6,6v56a6,6,0,0,0,6,6H52a34,34,0,0,0,0-68Zm0,56H42V158H52a22,22,0,0,1,0,44Zm168.15-5.46a6,6,0,0,1,.18,8.48A28.06,28.06,0,0,1,200,214c-16.54,0-30-15.25-30-34s13.46-34,30-34a28.06,28.06,0,0,1,20.33,9,6,6,0,0,1-8.66,8.3A16.23,16.23,0,0,0,200,158c-9.93,0-18,9.87-18,22s8.07,22,18,22a16.23,16.23,0,0,0,11.67-5.28A6,6,0,0,1,220.15,196.54ZM128,146c-16.54,0-30,15.25-30,34s13.46,34,30,34,30-15.25,30-34S144.54,146,128,146Zm0,56c-9.93,0-18-9.87-18-22s8.07-22,18-22,18,9.87,18,22S137.93,202,128,202ZM48,118a6,6,0,0,0,6-6V40a2,2,0,0,1,2-2h90V88a6,6,0,0,0,6,6h50v18a6,6,0,0,0,12,0V88a6,6,0,0,0-1.76-4.24l-56-56A6,6,0,0,0,152,26H56A14,14,0,0,0,42,40v72A6,6,0,0,0,48,118ZM158,46.48,193.52,82H158Z"/></svg></div>DOCX</div>
+            <div class="format-btn" onclick="setFormat('odt', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M52,146H36a6,6,0,0,0-6,6v56a6,6,0,0,0,6,6H52a34,34,0,0,0,0-68Zm0,56H42V158H52a22,22,0,0,1,0,44Zm168.15-5.46a6,6,0,0,1,.18,8.48A28.06,28.06,0,0,1,200,214c-16.54,0-30-15.25-30-34s13.46-34,30-34a28.06,28.06,0,0,1,20.33,9,6,6,0,0,1-8.66,8.3A16.23,16.23,0,0,0,200,158c-9.93,0-18,9.87-18,22s8.07,22,18,22a16.23,16.23,0,0,0,11.67-5.28A6,6,0,0,1,220.15,196.54ZM128,146c-16.54,0-30,15.25-30,34s13.46,34,30,34,30-15.25,30-34S144.54,146,128,146Zm0,56c-9.93,0-18-9.87-18-22s8.07-22,18-22,18,9.87,18,22S137.93,202,128,202ZM48,118a6,6,0,0,0,6-6V40a2,2,0,0,1,2-2h90V88a6,6,0,0,0,6,6h50v18a6,6,0,0,0,12,0V88a6,6,0,0,0-1.76-4.24l-56-56A6,6,0,0,0,152,26H56A14,14,0,0,0,42,40v72A6,6,0,0,0,48,118ZM158,46.48,193.52,82H158Z"/></svg></div>ODT</div>
+            <div class="format-btn" onclick="setFormat('rtf', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M52,146H36a6,6,0,0,0-6,6v56a6,6,0,0,0,6,6H52a34,34,0,0,0,0-68Zm0,56H42V158H52a22,22,0,0,1,0,44Zm168.15-5.46a6,6,0,0,1,.18,8.48A28.06,28.06,0,0,1,200,214c-16.54,0-30-15.25-30-34s13.46-34,30-34a28.06,28.06,0,0,1,20.33,9,6,6,0,0,1-8.66,8.3A16.23,16.23,0,0,0,200,158c-9.93,0-18,9.87-18,22s8.07,22,18,22a16.23,16.23,0,0,0,11.67-5.28A6,6,0,0,1,220.15,196.54ZM128,146c-16.54,0-30,15.25-30,34s13.46,34,30,34,30-15.25,30-34S144.54,146,128,146Zm0,56c-9.93,0-18-9.87-18-22s8.07-22,18-22,18,9.87,18,22S137.93,202,128,202ZM48,118a6,6,0,0,0,6-6V40a2,2,0,0,1,2-2h90V88a6,6,0,0,0,6,6h50v18a6,6,0,0,0,12,0V88a6,6,0,0,0-1.76-4.24l-56-56A6,6,0,0,0,152,26H56A14,14,0,0,0,42,40v72A6,6,0,0,0,48,118ZM158,46.48,193.52,82H158Z"/></svg></div>RTF</div>
+            <div class="format-btn" onclick="setFormat('txt', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M48,118a6,6,0,0,0,6-6V40a2,2,0,0,1,2-2h90V88a6,6,0,0,0,6,6h50v18a6,6,0,0,0,12,0V88a6,6,0,0,0-1.76-4.24l-56-56A6,6,0,0,0,152,26H56A14,14,0,0,0,42,40v72A6,6,0,0,0,48,118ZM158,46.48,193.52,82H158Zm-5.12,109L135.37,180l17.51,24.51a6,6,0,1,1-9.76,7L128,190.32l-15.12,21.17a6,6,0,0,1-9.76-7L120.63,180l-17.51-24.51a6,6,0,1,1,9.76-7L128,169.68l15.12-21.17a6,6,0,0,1,9.76,7ZM90,152a6,6,0,0,1-6,6H70v50a6,6,0,0,1-12,0V158H44a6,6,0,0,1,0-12H84A6,6,0,0,1,90,152Zm128,0a6,6,0,0,1-6,6H198v50a6,6,0,0,1-12,0V158H172a6,6,0,0,1,0-12h40A6,6,0,0,1,218,152Z"/></svg></div>TXT</div>
           </div>
         </div>
 
         <div class="format-category">
-          <div class="category-title">📊 Planilhas</div>
+          <div class="category-title">Planilhas</div>
           <div class="format-grid">
-            <div class="format-btn" onclick="setFormat('xlsx', event)"><div class="format-icon">📊</div>XLSX</div>
-            <div class="format-btn" onclick="setFormat('ods', event)"><div class="format-icon">📊</div>ODS</div>
-            <div class="format-btn" onclick="setFormat('csv', event)"><div class="format-icon">📋</div>CSV</div>
+            <div class="format-btn" onclick="setFormat('xlsx', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M154,208a6,6,0,0,1-6,6H120a6,6,0,0,1-6-6V152a6,6,0,1,1,12,0v50h22A6,6,0,0,1,154,208ZM91.48,147.11a6,6,0,0,0-8.36,1.39L68,169.67,52.88,148.5a6,6,0,1,0-9.76,7L60.63,180,43.12,204.5a6,6,0,1,0,9.76,7L68,190.31l15.12,21.16A6,6,0,0,0,88,214a5.91,5.91,0,0,0,3.48-1.12,6,6,0,0,0,1.4-8.37L75.37,180l17.51-24.51A6,6,0,0,0,91.48,147.11ZM191,173.22c-10.85-3.13-13.41-4.69-13-7.91a6.59,6.59,0,0,1,2.88-5.08c5.6-3.79,17.65-1.83,21.44-.84a6,6,0,0,0,3.07-11.6c-2-.54-20.1-5-31.21,2.48a18.64,18.64,0,0,0-8.08,13.54c-1.8,14.19,12.26,18.25,21.57,20.94,12.12,3.5,14.77,5.33,14.2,9.76a6.85,6.85,0,0,1-3,5.34c-5.61,3.73-17.48,1.64-21.19.62A6,6,0,0,0,174.47,212a59.41,59.41,0,0,0,14.68,2c5.49,0,11.54-.95,16.36-4.14a18.89,18.89,0,0,0,8.31-13.81C215.83,180.39,200.91,176.08,191,173.22ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.24,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,1,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,1,1-12,0ZM158,82H193.5L158,46.48Z"/></svg></div>XLSX</div>
+            <div class="format-btn" onclick="setFormat('ods', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M154,208a6,6,0,0,1-6,6H120a6,6,0,0,1-6-6V152a6,6,0,1,1,12,0v50h22A6,6,0,0,1,154,208ZM91.48,147.11a6,6,0,0,0-8.36,1.39L68,169.67,52.88,148.5a6,6,0,1,0-9.76,7L60.63,180,43.12,204.5a6,6,0,1,0,9.76,7L68,190.31l15.12,21.16A6,6,0,0,0,88,214a5.91,5.91,0,0,0,3.48-1.12,6,6,0,0,0,1.4-8.37L75.37,180l17.51-24.51A6,6,0,0,0,91.48,147.11ZM191,173.22c-10.85-3.13-13.41-4.69-13-7.91a6.59,6.59,0,0,1,2.88-5.08c5.6-3.79,17.65-1.83,21.44-.84a6,6,0,0,0,3.07-11.6c-2-.54-20.1-5-31.21,2.48a18.64,18.64,0,0,0-8.08,13.54c-1.8,14.19,12.26,18.25,21.57,20.94,12.12,3.5,14.77,5.33,14.2,9.76a6.85,6.85,0,0,1-3,5.34c-5.61,3.73-17.48,1.64-21.19.62A6,6,0,0,0,174.47,212a59.41,59.41,0,0,0,14.68,2c5.49,0,11.54-.95,16.36-4.14a18.89,18.89,0,0,0,8.31-13.81C215.83,180.39,200.91,176.08,191,173.22ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.24,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,1,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,1,1-12,0ZM158,82H193.5L158,46.48Z"/></svg></div>ODS</div>
+            <div class="format-btn" onclick="setFormat('csv', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M46,180c0,12.13,8.07,22,18,22a16.24,16.24,0,0,0,11.67-5.28,6,6,0,0,1,8.66,8.3A28.06,28.06,0,0,1,64,214c-16.54,0-30-15.25-30-34s13.46-34,30-34a28.06,28.06,0,0,1,20.33,9,6,6,0,0,1-8.66,8.3A16.23,16.23,0,0,0,64,158C54.07,158,46,167.86,46,180Zm81.05-6.77c-10.86-3.13-13.41-4.69-13-7.91a6.59,6.59,0,0,1,2.88-5.08c5.6-3.79,17.66-1.82,21.45-.84a6,6,0,0,0,3.06-11.6c-2-.53-20.1-5-31.21,2.48a18.61,18.61,0,0,0-8.08,13.54c-1.8,14.19,12.26,18.25,21.57,20.94,12.12,3.5,14.78,5.33,14.2,9.76a6.85,6.85,0,0,1-3,5.34c-5.61,3.73-17.48,1.64-21.19.62A6,6,0,0,0,110.48,212a59.41,59.41,0,0,0,14.68,2c5.49,0,11.54-.95,16.36-4.14a18.89,18.89,0,0,0,8.31-13.81C151.84,180.39,136.92,176.08,127.05,173.22Zm83-26.88a6,6,0,0,0-7.67,3.63L188,190.15,173.65,150a6,6,0,1,0-11.3,4l20,56a6,6,0,0,0,11.3,0l20-56A6,6,0,0,0,210,146.34ZM214,88v24a6,6,0,1,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,1,1-12,0V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.24,1.76l56,56A6,6,0,0,1,214,88Zm-20.49-6L158,46.48V82Z"/></svg></div>CSV</div>
           </div>
         </div>
 
         <div class="format-category">
-          <div class="category-title">📽️ Apresentações</div>
+          <div class="category-title">Apresentações</div>
           <div class="format-grid">
-            <div class="format-btn" onclick="setFormat('pptx', event)"><div class="format-icon">📽️</div>PPTX</div>
-            <div class="format-btn" onclick="setFormat('odp', event)"><div class="format-icon">📽️</div>ODP</div>
+            <div class="format-btn" onclick="setFormat('pptx', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H202v50a6,6,0,0,1-12,0V158H176a6,6,0,0,1,0-12h40A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm80,0a26,26,0,0,1-26,26H122v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h16A26,26,0,0,1,158,172Zm-12,0a14,14,0,0,0-14-14H122v28h10A14,14,0,0,0,146,172ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>PPTX</div>
+            <div class="format-btn" onclick="setFormat('odp', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H202v50a6,6,0,0,1-12,0V158H176a6,6,0,0,1,0-12h40A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm80,0a26,26,0,0,1-26,26H122v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h16A26,26,0,0,1,158,172Zm-12,0a14,14,0,0,0-14-14H122v28h10A14,14,0,0,0,146,172ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>ODP</div>
           </div>
         </div>
 
         <div class="format-category">
-          <div class="category-title">🖼️ Imagens (uma por página/slide)</div>
+          <div class="category-title">Imagens (uma por página/slide)</div>
           <div class="format-grid">
-            <div class="format-btn" onclick="setFormat('png', event)"><div class="format-icon">🖼️</div>PNG</div>
-            <div class="format-btn" onclick="setFormat('jpg', event)"><div class="format-icon">📷</div>JPG</div>
+            <div class="format-btn" onclick="setFormat('png', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M60,146H44a6,6,0,0,0-6,6v56a6,6,0,0,0,12,0V198H60a26,26,0,0,0,0-52Zm0,40H50V158H60a14,14,0,0,1,0,28Zm162,14.87a6,6,0,0,1-1.67,4.15A28.06,28.06,0,0,1,200,214c-16.54,0-30-15.25-30-34s13.46-34,30-34a27.43,27.43,0,0,1,15.36,4.77,6,6,0,0,1-6.72,9.95A15.25,15.25,0,0,0,200,158c-9.93,0-18,9.87-18,22s8.07,22,18,22a15.75,15.75,0,0,0,10-3.73V190h-2a6,6,0,0,1,0-12h8a6,6,0,0,1,6,6ZM154,152v56a6,6,0,0,1-4.17,5.71A5.78,5.78,0,0,1,148,214a6,6,0,0,1-4.88-2.51L114,170.72V208a6,6,0,0,1-12,0V152a6,6,0,0,1,10.88-3.49L142,189.28V152a6,6,0,0,1,12,0ZM48,118a6,6,0,0,0,6-6V40a2,2,0,0,1,2-2h90V88a6,6,0,0,0,6,6h50v18a6,6,0,0,0,12,0V88a6,6,0,0,0-1.76-4.24l-56-56A6,6,0,0,0,152,26H56A14,14,0,0,0,42,40v72A6,6,0,0,0,48,118ZM158,46.48,193.52,82H158Z"/></svg></div>PNG</div>
+            <div class="format-btn" onclick="setFormat('jpg', event)"><div class="format-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M120,146H104a6,6,0,0,0-6,6v56a6,6,0,0,0,12,0V198h10a26,26,0,0,0,0-52Zm0,40H110V158h10a14,14,0,0,1,0,28Zm94-2v16.87a6,6,0,0,1-1.67,4.15A28.06,28.06,0,0,1,192,214c-16.54,0-30-15.25-30-34s13.46-34,30-34a27.43,27.43,0,0,1,15.36,4.77,6,6,0,0,1-6.72,9.95A15.25,15.25,0,0,0,192,158c-9.93,0-18,9.87-18,22s8.07,22,18,22a15.75,15.75,0,0,0,10-3.73V190h-2a6,6,0,0,1,0-12h8A6,6,0,0,1,214,184ZM78,152v38a24,24,0,0,1-48,0,6,6,0,0,1,12,0,12,12,0,0,0,24,0V152a6,6,0,0,1,12,0ZM212.24,83.76l-56-56A6,6,0,0,0,152,26H56A14,14,0,0,0,42,40v72a6,6,0,0,0,12,0V40a2,2,0,0,1,2-2h90V88a6,6,0,0,0,6,6h50v18a6,6,0,0,0,12,0V88A6,6,0,0,0,212.24,83.76ZM158,82V46.48L193.52,82Z"/></svg></div>JPG</div>
           </div>
         </div>
 
@@ -220,7 +226,7 @@
 
       <button type="submit" id="submit-btn">
         <span class="btn-spinner"></span>
-        <span id="submit-label">🔄 Converter</span>
+        <span id="submit-label">Converter</span>
       </button>
     </form>
 
@@ -314,7 +320,7 @@
       fieldset.disabled = locked;
       submitBtn.disabled = locked;
       backButton.classList.toggle('locked', locked);
-      submitLabel.textContent = locked ? 'Convertendo...' : '🔄 Converter';
+      submitLabel.textContent = locked ? 'Convertendo...' : 'Converter';
     }
 
     function startProgress(estimateSec, stageLabel) {
@@ -349,7 +355,7 @@
 
     function showResult(ok, message) {
       statusBox.className = 'status show ' + (ok ? 'ok' : 'err');
-      statusBox.textContent = (ok ? '✅ ' : '❌ ') + message;
+      statusBox.textContent = (ok ? '' : '') + message;
     }
 
     async function submitConvert(evt) {

@@ -27,6 +27,23 @@ def run_command(cmd, shell=True):
     except Exception as e:
         return False, "", str(e)
 
+def porta_ocupada(porta=5000):
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(0.5)
+        return s.connect_ex(("127.0.0.1", porta)) == 0
+
+
+def verto_respondendo(porta=5000):
+    """A porta está ocupada pelo próprio Verto (aberto em outro terminal)?"""
+    from urllib.request import urlopen
+    try:
+        with urlopen(f"http://127.0.0.1:{porta}/automacoes/estado", timeout=2) as r:
+            return b'"success"' in r.read(2000)
+    except Exception:
+        return False
+
+
 def main():
     os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
@@ -77,6 +94,26 @@ def main():
         input("Pressione Enter para sair...")
         sys.exit(1)
     
+    # Porta 5000 ocupada: se for o Verto, é só abrir; senão, explica como liberar.
+    if porta_ocupada():
+        if verto_respondendo():
+            print_colored("\nO Verto já está rodando (em outro terminal ou janela).", "green")
+            print_colored("    ACESSE: http://localhost:5000", "yellow")
+            try:
+                import webbrowser
+                webbrowser.open("http://localhost:5000")
+            except Exception:
+                pass
+            print_colored("\nPara reiniciar, feche a outra janela (Ctrl+C nela) e rode o INICIAR de novo.", "white")
+        else:
+            print_colored("\n[ERRO] A porta 5000 está sendo usada por outro programa.", "red")
+            if system == "Windows":
+                print_colored("Descubra qual: netstat -ano | findstr :5000  (e feche pelo Gerenciador de Tarefas)", "white")
+            else:
+                print_colored("Descubra qual: ss -ltnp | grep :5000  (ou: lsof -i :5000) e feche o programa.", "white")
+        input("Pressione Enter para sair...")
+        sys.exit(0)
+
     print_colored("\nTudo OK! Iniciando servidor...", "green")
     print_colored("\n========================================", "yellow")
     print_colored("    ACESSE: http://localhost:5000", "yellow")

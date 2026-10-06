@@ -4,16 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reescritor & Diff</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/analise.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.2.0/diff.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -22,7 +25,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -31,13 +34,13 @@
     .back-button.locked { pointer-events: none; opacity: 0.4; }
     .logo {
       font-size: 42px; font-weight: 900;
-      background: linear-gradient(135deg, #ef4444 0%, #8b5cf6 50%, #3b82f6 100%);
+      background: linear-gradient(135deg, #ef4444 0%, #0f9488 50%, #2dd4bf 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-align: center; margin-bottom: 10px;
     }
     .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 32px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 28px; padding: 32px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
       max-width: 1450px; margin: 0 auto;
     }
@@ -60,35 +63,35 @@
     }
     textarea:focus { outline: none; border-color: rgba(239, 68, 68, 0.4); }
     select {
-      width: 100%; padding: 12px; border-radius: 10px; background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 13px; font-family: 'Inter', sans-serif;
+      width: 100%; padding: 12px; border-radius: 10px; background: rgba(24, 26, 31, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 13px; font-family: var(--lt-sans);
     }
     button.action {
       padding: 12px 24px; border-radius: 10px; border: none; cursor: pointer;
-      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #ef4444, #8b5cf6);
+      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #ef4444, #0f9488);
       color: white; transition: all 0.25s;
     }
-    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.35); }
+    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15, 148, 136, 0.35); }
     button.action:disabled { opacity: 0.6; cursor: not-allowed; }
     .progress-wrap { margin-top: 14px; display: none; }
     .progress-wrap.show { display: block; }
     .progress-label { font-size: 11.5px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
-    .progress-track { width: 100%; height: 8px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
-    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #ef4444, #8b5cf6); transition: width 0.15s ease; }
+    .progress-track { width: 100%; height: 8px; border-radius: 999px; background: rgba(24, 26, 31, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #ef4444, #0f9488); transition: width 0.15s ease; }
     .history-row { display: flex; gap: 8px; margin: 20px 0; flex-wrap: wrap; align-items: center; }
     .history-label { font-size: 12px; color: #94a3b8; margin-right: 4px; }
     .history-chip {
       padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer; font-size: 12.5px; font-weight: 600;
+      background: rgba(24, 26, 31, 0.6); color: #94a3b8; cursor: pointer; font-size: 12.5px; font-weight: 600;
     }
-    .history-chip.active { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
-    .history-chip.original { border-color: rgba(59, 130, 246, 0.3); color: #60a5fa; }
+    .history-chip.active { border-color: #0f9488; background: rgba(15, 148, 136, 0.15); color: #99f6e4; }
+    .history-chip.original { border-color: rgba(45, 212, 191, 0.3); color: #60a5fa; }
     .view-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
     .toggle-btn {
       padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.6); color: #94a3b8; cursor: pointer; font-size: 12px; font-weight: 600;
+      background: rgba(24, 26, 31, 0.6); color: #94a3b8; cursor: pointer; font-size: 12px; font-weight: 600;
     }
-    .toggle-btn.active { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
+    .toggle-btn.active { border-color: #0f9488; background: rgba(15, 148, 136, 0.15); color: #99f6e4; }
     .result-wrap {
       background: rgba(6, 10, 22, 0.8); border: 1px solid rgba(148, 163, 184, 0.15);
       border-radius: 14px; overflow: auto; max-height: 560px;
@@ -108,22 +111,24 @@
     .disclaimer { margin-top: 18px; font-size: 11.5px; color: #64748b; line-height: 1.6; background: rgba(148,163,184,0.06); border-radius: 10px; padding: 12px; }
   </style>
 </head>
-<body>
-  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/aiguard'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-analise">
+  <a class="lt-back" href="/aiguard" title="Voltar para AI Guard & Diff" aria-label="Voltar para AI Guard & Diff">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">✍️ Reescritor & Diff</div>
-  <div class="tagline">Gera variações locais mantendo o sentido — sem limite de tamanho, com diff e histórico de iterações</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/aiguard">AI Guard & Diff</a> / Reescritor & Diff</nav>
+    <h1 class="modo-titulo">Reescritor & Diff</h1>
+    <p class="modo-sub">Gera variações locais mantendo o sentido — sem limite de tamanho, com diff e histórico de iterações</p>
+  </header>
 
   <div class="card">
     <div class="top-row">
       <div>
         <div class="pane-label">Texto original</div>
         <div class="input-toolbar">
-          <div class="file-btn" onclick="document.getElementById('file-input').click()">📁 Carregar arquivo (TXT/PDF/DOCX)</div>
+          <div class="file-btn" onclick="document.getElementById('file-input').click()">Carregar arquivo (TXT/PDF/DOCX)</div>
           <input type="file" id="file-input" accept=".txt,.pdf,.docx">
           <span class="char-count" id="char-count"></span>
         </div>
@@ -138,7 +143,7 @@
           <option value="direto">Direto</option>
           <option value="criativo">Criativo</option>
         </select>
-        <button class="action" id="generate-btn" style="width:100%; margin-top:10px;" onclick="generateVariation()">✍️ Gerar variação</button>
+        <button class="action" id="generate-btn" style="width:100%; margin-top:10px;" onclick="generateVariation()">Gerar variação</button>
         <div class="progress-wrap" id="progress-wrap">
           <div class="progress-label"><span id="progress-stage">Reescrevendo...</span><span id="progress-pct">0%</span></div>
           <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
@@ -158,9 +163,9 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn-secondary" onclick="copySelected()">📋 Copiar versão selecionada</button>
-      <button class="btn-secondary" onclick="downloadSelected()">⬇️ Baixar .txt</button>
-      <button class="btn-secondary" onclick="clearHistory()">🗑️ Limpar histórico</button>
+      <button class="btn-secondary" onclick="copySelected()">Copiar versão selecionada</button>
+      <button class="btn-secondary" onclick="downloadSelected()">Baixar .txt</button>
+      <button class="btn-secondary" onclick="clearHistory()">Limpar histórico</button>
     </div>
 
     <div class="disclaimer">

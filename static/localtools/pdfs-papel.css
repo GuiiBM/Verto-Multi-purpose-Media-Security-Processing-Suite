@@ -1,0 +1,141 @@
+/* PDFs · modo "papel" das ferramentas (o hub /pdfs tem as folhas sobre a mesa).
+ *
+ * Cabeçalho com selo de papel e trilha "PDFs / Ferramenta" em serifa; card
+ * grafite com a ponta dobrada (como as folhas do hub); a área de soltar o
+ * arquivo é uma folha clara; o botão principal é um carimbo coral.
+ * Usado com <body class="lt-body pdf-papel"> depois de base.css e app.css.
+ */
+@font-face { font-family: 'Instrument Serif'; font-weight: 400; font-style: normal; font-display: swap;
+  src: url('fonts/InstrumentSerif-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Instrument Serif'; font-weight: 400; font-style: italic; font-display: swap;
+  src: url('fonts/InstrumentSerif-Italic.woff2') format('woff2'); }
+
+.pdf-papel {
+  --papel: #f4efe6;
+  --papel-2: #e9e2d6;
+  --tinta: #24201b;
+  --tinta-2: #6b6256;
+  --coral: #d9534f;
+  --coral-tinta: #b83a36;
+  --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  font-family: var(--lt-sans);
+  padding-top: 28px !important;
+}
+html:has(.pdf-papel) { overflow-x: clip; }
+.pdf-papel > *:not(.lt-back) { position: relative; z-index: 1; }
+.pdf-papel .topo { display: flex; justify-content: center; margin-bottom: 26px; }
+
+/* ---------- Cabeçalho ---------- */
+.pdf-cab { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; margin: 0 auto 30px; max-width: 760px; }
+.pdf-selo {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  color: var(--coral);
+  background: linear-gradient(180deg, var(--papel), var(--papel-2));
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+  border-radius: 3px;
+  transform: rotate(-2.5deg);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5)) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.45));
+}
+.pdf-selo svg { width: 32px; height: 32px; fill: currentColor; }
+.pdf-trilha { font-size: 13px; color: var(--lt-faint); letter-spacing: 0.02em; }
+.pdf-trilha a { color: var(--lt-muted); text-decoration: none; border-bottom: 1px solid transparent; }
+.pdf-trilha a:hover { color: var(--lt-ink); border-bottom-color: var(--coral); }
+.pdf-titulo { font-family: var(--serif); font-weight: 400; font-size: clamp(44px, 6vw, 66px); line-height: 1; color: var(--lt-ink); letter-spacing: -0.005em; }
+.pdf-sub { color: var(--lt-muted); font-size: 16px; line-height: 1.55; max-width: 60ch; text-wrap: pretty; }
+
+/* ---------- Card: grafite com a ponta dobrada ---------- */
+.pdf-papel .card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)) !important;
+  border: 1px solid var(--lt-line) !important;
+  border-radius: 6px !important;
+  box-shadow: var(--lt-shadow) !important;
+  backdrop-filter: none !important;
+  clip-path: polygon(0 0, calc(100% - 34px) 0, 100% 34px, 100% 100%, 0 100%);
+}
+.pdf-papel .card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(225deg, transparent 50%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+}
+.pdf-papel .card h1, .pdf-papel .card h2 { font-family: var(--serif); font-weight: 400; letter-spacing: 0; color: var(--lt-ink); }
+.pdf-papel .card h1 { font-size: 32px; }
+.pdf-papel .card h2 { font-size: 24px; }
+.pdf-papel p.subtitle, .pdf-papel .subtitle { color: var(--lt-muted); }
+.pdf-papel label { color: #c9ced6; font-weight: 550; }
+
+/* ---------- Campos ---------- */
+.pdf-papel input[type="text"], .pdf-papel input[type="password"], .pdf-papel input[type="number"],
+.pdf-papel select, .pdf-papel textarea {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid var(--lt-line) !important;
+  border-radius: 10px !important;
+  color: var(--lt-ink) !important;
+  font-family: var(--lt-sans) !important;
+}
+.pdf-papel input:focus, .pdf-papel select:focus, .pdf-papel textarea:focus {
+  outline: none;
+  border-color: rgba(217, 83, 79, 0.6) !important;
+  box-shadow: 0 0 0 4px rgba(217, 83, 79, 0.16) !important;
+}
+.pdf-papel select option { background: #16181c; color: var(--lt-ink); }
+
+/* ---------- Área de soltar: uma folha clara ---------- */
+.pdf-papel .file-upload-area, .pdf-papel .upload-area {
+  position: relative;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 25px, rgba(36, 32, 27, 0.06) 25px 26px),
+    linear-gradient(180deg, var(--papel), var(--papel-2)) !important;
+  border: 2px dashed rgba(184, 58, 54, 0.45) !important;
+  border-radius: 6px !important;
+  color: var(--tinta);
+  transition: transform 200ms var(--lt-ease-out), border-color 200ms var(--lt-ease-out), box-shadow 200ms var(--lt-ease-out);
+}
+.pdf-papel .file-upload-area:hover, .pdf-papel .upload-area:hover {
+  border-color: var(--coral-tinta) !important;
+  transform: translateY(-2px) rotate(-0.3deg);
+  box-shadow: 0 14px 22px -12px rgba(0, 0, 0, 0.6);
+}
+.pdf-papel .upload-icon { color: var(--coral); line-height: 0; }
+.pdf-papel .upload-icon svg { width: 46px; height: 46px; fill: currentColor; }
+.pdf-papel .upload-text { color: var(--tinta) !important; font-weight: 600; }
+.pdf-papel .upload-hint { color: var(--tinta-2) !important; }
+.pdf-papel .file-selected, .pdf-papel .file-item {
+  background: rgba(244, 239, 230, 0.06) !important;
+  border-color: rgba(217, 83, 79, 0.3) !important;
+}
+
+/* ---------- Carimbo coral (botão principal) ---------- */
+.pdf-papel button[type="submit"], .pdf-papel .btn-primary, .pdf-papel .carimbo {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #c2413d, #a8332f) !important;
+  color: #fff !important;
+  font: 650 15px var(--lt-sans) !important;
+  letter-spacing: 0.01em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 3px 0 #6f201d, 0 12px 22px -10px rgba(217, 83, 79, 0.55) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out), box-shadow 140ms var(--lt-ease-out) !important;
+}
+.pdf-papel button[type="submit"]:hover:not(:disabled), .pdf-papel .btn-primary:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.06); }
+.pdf-papel button[type="submit"]:active:not(:disabled), .pdf-papel .btn-primary:active:not(:disabled) {
+  transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 0 #6f201d !important;
+}
+.pdf-papel button[type="submit"]:focus-visible { outline: 2px solid var(--coral); outline-offset: 3px; }
+
+.pdf-papel .status.ok { background: rgba(74, 222, 128, 0.08); color: var(--lt-green); border-color: rgba(74, 222, 128, 0.3); }
+.pdf-papel .status.err { background: rgba(248, 113, 113, 0.08); color: var(--lt-danger); border-color: rgba(248, 113, 113, 0.3); }
+
+/* grades de opção em 4 colunas fixas não cabem no celular */
+.pdf-papel .quality-options > *, .pdf-papel .rotation-options > * { min-width: 0; }
+@media (max-width: 560px) {
+  .pdf-papel .quality-options, .pdf-papel .rotation-options { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 760px) { .pdf-papel { padding-top: 72px !important; } }

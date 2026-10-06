@@ -4,12 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>InstaSaver</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --ig: linear-gradient(135deg, #f58529 0%, #dd2a7b 45%, #8134af 75%, #515bd4 100%);
-      --card: rgba(15, 23, 42, 0.45);
+      --card: rgba(24, 26, 31, 0.45);
       --line: rgba(148, 163, 184, 0.1);
       --muted: #94a3b8;
       --pink: #ec4899;
@@ -25,7 +28,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 50; color: #cbd5e1;
@@ -136,6 +139,7 @@
       background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); color: #fff; display: flex; align-items: center; justify-content: center;
       opacity: 0; transition: opacity .2s, background .2s; text-decoration: none;
     }
+    .card .dl.cover { right: 50px; }
     .card:hover .dl { opacity: 1; }
     .card .dl:hover { background: #dd2a7b; }
     .card .meta {
@@ -148,7 +152,7 @@
 
     /* Visualizador */
     .viewer {
-      position: fixed; inset: 0; background: rgba(2, 6, 23, 0.94); backdrop-filter: blur(10px); z-index: 100;
+      position: fixed; inset: 0; background: rgba(12, 13, 16, 0.94); backdrop-filter: blur(10px); z-index: 100;
       display: none; align-items: center; justify-content: center; padding: 20px;
     }
     .viewer.open { display: flex; }
@@ -163,7 +167,7 @@
     .v-side .when { font-size: 12px; color: #64748b; }
     .v-side .stats { display: flex; gap: 14px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
     .v-close, .v-nav {
-      position: fixed; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--line); color: #e2e8f0; cursor: pointer;
+      position: fixed; background: rgba(24, 26, 31, 0.85); border: 1px solid var(--line); color: #e2e8f0; cursor: pointer;
       width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; z-index: 101; font-size: 22px;
     }
     .v-close { top: 20px; right: 20px; }
@@ -203,25 +207,101 @@
       .search .btn span { display: none; }
     }
   </style>
+  <style>
+    /* ---------- Visual LocalTools: grupo Downloads (verde); os anéis de story continuam no degradê do Instagram ---------- */
+    :root {
+      --anel-ig: linear-gradient(135deg, #f58529 0%, #dd2a7b 45%, #8134af 75%, #515bd4 100%);
+      --ig: linear-gradient(180deg, #5ee68f, #34c56e);
+      --pink: var(--lt-cat-downloads);
+      --card: rgba(255, 255, 255, 0.035);
+      --line: var(--lt-line);
+      --muted: var(--lt-muted);
+    }
+    html { overflow-x: clip; }
+    body.lt-body { font-family: var(--lt-sans); padding-top: 28px; }
+    body > * { position: relative; z-index: 1; }
+    .topo { display: flex; justify-content: center; margin-bottom: 22px; }
+    .lt-head { margin-bottom: 28px; }
+    .btn {
+      color: #06210f;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 0 #1d7a43, 0 12px 22px -10px rgba(74, 222, 128, 0.5);
+    }
+    .btn:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 0 #1d7a43; }
+    .btn.ghost { background: linear-gradient(180deg, #23262c, #191b20); color: var(--lt-ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 2px 0 rgba(0, 0, 0, 0.45); }
+    .btn.ghost:hover { border-color: rgba(74, 222, 128, 0.4); }
+    .search { background: rgba(255, 255, 255, 0.035); box-shadow: var(--lt-shadow); }
+    .search:focus-within { border-color: rgba(74, 222, 128, 0.5); box-shadow: 0 0 0 4px var(--lt-ring), var(--lt-shadow); }
+    .search input { font-family: var(--lt-sans); }
+    .search input::placeholder { color: var(--lt-faint); }
+    .profile, .card { box-shadow: var(--lt-shadow); }
+    .profile { background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)); }
+    .avatar-ring, .hl.active .ring, .hl:hover .ring { background: var(--anel-ig); }
+    .avatar-ring img, .hl img { border-color: var(--lt-bg); }
+    .spinner { border-color: rgba(74, 222, 128, 0.15); border-top-color: var(--lt-green); }
+    .tab.active { border-image: linear-gradient(90deg, #4ade80, #5eead4) 1; }
+    .card .dl:hover { background: var(--lt-green); color: #06210f; }
+    .v-nav:hover, .v-close:hover { border-color: rgba(74, 222, 128, 0.45); }
+    .tab, .btn, .notice, .toast { font-family: var(--lt-sans); }
+    @media (max-width: 760px) { body.lt-body { padding-top: 72px; } }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-stories.css">
+  <script type="importmap">
+  { "imports": {
+      "three": "/static/localtools/vendor/three/three.module.min.js",
+      "three/addons/": "/static/localtools/vendor/three/addons/"
+  } }
+  </script>
+  <script src="/static/localtools/vendor/gsap/gsap.min.js" defer></script>
+  <script type="module" src="/static/localtools/instasaver/vitrine.js"></script>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'" title="Voltar">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </div>
+<body class="lt-body tema-stories">
+  <script>/* o layout novo já no primeiro quadro (o visual antigo não pisca antes); o módulo 3D desfaz se o WebGL falhar */ if (window.WebGL2RenderingContext) document.body.classList.add('com-3d');</script>
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
   <div class="wrap">
-    <div class="logo">InstaSaver</div>
-    <div class="tagline">Cole o link de um story, destaque, post ou perfil, o resto é automático</div>
+    <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+    <header class="lt-head">
+      <span class="lt-key lg" style="--hue: var(--lt-cat-downloads)"><img src="/static/localtools/apps/instasaver.webp" alt="" width="76" height="76"></span>
+      <h1>InstaSaver</h1>
+      <p>Cole o link de um story, destaque, post ou perfil: o resto é automático.</p>
+    </header>
 
-    <form class="search" id="form" autocomplete="off">
-      <input id="link" type="text" placeholder="https://www.instagram.com/stories/usuario/..." aria-label="Link do Instagram">
-      <button type="button" class="btn ghost" id="pasteBtn" title="Colar e buscar">📋 <span>Colar</span></button>
-      <button type="submit" class="btn" id="goBtn">Buscar</button>
-    </form>
-    <div class="session" id="session"></div>
-    <div class="notice" id="notice"></div>
+    <div class="busca-bloco">
+      <form class="search" id="form" autocomplete="off">
+        <input id="link" type="text" placeholder="https://www.instagram.com/stories/usuario/..." aria-label="Link do Instagram">
+        <button type="button" class="btn ghost" id="pasteBtn" title="Colar e buscar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="7" y="4" width="10" height="4" rx="1.5" stroke="currentColor" stroke-width="2"/><path d="M9 6H7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> <span>Colar</span></button>
+        <button type="submit" class="btn" id="goBtn">Buscar</button>
+      </form>
+      <div class="session" id="session"></div>
+      <div class="notice" id="notice"></div>
+    </div>
+    <ul class="exemplos" aria-label="O que dá para colar">
+      <li><b>Story</b><span>instagram.com/stories/usuario/…</span></li>
+      <li><b>Destaque</b><span>instagram.com/stories/highlights/…</span></li>
+      <li><b>Post ou reel</b><span>instagram.com/p/… ou /reel/…</span></li>
+      <li><b>Perfil</b><span>instagram.com/usuario ou @usuario</span></li>
+    </ul>
 
     <div class="loader" id="loader"><div class="spinner"></div></div>
+
+    <section class="vitrine" id="vitrine" aria-label="Pré-visualização no celular">
+      <div class="vit-barra" id="vitBarra" hidden>
+        <div class="vit-info"><span class="vit-tipo" id="vitTipo">&nbsp;</span><span class="vit-meta" id="vitMeta">&nbsp;</span></div>
+        <div class="vit-nav">
+          <button type="button" class="vit-seta" id="vitAnt" aria-label="Anterior (←)">‹</button>
+          <span class="vit-n" id="vitN">– / –</span>
+          <button type="button" class="vit-seta" id="vitProx" aria-label="Próximo (→)">›</button>
+        </div>
+        <div class="vit-acoes">
+          <button type="button" class="vit-bt" id="vitSom" aria-label="Ativar som" title="Ativar som" aria-pressed="false" disabled><svg class="ic-som-off" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5Z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><svg class="ic-som-on" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5Z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+          <button type="button" class="vit-bt" id="vitAmpliar" aria-label="Ampliar" title="Ampliar (abre o visualizador)"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4h6v6M20 4l-6.5 6.5M10 20H4v-6M4 20l6.5-6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <a class="btn sm vit-baixar" id="vitBaixar" download><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Baixar</span></a>
+        </div>
+      </div>
+    </section>
 
     <div id="result">
       <div class="profile">
@@ -246,8 +326,8 @@
 
       <section class="panel" id="panel-stories">
         <div class="panel-head">
-          <h3>Stories das últimas 24h</h3>
-          <button class="btn sm" data-zip="stories">⬇ Baixar todos (.zip)</button>
+          <h3 id="storiesTitle">Stories</h3>
+          <button class="btn sm" data-zip="stories">Baixar tudo (.zip)</button>
         </div>
         <div class="section-error" id="err-stories"></div>
         <div class="grid tall" id="gridStories"></div>
@@ -257,8 +337,8 @@
         <div class="section-error" id="err-highlights"></div>
         <div class="hl-row" id="hlRow"></div>
         <div class="panel-head" id="hlHead" style="display:none">
-          <h3 id="hlTitle"></h3>
-          <button class="btn sm" data-zip="highlight">⬇ Baixar destaque (.zip)</button>
+          <h3 id="hlTitle">Destaques</h3>
+          <button class="btn sm" data-zip="highlight">Baixar tudo (.zip)</button>
         </div>
         <div class="grid tall" id="gridHighlight"></div>
       </section>
@@ -266,7 +346,7 @@
       <section class="panel" id="panel-posts">
         <div class="panel-head">
           <h3 id="postsTitle">Posts e reels</h3>
-          <button class="btn sm" data-zip="posts">⬇ Baixar carregados (.zip)</button>
+          <button class="btn sm" data-zip="posts">Baixar tudo (.zip)</button>
         </div>
         <div class="section-error" id="err-posts"></div>
         <div class="grid" id="gridPosts"></div>
@@ -292,10 +372,29 @@
   const state = { profile: null, stories: [], highlights: [], hlCache: new Map(), hlCurrent: null,
                   posts: [], nextMaxId: null, loadingMore: false };
   let viewer = null;  // { list, index, sub }
+  const emit = (n, d) => document.dispatchEvent(new CustomEvent('insta:' + n, { detail: d }));
 
   // ---------- utilidades ----------
   const proxied = url => '/instasaver/media?url=' + encodeURIComponent(url);
   const dlHref = m => proxied(m.url) + '&dl=1&name=' + encodeURIComponent(m.filename);
+  // Vídeo como imagem: a capa original ou o quadro que está no player.
+  const baseName = m => m.filename.replace(/\.[^.]+$/, '');
+  const coverHref = m => proxied(m.cover) + '&dl=1&name=' + encodeURIComponent(baseName(m) + '_capa.jpg');
+  function saveFrame(video, m) {
+    if (!video || !video.videoWidth) return toast('Espere o vídeo carregar para salvar o quadro.');
+    const c = document.createElement('canvas'), t = video.currentTime;
+    c.width = video.videoWidth; c.height = video.videoHeight;
+    c.getContext('2d').drawImage(video, 0, 0);
+    c.toBlob(blob => {
+      if (!blob) return toast('Não consegui capturar o quadro.');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${baseName(m)}_quadro_${Math.floor(t / 60)}m${String(Math.floor(t % 60)).padStart(2, '0')}s.png`;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+      // O quadro é salvo só pelo navegador: avisa as Automações para organizarem.
+      fetch('/automacoes/avisar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome: a.download }) }).catch(() => {});
+    }, 'image/png');
+  }
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const fmtNum = n => n == null ? '—' : Intl.NumberFormat('pt-BR', { notation: n >= 10000 ? 'compact' : 'standard' }).format(n);
   const fmtDate = ts => ts ? new Date(ts * 1000).toLocaleString('pt-BR', { dateStyle: 'medium', timeStyle: 'short' }) : '';
@@ -312,6 +411,7 @@
     const n = $('notice'); n.style.display = msg ? 'block' : 'none';
     n.className = 'notice' + (info ? ' info' : ''); n.textContent = msg || '';
   }
+  const ICON_IMG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4.5 18l5-5 3.5 3.5 2.5-2.5 4 4" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
   const ICON_DL = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   // ---------- sessão ----------
@@ -336,15 +436,16 @@
     if (!link) return;
     if (resolve.busy === link) return;
     resolve.busy = link;
-    notice(''); $('result').style.display = 'none'; $('loader').style.display = 'flex'; $('goBtn').disabled = true;
+    notice(''); document.body.classList.remove('tem-perfil'); $('loader').style.display = 'flex'; $('goBtn').disabled = true;
+    emit('buscando', link);
     try {
       const res = await fetch('/instasaver/resolve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ link }) });
       const data = await res.json();
-      if (!data.success) { notice(data.error); return; }
+      if (!data.success) { notice(data.error); emit('erro'); return; }
       render(data);
       const u = new URL(location.href); u.searchParams.set('link', link); history.replaceState(null, '', u);
     } catch (err) {
-      notice('Não consegui falar com o servidor local do Verto.');
+      notice('Não consegui falar com o servidor local do Verto.'); emit('erro');
     } finally {
       resolve.busy = null; $('loader').style.display = 'none'; $('goBtn').disabled = false;
     }
@@ -383,7 +484,8 @@
     $('cHighlights').textContent = state.highlights.length;
     renderStories(); renderHighlightTray(); renderPosts();
     $('gridHighlight').innerHTML = ''; $('hlHead').style.display = 'none';
-    $('result').style.display = 'block';
+    document.body.classList.add('tem-perfil');
+    emit('dados');
 
     // Abre direto no que o link apontava.
     const f = data.focus || {};
@@ -413,14 +515,20 @@
     if (el) { el.classList.add('focus'); el.scrollIntoView({ block: 'nearest' }); }
   }
 
-  function card(m, { badges = '', meta = '', onOpen, dl }) {
+  function card(m, { badges = '', meta = '', onOpen, dl, cover }) {
     const el = document.createElement('div');
     el.className = 'card';
     el.innerHTML = `<img loading="lazy" src="${m.thumb ? proxied(m.thumb) : ''}" alt="">
       <div class="badges">${badges}</div>
       ${meta ? `<div class="meta">${meta}</div>` : ''}
+      ${cover ? `<a class="dl cover" href="${cover}" title="Baixar capa (imagem)" download>${ICON_IMG}</a>` : ''}
       ${dl ? `<a class="dl" href="${dl}" title="Baixar" download>${ICON_DL}</a>` : ''}`;
-    el.addEventListener('click', e => { if (!e.target.closest('.dl')) onOpen(); });
+    el.addEventListener('click', e => {
+      if (e.target.closest('.dl')) return;
+      if (document.body.classList.contains('com-3d')) emit('escolher', { grade: el.parentElement && el.parentElement.id, i: [...el.parentElement.children].indexOf(el) });
+      else onOpen();
+    });
+    el.addEventListener('dblclick', e => { if (!e.target.closest('.dl')) onOpen(); });
     return el;
   }
 
@@ -433,10 +541,10 @@
     items.forEach((m, i) => grid.appendChild(card(m, {
       badges: m.type === 'video' ? `<span class="badge">▶ ${fmtDur(m.duration)}</span>` : '',
       meta: gridId === 'gridStories' && m.taken_at ? `há ${ago(m.taken_at)}` : (m.taken_at ? new Date(m.taken_at * 1000).toLocaleDateString('pt-BR') : ''),
-      dl: dlHref(m), onOpen: () => openViewer(storyList(items), i),
+      dl: dlHref(m), cover: m.cover && coverHref(m), onOpen: () => openViewer(storyList(items), i),
     })));
   }
-  const renderStories = () => renderStoryGrid('gridStories', state.stories);
+  const renderStories = () => { $('storiesTitle').textContent = `Stories · ${state.stories.length}`; renderStoryGrid('gridStories', state.stories); };
 
   function renderHighlightTray() {
     const row = $('hlRow'); row.innerHTML = '';
@@ -467,8 +575,9 @@
     }
     if (state.hlCurrent !== id) return;
     $('hlHead').style.display = 'flex';
-    $('hlTitle').textContent = `${hl.title || 'Destaque'} · ${hl.items.length} itens`;
+    $('hlTitle').textContent = `${hl.title || 'Destaque'} · ${hl.items.length}`;
     renderStoryGrid('gridHighlight', hl.items);
+    emit('destaque', hl);
   }
 
   function renderPosts() {
@@ -484,11 +593,13 @@
       const meta = [p.like_count != null ? `♥ ${fmtNum(p.like_count)}` : '', p.comment_count != null ? `💬 ${fmtNum(p.comment_count)}` : '',
                     p.play_count ? `▶ ${fmtNum(p.play_count)}` : ''].join(' ');
       grid.appendChild(card({ thumb: p.thumb }, {
-        badges, meta, dl: p.media.length === 1 ? dlHref(first) : null, onOpen: () => openViewer(postList(), i),
+        badges, meta, dl: p.media.length === 1 ? dlHref(first) : null,
+        cover: p.media.length === 1 && first.cover ? coverHref(first) : null, onOpen: () => openViewer(postList(), i),
       }));
     });
     $('moreBtn').style.display = state.nextMaxId ? '' : 'none';
-    $('postsTitle').textContent = `Posts e reels${state.posts.length ? ` · ${state.posts.length} carregados` : ''}`;
+    $('postsTitle').textContent = `Posts e reels · ${state.posts.length}${state.nextMaxId ? '+' : ''}`;
+    emit('posts');
   }
 
   async function loadMore() {
@@ -514,6 +625,7 @@
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
     document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
     if (name === 'highlights' && !state.hlCurrent && state.highlights.length) openHighlight(state.highlights[0].id);
+    emit('aba', name);
   }
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 
@@ -531,15 +643,15 @@
         body: JSON.stringify({ name, items: items.map(m => ({ url: m.url, filename: m.filename })) }) });
       if (!res.ok) throw new Error();
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(await res.blob()); a.download = name.replace(/[^\w.-]/g, '_') + '.zip';
+      a.href = URL.createObjectURL(await res.blob()); a.download = name.replace(/[^\p{L}\p{N}._-]/gu, '_') + '.zip';  // mantém acentos: o título vira subpasta nas Automações
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
     } catch { toast('Falha ao gerar o .zip — os links podem ter expirado, busque de novo.'); }
     finally { b.disabled = false; b.textContent = label; }
   }));
 
   // ---------- visualizador ----------
-  function openViewer(list, index) { viewer = { list, index, sub: 0 }; $('viewer').classList.add('open'); document.body.style.overflow = 'hidden'; drawViewer(); }
-  function closeViewer() { $('vMedia').innerHTML = ''; $('viewer').classList.remove('open'); document.body.style.overflow = ''; viewer = null; }
+  function openViewer(list, index) { viewer = { list, index, sub: 0 }; $('viewer').classList.add('open'); document.body.style.overflow = 'hidden'; drawViewer(); emit('visor', true); }
+  function closeViewer() { $('vMedia').innerHTML = ''; $('viewer').classList.remove('open'); document.body.style.overflow = ''; viewer = null; emit('visor', false); }
   function step(d) {
     if (!viewer) return;
     const entry = viewer.list[viewer.index];
@@ -577,9 +689,15 @@
       if (entry.caption) side.push(`<div class="cap">${esc(entry.caption)}</div>`);
     }
     side.push(`<a class="btn" href="${dlHref(m)}" download>${ICON_DL} Baixar ${m.type === 'video' ? 'vídeo' : 'foto'}</a>`);
+    if (m.type === 'video') {
+      if (m.cover) side.push(`<a class="btn ghost" href="${coverHref(m)}" download>${ICON_IMG} Baixar capa (imagem)</a>`);
+      side.push(`<button class="btn ghost" id="vFrame" title="Pause no quadro que quiser e clique">📸 Salvar quadro atual (PNG)</button>`);
+    }
     if (entry.media.length > 1) side.push(`<button class="btn ghost" id="vZipPost">⬇ Baixar as ${entry.media.length} mídias (.zip)</button>`);
     if (entry.permalink) side.push(`<a class="btn ghost sm" href="${esc(entry.permalink)}" target="_blank" rel="noopener">Abrir post no Instagram ↗</a>`);
     $('vSide').innerHTML = side.join('');
+    const fr = $('vFrame');
+    if (fr) fr.addEventListener('click', () => saveFrame(vid, m));
     const zp = $('vZipPost');
     if (zp) zp.addEventListener('click', async () => {
       zp.disabled = true;
@@ -606,6 +724,10 @@
     else if (e.key === 'ArrowRight') step(1);
     else if (e.key === 'ArrowLeft') step(-1);
   });
+
+  // a vitrine 3D (vitrine.js) lê daqui e chama estas funções
+  window.InstaSaver = { state, proxied, dlHref, coverHref, openViewer, storyList, postList, switchTab, openHighlight, loadMore,
+    fmt: { num: fmtNum, ago, dur: fmtDur, date: fmtDate } };
 
   // Link na URL (?link=...) busca sozinho ao abrir a página.
   const initial = new URLSearchParams(location.search).get('link');

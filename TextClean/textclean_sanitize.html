@@ -4,13 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sanitizador de Texto</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/diff.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -19,7 +22,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -27,7 +30,7 @@
     .back-button:hover { border-color: rgba(34, 197, 94, 0.4); color: #22c55e; transform: translateX(-6px); }
     .logo {
       font-size: 42px; font-weight: 900;
-      background: linear-gradient(135deg, #22c55e 0%, #14b8a6 50%, #3b82f6 100%);
+      background: linear-gradient(135deg, #22c55e 0%, #0f9488 50%, #2dd4bf 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-align: center; margin-bottom: 10px;
     }
@@ -35,7 +38,7 @@
     .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; max-width: 1350px; margin: 0 auto; align-items: start; }
     @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 26px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 24px; padding: 26px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
     }
     h2 { font-size: 15px; color: #f8fafc; margin-bottom: 4px; }
@@ -43,7 +46,7 @@
     h3.section:first-child { margin-top: 0; }
     .op-btn {
       display: block; width: 100%; text-align: left; padding: 10px 14px; margin-bottom: 8px;
-      border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.15); background: rgba(15, 23, 42, 0.6);
+      border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.15); background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1; cursor: pointer; font-size: 12.5px; font-weight: 600; transition: all 0.2s;
     }
     .op-btn:hover { border-color: rgba(34, 197, 94, 0.4); background: rgba(34, 197, 94, 0.08); }
@@ -65,49 +68,51 @@
     .toolbar-btns { display: flex; gap: 8px; }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/textclean'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-diff">
+  <a class="lt-back" href="/textclean" title="Voltar para Text Clean & Diff" aria-label="Voltar para Text Clean & Diff">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🧽 Sanitizador de Texto</div>
-  <div class="tagline">Limpe, ordene e transforme texto em um clique — as operações se aplicam em sequência</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/textclean">Text Clean & Diff</a> / Sanitizador</nav>
+    <h1 class="modo-titulo">Sanitizador</h1>
+    <p class="modo-sub">Limpe, ordene e transforme texto em um clique — as operações se aplicam em sequência</p>
+  </header>
 
   <div class="layout">
     <div class="card">
       <h3 class="section">Linhas</h3>
       <div class="check-row"><input type="checkbox" id="case-insensitive"> Ignorar maiúsc./minúsc.</div>
-      <button class="op-btn" onclick="removeDuplicates()">🗑️ Remover linhas duplicadas</button>
-      <button class="op-btn" onclick="removeEmptyLines()">🚫 Remover linhas vazias</button>
-      <button class="op-btn" onclick="sortLines('alpha-asc')">🔤 Ordenar A→Z</button>
-      <button class="op-btn" onclick="sortLines('alpha-desc')">🔤 Ordenar Z→A</button>
-      <button class="op-btn" onclick="sortLines('num-asc')">🔢 Ordenar numérico ↑</button>
-      <button class="op-btn" onclick="sortLines('num-desc')">🔢 Ordenar numérico ↓</button>
-      <button class="op-btn" onclick="reverseLines()">🔄 Inverter ordem</button>
+      <button class="op-btn" onclick="removeDuplicates()">Remover linhas duplicadas</button>
+      <button class="op-btn" onclick="removeEmptyLines()">Remover linhas vazias</button>
+      <button class="op-btn" onclick="sortLines('alpha-asc')">Ordenar A→Z</button>
+      <button class="op-btn" onclick="sortLines('alpha-desc')">Ordenar Z→A</button>
+      <button class="op-btn" onclick="sortLines('num-asc')">Ordenar numérico ↑</button>
+      <button class="op-btn" onclick="sortLines('num-desc')">Ordenar numérico ↓</button>
+      <button class="op-btn" onclick="reverseLines()">Inverter ordem</button>
 
       <h3 class="section">Espaços</h3>
-      <button class="op-btn" onclick="trimLines()">✂️ Aparar espaços das bordas</button>
-      <button class="op-btn" onclick="collapseSpaces()">🧹 Remover espaços duplos</button>
-      <button class="op-btn" onclick="joinLines()">➡️ Juntar quebras de linha</button>
+      <button class="op-btn" onclick="trimLines()">Aparar espaços das bordas</button>
+      <button class="op-btn" onclick="collapseSpaces()">Remover espaços duplos</button>
+      <button class="op-btn" onclick="joinLines()">Juntar quebras de linha</button>
 
       <h3 class="section">Maiúsculas / Minúsculas</h3>
-      <button class="op-btn" onclick="applyCase('upper')">🔠 UPPERCASE</button>
-      <button class="op-btn" onclick="applyCase('lower')">🔡 lowercase</button>
-      <button class="op-btn" onclick="applyCase('title')">🔤 Title Case</button>
-      <button class="op-btn" onclick="applyCase('camel')">🐫 camelCase</button>
-      <button class="op-btn" onclick="applyCase('slug')">🔗 slug-case</button>
+      <button class="op-btn" onclick="applyCase('upper')">UPPERCASE</button>
+      <button class="op-btn" onclick="applyCase('lower')">lowercase</button>
+      <button class="op-btn" onclick="applyCase('title')">Title Case</button>
+      <button class="op-btn" onclick="applyCase('camel')">camelCase</button>
+      <button class="op-btn" onclick="applyCase('slug')">slug-case</button>
     </div>
 
     <div class="card">
       <div class="toolbar-top">
         <h2 style="margin:0;">Texto</h2>
         <div class="toolbar-btns">
-          <button class="btn-secondary" onclick="undo()">↩️ Desfazer</button>
-          <button class="btn-secondary" onclick="copyText()">📋 Copiar</button>
-          <button class="btn-secondary" onclick="downloadText()">⬇️ Baixar</button>
-          <button class="btn-secondary" onclick="clearText()">🗑️ Limpar</button>
+          <button class="btn-secondary" onclick="undo()">Desfazer</button>
+          <button class="btn-secondary" onclick="copyText()">Copiar</button>
+          <button class="btn-secondary" onclick="downloadText()">Baixar</button>
+          <button class="btn-secondary" onclick="clearText()">Limpar</button>
         </div>
       </div>
       <textarea id="editor" placeholder="Cole seu texto aqui..." spellcheck="false"></textarea>

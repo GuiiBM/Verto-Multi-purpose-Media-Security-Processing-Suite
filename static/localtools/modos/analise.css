@@ -1,0 +1,31 @@
+/* AI Guard & Diff · modo análise: medidor de probabilidade e marca-texto. */
+body.modo-analise { --acc: #2dd4bf; }
+body.modo-analise .modo-cab::after {
+  content: ''; width: 220px; height: 8px; margin-top: 6px; border-radius: 4px;
+  background: linear-gradient(90deg, #34d399, #fbbf24 55%, #f87171);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 8px, transparent 8px 11px);
+  mask: repeating-linear-gradient(90deg, #000 0 8px, transparent 8px 11px);
+}
+body.modo-analise .tool-title {
+  display: inline; padding: 0 2px;
+  background: linear-gradient(transparent 58%, rgba(45, 212, 191, 0.35) 58%);
+}
+body.modo-analise .tool-card::after, body.modo-analise .card::after {
+  content: ''; position: absolute; left: 24px; right: 24px; bottom: 14px; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, #34d399, #fbbf24 55%, #f87171); opacity: 0.35;
+}
+body.modo-analise .card { position: relative; }
+body.modo-analise .tool-card { padding-bottom: 34px; }
+
+body.modo-analise .btn-primary, body.modo-analise button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-analise button[type="submit"], body.modo-analise .action-btn, body.modo-analise .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #0f9488, #0b6f66) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #063b36, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-analise .btn-primary:hover, body.modo-analise button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-analise button[type="submit"]:hover, body.modo-analise .action-btn:hover, body.modo-analise .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-analise .btn-primary:active, body.modo-analise button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-analise button[type="submit"]:active, body.modo-analise .action-btn:active, body.modo-analise .process-btn:active { transform: translateY(2px); }

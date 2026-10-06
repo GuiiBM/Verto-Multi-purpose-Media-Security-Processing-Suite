@@ -219,6 +219,7 @@ def _entry(raw, username, kind):
     if playback:  # vídeo novo, hospedado no Mux
         poster = _https(m.get('poster_url'))
         url, thumb, ext, media_type = playback, poster and _with_query(poster, f'width={THUMB_WIDTH}'), 'mp4', 'video'
+        cover = poster
     else:
         image = _https(m.get('responsive_url'))
         video = _https(m.get('video_url')) if m.get('is_video') else None
@@ -226,6 +227,7 @@ def _entry(raw, username, kind):
         thumb = image and _with_query(image, f'w={THUMB_WIDTH}')
         ext = (os.path.splitext(urlparse(url or '').path)[1].lstrip('.') or 'jpg').lower()
         media_type = 'video' if video else 'image'
+        cover = image if video else None
     meta = _snake(m.get('image_meta'))
     preset = _snake(m.get('preset'))
     camera = ' '.join(x for x in (meta.get('make'), meta.get('model')) if x)
@@ -236,6 +238,7 @@ def _entry(raw, username, kind):
         'hls': bool(playback),
         'url': url,
         'thumb': thumb,
+        'cover': cover,  # capa em tamanho original, para baixar o vídeo como imagem
         'width': m.get('width') or m.get('width_px'),
         'height': m.get('height') or m.get('height_px'),
         'duration': m.get('duration_sec'),

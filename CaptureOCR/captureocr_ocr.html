@@ -4,15 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OCR Local</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/visor.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.08) 0px, transparent 50%);
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(219, 39, 119, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -20,16 +23,16 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
     }
-    .back-button:hover { border-color: rgba(249, 115, 22, 0.4); color: #f97316; transform: translateX(-6px); }
+    .back-button:hover { border-color: rgba(219, 39, 119, 0.4); color: #db2777; transform: translateX(-6px); }
     .back-button.locked { pointer-events: none; opacity: 0.4; }
     .logo {
       font-size: 42px; font-weight: 900;
-      background: linear-gradient(135deg, #f97316 0%, #f59e0b 50%, #ef4444 100%);
+      background: linear-gradient(135deg, #db2777 0%, #f472b6 50%, #ef4444 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-align: center; margin-bottom: 10px;
     }
@@ -37,22 +40,22 @@
     .layout { display: grid; grid-template-columns: 380px 1fr; gap: 20px; max-width: 1300px; margin: 0 auto; align-items: start; }
     @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 26px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 24px; padding: 26px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
     }
     h2 { font-size: 15px; color: #f8fafc; margin-bottom: 16px; }
     label.small { display: block; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 8px; }
     select {
       width: 100%; padding: 10px 12px; border-radius: 10px; margin-bottom: 18px;
-      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
-      color: #e2e8f0; font-family: 'Inter', sans-serif; font-size: 13px;
+      background: rgba(24, 26, 31, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #e2e8f0; font-family: var(--lt-sans); font-size: 13px;
     }
     .upload-area {
       padding: 40px 24px; border-radius: 14px;
-      border: 2px dashed rgba(249, 115, 22, 0.3); background: rgba(15, 23, 42, 0.6);
+      border: 2px dashed rgba(219, 39, 119, 0.3); background: rgba(24, 26, 31, 0.6);
       text-align: center; cursor: pointer; transition: all 0.3s;
     }
-    .upload-area:hover, .upload-area.dragover { border-color: #f97316; background: rgba(249, 115, 22, 0.08); }
+    .upload-area:hover, .upload-area.dragover { border-color: #db2777; background: rgba(219, 39, 119, 0.08); }
     .upload-icon { font-size: 40px; margin-bottom: 10px; }
     .upload-text { color: #cbd5e1; font-size: 13px; }
     input[type="file"] { display: none; }
@@ -63,16 +66,16 @@
     .preview-img.show { display: block; }
     button.action {
       width: 100%; padding: 13px; border-radius: 10px; border: none; cursor: pointer;
-      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #f97316, #ea580c);
+      font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #db2777, #be185d);
       color: white; transition: all 0.25s; margin-top: 18px;
     }
-    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35); }
+    button.action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(219, 39, 119, 0.35); }
     button.action:disabled { opacity: 0.5; cursor: not-allowed; }
     .progress-wrap { margin-top: 18px; display: none; }
     .progress-wrap.show { display: block; }
     .progress-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
-    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
-    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #f97316, #f59e0b); transition: width 0.25s ease; }
+    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(24, 26, 31, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #db2777, #f472b6); transition: width 0.25s ease; }
     .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
     .btn-row { display: flex; gap: 8px; }
     .btn-secondary {
@@ -89,15 +92,17 @@
     .conf-badge { font-size: 12px; color: #64748b; }
   </style>
 </head>
-<body>
-  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/captureocr'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-visor">
+  <a class="lt-back" href="/captureocr" title="Voltar para Capture & OCR" aria-label="Voltar para Capture & OCR">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🔍 OCR Local</div>
-  <div class="tagline">Extraia texto editável de imagens — reconhecimento roda 100% no navegador</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/captureocr">Capture & OCR</a> / OCR local</nav>
+    <h1 class="modo-titulo">OCR local</h1>
+    <p class="modo-sub">Extraia texto editável de imagens — reconhecimento roda 100% no navegador</p>
+  </header>
 
   <div class="layout">
     <div class="card">
@@ -111,13 +116,13 @@
       </select>
 
       <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
-        <div class="upload-icon">📷</div>
+        <div class="upload-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34ZM48,46H208a2,2,0,0,1,2,2V154H179.31a13.9,13.9,0,0,0-9.89,4.1L150.1,177.41a2,2,0,0,1-1.41.59H107.31a2,2,0,0,1-1.41-.59L86.59,158.1a13.94,13.94,0,0,0-9.9-4.1H46V48A2,2,0,0,1,48,46ZM208,210H48a2,2,0,0,1-2-2V166H76.69a2,2,0,0,1,1.41.59L97.41,185.9a13.94,13.94,0,0,0,9.9,4.1h41.38a13.9,13.9,0,0,0,9.89-4.1l19.32-19.31a2,2,0,0,1,1.41-.59H210v42A2,2,0,0,1,208,210ZM91.76,108.24a6,6,0,0,1,0-8.48l32-32a6,6,0,0,1,8.48,0l32,32a6,6,0,1,1-8.48,8.48L134,86.49V152a6,6,0,0,1-12,0V86.49l-21.76,21.75A6,6,0,0,1,91.76,108.24Z"/></svg></div>
         <div class="upload-text">Clique ou arraste uma imagem (print, recibo, foto de página)</div>
       </div>
       <input type="file" id="file-input" accept="image/*">
       <img class="preview-img" id="preview-img">
 
-      <button class="action" id="run-btn" onclick="runOCR()" disabled>🔍 Extrair texto</button>
+      <button class="action" id="run-btn" onclick="runOCR()" disabled>Extrair texto</button>
 
       <div class="progress-wrap" id="progress-wrap">
         <div class="progress-label"><span id="progress-stage">Preparando...</span><span id="progress-pct">0%</span></div>
@@ -130,8 +135,8 @@
         <h2 style="margin:0;">Texto extraído</h2>
         <div class="btn-row">
           <span class="conf-badge" id="conf-badge"></span>
-          <button class="btn-secondary" onclick="copyText()">📋 Copiar</button>
-          <button class="btn-secondary" onclick="downloadText()">⬇️ Baixar .txt</button>
+          <button class="btn-secondary" onclick="copyText()">Copiar</button>
+          <button class="btn-secondary" onclick="downloadText()">Baixar .txt</button>
         </div>
       </div>
       <textarea id="output" placeholder="O texto reconhecido aparece aqui, editável..." spellcheck="false"></textarea>

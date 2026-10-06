@@ -4,442 +4,190 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Instruções - LocalTools</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%);
-      color: #e2e8f0;
-      min-height: 100vh;
-      padding: 40px 15px;
-      padding-top: 100px;
-    }
-    .back-button {
-      position: fixed;
-      top: 24px;
-      left: 24px;
-      width: 56px;
-      height: 56px;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(40px);
-      border-radius: 16px;
-      border: 1.5px solid rgba(148, 163, 184, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      z-index: 1000;
-      color: #cbd5e1;
-      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
-    }
-    .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(34, 197, 94, 0.4);
-      color: #22c55e;
-      transform: translateX(-6px);
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .logo {
-      font-size: 48px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-align: center;
-      margin-bottom: 10px;
-      letter-spacing: 8px;
-    }
-    .tagline {
-      text-align: center;
-      color: #64748b;
-      font-size: 15px;
-      margin-bottom: 32px;
-      font-weight: 500;
-    }
+    html { overflow-x: clip; }
+    body { min-height: 100vh; padding: 28px 16px 40px; }
+    body > * { position: relative; z-index: 1; }
+    .container { max-width: 1120px; margin: 0 auto; }
+
+    .topo { display: flex; justify-content: center; margin-bottom: 26px; }
+    .lt-head { margin-bottom: 30px; }
 
     /* ---------- Busca e filtros (fixos no topo ao rolar) ---------- */
     .search-wrap {
       position: sticky;
       top: 0;
       z-index: 50;
-      margin: 0 -15px 32px;
-      padding: 16px 15px 14px;
-      background: rgba(10, 15, 30, 0.9);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      margin: 0 -16px 34px;
+      padding: 14px 16px 12px;
+      background: rgba(11, 12, 15, 0.82);
+      backdrop-filter: blur(22px) saturate(140%);
+      -webkit-backdrop-filter: blur(22px) saturate(140%);
+      border-bottom: 1px solid var(--lt-line);
     }
     .search-box {
       display: flex;
       align-items: center;
       gap: 12px;
-      height: 56px;
+      height: 54px;
       padding: 0 12px 0 18px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1.5px solid rgba(148, 163, 184, 0.15);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--lt-line);
       border-radius: 16px;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: var(--lt-shadow);
+      transition: border-color var(--lt-dur) var(--lt-ease-out), box-shadow var(--lt-dur) var(--lt-ease-out);
     }
-    .search-box:focus-within {
-      border-color: rgba(34, 197, 94, 0.5);
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
-    }
-    .search-box svg { flex-shrink: 0; color: #64748b; }
-    .search-box input {
-      flex: 1;
-      min-width: 0;
-      background: none;
-      border: 0;
-      outline: 0;
-      color: #f8fafc;
-      font: 500 16px 'Inter', sans-serif;
-    }
-    .search-box input::placeholder { color: #64748b; }
+    .search-box:hover { border-color: var(--lt-line-2); }
+    .search-box:focus-within { border-color: rgba(74, 222, 128, 0.5); box-shadow: 0 0 0 4px var(--lt-ring), var(--lt-shadow); }
+    .search-box svg { flex-shrink: 0; color: var(--lt-faint); }
+    .search-box:focus-within svg { color: var(--lt-green); }
+    .search-box input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--lt-ink); font: 450 16px var(--lt-sans); }
+    .search-box input::placeholder { color: var(--lt-faint); }
     .search-box input::-webkit-search-cancel-button { display: none; }
-    .kbd {
-      flex-shrink: 0;
-      font: 600 12px 'Inter', sans-serif;
-      color: #64748b;
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 6px;
-      padding: 3px 8px;
-    }
+    .kbd { flex-shrink: 0; font: 500 12px var(--lt-mono); color: var(--lt-faint); border: 1px solid var(--lt-line-2); border-bottom-width: 2px; border-radius: 7px; padding: 2px 8px; }
     .clear-btn {
-      flex-shrink: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border: 0;
-      border-radius: 8px;
-      background: rgba(148, 163, 184, 0.1);
-      color: #cbd5e1;
-      cursor: pointer;
-      font-size: 14px;
+      flex-shrink: 0; display: none; align-items: center; justify-content: center; width: 32px; height: 32px; border: 0;
+      border-radius: 9px; background: rgba(255, 255, 255, 0.06); color: var(--lt-muted); cursor: pointer; font-size: 14px;
     }
-    .clear-btn:hover { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .clear-btn:hover { background: rgba(248, 113, 113, 0.15); color: var(--lt-danger); }
     .search-box.has-value .clear-btn { display: flex; }
     .search-box.has-value .kbd { display: none; }
 
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
     .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.15);
-      background: rgba(15, 23, 42, 0.6);
-      color: #94a3b8;
-      font: 600 13px 'Inter', sans-serif;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
+      --hue: var(--lt-green);
+      display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 5px 11px 5px 9px; border-radius: 999px;
+      border: 1px solid var(--lt-line); background: rgba(255, 255, 255, 0.025); color: var(--lt-muted);
+      font: 500 13px var(--lt-sans); cursor: pointer; white-space: nowrap;
+      transition: color var(--lt-dur-fast) var(--lt-ease-out), border-color var(--lt-dur-fast) var(--lt-ease-out), background-color var(--lt-dur-fast) var(--lt-ease-out);
     }
-    .chip:hover { border-color: rgba(34, 197, 94, 0.35); color: #e2e8f0; }
-    .chip.active {
-      background: rgba(34, 197, 94, 0.14);
-      border-color: rgba(34, 197, 94, 0.5);
-      color: #4ade80;
-    }
+    .chip:hover { color: var(--lt-ink); border-color: color-mix(in srgb, var(--hue) 45%, transparent); }
+    .chip.active { color: #fff; border-color: color-mix(in srgb, var(--hue) 70%, transparent); background: color-mix(in srgb, var(--hue) 16%, transparent); }
+    .chip:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; }
     .chip.no-results { opacity: 0.4; }
-    .chip-count {
-      font-size: 11px;
-      padding: 1px 7px;
-      border-radius: 999px;
-      background: rgba(148, 163, 184, 0.12);
-    }
-    .chip.active .chip-count { background: rgba(34, 197, 94, 0.2); }
-    .search-info {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #64748b;
-    }
-    .search-info strong { color: #cbd5e1; font-weight: 600; }
+    .chip-count { font: 500 11px var(--lt-mono); color: var(--lt-faint); }
+    .chip.active .chip-count { color: color-mix(in srgb, var(--hue) 70%, #fff); }
+    .search-info { margin-top: 10px; font-size: 13px; color: var(--lt-faint); }
+    .search-info strong { color: var(--lt-ink); font-weight: 600; }
     .example {
-      background: none;
-      border: 0;
-      padding: 0;
-      color: #94a3b8;
-      font: inherit;
-      text-decoration: underline dotted rgba(148, 163, 184, 0.5);
-      text-underline-offset: 3px;
-      cursor: pointer;
+      background: none; border: 0; padding: 0; color: var(--lt-muted); font: inherit; cursor: pointer;
+      text-decoration: underline dotted rgba(255, 255, 255, 0.3); text-underline-offset: 3px;
     }
-    .example:hover { color: #4ade80; }
+    .example:hover { color: var(--lt-green); }
 
     /* ---------- Categorias ---------- */
-    .category {
-      margin-bottom: 48px;
-      scroll-margin-top: 190px;
-    }
-    .category-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin: 0 4px 18px;
-    }
-    .category-icon {
-      flex-shrink: 0;
-      width: 52px;
-      height: 52px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      background: rgba(34, 197, 94, 0.08);
-      border: 1px solid rgba(34, 197, 94, 0.2);
-      border-radius: 14px;
-    }
-    .category-title {
-      font-size: 22px;
-      font-weight: 800;
-      color: #f8fafc;
-    }
-    .category-desc {
-      font-size: 14px;
-      color: #64748b;
-      margin-top: 2px;
-    }
+    .category { margin-bottom: 52px; scroll-margin-top: 190px; }
+    .category-header { display: flex; align-items: center; gap: 16px; margin: 0 4px 20px; }
+    .category-title { font-size: 24px; font-weight: 720; letter-spacing: -0.025em; color: var(--lt-ink); }
+    .category-desc { font-size: 14px; color: var(--lt-muted); margin-top: 3px; }
     .category-count {
-      margin-left: auto;
-      flex-shrink: 0;
-      font-size: 12px;
-      font-weight: 600;
-      color: #94a3b8;
-      background: rgba(148, 163, 184, 0.08);
-      padding: 6px 12px;
-      border-radius: 999px;
+      margin-left: auto; flex-shrink: 0; font: 500 12px var(--lt-mono); color: color-mix(in srgb, var(--hue) 75%, #fff);
+      border: 1px solid color-mix(in srgb, var(--hue) 35%, transparent); background: color-mix(in srgb, var(--hue) 9%, transparent);
+      padding: 5px 11px; border-radius: 999px;
     }
 
     /* ---------- Cartão de app ---------- */
     .app-section {
-      background: rgba(15, 23, 42, 0.4);
-      border-radius: 20px;
-      padding: 32px;
-      margin-bottom: 20px;
-      border: 1px solid rgba(148, 163, 184, 0.08);
-      backdrop-filter: blur(40px);
-      scroll-margin-top: 190px;
-    }
-    .app-section:target { border-color: rgba(34, 197, 94, 0.4); }
-    .app-header {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
+      position: relative;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
+      border: 1px solid var(--lt-line);
+      border-radius: 22px;
+      padding: 28px;
       margin-bottom: 16px;
+      box-shadow: var(--lt-shadow);
+      scroll-margin-top: 190px;
+      overflow: hidden;
     }
-    .app-icon {
-      font-size: 44px;
-      line-height: 1;
+    /* filete na cor do grupo, no topo do cartão */
+    .app-section::before {
+      content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--hue) 80%, transparent), transparent);
+      opacity: 0.7;
     }
-    .app-heading {
-      flex: 1;
-      min-width: 0;
-    }
-    .app-title {
-      font-size: 26px;
-      font-weight: 700;
-      color: #f8fafc;
-    }
-    .app-subtitle {
-      font-size: 14px;
-      color: #94a3b8;
-      margin-top: 2px;
-    }
-    .open-app {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border-radius: 12px;
-      background: rgba(34, 197, 94, 0.1);
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      color: #4ade80;
-      font-size: 14px;
-      font-weight: 600;
-      text-decoration: none;
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-    .open-app:hover { background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.6); }
-    .badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .badge {
-      font-size: 12px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid;
-    }
-    .badge-navegador { color: #4ade80; border-color: rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.08); }
-    .badge-downloads { color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.08); }
-    .badge-internet { color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.08); }
-    .badge-ia { color: #f0abfc; border-color: rgba(217, 70, 239, 0.3); background: rgba(217, 70, 239, 0.08); }
-    .badge-instalacao { color: #fb923c; border-color: rgba(249, 115, 22, 0.3); background: rgba(249, 115, 22, 0.08); }
-    .badge-login { color: #f472b6; border-color: rgba(236, 72, 153, 0.3); background: rgba(236, 72, 153, 0.08); }
-    .app-description {
-      font-size: 15px;
-      color: #94a3b8;
-      line-height: 1.8;
-      margin-bottom: 20px;
-    }
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-      gap: 12px;
-    }
+    .app-section:target { border-color: color-mix(in srgb, var(--hue) 55%, transparent); }
+    .app-header { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+    .app-heading { flex: 1; min-width: 0; }
+    .app-title { font-size: 25px; font-weight: 720; letter-spacing: -0.025em; color: var(--lt-ink); }
+    .app-subtitle { font-size: 14px; color: var(--lt-muted); margin-top: 3px; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .badge { font-size: 12px; font-weight: 550; padding: 4px 10px; border-radius: 999px; border: 1px solid; }
+    .badge-navegador { color: #86efac; border-color: rgba(74, 222, 128, 0.3); background: rgba(74, 222, 128, 0.07); }
+    .badge-downloads { color: #93c5fd; border-color: rgba(96, 165, 250, 0.3); background: rgba(96, 165, 250, 0.07); }
+    .badge-documentos { color: #6ee7b7; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.07); }
+    .badge-internet { color: #fcd34d; border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.07); }
+    .badge-ia { color: #f0abfc; border-color: rgba(217, 70, 239, 0.3); background: rgba(217, 70, 239, 0.07); }
+    .badge-instalacao { color: #fdba74; border-color: rgba(251, 146, 60, 0.3); background: rgba(251, 146, 60, 0.07); }
+    .badge-login { color: #f9a8d4; border-color: rgba(244, 114, 182, 0.3); background: rgba(244, 114, 182, 0.07); }
+    .badge-whatsapp { color: #86efac; border-color: rgba(74, 222, 128, 0.3); background: rgba(74, 222, 128, 0.07); }
+    .app-description { font-size: 15px; color: #b3b9c3; line-height: 1.75; margin-bottom: 20px; max-width: 78ch; }
+    .features { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 10px; }
     .feature {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px;
-      background: rgba(15, 23, 42, 0.6);
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.1);
-      color: inherit;
-      text-decoration: none;
-      transition: border-color 0.2s, background 0.2s;
+      display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px;
+      background: rgba(255, 255, 255, 0.025); border: 1px solid var(--lt-line); border-radius: 14px;
+      color: inherit; text-decoration: none;
+      transition: border-color var(--lt-dur-fast) var(--lt-ease-out), background-color var(--lt-dur-fast) var(--lt-ease-out), transform var(--lt-dur-fast) var(--lt-ease-out);
     }
-    a.feature:hover {
-      border-color: rgba(34, 197, 94, 0.35);
-      background: rgba(15, 23, 42, 0.85);
-    }
-    .feature-icon {
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-    .feature-text {
-      flex: 1;
-      min-width: 0;
-    }
-    .feature-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #cbd5e1;
-      margin-bottom: 4px;
-    }
-    .feature-desc {
-      font-size: 13px;
-      color: #64748b;
-      line-height: 1.6;
-    }
-    .feature-go {
-      flex-shrink: 0;
-      font-size: 14px;
-      color: #475569;
-      transition: color 0.2s;
-    }
-    a.feature:hover .feature-go { color: #4ade80; }
-    .sub-section {
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(148, 163, 184, 0.1);
-    }
-    .sub-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #cbd5e1;
-      margin-bottom: 12px;
-    }
+    a.feature:hover { border-color: color-mix(in srgb, var(--hue) 45%, transparent); background: rgba(255, 255, 255, 0.045); transform: translateY(-1px); }
+    a.feature:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; }
+    .feature-icon { font-size: 19px; flex-shrink: 0; line-height: 1.2; }
+    .feature-text { flex: 1; min-width: 0; }
+    .feature-title { font-size: 14px; font-weight: 620; color: var(--lt-ink); margin-bottom: 4px; }
+    .feature-desc { font-size: 13px; color: var(--lt-muted); line-height: 1.6; }
+    .feature-go { flex-shrink: 0; font-size: 14px; color: var(--lt-faint); transition: color var(--lt-dur-fast) var(--lt-ease-out); }
+    a.feature:hover .feature-go { color: var(--hue); }
+    .sub-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--lt-line); }
+    .sub-title { font-size: 15px; font-weight: 620; color: var(--lt-ink); margin-bottom: 12px; }
     .note {
-      margin-top: 16px;
-      padding: 14px 16px;
-      border-radius: 12px;
-      background: rgba(59, 130, 246, 0.06);
-      border: 1px solid rgba(59, 130, 246, 0.18);
-      color: #94a3b8;
-      font-size: 13px;
-      line-height: 1.7;
+      margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: rgba(96, 165, 250, 0.06);
+      border: 1px solid rgba(96, 165, 250, 0.18); color: #b3b9c3; font-size: 13px; line-height: 1.7;
     }
-    .note strong { color: #cbd5e1; }
+    .note strong { color: var(--lt-ink); }
     .show-all {
-      margin-top: 14px;
-      width: 100%;
-      padding: 10px 14px;
-      background: none;
-      border: 1px dashed rgba(148, 163, 184, 0.25);
-      border-radius: 10px;
-      color: #94a3b8;
-      font: 600 13px 'Inter', sans-serif;
-      cursor: pointer;
-      transition: all 0.2s;
+      margin-top: 14px; width: 100%; min-height: 42px; padding: 10px 14px; background: none;
+      border: 1px dashed var(--lt-line-2); border-radius: 12px; color: var(--lt-muted); font: 550 13px var(--lt-sans); cursor: pointer;
+      transition: border-color var(--lt-dur-fast) var(--lt-ease-out), color var(--lt-dur-fast) var(--lt-ease-out);
     }
-    .show-all:hover { border-color: rgba(34, 197, 94, 0.5); color: #4ade80; }
-    mark {
-      background: rgba(34, 197, 94, 0.28);
-      color: #f8fafc;
-      border-radius: 3px;
-      padding: 0 1px;
-    }
+    .show-all:hover { border-color: color-mix(in srgb, var(--hue) 55%, transparent); color: var(--lt-ink); }
+    mark { background: rgba(74, 222, 128, 0.25); color: #fff; border-radius: 3px; padding: 0 1px; }
 
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #64748b;
-    }
-    .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state-title { font-size: 18px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--lt-muted); }
+    .empty-state .lt-key { margin: 0 auto 16px; }
+    .empty-state-title { font-size: 18px; font-weight: 620; color: var(--lt-ink); margin-bottom: 8px; }
     .empty-state p { font-size: 14px; line-height: 1.7; }
-    .empty-state button {
-      margin-top: 16px;
-      padding: 10px 18px;
-      border-radius: 12px;
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      background: rgba(34, 197, 94, 0.1);
-      color: #4ade80;
-      font: 600 14px 'Inter', sans-serif;
-      cursor: pointer;
-    }
+    .empty-state button { margin-top: 16px; }
 
-    /* Em telas menores o botão de voltar sairia por cima da busca fixa */
-    @media (max-width: 1360px) {
-      .back-button { position: absolute; }
-    }
     @media (max-width: 640px) {
-      body { padding-top: 96px; }
-      .logo { font-size: 36px; letter-spacing: 6px; }
+      body { padding-top: 76px; }
       .kbd { display: none; }
       .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
       .chips::-webkit-scrollbar { display: none; }
       .category-header { align-items: flex-start; }
-      .category-icon { width: 44px; height: 44px; font-size: 22px; }
-      .category-title { font-size: 19px; }
+      .category-title { font-size: 20px; }
       .category-count { display: none; }
-      .app-section { padding: 20px; border-radius: 16px; }
-      .app-icon { font-size: 36px; }
+      .app-section { padding: 20px; border-radius: 18px; }
       .app-title { font-size: 21px; }
-      .open-app { width: 100%; justify-content: center; }
+      .open-app { width: 100%; }
     }
   </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-manual.css">
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body tema-manual">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
   <div class="container">
-    <div class="logo">LOCALTOOLS</div>
-    <div class="tagline" id="tagline">Guia Completo de Funcionalidades</div>
+    <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+    <header class="lt-head">
+      <span class="lt-key lg" style="--hue: var(--lt-cat-ajuda)"><img src="/static/localtools/apps/instructions.webp" alt="" width="76" height="76"></span>
+      <h1>Instruções</h1>
+      <p id="tagline">O guia completo de cada app: o que ele faz, como usar e onde os arquivos vão parar.</p>
+    </header>
 
     <div class="search-wrap">
       <label class="search-box" id="search-box">
@@ -467,13 +215,14 @@
     // ({icon, title, desc, url?}). "keywords" não aparece na tela, só entra na
     // busca (sinônimos, termos em inglês etc.); "badges" usa as chaves de BADGES.
     const BADGES = {
-      navegador: '🌐 Roda no navegador',
-      downloads: '💾 Salva em Downloads',
-      internet: '📶 Requer internet',
-      ia: '🤖 Usa IA',
-      instalacao: '📦 IA opcional: instalação extra',
-      login: '🔑 Requer login no Instagram',
-      whatsapp: '📱 Conecta ao seu WhatsApp',
+      navegador: 'Roda no navegador',
+      downloads: 'Salva em Downloads',
+      documentos: 'Organiza em Documentos',
+      internet: 'Requer internet',
+      ia: 'Usa IA',
+      instalacao: 'IA opcional: instalação extra',
+      login: 'Requer login no Instagram',
+      whatsapp: 'Conecta ao seu WhatsApp',
     };
 
     const CATEGORIAS = [
@@ -508,7 +257,7 @@
               { icon: '👤', title: 'Foto de Perfil', desc: 'Baixe a foto de perfil ou abra o perfil direto no Instagram.' },
               { icon: '🔍', title: 'Visualizador', desc: 'Abra fotos e vídeos em tela cheia e navegue entre eles pelas setas ‹ ›, baixando um a um.' },
             ],
-            note: 'É preciso estar <strong>logado no Instagram em um navegador desta máquina</strong> (Chrome, Firefox, Chromium, Brave, Edge, Opera ou Vivaldi): o app reaproveita essa sessão e só mostra o que a sua conta já pode ver. Para escolher o navegador, defina a variável <strong>INSTASAVER_BROWSER</strong>; para usar um cookies.txt exportado, defina <strong>INSTASAVER_COOKIES</strong>. No Linux, ler a sessão do Chrome exige o pacote secretstorage (já está no requirements.txt).',
+            note: 'Os downloads continuam indo para a pasta <strong>Downloads</strong>; com o Verto ligado, as <strong>Automações</strong> levam cada um para <strong>Documentos/Instagram/&lt;Perfil&gt;</strong>, separado em Stories, Destaques, Posts e Reels (ZIPs são abertos sozinhos). É preciso estar <strong>logado no Instagram em um navegador desta máquina</strong> (Chrome, Firefox, Chromium, Brave, Edge, Opera ou Vivaldi): o app reaproveita essa sessão e só mostra o que a sua conta já pode ver. Para escolher o navegador, defina a variável <strong>INSTASAVER_BROWSER</strong>; para usar um cookies.txt exportado, defina <strong>INSTASAVER_COOKIES</strong>. No Linux, ler a sessão do Chrome exige o pacote secretstorage (já está no requirements.txt).',
           },
           {
             id: 'vscosaver', icon: '🎞️', name: 'VscoSaver', subtitle: 'Galeria, coleção e spaces do VSCO', url: '/vscosaver',
@@ -543,13 +292,32 @@
             note: 'Nada é salvo no computador sem você pedir: para mostrar uma mídia o app usa um cache temporário do sistema (whatssaver_cache, limpo sozinho). A conexão usa uma ponte em <strong>Node.js</strong> (biblioteca Baileys): o INSTALAR.py prepara tudo e baixa um Node portátil se não houver um, ou use o botão “Instalar agora” no próprio app. A sessão fica em <strong>WhatsSaver/dados</strong> — essa pasta dá acesso à sua conta, não compartilhe. O celular precisa estar ligado e com internet para buscar mensagens antigas e reenviar mídias que saíram do servidor. É um cliente não oficial (como os baseados no WhatsApp Web): só lê, mas o WhatsApp não dá garantia para esse tipo de uso.',
           },
           {
+            id: 'automacoes', icon: '🗂️', name: 'Automações', subtitle: 'Organizador do InstaSaver (Downloads → Documentos) e editor de vídeo', url: '/automacoes',
+            badges: ['documentos'],
+            keywords: 'automacao automatico organizar organizador separar separador pasta pastas mover instasaver vscosaver instagram vsco perfil perfis stories destaques posts reels zip extrair documentos downloads vigia',
+            desc: 'Com o Verto ligado, cada download do InstaSaver e do VscoSaver é levado de Downloads para Documentos/Instagram, uma pasta por perfil com Stories, Destaques, Posts, Reels, Fotos de Perfil e VSCO. Os downloads em si continuam indo para Downloads.',
+            features: [
+              { icon: '👀', title: 'Só Quando Há Download', kw: 'automatico downloads monitorar vigia cpu', desc: 'Nada fica olhando a pasta: ela só é conferida quando o InstaSaver/VscoSaver termina de entregar um download, quando o Verto liga (pega o que chegou com ele desligado) e ao clicar em “Organizar agora”. Espera o navegador terminar de gravar (ignora .crdownload e .part) antes de mexer. Desligue o “Automático” para organizar só pelo botão.' },
+              { icon: '🎯', title: 'Só Mexe no que é do InstaSaver', kw: 'seguro filtro', desc: 'Reconhece o padrão de nome dos dois apps (usuario_story_data_hora_id.mp4, usuario_perfil.jpg, usuario_destaque_Título.zip...). O resto de Downloads (PDFs, instaladores, .dxf, outros ZIPs) nunca é tocado.' },
+              { icon: '📦', title: 'ZIPs Abertos com Segurança', kw: 'extrair descompactar', desc: 'Confere a integridade, bloqueia caminhos maliciosos (../), limita o tamanho, abre ZIP dentro de ZIP e o título do destaque vira subpasta (Destaques/Viagem). O ZIP só vai para a lixeira depois de conferir que todos os arquivos chegaram; se algo falhar, ele fica intacto.' },
+              { icon: '♻️', title: 'Sem Duplicar', kw: 'duplicado copia hash', desc: 'Arquivo com o mesmo nome e o mesmo conteúdo (SHA-256) é cópia e é descartado, inclusive o “(1)” que o navegador cria. Conteúdo diferente vira “nome (2).mp4”: nada é sobrescrito.' },
+              { icon: '👤', title: 'perfis.txt', kw: 'nome pasta renomear apelido', desc: 'Lista editável (na tela ou à mão) com uma linha por perfil: @perfil = Nome da pasta. @ novo ganha um nome limpo (@gbm.clicks → Gbm Clicks) e entra sozinho. Mude o nome para renomear a pasta, ou renomeie a pasta no gerenciador de arquivos e o app atualiza a lista.' },
+              { icon: '🔗', title: 'Vários @ na Mesma Pasta', kw: 'vsco instagram mesma pessoa', desc: 'O Instagram e o VSCO da mesma pessoa podem apontar para a mesma pasta. Trocar o nome de um deles depois leva os arquivos dele para a pasta nova.' },
+              { icon: '🗂️', title: 'Importar Pastas Já Separadas', kw: 'migrar mover antigas', desc: 'Pastas que você já tinha montado em Downloads vão inteiras: o nome que você deu vira o nome do perfil, subpastas suas continuam, e arquivos sem @ (SaveClip, .enc) vão para Outros.' },
+              { icon: '🧾', title: 'Registro', kw: 'historico log erro', desc: 'Mostra o que foi feito (“12 arquivos de @gbm.clicks → Gbm Clicks/Stories”) e o motivo de qualquer falha. Arquivos sem @ reconhecível vão para _Revisar, nunca se perdem.' },
+            ],
+            note: 'O padrão é <strong>Downloads → Documentos/Instagram</strong> (a pasta Documentos do sistema, “Documentos” no Linux em português); dá para trocar as duas em “Alterar pastas”. O <strong>perfis.txt</strong> fica dentro do destino e cada pasta de perfil tem um arquivo oculto <strong>.verto_perfil</strong> com o @ dela (não apague: é por ele que o app reconhece a pasta renomeada). Configuração e registro ficam em <strong>Automacoes/dados/</strong>. Para os ZIPs irem para a lixeira em vez de serem apagados, o requirements.txt inclui o Send2Trash.',
+          },
+          {
             id: 'purpleflix', icon: '🎮', name: 'PurpleFlix', subtitle: 'Plataforma de streaming', url: '/purpleflix',
             badges: ['internet'],
             keywords: 'filmes series assistir player video',
-            desc: 'Abre a plataforma de streaming PurpleFlix dentro do LocalTools ou em uma nova aba.',
+            desc: 'Abre a plataforma de streaming PurpleFlix numa sala de cinema em 3D, com o site de verdade na tela, ou em uma nova aba.',
             features: [
-              { icon: '📺', title: 'Prévia Integrada', desc: 'O PurpleFlix roda em um quadro dentro da página, com suporte a tela cheia.' },
-              { icon: '↗️', title: 'Abrir em Nova Aba', desc: 'O botão “Acessar PurpleFlix” abre o site completo (purpleflix3.vercel.app).' },
+              { icon: '🎬', title: 'Sala de Cinema 3D', desc: 'Poltronas de veludo, cortinas que abrem quando a sessão carrega, teto de estrelas e o site da PurpleFlix projetado na tela. Mova o mouse para olhar a sala.' },
+              { icon: '📺', title: 'Assistir', desc: 'A câmera vai até a tela e as luzes apagam: o site fica grande, nítido e clicável. Esc volta à poltrona. No celular, abre em tela cheia.' },
+              { icon: '💡', title: 'Luzes da Sala', desc: 'Apague ou acenda as luzes quando quiser; com a sala no escuro, só o brilho da tela ilumina as poltronas.' },
+              { icon: '↗️', title: 'Abrir em Nova Aba', desc: 'Abre o site completo (purpleflix3.vercel.app) fora do LocalTools.' },
             ],
           },
         ],
@@ -659,6 +427,25 @@
               { icon: '⚙️', title: 'Parâmetros da IA', desc: 'Denoising Strength (recomendado 0,55–0,70: abaixo de 0,50 quase não muda, acima de 0,75 a IA ignora o rosto), ControlNet Weight, Sampling Steps, CFG Scale e Seed opcional.' },
             ],
             note: 'O filtro rápido funciona na hora. A IA generativa precisa de dependências pesadas: <strong>pip install -r MatchaEffect/requirements_ai.txt</strong>. Ela baixa vários GB de modelo na primeira geração e, sem GPU NVIDIA, cada imagem pode levar minutos. Como a difusão não tem “desfazer”, a remoção só é exata se você guardou o arquivo original.',
+          },
+          {
+            id: 'editor', icon: '✂️', name: 'Editor de Vídeo', subtitle: 'Corta pausas e retomadas, legenda e enquadra para Reels', url: '/automacoes/editor',
+            badges: ['ia', 'downloads'],
+            keywords: 'editor video editar reels shorts tiktok youtube cortar pausas silencio jump cut retomada erro legenda legendar karaoke whisper transcrever enquadrar vertical 9x16 4x5 1x1 16x9 rosto zoom loudnorm lufs volume automatico',
+            desc: 'Envie a gravação (ou aponte o arquivo no computador) e o editor transcreve palavra por palavra, corta as pausas no ritmo escolhido, tira as frases que você repetiu, legenda com a palavra falada em destaque e enquadra no formato do Reels, do feed ou do YouTube, com uma única codificação.',
+            features: [
+              { icon: '🎙️', title: 'Transcrição Palavra por Palavra', kw: 'whisper faster-whisper texto', desc: 'faster-whisper no CPU, com filtro de voz e o tempo de cada palavra. Três modelos: rápido (base), equilibrado (small) e preciso (medium). Frases que o Whisper “inventa” em cima de música (“Legendas por…”) são descartadas.' },
+              { icon: '✂️', title: 'Cortes no Ritmo Certo', kw: 'pausa silencio jump cut natural dinamico agressivo', desc: 'Natural (pausas acima de 0,7 s), Dinâmico (0,4 s) ou Agressivo (0,25 s), sempre com folga para não comer o começo ou o fim das palavras. Os tempos são conferidos com o silencedetect do FFmpeg, porque o Whisper às vezes estica a palavra por cima do silêncio.' },
+              { icon: '🔁', title: 'Retomadas', kw: 'erro repetir frase de novo', desc: 'Quando você erra e repete a frase, as duas versões parecidas são reconhecidas e fica só a última.' },
+              { icon: '👀', title: 'Revisão Antes de Exportar', kw: 'linha do tempo timeline corrigir', desc: 'Linha do tempo com cada corte colorido, prévia que pula os cortes, transcrição clicável: corrija uma palavra (clique duplo), remova um trecho (selecione e Delete) ou mantenha uma pausa. No modo automático essa etapa é pulada.' },
+              { icon: '🔤', title: 'Legenda Animada', kw: 'legenda karaoke srt ass montserrat', desc: 'Blocos de 2 a 4 palavras, quebrando na pontuação, com a palavra falada em destaque (Clássico, Caixa ou Minimal) em Montserrat, acima da faixa onde o Instagram põe botões e descrição. O .srt sai separado.' },
+              { icon: '🧑', title: 'Enquadramento', kw: 'rosto face vertical crop desfocado blur', desc: 'Formatos 9:16, 4:5, 1:1, 16:9 ou largura × altura. Segue o rosto (YuNet) com uma posição fixa por trecho, que não treme, centraliza ou põe o vídeo inteiro sobre o fundo desfocado.' },
+              { icon: '🔍', title: 'Zoom Alternado', kw: 'zoom punch in', desc: 'Nos ritmos Dinâmico e Agressivo, um trecho em 100% e o seguinte em 108% disfarçam o pulo do corte.' },
+              { icon: '🔊', title: 'Áudio de Rede Social', kw: 'volume lufs loudnorm ruido demucs', desc: 'Microfades de 10 ms em cada corte (sem estalo), passa-alta, compressão leve e loudnorm em duas passadas para -14 LUFS. O Demucs pode isolar a voz antes da análise para gravações com música ou barulho.' },
+              { icon: '📦', title: 'Saídas e Reabrir', kw: 'exportar formato json', desc: 'Sai em Downloads como “gravacao (Reels 9x16).mp4” (H.264 CRF 19, AAC, +faststart), com o .srt e o .cortes.json. Exporte de novo em outro formato sem refazer a análise, ou reabra a edição depois enviando o vídeo e o .cortes.json.' },
+              { icon: '📥', title: 'Pasta de Entrada e Presets', kw: 'automatico lote preset', desc: 'Salve presets e marque um para a pasta Documentos/Verto Editor/Entrada: os vídeos dela saem sozinhos, sem revisão. A pasta é conferida quando o Verto liga e no botão “Processar agora”.' },
+            ],
+            note: 'Tudo roda neste computador. Na primeira vez o modelo do Whisper é baixado (o equilibrado tem ~460 MB) e fica no cache. Num processador de 8 núcleos, 30 s de fala levam ~15 s para analisar e ~10 s para renderizar. Vídeo de celular com fps variável e girado é tratado sozinho. Precisa do <strong>FFmpeg</strong> e dos pacotes <strong>faster-whisper</strong> e <strong>opencv-python-headless</strong> (já no INSTALAR.py).',
           },
           {
             id: 'efeitos', icon: '🪄', name: 'Efeitos', subtitle: '43 efeitos para fotos e vídeos, dos clássicos aos engraçados', url: '/efeitos',
@@ -927,6 +714,24 @@
             ],
           },
           {
+            id: 'encurtador', icon: '🔗', name: 'Encurtador', subtitle: 'Links curtos GBM que funcionam em qualquer lugar', url: '/encurtador',
+            badges: ['internet'],
+            keywords: 'encurtar encurtador link curto url short shortener bitly qr utm cliques estatisticas cloudflare workers pages',
+            desc: 'Encurte links com o padrão GBM (gbm.pages.dev/x7k2pq ou gbmlinks.pages.dev/x7k2pq). Os links abrem no mundo todo mesmo com o computador desligado, porque ficam na sua conta grátis da Cloudflare.',
+            features: [
+              { icon: '🌍', title: 'Funciona sem o Verto ligado', kw: 'online global 24h', desc: 'O redirecionamento roda na rede da Cloudflare (Pages). O plano grátis aguenta 100 mil cliques por dia, sem cartão.' },
+              { icon: '🛟', title: 'Dois endereços e autorreparo', kw: 'reserva redundancia falha gbm gbmlinks', desc: 'Reserva gbm.pages.dev, gbmlinks.pages.dev e gbm.gbm.workers.dev (os que estiverem livres): todo link abre em todos. Se um cair, os links novos usam o próximo; endereço apagado ou desatualizado é refeito sozinho.' },
+              { icon: '🎲', title: 'Código aleatório ou apelido', kw: 'alias personalizado', desc: 'Código de 6 caracteres sem letras ambíguas (sem 0/o, 1/l/i), ou um apelido seu, como promo-natal.' },
+              { icon: '📊', title: 'Estatísticas', kw: 'cliques analytics pais dispositivo', desc: 'Cliques por dia, visitantes únicos, origem, país, dispositivo, navegador e sistema. Robôs de prévia do WhatsApp/Telegram não contam e nenhum IP é guardado.' },
+              { icon: '✏️', title: 'Editar o destino depois', desc: 'Troque para onde o link leva sem mudar o link curto, pause, reative ou exclua quando quiser.' },
+              { icon: '⏳', title: 'Validade, limite e senha', kw: 'expirar proteger', desc: 'Expira numa data, depois de N cliques ou pede senha antes de abrir.' },
+              { icon: '🔲', title: 'QR Code e UTM', kw: 'campanha analytics', desc: 'QR em PNG ou SVG para cada link e campos UTM para medir campanhas.' },
+              { icon: '📋', title: 'Vários de uma vez', kw: 'lote massa', desc: 'Cole até 200 links, um por linha, e copie todos os curtos de uma vez.' },
+              { icon: '👀', title: 'Prévia com +', kw: 'seguranca golpe', desc: 'Qualquer link curto com + no fim mostra para onde ele leva antes de abrir.' },
+            ],
+            note: 'Na primeira vez, crie uma conta grátis na Cloudflare e um token (o app abre a página já com as permissões certas). O Verto cria o banco e publica o encurtador sozinho. O token fica só neste computador, em <strong>Encurtador/dados/</strong>, junto com uma cópia de segurança dos links.',
+          },
+          {
             id: 'tempo', icon: '⏰', name: 'Tempo', subtitle: 'Relógio e calendário', url: '/tempo',
             keywords: 'relogio hora data calendario feriados carnaval pascoa',
             desc: 'Relógio digital e analógico com calendário interativo e feriados nacionais brasileiros.',
@@ -1068,6 +873,24 @@
     const $info = document.getElementById('info');
     const $content = document.getElementById('content');
 
+    // Mesmo ícone e mesma cor de grupo do menu inicial.
+    const ICONE_APP = {
+      verto: 'youtube-logo', instasaver: 'camera', vscosaver: 'aperture', whatssaver: 'chat-circle-dots',
+      automacoes: 'lightning', purpleflix: 'film-reel', transcribe: 'microphone', isolate: 'waveform',
+      smartstudio: 'microphone-stage', subtitlelab: 'closed-captioning', imagestudio: 'paint-brush',
+      transparent: 'eraser', matchaeffect: 'leaf', editor: 'scissors', efeitos: 'magic-wand', captureocr: 'scan',
+      social: 'device-mobile', pdfs: 'file-pdf', office: 'file-doc', files: 'folders', conversor: 'arrows-clockwise',
+      compress: 'arrows-in', ghost: 'ghost', stealth: 'fingerprint', censor: 'eye-slash', textclean: 'git-diff',
+      aiguard: 'detective', clean: 'book-open', devdata: 'brackets-curly', qrcode: 'qr-code',
+      encurtador: 'link-simple', tempo: 'clock',
+    };
+    const ICONE_CAT = {
+      downloads: 'download-simple', audio: 'waveform', imagem: 'paint-brush', documentos: 'file-doc',
+      conversao: 'arrows-clockwise', privacidade: 'fingerprint', texto: 'book-open', dev: 'brackets-curly',
+    };
+    const tecla = (icone, cat, cls = '') =>
+      `<span class="lt-key ${cls}" style="--hue: var(--lt-cat-${cat})"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#${icone}"/></svg></span>`;
+
     function renderFeature(f, terms) {
       const inner = `
         <div class="feature-icon">${f.icon}</div>
@@ -1080,21 +903,21 @@
         : `<div class="feature">${inner}</div>`;
     }
 
-    function renderApp(app, match, terms) {
+    function renderApp(app, match, terms, cat) {
       const expanded = state.expanded.has(app.id);
       const features = expanded ? app.features : match.features;
       const usos = expanded ? (app.usos || []) : match.usos;
       const total = app.features.length + (app.usos || []).length;
       const badges = (app.badges || []).map(b => `<span class="badge badge-${b}">${BADGES[b]}</span>`).join('');
       return `
-        <article class="app-section" id="app-${app.id}">
+        <article class="app-section" id="app-${app.id}" style="--hue: var(--lt-cat-${cat})">
           <div class="app-header">
-            <div class="app-icon">${app.icon}</div>
+            ${ICONE_APP[app.id] ? `<span class="lt-key" style="--hue: var(--lt-cat-${cat})"><img src="/static/localtools/apps/${app.id}.webp" alt="" width="56" height="56" loading="lazy"></span>` : `<div class="app-icon">${app.icon}</div>`}
             <div class="app-heading">
               <h3 class="app-title">${highlight(app.name, terms)}</h3>
               <div class="app-subtitle">${highlight(app.subtitle, terms)}</div>
             </div>
-            <a class="open-app" href="${app.url}">Abrir app
+            <a class="open-app lt-btn" href="${app.url}">Abrir app
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </a>
           </div>
@@ -1103,10 +926,10 @@
           ${features.length ? `<div class="features">${features.map(f => renderFeature(f, terms)).join('')}</div>` : ''}
           ${usos.length ? `
             <div class="sub-section">
-              <div class="sub-title">📋 Casos de Uso</div>
+              <div class="sub-title">Casos de Uso</div>
               <div class="features">${usos.map(u => renderFeature(u, terms)).join('')}</div>
             </div>` : ''}
-          ${app.note ? `<div class="note">ℹ️ ${highlightHtml(app.note, terms)}</div>` : ''}
+          ${app.note ? `<div class="note">${highlightHtml(app.note, terms)}</div>` : ''}
           ${match.hidden && !expanded ? `<button type="button" class="show-all" data-app="${app.id}">${match.hidden === total
             ? `Mostrar as ${total} funções`
             : `Mostrar todas as ${total} funções (${total - match.hidden} ${total - match.hidden === 1 ? 'encontrada' : 'encontradas'})`}</button>` : ''}
@@ -1125,14 +948,14 @@
           const match = matchApp(app, terms);
           if (!match) continue;
           perCat[cat.id] = (perCat[cat.id] || 0) + 1;
-          if (state.cat === 'todas' || state.cat === cat.id) shown.push(renderApp(app, match, terms));
+          if (state.cat === 'todas' || state.cat === cat.id) shown.push(renderApp(app, match, terms, cat.id));
         }
         if (!shown.length) continue;
         found += shown.length;
         html += `
-          <section class="category" id="cat-${cat.id}">
+          <section class="category" id="cat-${cat.id}" style="--hue: var(--lt-cat-${cat.id})">
             <div class="category-header">
-              <div class="category-icon">${cat.icon}</div>
+              ${tecla(ICONE_CAT[cat.id] || 'book-open', cat.id, 'sm')}
               <div>
                 <h2 class="category-title">${escapeHtml(cat.name)}</h2>
                 <p class="category-desc">${escapeHtml(cat.desc)}</p>
@@ -1161,11 +984,11 @@
 
       if (!found) {
         const elsewhere = catName && allMatches
-          ? `<p>Mas há <strong>${allMatches}</strong> ${allMatches === 1 ? 'resultado' : 'resultados'} em outras categorias.</p><button type="button" data-action="all-cats">Ver todas as categorias</button>`
-          : `<p>Tente outra palavra, um sinônimo ou o nome do formato (ex.: “mp3”, “docx”, “srt”).</p><button type="button" data-action="clear">Limpar busca</button>`;
+          ? `<p>Mas há <strong>${allMatches}</strong> ${allMatches === 1 ? 'resultado' : 'resultados'} em outras categorias.</p><button type="button" data-action="all-cats" class="lt-btn ghost">Ver todas as categorias</button>`
+          : `<p>Tente outra palavra, um sinônimo ou o nome do formato (ex.: “mp3”, “docx”, “srt”).</p><button type="button" data-action="clear" class="lt-btn ghost">Limpar busca</button>`;
         html = `
           <div class="empty-state">
-            <div class="empty-state-icon">🔎</div>
+            ${tecla('detective', 'ajuda', 'lg')}
             <div class="empty-state-title">Nada encontrado para “${escapeHtml(state.query.trim())}”${catName ? ` em ${escapeHtml(catName)}` : ''}</div>
             ${elsewhere}
           </div>`;
@@ -1177,10 +1000,11 @@
     function renderChips(perCat, allMatches) {
       const searching = termsOf(state.query).length > 0;
       const chip = (id, icon, label, count) => `
-        <button type="button" class="chip${state.cat === id ? ' active' : ''}${searching && !count ? ' no-results' : ''}" data-cat="${id}">
-          ${icon} ${escapeHtml(label)} <span class="chip-count">${count}</span>
+        <button type="button" class="chip${state.cat === id ? ' active' : ''}${searching && !count ? ' no-results' : ''}" data-cat="${id}"
+          style="--hue: var(--lt-cat-${id === 'todas' ? 'ajuda' : id})">
+          <span class="lt-dot"></span>${escapeHtml(label)} <span class="chip-count">${count}</span>
         </button>`;
-      $chips.innerHTML = chip('todas', '✨', 'Todas', searching ? allMatches : TOTAL_APPS) +
+      $chips.innerHTML = chip('todas', '', 'Todas', searching ? allMatches : TOTAL_APPS) +
         CATEGORIAS.map(c => chip(c.id, c.icon, c.short, searching ? (perCat[c.id] || 0) : c.apps.length)).join('');
     }
 

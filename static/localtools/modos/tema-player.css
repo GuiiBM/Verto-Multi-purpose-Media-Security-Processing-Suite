@@ -1,0 +1,66 @@
+/* Verto · tema "player": a barra de progresso de um player de vídeo (com o
+   tempo e o botão de reproduzir) embaixo do título, os formatos como um
+   seletor segmentado de player e o card com a moldura escura de uma tela. */
+body.tema-player {
+  --acc: #4ade80;
+  background-image:
+    radial-gradient(900px 520px at 8% -10%, rgba(74, 222, 128, 0.13), transparent 62%),
+    radial-gradient(800px 500px at 94% -6%, rgba(96, 165, 250, 0.08), transparent 62%);
+}
+
+/* barra do player: ▶ 1:24 / 3:57 ━━━━━━●──────── */
+body.tema-player .lt-head h1::after {
+  content: '▶  1:24 / 3:57';
+  display: block;
+  width: min(460px, 84vw);
+  height: 26px;
+  margin: 18px auto 0;
+  text-align: left;
+  font: 600 11px/26px var(--lt-mono);
+  letter-spacing: 0.04em;
+  color: var(--lt-muted);
+  --x: calc(124px + (100% - 124px) * 0.36);
+  background:
+    radial-gradient(circle at var(--x) 50%, #fff 0 5px, transparent 5.5px),
+    linear-gradient(90deg, transparent 124px, var(--acc) 124px var(--x), rgba(255, 255, 255, 0.16) var(--x)) 0 50% / 100% 3px no-repeat;
+}
+
+/* formatos: seletor segmentado do player */
+body.tema-player .format-selector {
+  width: max-content;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--lt-line);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+body.tema-player .format-btn {
+  border-radius: 10px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--lt-mono);
+  letter-spacing: 0.08em;
+}
+body.tema-player .format-btn.active {
+  background: linear-gradient(180deg, #5ee68f, #34c56e);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #06210f;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 2px 0 #1d7a43;
+}
+
+/* card como uma tela: moldura escura com o brilho de cima */
+body.tema-player .card {
+  border-radius: 18px;
+  background: linear-gradient(180deg, #17191d, #111215);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 0 6px rgba(0, 0, 0, 0.35), var(--lt-shadow);
+}
+
+@media (max-width: 480px) {
+  body.tema-player .format-btn { padding: 9px 13px; }
+}

@@ -65,6 +65,10 @@ from Conversor.conversor_templates import CONVERSOR_HTML
 from Conversor import conversor_engine
 from Efeitos.efeitos_templates import EFEITOS_HTML
 from Efeitos import efeitos_engine
+from Encurtador.encurtador_templates import ENCURTADOR_HTML
+from Encurtador import encurtador_engine
+from Automacoes.automacoes_templates import AUTOMACOES_HTML, AUTOMACOES_ORGANIZADOR_HTML, AUTOMACOES_EDITOR_HTML
+from Automacoes import automacoes_engine
 
 app = Flask(__name__)
 
@@ -134,250 +138,372 @@ MENU_HTML = """
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- "Menu de Apps": o atalho Verto da área de trabalho acha esta aba pelo título. -->
   <title>Menu de Apps</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="preload" href="/static/localtools/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/localtools/base.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
     :root {
-      --bg: #0a0f1e;
-      --text: #e2e8f0;
-      --muted: #64748b;
-      --label: #cbd5e1;
-      --accent: #22c55e;
-      --glass: rgba(15, 23, 42, 0.45);
-      --glass-hover: rgba(15, 23, 42, 0.7);
-      --line: rgba(148, 163, 184, 0.1);
-      --icon: clamp(64px, 5.6vw, 88px);
-      --gap: clamp(18px, 2.2vw, 32px);
+      --icon: clamp(62px, 5.2vw, 78px);
       --gutter: clamp(16px, 4vw, 48px);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { -webkit-text-size-adjust: 100%; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      background-image:
-        radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
-      background-attachment: fixed;
-      color: var(--text);
       min-height: 100vh;
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: clamp(28px, 6vh, 64px) var(--gutter) clamp(32px, 6vh, 64px);
-      position: relative;
+      padding: clamp(26px, 5vh, 56px) var(--gutter) 40px;
       overflow-x: hidden;
+      overflow-x: clip; /* as luzes decorativas não criam rolagem lateral */
     }
-    body::before {
-      content: '';
-      position: fixed;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(148, 163, 184, 0.03) 2px,
-        rgba(148, 163, 184, 0.03) 4px
-      );
-      animation: grid-move 20s linear infinite;
-      pointer-events: none;
-    }
-    @keyframes grid-move {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(50px); }
-    }
+    html { overflow-x: clip; }
+    body > * { position: relative; z-index: 1; }
 
     /* ---------- Cabeçalho ---------- */
     .hero {
       width: 100%;
-      max-width: 1400px;
+      max-width: 1180px;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      position: relative;
-      z-index: 1;
-      margin-bottom: clamp(24px, 4vh, 44px);
+      margin-bottom: clamp(26px, 4vh, 44px);
+      isolation: isolate;
     }
+    /* Pontilhado parado atrás do relógio, sumindo nas bordas. */
+    .hero::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: -30px;
+      width: min(1000px, 100vw);
+      height: 480px;
+      transform: translateX(-50%);
+      background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1.4px);
+      background-size: 22px 22px;
+      -webkit-mask-image: radial-gradient(closest-side, #000 25%, transparent);
+      mask-image: radial-gradient(closest-side, #000 25%, transparent);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    /* Título: o V do Verto + LOCALTOOLS em relevo, com um brilho que passa de vez em quando. */
     .logo {
-      font-size: clamp(28px, 7vw, 72px);
-      font-weight: 900;
-      background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
+      display: flex;
+      align-items: center;
+      gap: clamp(12px, 1.6vw, 20px);
+      font-size: clamp(28px, 4.6vw, 54px);
+      line-height: 1;
+      perspective: 600px;
+    }
+    .word { position: relative; display: inline-block; font-weight: 800; letter-spacing: 0.2em; margin-right: -0.2em; }
+    .word-depth, .word-face { display: block; }
+    .word-depth {
+      position: absolute;
+      inset: 0;
+      color: #0c3a24;
+      text-shadow:
+        0 1px 0 #0f5532, 0 2px 0 #0e4c2d, 0 3px 0 #0c4328, 0 4px 0 #0a3922, 0 5px 0 #08301d,
+        0 6px 1px rgba(0, 0, 0, 0.4), 0 10px 18px rgba(0, 0, 0, 0.55), 0 14px 34px rgba(34, 197, 94, 0.22);
+      transform: translateY(1px);
+      user-select: none;
+    }
+    .word-face {
+      position: relative;
+      background:
+        linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.85) 48%, rgba(255, 255, 255, 0) 58%) no-repeat,
+        linear-gradient(100deg, #bbf7d0 0%, #4ade80 28%, #5eead4 55%, #60a5fa 86%);
+      background-size: 260% 100%, 100% 100%;
+      background-position: 160% 0, 0 0;
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
       background-clip: text;
-      letter-spacing: 0.25em;
-      padding-left: 0.25em; /* compensa o espaçamento da última letra */
-      text-transform: uppercase;
-      line-height: 1.1;
-      filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4));
-      animation: glow-pulse 3s ease-in-out infinite;
+      -webkit-text-fill-color: transparent;
+      animation: brilho 9s var(--lt-ease-out) 1.2s infinite;
     }
-    @keyframes glow-pulse {
-      0%, 100% { filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4)); }
-      50% { filter: drop-shadow(0 0 35px rgba(34, 197, 94, 0.9)) drop-shadow(0 0 70px rgba(59, 130, 246, 0.6)); }
+    @keyframes brilho {
+      0% { background-position: 160% 0, 0 0; }
+      18%, 100% { background-position: -60% 0, 0 0; }
     }
+
+    /* Relógio: grande e encorpado para ler de longe; os dígitos rolam ao mudar. */
     .clock {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(6px, 1vh, 10px);
-      margin-top: clamp(10px, 2vh, 20px);
+      margin-top: clamp(12px, 2.2vh, 22px);
+    }
+    .clock::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      width: min(130%, 100vw);
+      height: 120%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(closest-side, rgba(74, 222, 128, 0.16), rgba(96, 165, 250, 0.08) 55%, transparent);
+      filter: blur(20px);
+      z-index: -1;
+      pointer-events: none;
     }
     .time {
-      color: #fff;
-      font-size: clamp(52px, 7vw, 96px);
-      font-weight: 200;
-      letter-spacing: -0.02em;
-      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: center;
+      font-size: clamp(92px, 15vw, 216px);
+      font-weight: 560;
+      letter-spacing: -0.05em;
       line-height: 1;
-      text-shadow: 0 0 40px rgba(59, 130, 246, 0.25);
+      font-variant-numeric: tabular-nums;
+      user-select: none;
+    }
+    /* Cada dígito é uma camada própria que só se move (transform/opacity) e leva a
+       sua sombra, então nada é redesenhado durante a troca. */
+    .dg {
+      position: relative;
+      display: inline-block;
+      width: 0.62em;
+      height: 1.04em;
+      overflow: hidden;
+      text-align: center;
+      contain: layout paint;
+    }
+    .dg-in {
+      position: absolute;
+      inset: 0;
+      display: block;
+      background: linear-gradient(180deg, #ffffff 30%, #cfe9dc 72%, #9fb7c9 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 22px rgba(74, 222, 128, 0.16)) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55));
+      will-change: transform, opacity;
+      backface-visibility: hidden;
+    }
+    /* Troca em sequência: o antigo sobe um pouco e some (280 ms); só depois que ele
+       sumiu o novo desce para o lugar. Nunca há dois valores legíveis ao mesmo tempo. */
+    .dg-in.entra { animation: dg-entra 440ms cubic-bezier(0.22, 1, 0.36, 1) 260ms both; }
+    /* depois de .entra de propósito: um dígito que entrou e agora sai tem de usar esta */
+    .dg-in.sai { animation: dg-sai 280ms cubic-bezier(0.55, 0, 1, 0.45) forwards; }
+    @keyframes dg-sai { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-38%); opacity: 0; } }
+    @keyframes dg-entra { from { transform: translateY(38%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .colon {
+      display: inline-block;
+      width: 0.34em;
+      margin: 0 -0.02em;
+      text-align: center;
+      transform: translateY(-0.06em);
+      color: var(--lt-green);
+      -webkit-text-fill-color: currentColor;
+      text-shadow: 0 0 24px rgba(74, 222, 128, 0.6);
+      transition: opacity 400ms var(--lt-ease-out);
+    }
+    .colon.pisca { opacity: 0.35; }
+    .segundos {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: min(62%, 520px);
+      margin-top: clamp(4px, 1vh, 10px);
+    }
+    .barra {
+      flex: 1;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      overflow: hidden;
+    }
+    .barra i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #4ade80, #5eead4, #60a5fa);
+      box-shadow: 0 0 14px rgba(74, 222, 128, 0.55);
+      transform-origin: left center;
+      transform: scaleX(0);
+      transition: transform 1s linear;
+    }
+    .sec {
+      font-family: var(--lt-mono);
+      font-size: clamp(13px, 1.2vw, 16px);
+      font-weight: 500;
+      color: var(--lt-green);
+      font-variant-numeric: tabular-nums;
+      min-width: 2ch;
     }
     .date {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: clamp(14px, 1.3vw, 17px);
-      font-weight: 500;
-      letter-spacing: 0.3px;
+      margin-top: clamp(12px, 2vh, 18px);
+      color: var(--lt-ink);
+      font-size: clamp(18px, 1.9vw, 26px);
+      font-weight: 520;
+      letter-spacing: -0.01em;
     }
     .tagline {
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      margin-top: 6px;
+      margin-top: 10px;
+      color: var(--lt-faint);
+      font-size: 13px;
+      font-weight: 450;
+      text-wrap: balance;
     }
+    .tagline .dot {
+      display: inline-block; width: 6px; height: 6px; vertical-align: 1px;
+      border-radius: 50%; background: var(--lt-green); box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15), 0 0 10px rgba(74, 222, 128, 0.6);
+    }
+    .tagline .dot:first-child { margin-right: 9px; }
+    .tagline .dot:last-child { margin-left: 9px; }
 
-    /* ---------- Busca ---------- */
+    /* Busca */
     .search {
       display: block;
       position: relative;
       width: 100%;
-      max-width: 520px;
-      margin-top: clamp(18px, 3vh, 28px);
+      max-width: 560px;
+      margin-top: clamp(20px, 3vh, 30px);
     }
     .search svg {
       position: absolute;
-      left: 16px;
+      left: 17px;
       top: 50%;
       transform: translateY(-50%);
       width: 18px;
       height: 18px;
-      color: var(--muted);
+      color: var(--lt-faint);
       pointer-events: none;
       z-index: 1;
+      transition: color var(--lt-dur-fast) var(--lt-ease-out);
     }
     .search input {
       width: 100%;
-      height: 46px;
-      padding: 0 52px 0 44px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: var(--glass);
-      backdrop-filter: blur(20px) saturate(160%);
-      color: var(--text);
+      height: 50px;
+      padding: 0 52px 0 46px;
+      border-radius: 16px;
+      border: 1px solid var(--lt-line);
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      box-shadow: var(--lt-shadow);
+      color: var(--lt-ink);
       font: inherit;
       font-size: 15px;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color var(--lt-dur) var(--lt-ease-out), box-shadow var(--lt-dur) var(--lt-ease-out), background-color var(--lt-dur) var(--lt-ease-out);
     }
-    .search input::placeholder { color: var(--muted); }
+    .search input::placeholder { color: var(--lt-faint); }
+    .search input:hover { border-color: var(--lt-line-2); }
     .search input:focus {
-      border-color: rgba(34, 197, 94, 0.45);
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+      border-color: rgba(74, 222, 128, 0.5);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 0 0 4px var(--lt-ring), var(--lt-shadow);
     }
+    .search:focus-within svg { color: var(--lt-green); }
     .search kbd {
       position: absolute;
       right: 12px;
       top: 50%;
       transform: translateY(-50%);
-      font: 600 12px 'Inter', sans-serif;
-      color: var(--muted);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 2px 7px;
+      font: 500 12px var(--lt-mono);
+      color: var(--lt-faint);
+      border: 1px solid var(--lt-line-2);
+      border-bottom-width: 2px;
+      border-radius: 7px;
+      padding: 2px 8px;
       pointer-events: none;
       z-index: 1;
     }
     .search input:focus + kbd { display: none; }
 
-    /* ---------- Grid de apps ---------- */
+    /* Legenda dos grupos: a cor de cada um; passar o mouse destaca, clicar filtra. */
+    .grupos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 16px;
+      max-width: 860px;
+    }
+    .grupo {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      padding: 5px 11px 5px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--lt-line);
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--lt-muted);
+      font: 500 12.5px var(--lt-sans);
+      cursor: pointer;
+      transition: color var(--lt-dur-fast) var(--lt-ease-out), border-color var(--lt-dur-fast) var(--lt-ease-out), background-color var(--lt-dur-fast) var(--lt-ease-out), transform var(--lt-dur-fast) var(--lt-ease-out);
+    }
+    .grupo:hover { color: var(--lt-ink); border-color: color-mix(in srgb, var(--hue) 45%, transparent); }
+    .grupo:active { transform: scale(0.97); }
+    .grupo:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; }
+    .grupo[aria-pressed="true"] {
+      color: #fff;
+      border-color: color-mix(in srgb, var(--hue) 70%, transparent);
+      background: color-mix(in srgb, var(--hue) 16%, transparent);
+    }
+    .gdot {
+      width: 10px;
+      height: 10px;
+      border-radius: 4px;
+      background: linear-gradient(160deg, color-mix(in srgb, var(--hue) 55%, #fff), var(--hue));
+      box-shadow: 0 2px 0 color-mix(in srgb, var(--hue) 45%, #000), 0 0 10px color-mix(in srgb, var(--hue) 50%, transparent);
+    }
+    .gn { font: 500 11px var(--lt-mono); color: var(--lt-faint); }
+
+    /* ---------- Grade: teclas 3D na cor do grupo ---------- */
     .apps-grid {
       width: 100%;
-      max-width: 1400px;
+      max-width: 1180px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(calc(var(--icon) + 28px), 1fr));
-      gap: var(--gap) calc(var(--gap) * 0.6);
-      position: relative;
-      z-index: 1;
+      grid-template-columns: repeat(auto-fill, minmax(calc(var(--icon) + 34px), 1fr));
+      gap: clamp(22px, 2.8vw, 32px) clamp(8px, 1.2vw, 14px);
     }
     .app {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      padding: 6px 2px;
+      gap: 12px;
+      padding: 4px 2px;
       border-radius: 18px;
-      cursor: pointer;
-      transition: transform 0.2s;
       text-decoration: none;
+      color: inherit;
       -webkit-tap-highlight-color: transparent;
       outline: none;
+      transition: opacity var(--lt-dur) var(--lt-ease-out), filter var(--lt-dur) var(--lt-ease-out);
     }
-    .app:active { transform: scale(0.95); }
-    .app[hidden] { display: none; }
+    .app[hidden], .app.fora { display: none; }
+    .apps-grid.realce .app:not(.no-grupo) { opacity: 0.22; filter: saturate(0.3); }
+    /* Ícone: peça 3D renderizada para o LocalTools (static/localtools/apps), placa de grafite já inclusa. */
     .app-icon {
+      position: relative;
       width: var(--icon);
       height: var(--icon);
       flex-shrink: 0;
-      background: var(--glass);
-      backdrop-filter: blur(40px) saturate(180%);
-      border-radius: 22%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: calc(var(--icon) * 0.48);
-      line-height: 1;
-      box-shadow:
-        0 0 0 1px rgba(148, 163, 184, 0.1),
-        0 20px 60px rgba(0, 0, 0, 0.6),
-        0 0 80px rgba(34, 197, 94, 0.05);
-      border: 1px solid rgba(148, 163, 184, 0.08);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
+      border-radius: 24%;
+      transition: transform 200ms var(--lt-ease-out), filter 200ms var(--lt-ease-out);
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.55));
     }
-    .app-icon::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    }
+    .app-icon img { display: block; width: 100%; height: 100%; pointer-events: none; }
     .app:hover .app-icon,
     .app:focus-visible .app-icon {
-      background: var(--glass-hover);
-      transform: translateY(-4px);
-      box-shadow:
-        0 0 0 1px rgba(148, 163, 184, 0.2),
-        0 24px 70px rgba(0, 0, 0, 0.7),
-        0 0 100px rgba(34, 197, 94, 0.1);
-      border-color: rgba(34, 197, 94, 0.25);
+      transform: translateY(-3px);
+      filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.5)) drop-shadow(0 16px 20px rgba(0, 0, 0, 0.6)) brightness(1.08);
     }
-    .app:focus-visible .app-icon { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.6), 0 24px 70px rgba(0, 0, 0, 0.7); }
-    .app.first-match .app-icon { border-color: rgba(34, 197, 94, 0.45); }
+    .app:active .app-icon { transform: translateY(0) scale(0.96); transition-duration: 90ms; }
+    .app:focus-visible .app-icon { outline: 2px solid var(--hue); outline-offset: 4px; }
+    .app.first-match .app-icon { outline: 2px solid color-mix(in oklab, var(--hue) 80%, #fff); outline-offset: 3px; }
     .app-name {
-      color: var(--label);
-      font-size: clamp(12px, 0.95vw, 14px);
-      font-weight: 600;
+      color: #c9ced6;
+      font-size: clamp(12.5px, 0.95vw, 13.5px);
+      font-weight: 520;
       text-align: center;
-      letter-spacing: 0.2px;
+      letter-spacing: -0.005em;
       line-height: 1.3;
       max-width: 100%;
       display: -webkit-box;
@@ -385,10 +511,11 @@ MENU_HTML = """
       -webkit-box-orient: vertical;
       overflow: hidden;
       overflow-wrap: anywhere;
+      transition: color var(--lt-dur-fast) var(--lt-ease-out);
     }
-    .app:hover .app-name { color: #fff; }
+    .app:hover .app-name, .app:focus-visible .app-name { color: #fff; }
     .app-hint {
-      color: rgba(34, 197, 94, 0.85);
+      color: color-mix(in srgb, var(--hue) 85%, #fff);
       font-size: 11px;
       font-weight: 500;
       text-align: center;
@@ -401,250 +528,222 @@ MENU_HTML = """
       overflow: hidden;
     }
     .app-hint:empty { display: none; }
-    .youtube-icon {
-      width: 55%;
-      height: 55%;
-      position: relative;
-    }
-    .youtube-icon svg {
-      width: 100%;
-      height: 100%;
-    }
-    .neon-icon-verto { filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.5)); }
-    .neon-icon-purpleflix { filter: drop-shadow(0 0 8px rgba(188, 19, 255, 0.5)); }
-    .neon-icon-tempo { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); }
-    .neon-icon-pdf { filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5)); }
 
     .empty {
       display: none;
-      color: var(--muted);
+      color: var(--lt-muted);
       font-size: 15px;
       margin-top: 8px;
-      position: relative;
-      z-index: 1;
     }
     .empty.show { display: block; }
-    .empty a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .empty a { color: var(--lt-green); text-decoration: none; font-weight: 600; }
     .empty a:hover { text-decoration: underline; }
+
+    .foot {
+      margin-top: auto;
+      padding-top: clamp(40px, 8vh, 72px);
+      color: var(--lt-faint);
+      font-size: 12.5px;
+    }
+    .foot b { color: var(--lt-muted); font-weight: 550; }
 
     /* ---------- Ajustes por tela ---------- */
     @media (max-width: 480px) {
-      :root { --icon: 60px; --gap: 18px; }
-      .tagline { display: none; }
+      :root { --icon: 60px; }
+      .apps-grid { grid-template-columns: repeat(4, 1fr); gap: 24px 6px; }
+      .app-name { font-size: 12px; }
       .search kbd { display: none; }
       .search input { padding-right: 16px; }
+      .tag-extra { display: none; }
+      .segundos { width: 78%; }
+      .word { letter-spacing: 0.12em; margin-right: -0.12em; }
+      .grupo { font-size: 12px; }
+    }
+    @media (max-width: 360px) {
+      .apps-grid { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-height: 560px) and (orientation: landscape) {
       body { padding-top: 20px; }
       .hero { margin-bottom: 20px; }
       .tagline { display: none; }
-      .logo { font-size: clamp(26px, 5vw, 44px); }
-      .time { font-size: 44px; }
+      .time { font-size: 72px; }
     }
     @media (hover: none) {
       .search kbd { display: none; }
       .search input { padding-right: 16px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      body::before, .logo { animation: none; }
-      .app, .app-icon { transition: none; }
+      .word-face { animation: none; }
+      .dg-in.sai { display: none; }
+      .dg-in.entra { animation: none; }
+      .barra i { transition: none; }
     }
   </style>
 </head>
-<body>
+<body class="lt-body">
   <header class="hero">
-    <div class="logo">LOCALTOOLS</div>
+    <h1 class="logo" aria-label="LocalTools">
+      <span class="word" aria-hidden="true"><span class="word-depth">LOCALTOOLS</span><span class="word-face">LOCALTOOLS</span></span>
+    </h1>
     <div class="clock">
-      <div class="time" id="time">12:00</div>
-      <div class="date" id="date">Segunda, 1 de Janeiro</div>
+      <div class="time" id="time" role="timer" aria-label="12:00"></div>
+      <div class="segundos" aria-hidden="true"><div class="barra"><i id="secfill"></i></div><span class="sec" id="sec">00</span></div>
+      <div class="date" id="date">Segunda-feira, 1 de janeiro</div>
     </div>
-    <div class="tagline">Menu de Aplicativos</div>
+    <div class="tagline"><span class="dot"></span><span class="tag-extra">Menu de aplicativos · </span>33 ferramentas · tudo neste computador<span class="dot"></span></div>
     <label class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input type="search" id="search" placeholder="Buscar app ou o que você quer fazer…" autocomplete="off" spellcheck="false" aria-label="Buscar app ou função">
       <kbd>/</kbd>
     </label>
+    <nav class="grupos" id="grupos" aria-label="Grupos de apps (a cor de cada um)">
+      <button type="button" class="grupo" data-cat="downloads" style="--hue: var(--lt-cat-downloads)" aria-pressed="false"><span class="gdot"></span>Downloads<span class="gn">6</span></button>
+      <button type="button" class="grupo" data-cat="imagem" style="--hue: var(--lt-cat-imagem)" aria-pressed="false"><span class="gdot"></span>Imagem e vídeo<span class="gn">7</span></button>
+      <button type="button" class="grupo" data-cat="audio" style="--hue: var(--lt-cat-audio)" aria-pressed="false"><span class="gdot"></span>Áudio e legendas<span class="gn">4</span></button>
+      <button type="button" class="grupo" data-cat="documentos" style="--hue: var(--lt-cat-documentos)" aria-pressed="false"><span class="gdot"></span>Documentos<span class="gn">2</span></button>
+      <button type="button" class="grupo" data-cat="conversao" style="--hue: var(--lt-cat-conversao)" aria-pressed="false"><span class="gdot"></span>Conversão<span class="gn">3</span></button>
+      <button type="button" class="grupo" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade)" aria-pressed="false"><span class="gdot"></span>Privacidade<span class="gn">3</span></button>
+      <button type="button" class="grupo" data-cat="texto" style="--hue: var(--lt-cat-texto)" aria-pressed="false"><span class="gdot"></span>Texto<span class="gn">3</span></button>
+      <button type="button" class="grupo" data-cat="dev" style="--hue: var(--lt-cat-dev)" aria-pressed="false"><span class="gdot"></span>Dev e utilitários<span class="gn">4</span></button>
+      <button type="button" class="grupo" data-cat="ajuda" style="--hue: var(--lt-cat-ajuda)" aria-pressed="false"><span class="gdot"></span>Ajuda<span class="gn">1</span></button>
+    </nav>
   </header>
   <main class="apps-grid" id="apps">
-    <a href="/verto" class="app">
-      <div class="app-icon">
-        <div class="youtube-icon neon-icon-verto">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="url(#gradient)"/>
-            <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-                <stop offset="25%" style="stop-color:#16a34a;stop-opacity:1" />
-                <stop offset="50%" style="stop-color:#22c55e;stop-opacity:1" />
-                <stop offset="75%" style="stop-color:#16a34a;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
+    <a href="/verto" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 0" title="Verto · Downloads">
+      <div class="app-icon"><img src="/static/localtools/apps/verto.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Verto</div>
     </a>
-    <a href="/instructions" class="app">
-      <div class="app-icon">📖</div>
-      <div class="app-name">Instruções</div>
-    </a>
-    <a href="/files" class="app">
-      <div class="app-icon">📁</div>
-      <div class="app-name">Arquivos</div>
-    </a>
-    <a href="/conversor" class="app">
-      <div class="app-icon">🔁</div>
-      <div class="app-name">Conversor</div>
-    </a>
-    <a href="/purpleflix" class="app">
-      <div class="app-icon">
-        <div class="youtube-icon neon-icon-purpleflix">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" fill="url(#gradient2)"/>
-            <defs>
-              <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#9333ea;stop-opacity:1" />
-                <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#c084fc;stop-opacity:1" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div class="app-name">PurpleFlix</div>
-    </a>
-    <a href="/tempo" class="app">
-      <div class="app-icon">
-        <div class="youtube-icon neon-icon-tempo">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="9" stroke="url(#gradient3)" stroke-width="2"/>
-            <path d="M12 6v6l4 2" stroke="url(#gradient3)" stroke-width="2" stroke-linecap="round"/>
-            <defs>
-              <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-                <stop offset="50%" style="stop-color:#60a5fa;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#93c5fd;stop-opacity:1" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div class="app-name">Tempo</div>
-    </a>
-    <a href="/pdfs" class="app">
-      <div class="app-icon">
-        <div class="youtube-icon neon-icon-pdf">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="url(#gradient4)" stroke="url(#gradient4)" stroke-width="1.5"/>
-            <path d="M14 2v6h6" stroke="url(#gradient4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <text x="12" y="17" font-size="6" font-weight="bold" fill="#fff" text-anchor="middle">PDF</text>
-            <defs>
-              <linearGradient id="gradient4" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
-                <stop offset="50%" style="stop-color:#dc2626;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#b91c1c;stop-opacity:1" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div class="app-name">PDFs</div>
-    </a>
-    <a href="/office" class="app">
-      <div class="app-icon">🗃️</div>
-      <div class="app-name">Office</div>
-    </a>
-    <a href="/transparent" class="app">
-      <div class="app-icon">🎨</div>
-      <div class="app-name">Transparência</div>
-    </a>
-    <a href="/qrcode" class="app">
-      <div class="app-icon">🔲</div>
-      <div class="app-name">QR Code</div>
-    </a>
-    <a href="/compress" class="app">
-      <div class="app-icon">🗜️</div>
-      <div class="app-name">Compressor</div>
-    </a>
-    <a href="/transcribe" class="app">
-      <div class="app-icon">🎤</div>
-      <div class="app-name">Transcrever</div>
-    </a>
-    <a href="/ghost" class="app">
-      <div class="app-icon">👻</div>
-      <div class="app-name">Ghost Tool</div>
-    </a>
-    <a href="/stealth" class="app">
-      <div class="app-icon">🕵️</div>
-      <div class="app-name">Stealth</div>
-    </a>
-    <a href="/censor" class="app">
-      <div class="app-icon">🔒</div>
-      <div class="app-name">Censor</div>
-    </a>
-    <a href="/social" class="app">
-      <div class="app-icon">📱</div>
-      <div class="app-name">Social Preview</div>
-    </a>
-    <a href="/clean" class="app">
-      <div class="app-icon">🧹</div>
-      <div class="app-name">Clean Reader</div>
-    </a>
-    <a href="/isolate" class="app">
-      <div class="app-icon">🎤</div>
-      <div class="app-name">Isolador de Voz</div>
-    </a>
-    <a href="/devdata" class="app">
-      <div class="app-icon">🧰</div>
-      <div class="app-name">Dev/Data</div>
-    </a>
-    <a href="/imagestudio" class="app">
-      <div class="app-icon">🖌️</div>
-      <div class="app-name">Image Studio</div>
-    </a>
-    <a href="/textclean" class="app">
-      <div class="app-icon">🔀</div>
-      <div class="app-name">Text Clean & Diff</div>
-    </a>
-    <a href="/captureocr" class="app">
-      <div class="app-icon">🔍</div>
-      <div class="app-name">Capture & OCR</div>
-    </a>
-    <a href="/aiguard" class="app">
-      <div class="app-icon">🛡️</div>
-      <div class="app-name">AI Guard & Diff</div>
-    </a>
-    <a href="/smartstudio" class="app">
-      <div class="app-icon">🎙️</div>
-      <div class="app-name">Smart Studio</div>
-    </a>
-    <a href="/subtitlelab" class="app">
-      <div class="app-icon">📝</div>
-      <div class="app-name">Subtitle Lab</div>
-    </a>
-    <a href="/matchaeffect" class="app">
-      <div class="app-icon">🍵</div>
-      <div class="app-name">Matcha Effect</div>
-    </a>
-    <a href="/instasaver" class="app">
-      <div class="app-icon">📸</div>
+    <a href="/instasaver" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 1" title="InstaSaver · Downloads">
+      <div class="app-icon"><img src="/static/localtools/apps/instasaver.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">InstaSaver</div>
     </a>
-    <a href="/vscosaver" class="app">
-      <div class="app-icon">🎞️</div>
+    <a href="/vscosaver" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 2" title="VscoSaver · Downloads">
+      <div class="app-icon"><img src="/static/localtools/apps/vscosaver.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">VscoSaver</div>
     </a>
-    <a href="/whatssaver" class="app">
-      <div class="app-icon">💬</div>
+    <a href="/whatssaver" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 3" title="WhatsSaver · Downloads">
+      <div class="app-icon"><img src="/static/localtools/apps/whatssaver.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">WhatsSaver</div>
     </a>
-    <a href="/efeitos" class="app">
-      <div class="app-icon">🪄</div>
+    <a href="/automacoes" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 4" title="Automações · Downloads">
+      <div class="app-icon"><img src="/static/localtools/apps/automacoes.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Automações</div>
+    </a>
+    <a href="/purpleflix" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 5" title="PurpleFlix · Downloads">
+      <div class="app-icon"><img src="/static/localtools/apps/purpleflix.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">PurpleFlix</div>
+    </a>
+    <a href="/efeitos" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 6" title="Efeitos · Imagem e vídeo">
+      <div class="app-icon"><img src="/static/localtools/apps/efeitos.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Efeitos</div>
+    </a>
+    <a href="/automacoes/editor" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 7" title="Editor de Vídeo · Imagem e vídeo">
+      <div class="app-icon"><img src="/static/localtools/apps/editor.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Editor de Vídeo</div>
+    </a>
+    <a href="/imagestudio" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 8" title="Image Studio · Imagem e vídeo">
+      <div class="app-icon"><img src="/static/localtools/apps/imagestudio.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Image Studio</div>
+    </a>
+    <a href="/transparent" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 9" title="Transparência · Imagem e vídeo">
+      <div class="app-icon"><img src="/static/localtools/apps/transparent.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Transparência</div>
+    </a>
+    <a href="/matchaeffect" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 10" title="Matcha Effect · Imagem e vídeo">
+      <div class="app-icon"><img src="/static/localtools/apps/matchaeffect.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Matcha Effect</div>
+    </a>
+    <a href="/captureocr" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 11" title="Capture & OCR · Imagem e vídeo">
+      <div class="app-icon"><img src="/static/localtools/apps/captureocr.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Capture & OCR</div>
+    </a>
+    <a href="/social" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 12" title="Social Preview · Imagem e vídeo">
+      <div class="app-icon"><img src="/static/localtools/apps/social.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Social Preview</div>
+    </a>
+    <a href="/transcribe" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 13" title="Transcrever · Áudio e legendas">
+      <div class="app-icon"><img src="/static/localtools/apps/transcribe.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Transcrever</div>
+    </a>
+    <a href="/isolate" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 14" title="Isolador de Voz · Áudio e legendas">
+      <div class="app-icon"><img src="/static/localtools/apps/isolate.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Isolador de Voz</div>
+    </a>
+    <a href="/smartstudio" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 15" title="Smart Studio · Áudio e legendas">
+      <div class="app-icon"><img src="/static/localtools/apps/smartstudio.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Smart Studio</div>
+    </a>
+    <a href="/subtitlelab" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 16" title="Subtitle Lab · Áudio e legendas">
+      <div class="app-icon"><img src="/static/localtools/apps/subtitlelab.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Subtitle Lab</div>
+    </a>
+    <a href="/pdfs" class="app" data-cat="documentos" style="--hue: var(--lt-cat-documentos); --i: 17" title="PDFs · Documentos">
+      <div class="app-icon"><img src="/static/localtools/apps/pdfs.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">PDFs</div>
+    </a>
+    <a href="/office" class="app" data-cat="documentos" style="--hue: var(--lt-cat-documentos); --i: 18" title="Office · Documentos">
+      <div class="app-icon"><img src="/static/localtools/apps/office.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Office</div>
+    </a>
+    <a href="/files" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 19" title="Arquivos · Conversão">
+      <div class="app-icon"><img src="/static/localtools/apps/files.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Arquivos</div>
+    </a>
+    <a href="/conversor" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 20" title="Conversor · Conversão">
+      <div class="app-icon"><img src="/static/localtools/apps/conversor.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Conversor</div>
+    </a>
+    <a href="/compress" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 21" title="Compressor · Conversão">
+      <div class="app-icon"><img src="/static/localtools/apps/compress.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Compressor</div>
+    </a>
+    <a href="/ghost" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 22" title="Ghost Tool · Privacidade">
+      <div class="app-icon"><img src="/static/localtools/apps/ghost.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Ghost Tool</div>
+    </a>
+    <a href="/stealth" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 23" title="Stealth · Privacidade">
+      <div class="app-icon"><img src="/static/localtools/apps/stealth.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Stealth</div>
+    </a>
+    <a href="/censor" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 24" title="Censor · Privacidade">
+      <div class="app-icon"><img src="/static/localtools/apps/censor.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Censor</div>
+    </a>
+    <a href="/textclean" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 25" title="Text Clean & Diff · Texto">
+      <div class="app-icon"><img src="/static/localtools/apps/textclean.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Text Clean & Diff</div>
+    </a>
+    <a href="/aiguard" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 26" title="AI Guard & Diff · Texto">
+      <div class="app-icon"><img src="/static/localtools/apps/aiguard.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">AI Guard & Diff</div>
+    </a>
+    <a href="/clean" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 27" title="Clean Reader · Texto">
+      <div class="app-icon"><img src="/static/localtools/apps/clean.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Clean Reader</div>
+    </a>
+    <a href="/devdata" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 28" title="Dev/Data · Dev e utilitários">
+      <div class="app-icon"><img src="/static/localtools/apps/devdata.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Dev/Data</div>
+    </a>
+    <a href="/qrcode" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 29" title="QR Code · Dev e utilitários">
+      <div class="app-icon"><img src="/static/localtools/apps/qrcode.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">QR Code</div>
+    </a>
+    <a href="/encurtador" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 30" title="Encurtador · Dev e utilitários">
+      <div class="app-icon"><img src="/static/localtools/apps/encurtador.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Encurtador</div>
+    </a>
+    <a href="/tempo" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 31" title="Tempo · Dev e utilitários">
+      <div class="app-icon"><img src="/static/localtools/apps/tempo.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Tempo</div>
+    </a>
+    <a href="/instructions" class="app" data-cat="ajuda" style="--hue: var(--lt-cat-ajuda); --i: 32" title="Instruções · Ajuda">
+      <div class="app-icon"><img src="/static/localtools/apps/instructions.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Instruções</div>
     </a>
   </main>
   <p class="empty" id="empty">Nenhum app encontrado. Veja o guia completo em <a href="/instructions">Instruções</a>.</p>
+  <footer class="foot"><b>LocalTools</b> · Verto · nada sai da sua máquina</footer>
   <script src="/apps-catalog.js"></script>
   <script>
     // ---------- Busca ----------
@@ -696,6 +795,7 @@ MENU_HTML = """
       ['metadados', 'exif', 'gps', 'localizacao'],
       ['ia', 'inteligencia', 'ai', 'gpt', 'chatgpt'],
       ['qr', 'qrcode'],
+      ['encurtar', 'encurtador', 'curto', 'short', 'shortener', 'bitly', 'link', 'url'],
       ['ler', 'leitura', 'leitor'],
       ['transcrever', 'transcricao', 'ditado'],
       ['cortar', 'recortar', 'crop', 'aparar'],
@@ -708,6 +808,7 @@ MENU_HTML = """
       ['icone', 'favicon', 'ico'],
       ['assistir', 'streaming', 'filmes', 'series'],
       ['story', 'stories', 'destaque'],
+      ['organizar', 'organizador', 'separar', 'separador', 'pasta', 'pastas', 'automacao', 'automatico', 'mover'],
     ];
 
     // Plural simples do português, como na página de Instruções, e o radical de
@@ -868,17 +969,119 @@ MENU_HTML = """
       }
     });
 
-    function updateTime() {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('time').textContent = `${hours}:${minutes}`;
-      const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-      const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-      document.getElementById('date').textContent = `${days[now.getDay()]}, ${now.getDate()} de ${months[now.getMonth()]}`;
-    }
-    updateTime();
-    setInterval(updateTime, 1000);
+    // Hora e data: desenhadas por relogio() no script de baixo (dígitos que rolam).
+    // A hora é desenhada pelo relógio do script de baixo, que se agenda sozinho
+    // na virada de cada segundo (setInterval de 1 s escorrega e pula segundos).
+  </script>
+  <script>
+    // ---------- Relógio para ver de longe: cada dígito rola quando muda ----------
+    // Agendado na virada exata de cada segundo; a barra é calculada pela hora real e
+    // volta ao zero sempre que o minuto vira; ao voltar para a aba, tudo é ressincronizado
+    // sem animação (o navegador congela timers e animações em abas escondidas).
+    (function () {
+      const time = document.getElementById('time');
+      const fill = document.getElementById('secfill');
+      const sec = document.getElementById('sec');
+      const date = document.getElementById('date');
+      const movimentoReduzido = matchMedia('(prefers-reduced-motion: reduce)');
+      const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+      const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+      const celulas = [];
+      let colon = null;
+      [0, 1, 'c', 2, 3].forEach((k) => {
+        const el = document.createElement('span');
+        if (k === 'c') { el.className = 'colon'; el.textContent = ':'; colon = el; }
+        else { el.className = 'dg'; celulas.push({ el, valor: null }); }
+        time.appendChild(el);
+      });
+
+      function trocar(c, novo, animar) {
+        if (c.valor === novo) return;
+        // Tira o que ainda estiver saindo e deixa só o dígito atual: nunca empilha.
+        c.el.querySelectorAll('.dg-in.sai').forEach((n) => n.remove());
+        const antigo = c.el.querySelector('.dg-in');
+        const entra = document.createElement('span');
+        entra.className = 'dg-in' + (animar && c.valor !== null ? ' entra' : '');
+        entra.textContent = novo;
+        // terminou de entrar: vira um dígito comum (sem animação pendurada)
+        entra.addEventListener('animationend', () => entra.classList.remove('entra'), { once: true });
+        c.el.appendChild(entra);
+        if (antigo) {
+          if (animar) {
+            antigo.classList.remove('entra');   // se ainda estava entrando, a saída manda
+            antigo.classList.add('sai');
+            antigo.setAttribute('aria-hidden', 'true');
+            const tira = () => antigo.remove();
+            antigo.addEventListener('animationend', tira, { once: true });
+            setTimeout(tira, 800);   // garantia se o animationend não vier
+          } else antigo.remove();
+        }
+        c.valor = novo;
+      }
+
+      let ultimoMinuto = null;
+      function barra(now, saltar) {
+        const s = now.getSeconds();
+        if (saltar) {
+          fill.style.transition = 'none';
+          fill.style.transform = 'scaleX(' + ((s + now.getMilliseconds() / 1000) / 60) + ')';
+          void fill.offsetWidth;   // aplica sem animar
+          fill.style.transition = '';
+        }
+        // anima até o fim deste segundo, no tempo que falta para ele acabar
+        fill.style.transitionDuration = (1000 - now.getMilliseconds()) + 'ms';
+        fill.style.transform = 'scaleX(' + ((s + 1) / 60) + ')';
+      }
+
+      function desenhar(saltar) {
+        const now = new Date();
+        const animar = !saltar && !document.hidden && !movimentoReduzido.matches;
+        const hm = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+        celulas.forEach((c, i) => trocar(c, hm[i], animar));
+        time.setAttribute('aria-label', hm.slice(0, 2) + ':' + hm.slice(2));
+        const s = now.getSeconds();
+        sec.textContent = String(s).padStart(2, '0');
+        colon.classList.toggle('pisca', s % 2 === 1);
+        const minuto = now.getHours() * 60 + now.getMinutes();
+        barra(now, saltar || minuto !== ultimoMinuto);   // minuto novo: volta ao zero sem animar para trás
+        ultimoMinuto = minuto;
+        date.textContent = `${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]}`;
+      }
+
+      let timer = 0;
+      function agendar() {
+        clearTimeout(timer);
+        timer = setTimeout(() => { desenhar(false); agendar(); }, 1000 - (Date.now() % 1000) + 5);
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) { desenhar(true); agendar(); }
+      });
+      window.relogio = () => desenhar(true);
+      desenhar(true);
+      agendar();
+    })();
+
+    // ---------- Grupos: a cor de cada um; passar o mouse destaca, clicar filtra ----------
+    (function () {
+      const grid = document.getElementById('apps');
+      const tiles = Array.from(grid.querySelectorAll('.app'));
+      const botoes = Array.from(document.querySelectorAll('.grupo'));
+      let ativo = null;
+      function realcar(cat) {
+        grid.classList.toggle('realce', !!cat);
+        tiles.forEach((t) => t.classList.toggle('no-grupo', t.dataset.cat === cat));
+      }
+      botoes.forEach((b) => {
+        b.addEventListener('mouseenter', () => { if (!ativo) realcar(b.dataset.cat); });
+        b.addEventListener('mouseleave', () => { if (!ativo) realcar(null); });
+        b.addEventListener('click', () => {
+          ativo = ativo === b.dataset.cat ? null : b.dataset.cat;
+          botoes.forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.cat === ativo)));
+          tiles.forEach((t) => t.classList.toggle('fora', !!ativo && t.dataset.cat !== ativo));
+          realcar(null);
+        });
+      });
+    })();
   </script>
 </body>
 </html>
@@ -889,9 +1092,13 @@ VERTO_HTML = """
 <html lang="pt-br">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verto - Conversor de Mídia Profissional</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     
     * {
       margin: 0;
@@ -978,7 +1185,7 @@ VERTO_HTML = """
       z-index: 1;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       box-shadow: 
@@ -1030,7 +1237,7 @@ VERTO_HTML = """
       padding: 12px 14px;
       border-radius: 12px;
       border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       color: #f1f5f9;
       font-size: 14px;
       outline: none;
@@ -1038,7 +1245,7 @@ VERTO_HTML = """
     }
     input[type="text"]:focus {
       border-color: #22c55e;
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(24, 26, 31, 0.95);
       box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
     }
     button {
@@ -1116,7 +1323,7 @@ VERTO_HTML = """
       border-top: 1px solid rgba(255,255,255,0.05);
     }
     .preview-card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 24px;
       box-shadow: 
@@ -1196,7 +1403,7 @@ VERTO_HTML = """
       padding: 14px 28px;
       border-radius: 14px;
       border: 1.5px solid rgba(148, 163, 184, 0.12);
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       color: #94a3b8;
       font-size: 14px;
       font-weight: 600;
@@ -1224,7 +1431,7 @@ VERTO_HTML = """
     }
     .format-btn:hover {
       border-color: rgba(34, 197, 94, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1;
       transform: translateY(-2px);
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
@@ -1263,7 +1470,7 @@ VERTO_HTML = """
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px) saturate(180%);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -1292,7 +1499,7 @@ VERTO_HTML = """
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
     }
     .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(24, 26, 31, 0.95);
       border-color: rgba(34, 197, 94, 0.4);
       color: #22c55e;
       transform: translateX(-6px);
@@ -1333,23 +1540,95 @@ VERTO_HTML = """
       .back-button { width: 48px; height: 48px; top: 16px; left: 16px; }
     }
   </style>
+  <style>
+    /* ---------- Visual LocalTools: grupo Downloads (verde) ---------- */
+    html { overflow-x: clip; }
+    body.lt-body { font-family: var(--lt-sans); padding-top: 28px; }
+    body.lt-body::before { content: none; animation: none; }
+    body > * { position: relative; z-index: 1; }
+    .topo { display: flex; justify-content: center; margin-bottom: 22px; }
+    .lt-head { margin-bottom: 30px; }
+    .card, .preview-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
+      border: 1px solid var(--lt-line);
+      border-radius: var(--lt-r-lg);
+      box-shadow: var(--lt-shadow);
+      backdrop-filter: none;
+    }
+    .card::before { content: none; }
+    h1 { font-weight: 700; letter-spacing: -0.025em; color: var(--lt-ink); }
+    p.subtitle { color: var(--lt-muted); }
+    label { color: #c9ced6; font-weight: 550; }
+    input[type="text"], #quality {
+      min-height: 46px;
+      padding: 11px 14px !important;
+      border-radius: 13px !important;
+      border: 1px solid var(--lt-line) !important;
+      background: rgba(255, 255, 255, 0.04) !important;
+      color: var(--lt-ink) !important;
+      font: 450 14px var(--lt-sans) !important;
+      transition: border-color var(--lt-dur) var(--lt-ease-out), box-shadow var(--lt-dur) var(--lt-ease-out);
+    }
+    #quality option { background: #16181c; color: var(--lt-ink); }
+    input[type="text"]::placeholder { color: var(--lt-faint); }
+    input[type="text"]:focus, #quality:focus { border-color: rgba(74, 222, 128, 0.5) !important; box-shadow: 0 0 0 4px var(--lt-ring) !important; }
+    #download-button {
+      min-height: 48px;
+      margin-top: 18px;
+      border-radius: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: linear-gradient(180deg, #5ee68f, #34c56e);
+      color: #06210f;
+      font: 650 15px var(--lt-sans);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 0 #1d7a43, 0 12px 22px -10px rgba(74, 222, 128, 0.5);
+      transition: transform var(--lt-dur-fast) var(--lt-ease-out), filter var(--lt-dur-fast) var(--lt-ease-out), box-shadow var(--lt-dur-fast) var(--lt-ease-out);
+    }
+    #download-button:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
+    #download-button:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 0 #1d7a43; }
+    #download-button:focus-visible { outline: 2px solid var(--lt-green); outline-offset: 3px; }
+    .spinner { border-color: rgba(6, 33, 15, 0.25); border-top-color: #06210f; }
+    .status { color: var(--lt-faint); font-size: 13px; }
+    .status.ok { color: var(--lt-green); }
+    .status.err { color: var(--lt-danger); }
+    .preview img, .preview iframe { border-radius: 14px; }
+    .preview h3 { color: var(--lt-ink); font-size: 15px; }
+    .preview p, .preview-loading { color: var(--lt-muted); }
+    .format-selector { gap: 8px; margin-bottom: 28px; }
+    .format-btn {
+      min-height: 40px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--lt-line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--lt-muted);
+      font: 600 14px var(--lt-sans);
+      backdrop-filter: none;
+      transition: color var(--lt-dur-fast) var(--lt-ease-out), border-color var(--lt-dur-fast) var(--lt-ease-out), background-color var(--lt-dur-fast) var(--lt-ease-out);
+    }
+    .format-btn::after { content: none; }
+    .format-btn:hover { color: var(--lt-ink); border-color: rgba(74, 222, 128, 0.35); background: rgba(255, 255, 255, 0.05); transform: none; box-shadow: none; }
+    .format-btn.active { color: #fff; border-color: rgba(74, 222, 128, 0.6); background: rgba(74, 222, 128, 0.14); box-shadow: none; }
+    @media (max-width: 760px) { body.lt-body { padding-top: 72px; } }
+    @media (max-width: 480px) { body.lt-body { padding-left: 16px; padding-right: 16px; } .card, .preview-card { min-width: 0; } }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-player.css">
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
-  <div class="logo-container">
-    <div class="logo">VERTO</div>
-  </div>
-  <div class="tagline">Conversor de Vídeos do Youtube Profissional</div>
+<body class="lt-body tema-player">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-downloads)"><img src="/static/localtools/apps/verto.webp" alt="" width="76" height="76"></span>
+    <h1>Verto</h1>
+    <p>Baixe vídeos do YouTube em MP4, o áudio em MP3 ou a thumbnail, escolhendo a qualidade antes.</p>
+  </header>
   
   <div class="format-selector">
-    <div class="format-btn active" data-format="mp4"><span>🎬 MP4</span></div>
-    <div class="format-btn" data-format="mp3"><span>🎵 MP3</span></div>
-    <div class="format-btn" data-format="thumbnail"><span>🖼️ PNG</span></div>
-    <div class="format-btn" data-format="jpg"><span>🖼️ JPG</span></div>
+    <div class="format-btn active" data-format="mp4"><span>MP4</span></div>
+    <div class="format-btn" data-format="mp3"><span>MP3</span></div>
+    <div class="format-btn" data-format="thumbnail"><span>PNG</span></div>
+    <div class="format-btn" data-format="jpg"><span>JPG</span></div>
   </div>
 
   <div class="main-container">
@@ -1365,19 +1644,19 @@ VERTO_HTML = """
         
         <label for="quality" id="quality-label" style="margin-top: 12px;">Qualidade</label>
         <select id="quality" name="quality" style="width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid #1f2937; background: #020617; color: #e5e7eb; font-size: 13px; outline: none; box-sizing: border-box;">
-          <option value="best">🔥 Melhor qualidade disponível</option>
-          <option value="8k">🌟 8K (7680p) - Ultra HD</option>
-          <option value="4k">💎 4K (2160p) - Ultra HD</option>
-          <option value="2k">🎯 2K (1440p) - Quad HD</option>
-          <option value="1080p">📺 1080p (Full HD)</option>
-          <option value="720p">📱 720p (HD)</option>
-          <option value="480p">💻 480p (SD)</option>
-          <option value="360p">📞 360p (Baixa)</option>
-          <option value="worst">⚡ Menor arquivo (pior qualidade)</option>
+          <option value="best">Melhor qualidade disponível</option>
+          <option value="8k">8K (7680p) - Ultra HD</option>
+          <option value="4k">4K (2160p) - Ultra HD</option>
+          <option value="2k">2K (1440p) - Quad HD</option>
+          <option value="1080p">1080p (Full HD)</option>
+          <option value="720p">720p (HD)</option>
+          <option value="480p">480p (SD)</option>
+          <option value="360p">360p (Baixa)</option>
+          <option value="worst">Menor arquivo (pior qualidade)</option>
         </select>
 
         <button type="submit" id="download-button">
-          <span class="btn-text">⬇️ Baixar</span>
+          <span class="btn-text">Baixar</span>
           <span class="spinner" id="btn-spinner"></span>
         </button>
       </form>
@@ -1482,31 +1761,31 @@ VERTO_HTML = """
     }
 
     const mp4Options = [
-      { value: 'best', text: '🔥 Melhor qualidade disponível' },
-      { value: '8k', text: '🌟 8K (7680p) - Ultra HD' },
-      { value: '4k', text: '💎 4K (2160p) - Ultra HD' },
-      { value: '2k', text: '🎯 2K (1440p) - Quad HD' },
-      { value: '1080p', text: '📺 1080p (Full HD)' },
-      { value: '720p', text: '📱 720p (HD)' },
-      { value: '480p', text: '💻 480p (SD)' },
-      { value: '360p', text: '📞 360p (Baixa)' },
-      { value: 'worst', text: '⚡ Menor arquivo (pior qualidade)' }
+      { value: 'best', text: 'Melhor qualidade disponível' },
+      { value: '8k', text: '8K (7680p) - Ultra HD' },
+      { value: '4k', text: '4K (2160p) - Ultra HD' },
+      { value: '2k', text: '2K (1440p) - Quad HD' },
+      { value: '1080p', text: '1080p (Full HD)' },
+      { value: '720p', text: '720p (HD)' },
+      { value: '480p', text: '480p (SD)' },
+      { value: '360p', text: '360p (Baixa)' },
+      { value: 'worst', text: 'Menor arquivo (pior qualidade)' }
     ];
 
     const mp3Options = [
-      { value: 'best', text: '🔥 Melhor qualidade disponível' },
-      { value: '320', text: '📺 320 kbps (Alta)' },
-      { value: '256', text: '📱 256 kbps' },
-      { value: '192', text: '💻 192 kbps (Média)' },
-      { value: '128', text: '📞 128 kbps (Baixa)' },
-      { value: 'worst', text: '⚡ Menor arquivo (pior qualidade)' }
+      { value: 'best', text: 'Melhor qualidade disponível' },
+      { value: '320', text: '320 kbps (Alta)' },
+      { value: '256', text: '256 kbps' },
+      { value: '192', text: '192 kbps (Média)' },
+      { value: '128', text: '128 kbps (Baixa)' },
+      { value: 'worst', text: 'Menor arquivo (pior qualidade)' }
     ];
 
     const thumbnailOptions = [
-      { value: 'maxres', text: '🔥 Máxima resolução' },
-      { value: 'high', text: '📺 Alta qualidade' },
-      { value: 'medium', text: '📱 Média qualidade' },
-      { value: 'default', text: '📞 Padrão' }
+      { value: 'maxres', text: 'Máxima resolução' },
+      { value: 'high', text: 'Alta qualidade' },
+      { value: 'medium', text: 'Média qualidade' },
+      { value: 'default', text: 'Padrão' }
     ];
 
     let formatSizes = {};
@@ -2216,6 +2495,232 @@ def efeitos_download(token):
     inline = request.args.get('inline') == '1'
     return send_file(path, as_attachment=not inline, download_name=os.path.basename(path))
 
+# --- Encurtador: links curtos GBM que funcionam no mundo todo sem o Verto ligado ---
+# Os links ficam num banco D1 e são servidos por um Worker na conta Cloudflare
+# (grátis) do usuário; estas rotas só administram pela API da Cloudflare.
+
+def _encurtador(fn):
+    try:
+        return jsonify({'success': True, **(fn() or {})})
+    except encurtador_engine.EncurtadorError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro inesperado: {e}'})
+
+@app.route("/encurtador", strict_slashes=False)
+def encurtador():
+    return Response(ENCURTADOR_HTML(), mimetype='text/html')
+
+@app.route("/encurtador/status", methods=["GET"], strict_slashes=False)
+def encurtador_status():
+    return _encurtador(encurtador_engine.status)
+
+@app.route("/encurtador/conectar", methods=["POST"], strict_slashes=False)
+def encurtador_conectar():
+    d = request.get_json(silent=True) or {}
+    return _encurtador(lambda: encurtador_engine.conectar(
+        d.get('token', ''), d.get('account_id', '')))
+
+@app.route("/encurtador/atualizar", methods=["POST"], strict_slashes=False)
+def encurtador_atualizar():
+    return _encurtador(encurtador_engine.atualizar_worker)
+
+@app.route("/encurtador/saude", methods=["GET"], strict_slashes=False)
+def encurtador_saude():
+    forcar = request.args.get('forcar') == '1'
+    return _encurtador(lambda: encurtador_engine.saude(forcar))
+
+@app.route("/encurtador/desconectar", methods=["POST"], strict_slashes=False)
+def encurtador_desconectar():
+    return _encurtador(encurtador_engine.desconectar)
+
+@app.route("/encurtador/links", methods=["GET", "POST"], strict_slashes=False)
+def encurtador_links():
+    if request.method == 'GET':
+        return _encurtador(lambda: {'links': encurtador_engine.listar()})
+    d = request.get_json(silent=True) or {}
+    if isinstance(d.get('urls'), list):
+        return _encurtador(lambda: {'resultados': encurtador_engine.criar_varios(d['urls'], d)})
+    return _encurtador(lambda: {'link': encurtador_engine.criar(d)})
+
+@app.route("/encurtador/links/<slug>", methods=["PATCH", "DELETE"], strict_slashes=False)
+def encurtador_link(slug):
+    if request.method == 'DELETE':
+        return _encurtador(lambda: encurtador_engine.excluir(slug))
+    d = request.get_json(silent=True) or {}
+    return _encurtador(lambda: {'link': encurtador_engine.editar(slug, d)})
+
+@app.route("/encurtador/links/<slug>/stats", methods=["GET"], strict_slashes=False)
+def encurtador_stats(slug):
+    dias = request.args.get('dias', 30, type=int)
+    return _encurtador(lambda: {'stats': encurtador_engine.estatisticas(slug, dias)})
+
+@app.route("/encurtador/links/<slug>/qr", methods=["GET"], strict_slashes=False)
+def encurtador_qr(slug):
+    try:
+        dados, mime, nome = encurtador_engine.qr(slug, request.args.get('formato', 'png'))
+    except encurtador_engine.EncurtadorError as e:
+        return Response(str(e), status=404, mimetype='text/plain; charset=utf-8')
+    return send_file(io.BytesIO(dados), mimetype=mime, as_attachment=request.args.get('download') == '1',
+                     download_name=nome)
+
+@app.route("/encurtador/titulo", methods=["POST"], strict_slashes=False)
+def encurtador_titulo():
+    url = (request.get_json(silent=True) or {}).get('url', '')
+    return _encurtador(lambda: encurtador_engine.buscar_titulo(url))
+
+@app.route("/encurtador/export", methods=["GET"], strict_slashes=False)
+def encurtador_export():
+    try:
+        dados = encurtador_engine.exportar()
+    except encurtador_engine.EncurtadorError as e:
+        return Response(str(e), status=400, mimetype='text/plain; charset=utf-8')
+    nome = time.strftime('encurtador-gbm-backup-%Y-%m-%d.json')
+    return Response(json.dumps(dados, ensure_ascii=False, indent=1), mimetype='application/json',
+                    headers={'Content-Disposition': f'attachment; filename="{nome}"'})
+
+@app.route("/encurtador/import", methods=["POST"], strict_slashes=False)
+def encurtador_import():
+    return _encurtador(lambda: encurtador_engine.importar(request.get_json(silent=True)))
+
+# --- Automações: tarefas em segundo plano (por enquanto, o Organizador do InstaSaver) ---
+# O vigia, a fila e o registro rodam em threads deste processo; as rotas só
+# mostram o estado e mudam a configuração. Ver Automacoes/automacoes_engine.py.
+
+def _automacoes(fn):
+    try:
+        return jsonify({'success': True, **(fn() or {})})
+    except automacoes_engine.AutomacoesError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro inesperado: {e}'})
+
+@app.route("/automacoes", strict_slashes=False)
+def automacoes():
+    automacoes_engine.iniciar()
+    return Response(AUTOMACOES_HTML(), mimetype='text/html')
+
+@app.route("/automacoes/organizador", strict_slashes=False)
+def automacoes_organizador():
+    automacoes_engine.iniciar()
+    return Response(AUTOMACOES_ORGANIZADOR_HTML(), mimetype='text/html')
+
+@app.route("/automacoes/estado", methods=["GET"], strict_slashes=False)
+def automacoes_estado():
+    depois = request.args.get('depois', 0, type=int)
+    verificar = request.args.get('verificar') == '1'
+    return _automacoes(lambda: automacoes_engine.estado(depois, verificar))
+
+@app.route("/automacoes/avisar", methods=["POST"], strict_slashes=False)
+def automacoes_avisar():
+    # Downloads feitos só no navegador (ex.: "Salvar quadro atual") avisam por aqui.
+    nome = (request.get_json(silent=True) or {}).get('nome')
+    return _automacoes(lambda: automacoes_engine.avisar_download(nome if isinstance(nome, str) else None))
+
+def _avisar_organizador(resposta, nome):
+    """Quando a resposta de download termina de sair, o navegador grava o
+    arquivo em Downloads: é a deixa para o Organizador conferir a pasta."""
+    resposta.call_on_close(lambda: automacoes_engine.avisar_download(nome))
+    return resposta
+
+@app.route("/automacoes/config", methods=["POST"], strict_slashes=False)
+def automacoes_config():
+    return _automacoes(lambda: automacoes_engine.salvar_config(request.get_json(silent=True) or {}))
+
+@app.route("/automacoes/organizar", methods=["POST"], strict_slashes=False)
+def automacoes_organizar():
+    return _automacoes(automacoes_engine.organizar_agora)
+
+@app.route("/automacoes/importar/previa", methods=["GET"], strict_slashes=False)
+def automacoes_importar_previa():
+    return _automacoes(automacoes_engine.previa_importacao)
+
+@app.route("/automacoes/importar", methods=["POST"], strict_slashes=False)
+def automacoes_importar():
+    pastas = (request.get_json(silent=True) or {}).get('pastas')
+    return _automacoes(lambda: automacoes_engine.importar(pastas if isinstance(pastas, list) else None))
+
+@app.route("/automacoes/perfis", methods=["GET", "POST"], strict_slashes=False)
+def automacoes_perfis():
+    if request.method == 'GET':
+        return _automacoes(automacoes_engine.perfis_texto)
+    texto = (request.get_json(silent=True) or {}).get('texto')
+    return _automacoes(lambda: automacoes_engine.salvar_perfis(texto))
+
+@app.route("/automacoes/abrir", methods=["POST"], strict_slashes=False)
+def automacoes_abrir():
+    qual = (request.get_json(silent=True) or {}).get('qual', '')
+    return _automacoes(lambda: automacoes_engine.abrir_pasta(qual))
+
+@app.route("/automacoes/registro/limpar", methods=["POST"], strict_slashes=False)
+def automacoes_registro_limpar():
+    return _automacoes(automacoes_engine.limpar_registro)
+
+# Editor automático de vídeo (Automações > Editor): corta pausas e retomadas,
+# legenda palavra por palavra e enquadra no formato escolhido.
+
+@app.route("/automacoes/editor", strict_slashes=False)
+def automacoes_editor():
+    automacoes_engine.iniciar()
+    return Response(AUTOMACOES_EDITOR_HTML(), mimetype='text/html')
+
+@app.route("/automacoes/editor/estado", methods=["GET"], strict_slashes=False)
+def automacoes_editor_estado():
+    return _automacoes(automacoes_engine.editor_estado)
+
+@app.route("/automacoes/editor/enviar", methods=["POST"], strict_slashes=False)
+def automacoes_editor_enviar():
+    try:
+        opcoes = json.loads(request.form.get('opcoes') or '{}')
+    except ValueError:
+        opcoes = {}
+    mapa = request.files.get('mapa')
+    return _automacoes(lambda: automacoes_engine.editor_enviar(
+        request.files.get('arquivo'), opcoes, mapa.read() if mapa and mapa.filename else None))
+
+@app.route("/automacoes/editor/local", methods=["POST"], strict_slashes=False)
+def automacoes_editor_local():
+    d = request.get_json(silent=True) or {}
+    return _automacoes(lambda: automacoes_engine.editor_local(d.get('caminho'), d.get('opcoes') or {}))
+
+@app.route("/automacoes/editor/pasta", methods=["POST"], strict_slashes=False)
+def automacoes_editor_pasta():
+    if (request.get_json(silent=True) or {}).get('abrir'):
+        return _automacoes(automacoes_engine.editor_abrir_entrada)
+    return _automacoes(automacoes_engine.editor_processar_pasta)
+
+@app.route("/automacoes/editor/presets", methods=["POST"], strict_slashes=False)
+def automacoes_editor_presets():
+    return _automacoes(lambda: automacoes_engine.editor_preset(request.get_json(silent=True) or {}))
+
+@app.route("/automacoes/editor/<job_id>", methods=["GET"], strict_slashes=False)
+def automacoes_editor_trabalho(job_id):
+    return _automacoes(lambda: automacoes_engine.editor_detalhes(job_id))
+
+@app.route("/automacoes/editor/<job_id>/<acao>", methods=["POST"], strict_slashes=False)
+def automacoes_editor_acao(job_id, acao):
+    d = request.get_json(silent=True) or {}
+    acoes = {
+        'revisar': lambda: automacoes_engine.editor_revisar(job_id, d),
+        'exportar': lambda: automacoes_engine.editor_exportar(job_id, d),
+        'tentar': lambda: automacoes_engine.editor_tentar(job_id),
+        'remover': lambda: automacoes_engine.editor_remover(job_id),
+    }
+    if acao not in acoes:
+        return jsonify({'success': False, 'error': 'Ação desconhecida.'}), 404
+    return _automacoes(acoes[acao])
+
+@app.route("/automacoes/editor/<job_id>/video", methods=["GET"], strict_slashes=False)
+@app.route("/automacoes/editor/<job_id>/saida/<int:n>", methods=["GET"], strict_slashes=False)
+def automacoes_editor_arquivo(job_id, n=None):
+    try:
+        caminho = automacoes_engine.editor_arquivo(job_id, 'fonte' if n is None else 'saida', n or 0)
+    except automacoes_engine.AutomacoesError as e:
+        return Response(str(e), status=404, mimetype='text/plain; charset=utf-8')
+    # conditional=True responde Range: o player consegue avançar e voltar.
+    return send_file(caminho, conditional=True, as_attachment=request.args.get('baixar') == '1',
+                     download_name=caminho.name)
+
 # --- Dev/Data: ferramentas de formatação, dados mock, conversão e encode/decode ---
 # Todas processadas 100% no navegador (JS) - sem rotas de upload/processamento no backend.
 
@@ -2510,9 +3015,9 @@ def instasaver_media():
     for key in ('Content-Length', 'Content-Range', 'Accept-Ranges'):
         if upstream.headers.get(key):
             headers[key] = upstream.headers[key]
+    name = _instasaver_filename(request.args.get("name"), "instagram_media")
     if request.args.get('dl'):
-        headers['Content-Disposition'] = (
-            f'attachment; filename="{_instasaver_filename(request.args.get("name"), "instagram_media")}"')
+        headers['Content-Disposition'] = f'attachment; filename="{name}"'
 
     def stream():
         try:
@@ -2521,8 +3026,9 @@ def instasaver_media():
         finally:
             upstream.close()
 
-    return Response(stream(), status=upstream.status_code, headers=headers,
-                    mimetype=upstream.headers.get('Content-Type', 'application/octet-stream'))
+    resposta = Response(stream(), status=upstream.status_code, headers=headers,
+                        mimetype=upstream.headers.get('Content-Type', 'application/octet-stream'))
+    return _avisar_organizador(resposta, name) if request.args.get('dl') else resposta
 
 @app.route("/instasaver/zip", methods=["POST"], strict_slashes=False)
 def instasaver_zip():
@@ -2550,8 +3056,9 @@ def instasaver_zip():
             except Exception:
                 continue  # link expirado: o resto do zip ainda vale
     spool.seek(0)
-    return send_file(spool, mimetype='application/zip', as_attachment=True,
-                     download_name=_instasaver_filename(payload.get('name'), 'instagram') + '.zip')
+    name = _instasaver_filename(payload.get('name'), 'instagram') + '.zip'
+    return _avisar_organizador(send_file(spool, mimetype='application/zip', as_attachment=True,
+                                         download_name=name), name)
 
 # --- VscoSaver: cola um link do VSCO e vê/baixa galeria, coleção e spaces ---
 # O VSCO é público (não precisa de login); as mídias passam por /vscosaver/media
@@ -2606,8 +3113,9 @@ def vscosaver_media():
     try:
         if vscosaver_engine.is_hls(url):
             # send_file responde Range sozinho, então o player consegue avançar.
-            return send_file(vscosaver_engine.hls_to_mp4(url), mimetype='video/mp4', conditional=True,
-                             as_attachment=download, download_name=name, max_age=3600)
+            resposta = send_file(vscosaver_engine.hls_to_mp4(url), mimetype='video/mp4', conditional=True,
+                                 as_attachment=download, download_name=name, max_age=3600)
+            return _avisar_organizador(resposta, name) if download else resposta
         upstream = vscosaver_engine.fetch_media(url, request.headers.get('Range'))
     except vscosaver_engine.VscoSaverError as e:
         return Response(str(e), status=400, mimetype='text/plain')
@@ -2620,8 +3128,9 @@ def vscosaver_media():
             headers[key] = upstream.headers[key]
     if download:
         headers['Content-Disposition'] = f'attachment; filename="{name}"'
-    return Response(upstream.content, status=upstream.status_code, headers=headers,
-                    mimetype=upstream.headers.get('Content-Type', 'application/octet-stream'))
+    resposta = Response(upstream.content, status=upstream.status_code, headers=headers,
+                        mimetype=upstream.headers.get('Content-Type', 'application/octet-stream'))
+    return _avisar_organizador(resposta, name) if download else resposta
 
 @app.route("/vscosaver/zip", methods=["POST"], strict_slashes=False)
 def vscosaver_zip():
@@ -2648,8 +3157,9 @@ def vscosaver_zip():
             except Exception:
                 continue  # uma mídia que falhou não derruba o resto do zip
     spool.seek(0)
-    return send_file(spool, mimetype='application/zip', as_attachment=True,
-                     download_name=_instasaver_filename(payload.get('name'), 'vsco') + '.zip')
+    name = _instasaver_filename(payload.get('name'), 'vsco') + '.zip'
+    return _avisar_organizador(send_file(spool, mimetype='application/zip', as_attachment=True,
+                                         download_name=name), name)
 
 # --- WhatsSaver: conecta ao WhatsApp (como o WhatsApp Web) e mostra, por conversa,
 # todas as fotos e vídeos - inclusive os enviados como arquivo - direto dos
@@ -5567,15 +6077,19 @@ FILES_HTML = """
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Conversor de Arquivos</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/fichario.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b0c0f;
       background-image: 
-        radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
+        radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.06) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -5613,7 +6127,7 @@ FILES_HTML = """
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px) saturate(180%);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -5627,7 +6141,7 @@ FILES_HTML = """
       box-shadow: 
         0 0 0 1px rgba(148, 163, 184, 0.1),
         0 8px 24px rgba(0, 0, 0, 0.5),
-        0 0 40px rgba(34, 197, 94, 0.03);
+        0 0 40px rgba(2, 132, 199, 0.03);
     }
     .back-button::before {
       content: '';
@@ -5639,33 +6153,33 @@ FILES_HTML = """
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
     }
     .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(34, 197, 94, 0.4);
-      color: #22c55e;
+      background: rgba(24, 26, 31, 0.95);
+      border-color: rgba(2, 132, 199, 0.4);
+      color: #0284c7;
       transform: translateX(-6px);
       box-shadow: 
-        0 0 0 1px rgba(34, 197, 94, 0.2),
+        0 0 0 1px rgba(2, 132, 199, 0.2),
         0 12px 32px rgba(0, 0, 0, 0.6),
-        0 0 60px rgba(34, 197, 94, 0.15);
+        0 0 60px rgba(2, 132, 199, 0.15);
     }
     .logo {
       font-size: 72px;
       font-weight: 900;
-      background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
+      background: linear-gradient(135deg, #0ea5e9 0%, #075985 25%, #0284c7 50%, #075985 75%, #0ea5e9 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       letter-spacing: 18px;
       text-transform: uppercase;
-      filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4));
+      filter: drop-shadow(0 0 25px rgba(2, 132, 199, 0.7)) drop-shadow(0 0 50px rgba(14, 165, 233, 0.4));
       animation: glow-pulse 3s ease-in-out infinite;
       margin-bottom: 10px;
       position: relative;
       z-index: 1;
     }
     @keyframes glow-pulse {
-      0%, 100% { filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 50px rgba(59, 130, 246, 0.4)); }
-      50% { filter: drop-shadow(0 0 35px rgba(34, 197, 94, 0.9)) drop-shadow(0 0 70px rgba(59, 130, 246, 0.6)); }
+      0%, 100% { filter: drop-shadow(0 0 25px rgba(2, 132, 199, 0.7)) drop-shadow(0 0 50px rgba(14, 165, 233, 0.4)); }
+      50% { filter: drop-shadow(0 0 35px rgba(2, 132, 199, 0.9)) drop-shadow(0 0 70px rgba(14, 165, 233, 0.6)); }
     }
     .tagline {
       color: #64748b;
@@ -5690,7 +6204,7 @@ FILES_HTML = """
       padding: 14px 28px;
       border-radius: 14px;
       border: 1.5px solid rgba(148, 163, 184, 0.12);
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       color: #94a3b8;
       font-size: 14px;
       font-weight: 600;
@@ -5703,23 +6217,23 @@ FILES_HTML = """
       pointer-events: none;
     }
     .format-btn:hover {
-      border-color: rgba(34, 197, 94, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      border-color: rgba(2, 132, 199, 0.3);
+      background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1;
       transform: translateY(-2px);
     }
     .format-btn.active {
-      border-color: #22c55e;
-      background: rgba(34, 197, 94, 0.12);
-      color: #22c55e;
-      box-shadow: 0 0 24px rgba(34, 197, 94, 0.2);
+      border-color: #0284c7;
+      background: rgba(2, 132, 199, 0.12);
+      color: #0284c7;
+      box-shadow: 0 0 24px rgba(2, 132, 199, 0.2);
     }
     .file-size-info {
       margin-top: 16px;
       padding: 12px;
-      background: rgba(34, 197, 94, 0.08);
+      background: rgba(2, 132, 199, 0.08);
       border-radius: 10px;
-      border: 1px solid rgba(34, 197, 94, 0.2);
+      border: 1px solid rgba(2, 132, 199, 0.2);
       text-align: center;
       display: none;
     }
@@ -5729,13 +6243,13 @@ FILES_HTML = """
     .file-size-info p {
       margin: 0;
       font-size: 13px;
-      color: #22c55e;
+      color: #0284c7;
       font-weight: 600;
     }
     .file-preview {
       margin-top: 16px;
       padding: 12px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       border-radius: 10px;
       border: 1px solid rgba(148, 163, 184, 0.2);
       display: none;
@@ -5783,13 +6297,13 @@ FILES_HTML = """
       display: flex;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       box-shadow: 
         0 0 0 1px rgba(148, 163, 184, 0.1),
         0 20px 60px rgba(0, 0, 0, 0.6),
-        0 0 80px rgba(34, 197, 94, 0.05);
+        0 0 80px rgba(2, 132, 199, 0.05);
       width: 100%;
       max-width: 520px;
       border: 1px solid rgba(148, 163, 184, 0.08);
@@ -5833,7 +6347,7 @@ FILES_HTML = """
       padding: 16px;
       border-radius: 12px;
       border: 2px dashed rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1;
       font-size: 14px;
       outline: none;
@@ -5845,29 +6359,29 @@ FILES_HTML = """
       padding: 12px 28px;
       border: none;
       border-radius: 999px;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
+      background: linear-gradient(135deg, #0284c7, #075985);
       color: white;
       font-weight: 600;
       font-size: 14px;
       cursor: pointer;
       margin-right: 16px;
       transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
     }
     input[type="file"]::file-selector-button:hover {
-      background: linear-gradient(135deg, #16a34a, #15803d);
+      background: linear-gradient(135deg, #075985, #0c4a6e);
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
+      box-shadow: 0 6px 16px rgba(2, 132, 199, 0.3);
     }
     input[type="file"]:hover {
-      border-color: rgba(34, 197, 94, 0.5);
-      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(2, 132, 199, 0.5);
+      background: rgba(24, 26, 31, 0.8);
       border-style: solid;
     }
     input[type="file"]:focus {
-      border-color: #22c55e;
-      background: rgba(15, 23, 42, 0.95);
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+      border-color: #0284c7;
+      background: rgba(24, 26, 31, 0.95);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
       border-style: solid;
     }
     button {
@@ -5879,7 +6393,7 @@ FILES_HTML = """
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
+      background: linear-gradient(135deg, #0284c7, #075985);
       color: white;
       display: flex;
       align-items: center;
@@ -5897,7 +6411,7 @@ FILES_HTML = """
       min-height: 18px;
     }
     .status.ok {
-      color: #4ade80;
+      color: #38bdf8;
     }
     .status.err {
       color: #f97373;
@@ -5934,7 +6448,7 @@ FILES_HTML = """
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
       gap: 8px;
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 16px;
       padding: 16px;
       border: 1px solid rgba(148, 163, 184, 0.08);
@@ -5942,7 +6456,7 @@ FILES_HTML = """
     }
     .format-item {
       padding: 10px 6px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       border: 1px solid rgba(148, 163, 184, 0.15);
       border-radius: 8px;
       text-align: center;
@@ -5964,36 +6478,38 @@ FILES_HTML = """
       color: #94a3b8;
     }
     .format-item.available:hover {
-      background: rgba(34, 197, 94, 0.12);
-      border-color: #22c55e;
-      color: #22c55e;
+      background: rgba(2, 132, 199, 0.12);
+      border-color: #0284c7;
+      color: #0284c7;
       transform: translateY(-2px);
     }
     .format-item.active {
-      background: rgba(34, 197, 94, 0.12);
-      border-color: #22c55e;
-      color: #22c55e;
-      box-shadow: 0 0 16px rgba(34, 197, 94, 0.2);
+      background: rgba(2, 132, 199, 0.12);
+      border-color: #0284c7;
+      color: #0284c7;
+      box-shadow: 0 0 16px rgba(2, 132, 199, 0.2);
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-fichario">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">Arquivos</div>
-  <div class="tagline">Conversor de Arquivos Profissional</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-conversao)"><img src="/static/localtools/apps/files.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Arquivos</h1>
+    <p class="modo-sub">Conversor de Arquivos Profissional</p>
+  </header>
   
   <div class="format-selector">
-    <div class="format-btn active" data-format="png"><span>🖼️ PNG</span></div>
-    <div class="format-btn" data-format="jpg"><span>📷 JPG</span></div>
-    <div class="format-btn" data-format="jpeg"><span>📷 JPEG</span></div>
-    <div class="format-btn" data-format="webp"><span>🌐 WEBP</span></div>
-    <div class="format-btn" data-format="heic"><span>📱 HEIC</span></div>
-    <div class="format-btn" data-format="enc"><span>🔐 ENC</span></div>
+    <div class="format-btn active" data-format="png"><span>PNG</span></div>
+    <div class="format-btn" data-format="jpg"><span>JPG</span></div>
+    <div class="format-btn" data-format="jpeg"><span>JPEG</span></div>
+    <div class="format-btn" data-format="webp"><span>WEBP</span></div>
+    <div class="format-btn" data-format="heic"><span>HEIC</span></div>
+    <div class="format-btn" data-format="enc"><span>ENC</span></div>
   </div>
   
   <div class="card">
@@ -6020,7 +6536,7 @@ FILES_HTML = """
       </div>
       
       <button type="submit" id="convert-button">
-        <span class="btn-text">🔄 Converter</span>
+        <span class="btn-text">Converter</span>
       </button>
     </form>
 
@@ -6036,7 +6552,7 @@ FILES_HTML = """
   <div class="more-formats">
     <h2>Mais Formatos Suportados</h2>
     <div class="format-category">
-      <h3>📷 Imagens</h3>
+      <h3>Imagens</h3>
       <div class="formats-grid" id="image-formats">
         <div class="format-item" data-format="bmp" data-category="image">BMP</div>
         <div class="format-item" data-format="gif" data-category="image">GIF</div>
@@ -6124,7 +6640,7 @@ FILES_HTML = """
       </div>
     </div>
     <div class="format-category">
-      <h3>📸 RAW (Câmeras)</h3>
+      <h3>RAW (Câmeras)</h3>
       <div class="formats-grid">
         <div class="format-item" data-format="cr2" data-category="image">CR2</div>
         <div class="format-item" data-format="nef" data-category="image">NEF</div>
@@ -6150,7 +6666,7 @@ FILES_HTML = """
       </div>
     </div>
     <div class="format-category">
-      <h3>🎬 Vídeos</h3>
+      <h3>Vídeos</h3>
       <div class="formats-grid">
         <div class="format-item" data-format="mp4" data-category="video">MP4</div>
         <div class="format-item" data-format="avi" data-category="video">AVI</div>
@@ -6179,7 +6695,7 @@ FILES_HTML = """
       </div>
     </div>
     <div class="format-category">
-      <h3>🎵 Áudio</h3>
+      <h3>Áudio</h3>
       <div class="formats-grid">
         <div class="format-item" data-format="mp3" data-category="audio">MP3</div>
         <div class="format-item" data-format="wav" data-category="audio">WAV</div>
@@ -6216,7 +6732,7 @@ FILES_HTML = """
       </div>
     </div>
     <div class="format-category">
-      <h3>📄 Documentos</h3>
+      <h3>Documentos</h3>
       <div class="formats-grid">
         <div class="format-item" data-format="pdf" data-category="document">PDF</div>
         <div class="format-item" data-format="doc" data-category="document">DOC</div>
@@ -6253,7 +6769,7 @@ FILES_HTML = """
       </div>
     </div>
     <div class="format-category">
-      <h3>📊 Apresentações</h3>
+      <h3>Apresentações</h3>
       <div class="formats-grid">
         <div class="format-item" data-format="ppt" data-category="presentation">PPT</div>
         <div class="format-item" data-format="pptx" data-category="presentation">PPTX</div>
@@ -6271,7 +6787,7 @@ FILES_HTML = """
       </div>
     </div>
     <div class="format-category">
-      <h3>📚 eBooks</h3>
+      <h3>eBooks</h3>
       <div class="formats-grid">
         <div class="format-item" data-format="epub" data-category="ebook">EPUB</div>
         <div class="format-item" data-format="mobi" data-category="ebook">MOBI</div>
@@ -6293,7 +6809,7 @@ FILES_HTML = """
       </div>
     </div>
     <div class="format-category">
-      <h3>🗜️ Arquivos</h3>
+      <h3>Arquivos</h3>
       <div class="formats-grid">
         <div class="format-item" data-format="zip" data-category="archive">ZIP</div>
         <div class="format-item" data-format="rar" data-category="archive">RAR</div>
@@ -6321,7 +6837,7 @@ FILES_HTML = """
       </div>
     </div>
     <div class="format-category">
-      <h3>🔤 Fontes</h3>
+      <h3>Fontes</h3>
       <div class="formats-grid">
         <div class="format-item" data-format="ttf" data-category="font">TTF</div>
         <div class="format-item" data-format="otf" data-category="font">OTF</div>
@@ -6344,7 +6860,7 @@ FILES_HTML = """
       </div>
     </div>
     <div class="format-category">
-      <h3>📏 CAD</h3>
+      <h3>CAD</h3>
       <div class="formats-grid">
         <div class="format-item" data-format="dwg" data-category="cad">DWG</div>
         <div class="format-item" data-format="dxf" data-category="cad">DXF</div>
@@ -6363,7 +6879,7 @@ FILES_HTML = """
       </div>
     </div>
     <div class="format-category">
-      <h3>🎮 Modelos 3D</h3>
+      <h3>Modelos 3D</h3>
       <div class="formats-grid">
         <div class="format-item" data-format="obj" data-category="3d">OBJ</div>
         <div class="format-item" data-format="fbx" data-category="3d">FBX</div>
@@ -7655,192 +8171,65 @@ PURPLEFLIX_HTML = """
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PurpleFlix - Streaming</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0f1e;
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
-      color: #e2e8f0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 15px;
-      position: relative;
-      overflow-x: hidden;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(148, 163, 184, 0.03) 2px,
-        rgba(148, 163, 184, 0.03) 4px
-      );
-      animation: grid-move 20s linear infinite;
-      pointer-events: none;
-    }
-    @keyframes grid-move {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(50px); }
-    }
-    .back-button {
-      position: fixed;
-      top: 24px;
-      left: 24px;
-      width: 56px;
-      height: 56px;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(40px) saturate(180%);
-      border-radius: 16px;
-      border: 1.5px solid rgba(148, 163, 184, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 1000;
-      color: #cbd5e1;
-      box-shadow: 
-        0 0 0 1px rgba(148, 163, 184, 0.1),
-        0 8px 24px rgba(0, 0, 0, 0.5),
-        0 0 40px rgba(34, 197, 94, 0.03);
-    }
-    .back-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-    }
-    .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(34, 197, 94, 0.4);
-      color: #22c55e;
-      transform: translateX(-6px);
-      box-shadow: 
-        0 0 0 1px rgba(34, 197, 94, 0.2),
-        0 12px 32px rgba(0, 0, 0, 0.6),
-        0 0 60px rgba(34, 197, 94, 0.15);
-    }
-    .logo {
-      font-size: 64px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 25%, #9333ea 50%, #a855f7 75%, #c084fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: 6px;
-      text-transform: uppercase;
-      filter: drop-shadow(0 0 25px rgba(147, 51, 234, 0.7)) drop-shadow(0 0 50px rgba(139, 92, 246, 0.4));
-      animation: glow-pulse-purple 3s ease-in-out infinite;
-      margin-bottom: 10px;
-      margin-top: 20px;
-      position: relative;
-      z-index: 1;
-    }
-    @keyframes glow-pulse-purple {
-      0%, 100% { filter: drop-shadow(0 0 25px rgba(147, 51, 234, 0.7)) drop-shadow(0 0 50px rgba(139, 92, 246, 0.4)); }
-      50% { filter: drop-shadow(0 0 35px rgba(147, 51, 234, 0.9)) drop-shadow(0 0 70px rgba(139, 92, 246, 0.6)); }
-    }
-    .tagline {
-      color: #64748b;
-      font-size: 15px;
-      margin-bottom: 40px;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      position: relative;
-      z-index: 1;
-    }
-    .preview-container {
-      width: 95vw;
-      max-width: 1400px;
-      height: 75vh;
-      background: rgba(15, 23, 42, 0.4);
-      border-radius: 28px;
-      padding: 0;
-      box-shadow: 
-        0 0 0 1px rgba(148, 163, 184, 0.1),
-        0 20px 60px rgba(0, 0, 0, 0.6),
-        0 0 80px rgba(34, 197, 94, 0.05);
-      border: 1px solid rgba(148, 163, 184, 0.08);
-      backdrop-filter: blur(40px) saturate(180%);
-      position: relative;
-      z-index: 1;
-      overflow: hidden;
-    }
-    .preview-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      border-radius: 28px;
-    }
-    .access-button {
-      margin-top: 24px;
-      padding: 16px 48px;
-      border: none;
-      border-radius: 999px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      background: linear-gradient(135deg, #9333ea, #7c3aed);
-      color: white;
-      box-shadow: 0 8px 24px rgba(147, 51, 234, 0.3);
-      transition: all 0.3s;
-      position: relative;
-      z-index: 1;
-    }
-    .access-button:hover {
-      background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(147, 51, 234, 0.4);
-    }
-    @media (max-width: 640px) {
-      body { padding: 30px 10px; padding-top: 100px; }
-      .logo { font-size: 40px; letter-spacing: 3px; }
-      .preview-container { height: 60vh; }
-    }
-  </style>
+  <meta name="theme-color" content="#050407">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/cinema.css">
+  <link rel="modulepreload" href="/static/localtools/vendor/three/three.module.min.js">
+  <script type="importmap">
+  { "imports": {
+      "three": "/static/localtools/vendor/three/three.module.min.js",
+      "three/addons/": "/static/localtools/vendor/three/addons/"
+  } }
+  </script>
+  <script src="/static/localtools/vendor/gsap/gsap.min.js" defer></script>
+  <script type="module" src="/static/localtools/purpleflix/sala.js"></script>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
-  
-  <div class="logo">PURPLEFLIX</div>
-  <div class="tagline">Preview do Streaming</div>
-  
-  <div class="preview-container">
-    <iframe src="https://purpleflix3.vercel.app/" allowfullscreen></iframe>
-  </div>
-  
-  <button class="access-button" onclick="window.open('https://purpleflix3.vercel.app/', '_blank')">
-    🎬 Acessar PurpleFlix
-  </button>
+<body class="lt-body modo-cinema">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+
+  <main class="sala" id="sala" aria-label="Sala de cinema da PurpleFlix">
+    <div class="veu" id="veu" aria-hidden="true">
+      <span class="veu-k">Sessão</span>
+      <span class="veu-t">PurpleFlix</span>
+    </div>
+    <noscript><iframe class="sem-js" src="https://purpleflix3.vercel.app/" title="PurpleFlix" allowfullscreen></iframe></noscript>
+  </main>
+
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+
+  <section class="hud" aria-label="Controles da sessão">
+    <div class="hud-info">
+      <span class="lt-key sm" style="--hue: var(--lt-cat-downloads)"><img src="/static/localtools/apps/purpleflix.webp" alt="" width="40" height="40"></span>
+      <div class="hud-txt">
+        <span class="hud-k"><span class="luz" id="luz" aria-hidden="true"></span><span id="estado" role="status" aria-live="polite">Preparando a sala…</span></span>
+        <span class="hud-t">PurpleFlix</span>
+      </div>
+    </div>
+    <div class="hud-acoes">
+      <button type="button" class="cbtn forte" id="assistir">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5L8 5.5Z" fill="currentColor"/></svg>
+        <span>Assistir</span>
+      </button>
+      <button type="button" class="cbtn" id="luzes" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1.1 1.3 1.1 2.2h5c0-.9.5-1.7 1.1-2.2A6 6 0 0 0 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Apagar luzes</span>
+      </button>
+      <button type="button" class="cbtn ic" id="recarregar" title="Recarregar" aria-label="Recarregar">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button type="button" class="cbtn ic" id="cheia" title="Tela cheia" aria-label="Tela cheia">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <a class="cbtn ic" href="https://purpleflix3.vercel.app/" target="_blank" rel="noopener" title="Abrir em nova aba" aria-label="Abrir em nova aba">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </section>
+  <p class="dica" aria-hidden="true">Mova o mouse para olhar a sala · Esc volta à poltrona</p>
 </body>
 </html>
 """
@@ -8318,189 +8707,239 @@ PDFS_HTML = """<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PDFs - Editor e Conversor</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    /* PDFs, modo "papel": cada ferramenta é uma folha sobre a mesa escura,
+       com a ponta dobrada, título em serifa e o ícone desenhado em tinta coral. */
+    @font-face { font-family: 'Instrument Serif'; font-weight: 400; font-style: normal; font-display: swap;
+      src: url('/static/localtools/fonts/InstrumentSerif-Regular.woff2') format('woff2'); }
+    @font-face { font-family: 'Instrument Serif'; font-weight: 400; font-style: italic; font-display: swap;
+      src: url('/static/localtools/fonts/InstrumentSerif-Italic.woff2') format('woff2'); }
+    :root {
+      --papel: #f4efe6;
+      --papel-2: #e9e2d6;
+      --tinta: #24201b;
+      --tinta-2: #6b6256;
+      --coral: #d9534f;
+      --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(220, 38, 38, 0.06) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(185, 28, 28, 0.05) 0px, transparent 50%);
-      color: #e2e8f0;
-      min-height: 100vh;
-      padding: 40px 15px;
-      padding-top: 100px;
+    html { overflow-x: clip; }
+    body { min-height: 100vh; padding: 28px 20px 72px; }
+    body > * { position: relative; z-index: 1; }
+    .topo { display: flex; justify-content: center; margin-bottom: 22px; }
+    .lt-head { margin-bottom: 14px; }
+    .lt-head h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(46px, 6vw, 72px); letter-spacing: -0.01em; }
+    .lt-head p em { font-family: var(--serif); font-style: italic; font-size: 1.18em; color: var(--lt-ink); }
+    .nota {
+      display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin: 0 auto 40px;
+      color: var(--lt-faint); font-size: 13px;
     }
-    .back-button {
-      position: fixed;
-      top: 24px;
-      left: 24px;
-      width: 56px;
-      height: 56px;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(40px);
-      border-radius: 16px;
-      border: 1.5px solid rgba(148, 163, 184, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      z-index: 1000;
-      color: #cbd5e1;
-    }
-    .back-button:hover {
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #ef4444;
-      transform: translateX(-6px);
-    }
-    .logo {
-      font-size: 72px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: 18px;
-      text-transform: uppercase;
-      filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.7));
-      animation: glow-pulse 3s ease-in-out infinite;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    @keyframes glow-pulse {
-      0%, 100% { filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.7)); }
-      50% { filter: drop-shadow(0 0 35px rgba(239, 68, 68, 0.9)); }
-    }
-    .tagline {
-      color: #64748b;
-      font-size: 15px;
-      margin-bottom: 48px;
-      text-align: center;
-      font-weight: 500;
-    }
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      max-width: 1200px;
+    .nota span::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--coral); margin-right: 8px; vertical-align: 1px; }
+
+    /* ---------- A mesa ---------- */
+    .mesa {
+      max-width: 1120px;
       margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 34px 26px;
     }
-    .tool-card {
-      background: rgba(15, 23, 42, 0.4);
-      border-radius: 20px;
-      padding: 24px;
-      border: 1px solid rgba(148, 163, 184, 0.08);
-      backdrop-filter: blur(40px);
-      cursor: pointer;
-      transition: all 0.3s;
+    .folha {
+      --giro: 0deg;
+      --corte: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 0 100%);
+      position: relative;
+      display: block;
+      color: var(--tinta);
+      text-decoration: none;
+      border-radius: 3px;
+      transform: rotate(var(--giro));
+      transition: transform 260ms var(--lt-ease-out), filter 260ms var(--lt-ease-out);
+      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5)) drop-shadow(0 14px 18px rgba(0, 0, 0, 0.45));
     }
-    .tool-card:hover {
-      border-color: rgba(239, 68, 68, 0.3);
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(239, 68, 68, 0.2);
+    /* leve desalinho de pilha de papel, diferente em cada folha */
+    .folha:nth-child(5n+1) { --giro: -0.7deg; }
+    .folha:nth-child(5n+2) { --giro: 0.45deg; }
+    .folha:nth-child(5n+3) { --giro: -0.25deg; }
+    .folha:nth-child(5n+4) { --giro: 0.8deg; }
+    .folha:nth-child(5n)   { --giro: -0.5deg; }
+    .papel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 232px;
+      height: 100%;
+      padding: 22px 22px 18px;
+      clip-path: var(--corte);
+      border-radius: 3px;
+      background:
+        repeating-linear-gradient(180deg, transparent 0 27px, rgba(36, 32, 27, 0.06) 27px 28px) 0 96px / 100% calc(100% - 120px) no-repeat,
+        linear-gradient(180deg, var(--papel), var(--papel-2));
     }
-    .tool-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
+    /* folha de baixo da pilha, que aparece quando a de cima levanta */
+    .folha::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(180deg, #d9d1c3, #cdc4b4);
+      border-radius: 3px;
+      clip-path: var(--corte);
+      transform: translate(0, 0) rotate(0deg);
+      transition: transform 260ms var(--lt-ease-out);
     }
-    .tool-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #f8fafc;
-      margin-bottom: 8px;
+    .dobra {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(225deg, transparent 50%, #d8cfbf 50%, #c9bfae 100%);
+      box-shadow: -2px 2px 3px rgba(0, 0, 0, 0.12);
     }
-    .tool-desc {
-      font-size: 13px;
-      color: #94a3b8;
-      line-height: 1.6;
+    .num { position: absolute; top: 20px; right: 42px; font: 500 12px var(--lt-mono); color: rgba(36, 32, 27, 0.38); }
+    .tinta { width: 40px; height: 40px; color: var(--coral); margin-bottom: 22px; fill: currentColor; }
+    .folha h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1; letter-spacing: -0.005em; margin-bottom: 10px; }
+    .folha p { font-size: 14px; line-height: 28px; color: var(--tinta-2); flex: 1; }
+    .abrir {
+      align-self: flex-start;
+      margin-top: 8px;
+      font: 600 12.5px var(--lt-sans);
+      letter-spacing: 0.02em;
+      color: #b83a36;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: opacity 200ms var(--lt-ease-out), transform 200ms var(--lt-ease-out);
     }
+    .folha:hover, .folha:focus-visible {
+      transform: rotate(0deg) translateY(-6px);
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 24px 26px rgba(0, 0, 0, 0.55));
+    }
+    .folha:hover::before, .folha:focus-visible::before { transform: translate(6px, 8px) rotate(2deg); }
+    .folha:hover .abrir, .folha:focus-visible .abrir { opacity: 1; transform: none; }
+    .folha:active { transform: translateY(-2px) scale(0.99); transition-duration: 90ms; }
+    .folha:focus-visible { outline: none; }
+    .folha:focus-visible h2 { text-decoration: underline 2px var(--coral); text-underline-offset: 5px; }
+    @media (max-width: 560px) {
+      body { padding-top: 72px; }
+      .mesa { grid-template-columns: 1fr; gap: 22px; }
+      .papel { min-height: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .folha { transform: none; } }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
-  
-  <div class="logo">PDFs</div>
-  <div class="tagline">Editor e Conversor de PDF Profissional</div>
-  
-  <div class="tools-grid">
-    <div class="tool-card" onclick="window.location.href='/pdfs/merge'">
-      <div class="tool-icon">🔗</div>
-      <div class="tool-title">Juntar PDFs</div>
-      <div class="tool-desc">Combine, reordene e delete páginas de múltiplos PDFs</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/split'">
-      <div class="tool-icon">✂️</div>
-      <div class="tool-title">Dividir PDF</div>
-      <div class="tool-desc">Separe um PDF em vários arquivos ou extraia páginas específicas</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/convert'">
-      <div class="tool-icon">🔄</div>
-      <div class="tool-title">Converter PDF</div>
-      <div class="tool-desc">Converta PDF para Word, Excel, PowerPoint, imagens e mais</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/edit'">
-      <div class="tool-icon">📝</div>
-      <div class="tool-title">Editar PDF</div>
-      <div class="tool-desc">Extraia e edite texto com formatação rica</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/protect'">
-      <div class="tool-icon">🔒</div>
-      <div class="tool-title">Proteger PDF</div>
-      <div class="tool-desc">Adicione senha e criptografia ao seu documento PDF</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/unlock'">
-      <div class="tool-icon">🔓</div>
-      <div class="tool-title">Desbloquear PDF</div>
-      <div class="tool-desc">Remova senha e restrições de PDFs protegidos</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/compress'">
-      <div class="tool-icon">🗜️</div>
-      <div class="tool-title">Comprimir PDF</div>
-      <div class="tool-desc">Reduza o tamanho do arquivo PDF mantendo a qualidade</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/rotate'">
-      <div class="tool-icon">🔃</div>
-      <div class="tool-title">Girar PDF</div>
-      <div class="tool-desc">Rotacione páginas do PDF em 90, 180 ou 270 graus</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/compare'">
-      <div class="tool-icon">🔍</div>
-      <div class="tool-title">Comparar PDFs</div>
-      <div class="tool-desc">Compare múltiplos PDFs e veja as diferenças entre eles</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/repair'">
-      <div class="tool-icon">🔧</div>
-      <div class="tool-title">Reparar PDF</div>
-      <div class="tool-desc">Recupere dados de PDFs corrompidos ou danificados</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/watermark'">
-      <div class="tool-icon">💧</div>
-      <div class="tool-title">Marca d'água</div>
-      <div class="tool-desc">Adicione marca d'água de texto ou imagem ao PDF</div>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/pdfs/corrupt'">
-      <div class="tool-icon">💥</div>
-      <div class="tool-title">Corromper PDF</div>
-      <div class="tool-desc">Corrompa PDFs de forma controlada para testes</div>
-    </div>
-  </div>
+<body class="lt-body">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-documentos)"><img src="/static/localtools/apps/pdfs.webp" alt="" width="76" height="76"></span>
+    <h1>PDFs</h1>
+    <p>Doze ferramentas para <em>juntar, dividir, converter e proteger</em> documentos, sem enviar nada para a internet.</p>
+  </header>
+  <div class="nota"><span>Tudo processado neste computador</span><span>O resultado vai para Downloads</span></div>
+  <main class="mesa">
+    <a class="folha" href="/pdfs/merge" style="--i: 0"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">01</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M229.18,173a6,6,0,0,1-2.16,8.2l-96,56a6,6,0,0,1-6,0l-96-56a6,6,0,0,1,6-10.36l93,54.23,93-54.23A6,6,0,0,1,229.18,173ZM221,122.82l-93,54.23L35,122.82a6,6,0,0,0-6,10.36l96,56a6,6,0,0,0,6,0l96-56a6,6,0,0,0-6-10.36ZM26,80a6,6,0,0,1,3-5.18l96-56a6,6,0,0,1,6,0l96,56a6,6,0,0,1,0,10.36l-96,56a6,6,0,0,1-6,0l-96-56A6,6,0,0,1,26,80Zm17.91,0L128,129.05,212.09,80,128,31Z"/></svg>
+      <h2>Juntar</h2>
+      <p>Combine, reordene e apague páginas de vários PDFs.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/split" style="--i: 1"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">02</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M159.38,112a6,6,0,0,1,1.57-8.34l67.66-46.31a6,6,0,0,1,6.78,9.91l-67.67,46.3a6,6,0,0,1-8.34-1.56ZM237,197.09a6,6,0,0,1-8.34,1.56L136,135.27,91,166.06A34,34,0,1,1,84,156a1.8,1.8,0,0,0,.19.2L125.37,128,84.23,99.84,84,100a34,34,0,1,1,7-10.1l144.38,98.8A6,6,0,0,1,237,197.09ZM75.56,91.55a22,22,0,1,0-31.12,0,21.88,21.88,0,0,0,31.12,0ZM82,180a22,22,0,1,0-6.44,15.56h0A21.88,21.88,0,0,0,82,180Z"/></svg>
+      <h2>Dividir</h2>
+      <p>Separe um PDF em vários arquivos ou extraia páginas.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/convert" style="--i: 2"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">03</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M212.24,171.76a6,6,0,0,1,0,8.48l-32,32a6,6,0,0,1-8.48-8.48L193.51,182H48a6,6,0,0,1,0-12H193.51l-21.75-21.76a6,6,0,0,1,8.48-8.48ZM75.76,116.24a6,6,0,0,0,8.48-8.48L62.49,86H208a6,6,0,0,0,0-12H62.49L84.24,52.24a6,6,0,0,0-8.48-8.48l-32,32a6,6,0,0,0,0,8.48Z"/></svg>
+      <h2>Converter</h2>
+      <p>De PDF para Word, Excel, PowerPoint, imagens e mais.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/edit" style="--i: 3"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">04</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M225.91,74.79,181.22,30.1a14,14,0,0,0-19.8,0L38.1,153.41a13.94,13.94,0,0,0-4.1,9.9V208a14,14,0,0,0,14,14H216a6,6,0,0,0,0-12H110.49L225.91,94.59A14,14,0,0,0,225.91,74.79ZM93.52,210H48a2,2,0,0,1-2-2V163.31a2,2,0,0,1,.59-1.41L136,72.49,183.52,120ZM217.42,86.1,192,111.52,144.49,64,169.9,38.59a2,2,0,0,1,2.83,0l44.69,44.68A2,2,0,0,1,217.42,86.1Z"/></svg>
+      <h2>Editar</h2>
+      <p>Extraia e edite o texto com formatação.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/compress" style="--i: 4"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">05</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M146,104V64a6,6,0,0,1,12,0V89.51l45.76-45.75a6,6,0,0,1,8.48,8.48L166.48,98H192a6,6,0,0,1,0,12H152A6,6,0,0,1,146,104Zm-42,42H64a6,6,0,0,0,0,12H89.52L43.76,203.76a6,6,0,1,0,8.48,8.48L98,166.48V192a6,6,0,0,0,12,0V152A6,6,0,0,0,104,146Zm62.48,12H192a6,6,0,0,0,0-12H152a6,6,0,0,0-6,6v40a6,6,0,0,0,12,0V166.48l45.76,45.76a6,6,0,0,0,8.48-8.48ZM104,58a6,6,0,0,0-6,6V89.51L52.24,43.76a6,6,0,0,0-8.48,8.48L89.52,98H64a6,6,0,0,0,0,12h40a6,6,0,0,0,6-6V64A6,6,0,0,0,104,58Z"/></svg>
+      <h2>Comprimir</h2>
+      <p>Diminua o arquivo mantendo a qualidade.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/rotate" style="--i: 5"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">06</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M238,56v48a6,6,0,0,1-6,6H184a6,6,0,0,1,0-12h32.55l-30.38-27.8c-.06-.06-.12-.13-.19-.19a82,82,0,1,0-1.7,117.65,6,6,0,0,1,8.24,8.73A93.46,93.46,0,0,1,128,222h-1.28A94,94,0,1,1,194.37,61.4L226,90.35V56a6,6,0,1,1,12,0Z"/></svg>
+      <h2>Girar</h2>
+      <p>Rotacione páginas em 90, 180 ou 270 graus.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/protect" style="--i: 6"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">07</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,82H174V56a46,46,0,0,0-92,0V82H48A14,14,0,0,0,34,96V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V96A14,14,0,0,0,208,82ZM94,56a34,34,0,0,1,68,0V82H94ZM210,208a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V96a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Z"/></svg>
+      <h2>Proteger</h2>
+      <p>Adicione senha e criptografia ao documento.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/unlock" style="--i: 7"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">08</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,82H94V56a34,34,0,0,1,34-34c16.3,0,31,11.69,34.12,27.19a6,6,0,0,0,11.76-2.38C169.55,25.48,150.26,10,128,10A46.06,46.06,0,0,0,82,56V82H48A14,14,0,0,0,34,96V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V96A14,14,0,0,0,208,82Zm2,126a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V96a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Z"/></svg>
+      <h2>Desbloquear</h2>
+      <p>Remova senha e restrições de PDFs protegidos.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/watermark" style="--i: 8"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">09</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M172.53,49.06a252.86,252.86,0,0,0-41.09-38,6,6,0,0,0-6.88,0,252.86,252.86,0,0,0-41.09,38C56.34,80.26,42,113.09,42,144a86,86,0,0,0,172,0C214,113.09,199.66,80.26,172.53,49.06ZM128,218a74.09,74.09,0,0,1-74-74c0-59.62,59-108.93,74-120.51C143,35.07,202,84.38,202,144A74.09,74.09,0,0,1,128,218Zm53.92-65A55.58,55.58,0,0,1,137,197.92a7,7,0,0,1-1,.08,6,6,0,0,1-1-11.92c17.38-2.92,32.13-17.68,35.08-35.08a6,6,0,1,1,11.84,2Z"/></svg>
+      <h2>Marca d’água</h2>
+      <p>Texto ou imagem por cima das páginas.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/compare" style="--i: 9"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">10</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M104,34H64A14,14,0,0,0,50,48V208a14,14,0,0,0,14,14h40a14,14,0,0,0,14-14V48A14,14,0,0,0,104,34Zm2,174a2,2,0,0,1-2,2H64a2,2,0,0,1-2-2V48a2,2,0,0,1,2-2h40a2,2,0,0,1,2,2ZM192,34H152a14,14,0,0,0-14,14V208a14,14,0,0,0,14,14h40a14,14,0,0,0,14-14V48A14,14,0,0,0,192,34Zm2,174a2,2,0,0,1-2,2H152a2,2,0,0,1-2-2V48a2,2,0,0,1,2-2h40a2,2,0,0,1,2,2Z"/></svg>
+      <h2>Comparar</h2>
+      <p>Veja as diferenças entre dois ou mais PDFs.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/repair" style="--i: 10"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">11</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M224.91,69.75a6,6,0,0,0-9.63-2.16l-41.07,37.9L154.7,101.3l-4.19-19.51,37.9-41.07a6,6,0,0,0-2.16-9.63,70,70,0,0,0-89.77,94.39l-61.39,53c-.11.09-.21.19-.32.3A30,30,0,0,0,77.2,221.23c.11-.11.21-.21.3-.32l53-61.39a70,70,0,0,0,94.39-89.77ZM160,154a58,58,0,0,1-28-7.22,6,6,0,0,0-7.45,1.33L68.57,212.88a18,18,0,0,1-25.45-25.45l64.76-55.94A6,6,0,0,0,109.2,124a58,58,0,0,1,64-84.53L139.58,75.93a6,6,0,0,0-1.45,5.33l5.65,26.35a6,6,0,0,0,4.61,4.61l26.35,5.65a6,6,0,0,0,5.33-1.45L216.49,82.8A58.06,58.06,0,0,1,160,154Z"/></svg>
+      <h2>Reparar</h2>
+      <p>Recupere o que der de PDFs corrompidos.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+    <a class="folha" href="/pdfs/corrupt" style="--i: 11"><span class="papel">
+      <span class="dobra" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">12</span>
+      <svg class="tinta" viewBox="0 0 256 256" aria-hidden="true"><path d="M122,136V80a6,6,0,0,1,12,0v56a6,6,0,0,1-12,0ZM230,91.55v72.9a13.92,13.92,0,0,1-4.1,9.9L174.35,225.9a13.92,13.92,0,0,1-9.9,4.1H91.55a13.92,13.92,0,0,1-9.9-4.1L30.1,174.35a13.92,13.92,0,0,1-4.1-9.9V91.55a13.92,13.92,0,0,1,4.1-9.9L81.65,30.1a13.92,13.92,0,0,1,9.9-4.1h72.9a13.92,13.92,0,0,1,9.9,4.1L225.9,81.65A13.92,13.92,0,0,1,230,91.55Zm-12,0a2,2,0,0,0-.59-1.42L165.87,38.59a2,2,0,0,0-1.42-.59H91.55a2,2,0,0,0-1.41.59L38.58,90.13A2,2,0,0,0,38,91.55v72.9a2,2,0,0,0,.59,1.42l51.54,51.54a2,2,0,0,0,1.42.59h72.9a2,2,0,0,0,1.41-.59l51.56-51.54a2,2,0,0,0,.58-1.42ZM128,162a10,10,0,1,0,10,10A10,10,0,0,0,128,162Z"/></svg>
+      <h2>Corromper</h2>
+      <p>Estrague um PDF de propósito, para testes.</p>
+      <span class="abrir" aria-hidden="true">Abrir →</span>
+    </span></a>
+  </main>
 </body>
 </html>
 """
@@ -8511,14 +8950,18 @@ PDFS_MERGE_HTML = """<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Juntar PDFs</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/pdfs-papel.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: 
-        radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%),
+        radial-gradient(at 0% 0%, rgba(217, 83, 79, 0.08) 0px, transparent 50%),
         radial-gradient(at 100% 0%, rgba(220, 38, 38, 0.06) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -8531,7 +8974,7 @@ PDFS_MERGE_HTML = """<!doctype html>
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -8544,14 +8987,14 @@ PDFS_MERGE_HTML = """<!doctype html>
       color: #cbd5e1;
     }
     .back-button:hover {
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #ef4444;
+      border-color: rgba(217, 83, 79, 0.4);
+      color: #d9534f;
       transform: translateX(-6px);
     }
     .logo {
       font-size: 48px;
       font-weight: 900;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      background: linear-gradient(135deg, #d9534f 0%, #c2413d 50%, #a8332f 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       text-align: center;
@@ -8564,7 +9007,7 @@ PDFS_MERGE_HTML = """<!doctype html>
       text-align: center;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       border: 1px solid rgba(148, 163, 184, 0.08);
@@ -8596,19 +9039,19 @@ PDFS_MERGE_HTML = """<!doctype html>
       width: 100%;
       padding: 40px;
       border-radius: 12px;
-      border: 2px dashed rgba(239, 68, 68, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      border: 2px dashed rgba(217, 83, 79, 0.3);
+      background: rgba(24, 26, 31, 0.6);
       text-align: center;
       cursor: pointer;
       transition: all 0.3s;
     }
     .file-upload-area:hover {
-      border-color: rgba(239, 68, 68, 0.5);
-      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(217, 83, 79, 0.5);
+      background: rgba(24, 26, 31, 0.8);
     }
     .file-upload-area.dragover {
-      border-color: #ef4444;
-      background: rgba(239, 68, 68, 0.1);
+      border-color: #d9534f;
+      background: rgba(217, 83, 79, 0.1);
     }
     .upload-icon {
       font-size: 48px;
@@ -8631,7 +9074,7 @@ PDFS_MERGE_HTML = """<!doctype html>
       display: block;
     }
     .file-item {
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: 8px;
       padding: 12px;
@@ -8672,15 +9115,15 @@ PDFS_MERGE_HTML = """<!doctype html>
       padding: 4px 12px;
       border-radius: 6px;
       border: 1px solid rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1;
       font-size: 11px;
       cursor: pointer;
       transition: all 0.2s;
     }
     .toggle-preview:hover {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: #ef4444;
+      background: rgba(217, 83, 79, 0.2);
+      border-color: #d9534f;
     }
     .pages-preview {
       display: none;
@@ -8696,7 +9139,7 @@ PDFS_MERGE_HTML = """<!doctype html>
     .page-thumb {
       position: relative;
       aspect-ratio: 0.7;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(24, 26, 31, 0.9);
       border: 2px solid rgba(148, 163, 184, 0.2);
       border-radius: 6px;
       cursor: move;
@@ -8708,7 +9151,7 @@ PDFS_MERGE_HTML = """<!doctype html>
       transition: all 0.2s;
     }
     .page-thumb:hover {
-      border-color: #ef4444;
+      border-color: #d9534f;
       transform: scale(1.05);
     }
     .page-thumb.dragging {
@@ -8726,9 +9169,9 @@ PDFS_MERGE_HTML = """<!doctype html>
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: #ef4444;
+      background: #d9534f;
       color: white;
-      border: 2px solid #0a0f1e;
+      border: 2px solid #0b0c0f;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -8765,7 +9208,7 @@ PDFS_MERGE_HTML = """<!doctype html>
       height: 32px;
       border-radius: 6px;
       border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1;
       cursor: pointer;
       display: flex;
@@ -8775,16 +9218,16 @@ PDFS_MERGE_HTML = """<!doctype html>
       transition: all 0.2s;
     }
     .btn-move:hover {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: #ef4444;
+      background: rgba(217, 83, 79, 0.2);
+      border-color: #d9534f;
     }
     .btn-remove {
       width: 32px;
       height: 32px;
       border-radius: 6px;
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      background: rgba(239, 68, 68, 0.1);
-      color: #ef4444;
+      border: 1px solid rgba(217, 83, 79, 0.3);
+      background: rgba(217, 83, 79, 0.1);
+      color: #d9534f;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -8793,8 +9236,8 @@ PDFS_MERGE_HTML = """<!doctype html>
       transition: all 0.2s;
     }
     .btn-remove:hover {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: #ef4444;
+      background: rgba(217, 83, 79, 0.2);
+      border-color: #d9534f;
     }
     button {
       margin-top: 20px;
@@ -8805,11 +9248,11 @@ PDFS_MERGE_HTML = """<!doctype html>
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
+      background: linear-gradient(135deg, #d9534f, #c2413d);
       color: white;
     }
     button:hover {
-      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      background: linear-gradient(135deg, #c2413d, #a8332f);
     }
     .status {
       margin-top: 16px;
@@ -8824,21 +9267,24 @@ PDFS_MERGE_HTML = """<!doctype html>
       border: 1px solid rgba(34, 197, 94, 0.3);
     }
     .status.err {
-      background: rgba(239, 68, 68, 0.1);
+      background: rgba(217, 83, 79, 0.1);
       color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      border: 1px solid rgba(217, 83, 79, 0.3);
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/pdfs'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body pdf-papel">
+  <a class="lt-back" href="/pdfs" title="Voltar aos PDFs" aria-label="Voltar aos PDFs">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">🔗 JUNTAR PDFs</div>
-  <div class="tagline">Combine múltiplos arquivos PDF em um</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="pdf-cab">
+    <span class="pdf-selo"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M229.18,173a6,6,0,0,1-2.16,8.2l-96,56a6,6,0,0,1-6,0l-96-56a6,6,0,0,1,6-10.36l93,54.23,93-54.23A6,6,0,0,1,229.18,173ZM221,122.82l-93,54.23L35,122.82a6,6,0,0,0-6,10.36l96,56a6,6,0,0,0,6,0l96-56a6,6,0,0,0-6-10.36ZM26,80a6,6,0,0,1,3-5.18l96-56a6,6,0,0,1,6,0l96,56a6,6,0,0,1,0,10.36l-96,56a6,6,0,0,1-6,0l-96-56A6,6,0,0,1,26,80Zm17.91,0L128,129.05,212.09,80,128,31Z"/></svg></span>
+    <nav class="pdf-trilha" aria-label="Você está em"><a href="/pdfs">PDFs</a> / Juntar</nav>
+    <h1 class="pdf-titulo">Juntar</h1>
+    <p class="pdf-sub">Combine múltiplos arquivos PDF em um</p>
+  </header>
   
   <div class="card">
     <h1>Selecione os PDFs</h1>
@@ -8847,7 +9293,7 @@ PDFS_MERGE_HTML = """<!doctype html>
     <form method="POST" enctype="multipart/form-data" id="merge-form">
       <label>Arquivos PDF</label>
       <div class="file-upload-area" id="upload-area" onclick="document.getElementById('files').click()">
-        <div class="upload-icon">📄</div>
+        <div class="upload-icon"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H190v20h18a6,6,0,0,1,0,12H190v18a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h32A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm84,8a34,34,0,0,1-34,34H112a6,6,0,0,1-6-6V152a6,6,0,0,1,6-6h16A34,34,0,0,1,162,180Zm-12,0a22,22,0,0,0-22-22H118v44h10A22,22,0,0,0,150,180ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>
         <div class="upload-text">Clique ou arraste arquivos aqui</div>
         <div class="upload-hint">Suporta um ou múltiplos arquivos PDF</div>
       </div>
@@ -8855,8 +9301,8 @@ PDFS_MERGE_HTML = """<!doctype html>
       
       <div class="files-list" id="files-list"></div>
       
-      <button type="button" class="merge-all-btn" id="merge-all-btn" style="display:none;" onclick="mergeAll()">✓ Juntar Tudo</button>
-      <button type="submit" id="submit-btn" style="display:none;">🔗 Juntar PDFs Selecionados</button>
+      <button type="button" class="merge-all-btn" id="merge-all-btn" style="display:none;" onclick="mergeAll()">Juntar Tudo</button>
+      <button type="submit" id="submit-btn" style="display:none;">Juntar PDFs Selecionados</button>
     </form>
     
     {% if status %}
@@ -9118,31 +9564,35 @@ TRANSPARENT_HTML = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Remover Fundo</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/recorte.css">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',sans-serif;background:#0a0f1e;background-image:radial-gradient(at 0% 0%,rgba(168,85,247,0.08) 0px,transparent 50%);color:#e2e8f0;min-height:100vh;padding:40px 20px;padding-top:100px}
+body{font-family:'Inter',sans-serif;background:#0b0c0f;background-image:radial-gradient(at 0% 0%,rgba(168,85,247,0.08) 0px,transparent 50%);color:#e2e8f0;min-height:100vh;padding:40px 20px;padding-top:100px}
 .back-button{position:fixed;top:24px;left:24px;width:56px;height:56px;background:rgba(15,23,42,0.8);backdrop-filter:blur(40px);border-radius:16px;border:1.5px solid rgba(148,163,184,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;z-index:1000;color:#cbd5e1}
-.back-button:hover{border-color:rgba(168,85,247,0.4);color:#a855f7;transform:translateX(-6px)}
+.back-button:hover{border-color:rgba(168,85,247,0.4);color:#db2777;transform:translateX(-6px)}
 .container{max-width:1200px;margin:0 auto}
-.logo{text-align:center;font-size:56px;font-weight:800;background:linear-gradient(135deg,#a855f7,#9333ea);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
+.logo{text-align:center;font-size:56px;font-weight:800;background:linear-gradient(135deg,#db2777,#be185d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
 .tagline{text-align:center;color:#94a3b8;font-size:16px;margin-bottom:48px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
 .card{background:rgba(15,23,42,0.6);backdrop-filter:blur(40px);border-radius:24px;border:1.5px solid rgba(148,163,184,0.15);padding:32px}
 .upload-area{border:2px dashed rgba(168,85,247,0.3);border-radius:16px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.3s;margin-bottom:24px}
-.upload-area:hover{border-color:#a855f7;background:rgba(168,85,247,0.05)}
+.upload-area:hover{border-color:#db2777;background:rgba(168,85,247,0.05)}
 .upload-area input{display:none}
-.preview-container{position:relative;min-height:300px;background:repeating-conic-gradient(#1e293b 0% 25%,#0f172a 0% 50%) 50%/20px 20px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.preview-container{position:relative;min-height:300px;background:repeating-conic-gradient(#1e293b 0% 25%,#16181c 0% 50%) 50%/20px 20px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .preview-container img{max-width:100%;max-height:400px;cursor:crosshair}
 .color-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:16px 0}
 .color-btn{width:100%;aspect-ratio:1;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:all 0.3s;position:relative}
-.color-btn:hover{transform:scale(1.1);border-color:#a855f7}
-.color-btn.active{border-color:#a855f7;box-shadow:0 0 20px rgba(168,85,247,0.5)}
+.color-btn:hover{transform:scale(1.1);border-color:#db2777}
+.color-btn.active{border-color:#db2777;box-shadow:0 0 20px rgba(168,85,247,0.5)}
 .color-picker-wrapper{display:flex;gap:12px;align-items:center;margin:16px 0}
 .color-picker-wrapper input[type="color"]{width:60px;height:60px;border:none;border-radius:12px;cursor:pointer}
 .tolerance-slider{width:100%;margin:16px 0}
 .tolerance-slider input{width:100%}
-button{width:100%;padding:14px;border:none;border-radius:999px;background:linear-gradient(135deg,#a855f7,#9333ea);color:white;font-weight:600;cursor:pointer;transition:all 0.3s;margin-top:16px}
+button{width:100%;padding:14px;border:none;border-radius:999px;background:linear-gradient(135deg,#db2777,#be185d);color:white;font-weight:600;cursor:pointer;transition:all 0.3s;margin-top:16px}
 button:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(168,85,247,0.3)}
 .status{margin-top:16px;padding:12px;border-radius:8px;text-align:center;font-size:14px}
 .status.ok{background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.3)}
@@ -9150,22 +9600,26 @@ button:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(168,85,247,0.
 @media(max-width:768px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
-<body>
-<div class="back-button" onclick="location.href='/'">
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-</div>
+<body class="lt-body modo-recorte">
+<a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 <div class="container">
-<div class="logo">🎨 TRANSPARÊNCIA</div>
-<div class="tagline">Remova fundos de imagens</div>
+<div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-imagem)"><img src="/static/localtools/apps/transparent.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Transparência</h1>
+    <p class="modo-sub">Remova fundos de imagens</p>
+  </header>
 <div class="grid">
 <div class="card">
-<h3 style="margin-bottom:16px">📤 Upload</h3>
+<h3 style="margin-bottom:16px">Upload</h3>
 <div class="upload-area" onclick="document.getElementById('file').click()">
-<div style="font-size:48px;margin-bottom:12px">📁</div>
+<div style="font-size:48px;margin-bottom:12px"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34ZM48,46H208a2,2,0,0,1,2,2V154H179.31a13.9,13.9,0,0,0-9.89,4.1L150.1,177.41a2,2,0,0,1-1.41.59H107.31a2,2,0,0,1-1.41-.59L86.59,158.1a13.94,13.94,0,0,0-9.9-4.1H46V48A2,2,0,0,1,48,46ZM208,210H48a2,2,0,0,1-2-2V166H76.69a2,2,0,0,1,1.41.59L97.41,185.9a13.94,13.94,0,0,0,9.9,4.1h41.38a13.9,13.9,0,0,0,9.89-4.1l19.32-19.31a2,2,0,0,1,1.41-.59H210v42A2,2,0,0,1,208,210ZM91.76,108.24a6,6,0,0,1,0-8.48l32-32a6,6,0,0,1,8.48,0l32,32a6,6,0,1,1-8.48,8.48L134,86.49V152a6,6,0,0,1-12,0V86.49l-21.76,21.75A6,6,0,0,1,91.76,108.24Z"/></svg></div>
 <div style="font-size:14px;color:#cbd5e1">Clique para selecionar imagem</div>
 <input type="file" id="file" accept="image/*">
 </div>
-<h3 style="margin-bottom:12px">🎨 Cores Comuns</h3>
+<h3 style="margin-bottom:12px">Cores Comuns</h3>
 <div class="color-grid">
 <div class="color-btn" style="background:#FFFFFF" data-color="#FFFFFF" title="Branco"></div>
 <div class="color-btn" style="background:#000000" data-color="#000000" title="Preto"></div>
@@ -9182,12 +9636,12 @@ button:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(168,85,247,0.
 <label style="font-size:13px;color:#cbd5e1;margin-bottom:8px;display:block">Tolerância: <span id="toleranceValue">30</span></label>
 <input type="range" id="tolerance" min="1" max="100" value="30" oninput="document.getElementById('toleranceValue').textContent=this.value">
 </div>
-<button onclick="processImage('color')">🎨 Remover Cor</button>
-<button onclick="processImage('auto')" style="background:linear-gradient(135deg,#22c55e,#16a34a)">🤖 Remover Fundo (Auto)</button>
+<button onclick="processImage('color')">Remover Cor</button>
+<button onclick="processImage('auto')">Remover Fundo (Auto)</button>
 <div id="status"></div>
 </div>
 <div class="card">
-<h3 style="margin-bottom:16px">👁️ Preview</h3>
+<h3 style="margin-bottom:16px">Preview</h3>
 <div class="preview-container" id="preview">
 <div style="color:#64748b;font-size:14px">Selecione uma imagem</div>
 </div>
@@ -9260,12 +9714,12 @@ try{
 const res=await fetch('/transparent',{method:'POST',body:formData});
 const data=await res.json();
 if(data.success){
-showStatus(`✅ Salvo: ${data.filename}`,'ok');
+showStatus(`Salvo: ${data.filename}`,'ok');
 }else{
-showStatus(`❌ ${data.error}`,'err');
+showStatus(`${data.error}`,'err');
 }
 }catch(e){
-showStatus(`❌ Erro: ${e.message}`,'err');
+showStatus(`Erro: ${e.message}`,'err');
 }
 }
 
@@ -9823,13 +10277,17 @@ TRANSCRIBE_HTML = """
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Transcrever - Áudio para Texto</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/fita.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%);
+      font-family: var(--lt-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(180, 83, 9, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.06) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       display: flex;
@@ -9843,7 +10301,7 @@ TRANSCRIBE_HTML = """
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -9857,20 +10315,20 @@ TRANSCRIBE_HTML = """
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
     }
     .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(34, 197, 94, 0.4);
-      color: #22c55e;
+      background: rgba(24, 26, 31, 0.95);
+      border-color: rgba(180, 83, 9, 0.4);
+      color: #b45309;
       transform: translateX(-6px);
     }
     .logo {
       font-size: 72px;
       font-weight: 900;
-      background: linear-gradient(135deg, #3b82f6 0%, #16a34a 25%, #22c55e 50%, #16a34a 75%, #3b82f6 100%);
+      background: linear-gradient(135deg, #f59e0b 0%, #92400e 25%, #b45309 50%, #92400e 75%, #f59e0b 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: 18px;
       text-transform: uppercase;
-      filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.7));
+      filter: drop-shadow(0 0 25px rgba(180, 83, 9, 0.7));
       margin-bottom: 10px;
     }
     .tagline {
@@ -9880,7 +10338,7 @@ TRANSCRIBE_HTML = """
       font-weight: 500;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -9912,7 +10370,7 @@ TRANSCRIBE_HTML = """
       padding: 16px;
       border-radius: 12px;
       border: 2px dashed rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1;
       font-size: 14px;
       cursor: pointer;
@@ -9923,33 +10381,33 @@ TRANSCRIBE_HTML = """
       padding: 12px 28px;
       border: none;
       border-radius: 999px;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
+      background: linear-gradient(135deg, #b45309, #92400e);
       color: white;
       font-weight: 600;
       font-size: 14px;
       cursor: pointer;
       margin-right: 16px;
       transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+      box-shadow: 0 4px 12px rgba(180, 83, 9, 0.2);
     }
     input[type="file"]::file-selector-button:hover {
-      background: linear-gradient(135deg, #16a34a, #15803d);
+      background: linear-gradient(135deg, #92400e, #78350f);
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
+      box-shadow: 0 6px 16px rgba(180, 83, 9, 0.3);
     }
     input[type="file"]:hover {
-      border-color: rgba(34, 197, 94, 0.5);
-      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(180, 83, 9, 0.5);
+      background: rgba(24, 26, 31, 0.8);
       border-style: solid;
     }
     input[type="file"]:focus {
-      border-color: #22c55e;
-      background: rgba(15, 23, 42, 0.95);
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+      border-color: #b45309;
+      background: rgba(24, 26, 31, 0.95);
+      box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
       border-style: solid;
     }
     input[type="file"]:hover {
-      border-color: rgba(34, 197, 94, 0.5);
+      border-color: rgba(180, 83, 9, 0.5);
       border-style: solid;
     }
     button {
@@ -9961,7 +10419,7 @@ TRANSCRIBE_HTML = """
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
+      background: linear-gradient(135deg, #b45309, #92400e);
       color: white;
       display: flex;
       align-items: center;
@@ -9978,12 +10436,12 @@ TRANSCRIBE_HTML = """
       color: #9ca3af;
       min-height: 18px;
     }
-    .status.ok { color: #4ade80; }
+    .status.ok { color: #fbbf24; }
     .status.err { color: #f97373; }
     .result {
       margin-top: 24px;
       padding: 20px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       border-radius: 12px;
       border: 1px solid rgba(148, 163, 184, 0.2);
       display: none;
@@ -9991,7 +10449,7 @@ TRANSCRIBE_HTML = """
     .result.show { display: block; }
     .result h3 {
       font-size: 16px;
-      color: #22c55e;
+      color: #b45309;
       margin-bottom: 12px;
     }
     .result-text {
@@ -10004,15 +10462,15 @@ TRANSCRIBE_HTML = """
     }
     .copy-btn {
       margin-top: 12px;
-      background: rgba(59, 130, 246, 0.2);
-      border: 1px solid rgba(59, 130, 246, 0.4);
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.4);
       padding: 8px 16px;
       border-radius: 8px;
       font-size: 12px;
       width: auto;
     }
     .copy-btn:hover {
-      background: rgba(59, 130, 246, 0.3);
+      background: rgba(245, 158, 11, 0.3);
     }
     .spinner {
       width: 14px;
@@ -10028,18 +10486,20 @@ TRANSCRIBE_HTML = """
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-fita">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">TRANSCREVER</div>
-  <div class="tagline">Conversor de Áudio/Vídeo para Texto</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-audio)"><img src="/static/localtools/apps/transcribe.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Transcrever</h1>
+    <p class="modo-sub">Conversor de Áudio/Vídeo para Texto</p>
+  </header>
   
   <div class="card">
-    <h1>🎤 Transcrição de Áudio</h1>
+    <h1>Transcrição de Áudio</h1>
     <p class="subtitle">Envie um arquivo de áudio ou vídeo para transcrever</p>
 
     <form method="POST" enctype="multipart/form-data" id="transcribe-form">
@@ -10047,7 +10507,7 @@ TRANSCRIBE_HTML = """
       <input type="file" id="file" name="file" accept="audio/*,video/*" required>
       
       <button type="submit" id="transcribe-button">
-        <span class="btn-text">▶️ Transcrever</span>
+        <span class="btn-text">Transcrever</span>
         <span class="spinner" id="btn-spinner"></span>
       </button>
     </form>
@@ -10062,9 +10522,9 @@ TRANSCRIBE_HTML = """
     
     {% if transcription %}
     <div class="result show">
-      <h3>✅ Transcrição Completa</h3>
+      <h3>Transcrição Completa</h3>
       <div class="result-text" id="result-text">{{ transcription }}</div>
-      <button class="copy-btn" onclick="copyText()">📋 Copiar Texto</button>
+      <button class="copy-btn" onclick="copyText()">Copiar Texto</button>
     </div>
     {% endif %}
   </div>
@@ -10084,7 +10544,7 @@ TRANSCRIBE_HTML = """
     function copyText() {
       const text = document.getElementById('result-text').textContent;
       navigator.clipboard.writeText(text).then(() => {
-        alert('✅ Texto copiado!');
+        alert('Texto copiado!');
       });
     }
   </script>
@@ -10200,12 +10660,16 @@ GHOST_HTML = """
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ghost Tool - Removedor de Metadados</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/nevoa.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b0c0f;
       background-image: radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.06) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -10220,7 +10684,7 @@ GHOST_HTML = """
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -10234,7 +10698,7 @@ GHOST_HTML = """
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
     }
     .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(24, 26, 31, 0.95);
       border-color: rgba(139, 92, 246, 0.4);
       color: #8b5cf6;
       transform: translateX(-6px);
@@ -10257,7 +10721,7 @@ GHOST_HTML = """
       font-weight: 500;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -10283,7 +10747,7 @@ GHOST_HTML = """
       border-radius: 16px;
       padding: 40px;
       text-align: center;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       cursor: pointer;
       transition: all 0.3s;
       margin-bottom: 24px;
@@ -10316,7 +10780,7 @@ GHOST_HTML = """
       overflow-y: auto;
     }
     .file-item {
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       border-radius: 12px;
       padding: 16px;
       margin-bottom: 12px;
@@ -10443,22 +10907,24 @@ GHOST_HTML = """
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-nevoa">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">GHOST</div>
-  <div class="tagline">Removedor de Metadados em Massa</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-privacidade)"><img src="/static/localtools/apps/ghost.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Ghost Tool</h1>
+    <p class="modo-sub">Removedor de Metadados em Massa</p>
+  </header>
   
   <div class="card">
-    <h1>👻 Ghost Tool</h1>
-    <p class="subtitle">🔒 Remova metadados de múltiplos arquivos simultaneamente. GPS, autor, datas, câmera, software - tudo apagado permanentemente. Processamento 100% local.</p>
+    <h1>Ghost Tool</h1>
+    <p class="subtitle">Remova metadados de múltiplos arquivos simultaneamente. GPS, autor, datas, câmera, software - tudo apagado permanentemente. Processamento 100% local.</p>
 
     <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
-      <div class="drop-zone-icon">📁</div>
+      <div class="drop-zone-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34ZM48,46H208a2,2,0,0,1,2,2V154H179.31a13.9,13.9,0,0,0-9.89,4.1L150.1,177.41a2,2,0,0,1-1.41.59H107.31a2,2,0,0,1-1.41-.59L86.59,158.1a13.94,13.94,0,0,0-9.9-4.1H46V48A2,2,0,0,1,48,46ZM208,210H48a2,2,0,0,1-2-2V166H76.69a2,2,0,0,1,1.41.59L97.41,185.9a13.94,13.94,0,0,0,9.9,4.1h41.38a13.9,13.9,0,0,0,9.89-4.1l19.32-19.31a2,2,0,0,1,1.41-.59H210v42A2,2,0,0,1,208,210ZM91.76,108.24a6,6,0,0,1,0-8.48l32-32a6,6,0,0,1,8.48,0l32,32a6,6,0,1,1-8.48,8.48L134,86.49V152a6,6,0,0,1-12,0V86.49l-21.76,21.75A6,6,0,0,1,91.76,108.24Z"/></svg></div>
       <div class="drop-zone-text">Arraste arquivos aqui ou clique para selecionar</div>
       <div class="drop-zone-hint">Suporta: Imagens, PDFs, Documentos, Vídeos, Áudios (150+ formatos)</div>
     </div>
@@ -10469,15 +10935,15 @@ GHOST_HTML = """
     
     <div class="action-buttons">
       <button class="btn-primary" id="clean-btn" onclick="cleanMetadata()" disabled>
-        <span>🧹 Limpar Metadados</span>
+        <span>Limpar Metadados</span>
       </button>
       <button class="btn-secondary" id="download-btn" onclick="downloadAll()" disabled>
-        <span>⬇️ Baixar Todos</span>
+        <span>Baixar Todos</span>
       </button>
     </div>
     
     <div class="privacy-badge">
-      <div class="privacy-badge-icon">🔐</div>
+      <div class="privacy-badge-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,82H174V56a46,46,0,0,0-92,0V82H48A14,14,0,0,0,34,96V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V96A14,14,0,0,0,208,82ZM94,56a34,34,0,0,1,68,0V82H94ZM210,208a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V96a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Zm-82-94a26,26,0,0,0-6,51.29V184a6,6,0,0,0,12,0V165.29A26,26,0,0,0,128,114Zm0,40a14,14,0,1,1,14-14A14,14,0,0,1,128,154Z"/></svg></div>
       <div class="privacy-badge-text">Processamento 100% Local - Seus arquivos nunca saem do seu computador</div>
     </div>
   </div>
@@ -10568,11 +11034,11 @@ GHOST_HTML = """
             const statusEl = document.getElementById(`status-${index}`);
             if (fileData.success) {
               statusEl.className = 'file-status cleaned';
-              statusEl.textContent = '✅ Limpo';
+              statusEl.textContent = 'Limpo';
               cleanedFiles[index] = fileData;
             } else {
               statusEl.className = 'file-status error';
-              statusEl.textContent = '❌ Erro';
+              statusEl.textContent = 'Erro';
             }
           });
           downloadBtn.disabled = false;
@@ -10581,7 +11047,7 @@ GHOST_HTML = """
         alert('Erro ao limpar metadados');
       }
       
-      cleanBtn.innerHTML = '<span>🧹 Limpar Metadados</span>';
+      cleanBtn.innerHTML = '<span>Limpar Metadados</span>';
       cleanBtn.disabled = false;
     }
     
@@ -10881,13 +11347,17 @@ STEALTH_HTML = """
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stealth - Esteganografia Criptografada</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/esteganografia.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(220, 38, 38, 0.06) 0px, transparent 50%);
+      font-family: var(--lt-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(124, 92, 224, 0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(109, 75, 216, 0.06) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       display: flex;
@@ -10901,7 +11371,7 @@ STEALTH_HTML = """
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -10915,20 +11385,20 @@ STEALTH_HTML = """
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
     }
     .back-button:hover {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #ef4444;
+      background: rgba(24, 26, 31, 0.95);
+      border-color: rgba(124, 92, 224, 0.4);
+      color: #7c5ce0;
       transform: translateX(-6px);
     }
     .logo {
       font-size: 72px;
       font-weight: 900;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      background: linear-gradient(135deg, #7c5ce0 0%, #6d4bd8 50%, #5232b5 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: 18px;
       text-transform: uppercase;
-      filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.7));
+      filter: drop-shadow(0 0 25px rgba(124, 92, 224, 0.7));
       margin-bottom: 10px;
     }
     .tagline {
@@ -10941,7 +11411,7 @@ STEALTH_HTML = """
       display: flex;
       gap: 12px;
       margin-bottom: 40px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       padding: 6px;
       border-radius: 16px;
       border: 1px solid rgba(148, 163, 184, 0.1);
@@ -10958,12 +11428,12 @@ STEALTH_HTML = """
       transition: all 0.3s;
     }
     .mode-btn.active {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
+      background: linear-gradient(135deg, #7c5ce0, #6d4bd8);
       color: white;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      box-shadow: 0 4px 12px rgba(124, 92, 224, 0.3);
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -10996,7 +11466,7 @@ STEALTH_HTML = """
       padding: 16px;
       border-radius: 12px;
       border: 2px dashed rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       color: #cbd5e1;
       font-size: 14px;
       cursor: pointer;
@@ -11008,29 +11478,29 @@ STEALTH_HTML = """
       padding: 12px 28px;
       border: none;
       border-radius: 999px;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
+      background: linear-gradient(135deg, #7c5ce0, #6d4bd8);
       color: white;
       font-weight: 600;
       font-size: 14px;
       cursor: pointer;
       margin-right: 16px;
       transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+      box-shadow: 0 4px 12px rgba(124, 92, 224, 0.2);
     }
     input[type="file"]::file-selector-button:hover {
-      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      background: linear-gradient(135deg, #6d4bd8, #5232b5);
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+      box-shadow: 0 6px 16px rgba(124, 92, 224, 0.3);
     }
     input[type="file"]:hover {
-      border-color: rgba(239, 68, 68, 0.5);
-      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(124, 92, 224, 0.5);
+      background: rgba(24, 26, 31, 0.8);
       border-style: solid;
     }
     input[type="file"]:focus {
-      border-color: #ef4444;
-      background: rgba(15, 23, 42, 0.95);
-      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      border-color: #7c5ce0;
+      background: rgba(24, 26, 31, 0.95);
+      box-shadow: 0 0 0 3px rgba(124, 92, 224, 0.1);
       border-style: solid;
     }
     input[type="password"], textarea {
@@ -11038,7 +11508,7 @@ STEALTH_HTML = """
       padding: 12px;
       border-radius: 12px;
       border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       color: #f1f5f9;
       font-size: 14px;
       outline: none;
@@ -11047,9 +11517,9 @@ STEALTH_HTML = """
       font-family: inherit;
     }
     input[type="password"]:focus, textarea:focus {
-      border-color: #ef4444;
-      background: rgba(15, 23, 42, 0.95);
-      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      border-color: #7c5ce0;
+      background: rgba(24, 26, 31, 0.95);
+      box-shadow: 0 0 0 3px rgba(124, 92, 224, 0.1);
     }
     textarea {
       min-height: 120px;
@@ -11063,7 +11533,7 @@ STEALTH_HTML = """
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
+      background: linear-gradient(135deg, #7c5ce0, #6d4bd8);
       color: white;
       display: flex;
       align-items: center;
@@ -11073,7 +11543,7 @@ STEALTH_HTML = """
     }
     button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+      box-shadow: 0 8px 20px rgba(124, 92, 224, 0.4);
     }
     button:disabled {
       opacity: 0.6;
@@ -11096,16 +11566,16 @@ STEALTH_HTML = """
       color: #22c55e;
     }
     .status.error {
-      background: rgba(239, 68, 68, 0.2);
-      border: 1px solid rgba(239, 68, 68, 0.4);
-      color: #ef4444;
+      background: rgba(124, 92, 224, 0.2);
+      border: 1px solid rgba(124, 92, 224, 0.4);
+      color: #7c5ce0;
     }
     .security-badge {
       margin-top: 24px;
       padding: 16px;
-      background: rgba(239, 68, 68, 0.1);
+      background: rgba(124, 92, 224, 0.1);
       border-radius: 12px;
-      border: 1px solid rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(124, 92, 224, 0.2);
       text-align: center;
     }
     .security-badge-icon {
@@ -11114,7 +11584,7 @@ STEALTH_HTML = """
     }
     .security-badge-text {
       font-size: 13px;
-      color: #fca5a5;
+      color: #c4b5fd;
       font-weight: 600;
       line-height: 1.6;
     }
@@ -11137,26 +11607,28 @@ STEALTH_HTML = """
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-esteganografia">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">STEALTH</div>
-  <div class="tagline">Esteganografia com Criptografia AES-256</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-privacidade)"><img src="/static/localtools/apps/stealth.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Stealth</h1>
+    <p class="modo-sub">Esteganografia com Criptografia AES-256</p>
+  </header>
   
   <div class="mode-selector">
-    <button class="mode-btn active" onclick="switchMode('hide')">🔒 Esconder</button>
-    <button class="mode-btn" onclick="switchMode('extract')">🔓 Extrair</button>
+    <button class="mode-btn active" onclick="switchMode('hide')">Esconder</button>
+    <button class="mode-btn" onclick="switchMode('extract')">Extrair</button>
   </div>
   
   <div class="card">
     <!-- MODO ESCONDER -->
     <div class="mode-content active" id="hide-mode">
-      <h1>🕵️ Esconder Arquivo</h1>
-      <p class="subtitle">🔐 Esconda múltiplos arquivos dentro de imagens, vídeos, áudios ou PDFs. Criptografia AES-256 opcional.</p>
+      <h1>Esconder Arquivo</h1>
+      <p class="subtitle">Esconda múltiplos arquivos dentro de imagens, vídeos, áudios ou PDFs. Criptografia AES-256 opcional.</p>
 
       <form method="POST" enctype="multipart/form-data" action="/stealth/hide" id="hide-form">
         <label for="cover-image">Arquivo de Cobertura (Imagem/Vídeo/Áudio/PDF)</label>
@@ -11169,7 +11641,7 @@ STEALTH_HTML = """
         <input type="password" id="password-hide" name="password" placeholder="Senha forte (opcional)" minlength="8">
         
         <button type="submit" id="hide-btn">
-          <span>🔒 Esconder Arquivo(s)</span>
+          <span>Esconder Arquivo(s)</span>
         </button>
       </form>
       
@@ -11178,8 +11650,8 @@ STEALTH_HTML = """
     
     <!-- MODO EXTRAIR -->
     <div class="mode-content" id="extract-mode">
-      <h1>🔓 Extrair Arquivo</h1>
-      <p class="subtitle">🔍 Extraia arquivos de imagens, vídeos, áudios ou PDFs esteganográficos. Senha opcional.</p>
+      <h1>Extrair Arquivo</h1>
+      <p class="subtitle">Extraia arquivos de imagens, vídeos, áudios ou PDFs esteganográficos. Senha opcional.</p>
 
       <form method="POST" enctype="multipart/form-data" action="/stealth/extract" id="extract-form">
         <label for="stego-image">Arquivo com Dados Escondidos</label>
@@ -11189,7 +11661,7 @@ STEALTH_HTML = """
         <input type="password" id="password-extract" name="password" placeholder="Senha (se usou)">
         
         <button type="submit" id="extract-btn">
-          <span>🔓 Extrair Arquivo(s)</span>
+          <span>Extrair Arquivo(s)</span>
         </button>
       </form>
       
@@ -11197,7 +11669,7 @@ STEALTH_HTML = """
     </div>
     
     <div class="security-badge">
-      <div class="security-badge-icon">🛡️</div>
+      <div class="security-badge-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,42H48A14,14,0,0,0,34,56v56c0,51.94,25.12,83.4,46.2,100.64,22.73,18.6,45.27,24.89,46.22,25.15a6,6,0,0,0,3.16,0c.95-.26,23.49-6.55,46.22-25.15C196.88,195.4,222,163.94,222,112V56A14,14,0,0,0,208,42Zm2,70c0,37.76-13.94,68.39-41.44,91.06A131.17,131.17,0,0,1,128,225.72a130.94,130.94,0,0,1-40.56-22.66C59.94,180.39,46,149.76,46,112V56a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2ZM172.24,99.76a6,6,0,0,1,0,8.48l-56,56a6,6,0,0,1-8.48,0l-24-24a6,6,0,0,1,8.48-8.48L112,151.51l51.76-51.75A6,6,0,0,1,172.24,99.76Z"/></svg></div>
       <div class="security-badge-text">Criptografia AES-256 + LSB Steganography<br>Arquivos processados localmente - Máxima segurança</div>
     </div>
   </div>
@@ -11250,19 +11722,19 @@ STEALTH_HTML = """
           document.body.removeChild(a);
           
           status.className = 'status success show';
-          status.textContent = '✅ Arquivo escondido com sucesso! Download iniciado.';
+          status.textContent = 'Arquivo escondido com sucesso! Download iniciado.';
         } else {
           const result = await response.json();
           status.className = 'status error show';
-          status.textContent = '❌ ' + (result.error || 'Erro ao esconder arquivo');
+          status.textContent = '' + (result.error || 'Erro ao esconder arquivo');
         }
       } catch (error) {
         status.className = 'status error show';
-        status.textContent = '❌ Erro ao processar';
+        status.textContent = 'Erro ao processar';
       }
       
       btn.disabled = false;
-      btn.innerHTML = '<span>🔒 Esconder Arquivo</span>';
+      btn.innerHTML = '<span>Esconder Arquivo</span>';
     });
     
     document.getElementById('extract-form').addEventListener('submit', async (e) => {
@@ -11295,19 +11767,19 @@ STEALTH_HTML = """
           document.body.removeChild(a);
           
           status.className = 'status success show';
-          status.textContent = '✅ Arquivo extraído com sucesso! Download iniciado.';
+          status.textContent = 'Arquivo extraído com sucesso! Download iniciado.';
         } else {
           const result = await response.json();
           status.className = 'status error show';
-          status.textContent = '❌ ' + (result.error || 'Erro ao extrair arquivo');
+          status.textContent = '' + (result.error || 'Erro ao extrair arquivo');
         }
       } catch (error) {
         status.className = 'status error show';
-        status.textContent = '❌ Erro ao processar';
+        status.textContent = 'Erro ao processar';
       }
       
       btn.disabled = false;
-      btn.innerHTML = '<span>🔓 Extrair Arquivo</span>';
+      btn.innerHTML = '<span>Extrair Arquivo</span>';
     });
   </script>
 </body>
@@ -11833,4 +12305,9 @@ if __name__ == "__main__":
     # IA do Matcha Effect) funcionar enquanto o trabalho pesado roda em thread
     # de fundo — sem isso o servidor de desenvolvimento atende 1 requisição
     # por vez e a aba trava esperando a geração terminar.
+    # Com debug=True o Werkzeug roda um observador (que só reinicia o app) e
+    # um processo filho que atende as páginas: as Automações (vigia de pasta)
+    # ligam só no filho, para não organizar a mesma pasta em dobro.
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        automacoes_engine.iniciar()
     app.run(debug=True, threaded=True)

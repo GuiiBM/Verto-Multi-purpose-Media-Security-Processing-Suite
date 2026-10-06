@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Remover Efeito Matcha (Vídeo)</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/matcha.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: radial-gradient(at 0% 0%, rgba(139, 195, 74, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -18,7 +22,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -34,12 +38,12 @@
     .tagline { color: #64748b; font-size: 14px; margin-bottom: 8px; text-align: center; }
     .warn-note {
       max-width: 640px; margin: 0 auto 24px; text-align: center; font-size: 12px; color: #94a3b8;
-      background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(148, 163, 184, 0.15);
+      background: rgba(24, 26, 31, 0.5); border: 1px solid rgba(148, 163, 184, 0.15);
       border-radius: 12px; padding: 10px 16px;
     }
     .layout { display: flex; gap: 20px; max-width: 1180px; margin: 0 auto; flex-wrap: wrap; align-items: flex-start; }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 24px; padding: 28px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
     }
     .stage-col { flex: 1 1 600px; min-width: 320px; }
@@ -58,7 +62,7 @@
     .progress-wrap { margin-top: 16px; display: none; }
     .progress-wrap.show { display: block; }
     .progress-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
-    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(24, 26, 31, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
     .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #8bc34a, #558b2f); transition: width 0.2s ease; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
     button.action {
@@ -90,16 +94,18 @@
     .format-badge.show { display: block; }
   </style>
 </head>
-<body>
-  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/matchaeffect'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-matcha">
+  <a class="lt-back" href="/matchaeffect" title="Voltar para Matcha Effect" aria-label="Voltar para Matcha Effect">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🍵 Remover Efeito Matcha (Vídeo)</div>
-  <div class="tagline">Rebalanceia o excesso de verde quadro a quadro para aproximar do tom original</div>
-  <div class="warn-note">⚠️ Correção automática e adaptativa (gray world), recalculada quadro a quadro: mede a cor real de cada quadro e neutraliza o excesso de verde medido — bem mais eficaz que um giro de matiz fixo, mas ainda uma estimativa, não uma reversão perfeita de qualquer edição. Vídeos longos ou em alta resolução podem renderizar mais devagar por causa do processamento pixel a pixel.</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/matchaeffect">Matcha Effect</a> / Vídeo: remover efeito</nav>
+    <h1 class="modo-titulo">Vídeo: remover efeito</h1>
+    <p class="modo-sub">Rebalanceia o excesso de verde quadro a quadro para aproximar do tom original</p>
+  </header>
+  <div class="warn-note">Correção automática e adaptativa (gray world), recalculada quadro a quadro: mede a cor real de cada quadro e neutraliza o excesso de verde medido — bem mais eficaz que um giro de matiz fixo, mas ainda uma estimativa, não uma reversão perfeita de qualquer edição. Vídeos longos ou em alta resolução podem renderizar mais devagar por causa do processamento pixel a pixel.</div>
 
   <div class="layout">
     <div class="card stage-col">
@@ -110,7 +116,7 @@
       </div>
       <div class="player-wrap" id="player-wrap">
         <video id="source-video" controls muted playsinline></video>
-        <div class="preview-label">🍵 Prévia corrigida</div>
+        <div class="preview-label">Prévia corrigida</div>
         <canvas id="preview-canvas"></canvas>
       </div>
 
@@ -122,8 +128,8 @@
       </div>
 
       <div class="toolbar">
-        <button class="action btn-primary" id="render-btn" onclick="renderCorrectedVideo()" disabled>🍵 Corrigir e renderizar</button>
-        <button class="action btn-secondary" id="download-btn" onclick="downloadRendered()" disabled>⬇️ Baixar vídeo</button>
+        <button class="action btn-primary" id="render-btn" onclick="renderCorrectedVideo()" disabled>Corrigir e renderizar</button>
+        <button class="action btn-secondary" id="download-btn" onclick="downloadRendered()" disabled>Baixar vídeo</button>
       </div>
 
       <div class="status" id="status"></div>
@@ -132,12 +138,12 @@
 
     <div class="panel-col">
       <div class="card">
-        <div class="section-title">🍵 Correção</div>
+        <div class="section-title">Correção</div>
         <div class="field">
           <div class="field-label">Força da correção <b id="strength-val">90%</b></div>
           <input type="range" id="strength" min="0" max="100" value="90">
         </div>
-        <div class="toggle-row"><span>🔎 Realce leve (contra o "haze")</span><input type="checkbox" id="sharpen" checked></div>
+        <div class="toggle-row"><span>Realce leve (contra o "haze")</span><input type="checkbox" id="sharpen" checked></div>
       </div>
     </div>
   </div>
@@ -192,7 +198,7 @@
     function updateFormatBadge(w, h) {
       const badge = document.getElementById('format-badge');
       badge.className = 'format-badge show';
-      badge.textContent = `📐 Formato detectado: ${describeAspect(w, h)} — o vídeo corrigido sai nesse mesmo formato.`;
+      badge.textContent = `Formato detectado: ${describeAspect(w, h)} — o vídeo corrigido sai nesse mesmo formato.`;
     }
 
     // Carrega um blob de vídeo renderizado num <video> oculto só para ler as
@@ -408,18 +414,18 @@
           const outDims = await loadBlobVideoDimensions(renderedBlob);
           if (outDims.w === sourceW && outDims.h === sourceH) {
             downloadBtn.disabled = false;
-            showResult('ok', `✅ Vídeo corrigido, formato preservado: ${describeAspect(outDims.w, outDims.h)}. Clique em "Baixar vídeo".`);
+            showResult('ok', `Vídeo corrigido, formato preservado: ${describeAspect(outDims.w, outDims.h)}. Clique em "Baixar vídeo".`);
           } else {
             downloadBtn.disabled = true;
-            showResult('err', `⚠️ O vídeo renderizado saiu em ${outDims.w}×${outDims.h}, diferente do original (${sourceW}×${sourceH}). Download bloqueado — tente novamente.`);
+            showResult('err', `O vídeo renderizado saiu em ${outDims.w}×${outDims.h}, diferente do original (${sourceW}×${sourceH}). Download bloqueado — tente novamente.`);
           }
         } catch (verifyErr) {
           downloadBtn.disabled = false;
-          showResult('ok', '✅ Vídeo corrigido! (Não foi possível confirmar o formato automaticamente — confira antes de usar.) Clique em "Baixar vídeo".');
+          showResult('ok', 'Vídeo corrigido! (Não foi possível confirmar o formato automaticamente — confira antes de usar.) Clique em "Baixar vídeo".');
         }
       } catch (e) {
         document.getElementById('progress-wrap').classList.remove('show');
-        showResult('err', '❌ Erro ao renderizar: ' + e.message);
+        showResult('err', 'Erro ao renderizar: ' + e.message);
       } finally {
         busy = false;
         renderBtn.disabled = false;

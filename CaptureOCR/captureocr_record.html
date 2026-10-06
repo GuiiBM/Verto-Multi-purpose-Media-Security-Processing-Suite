@@ -4,14 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gravador de Tela & GIF</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/visor.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.08) 0px, transparent 50%);
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(219, 39, 119, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -19,21 +23,21 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
     }
-    .back-button:hover { border-color: rgba(249, 115, 22, 0.4); color: #f97316; transform: translateX(-6px); }
+    .back-button:hover { border-color: rgba(219, 39, 119, 0.4); color: #db2777; transform: translateX(-6px); }
     .logo {
       font-size: 42px; font-weight: 900;
-      background: linear-gradient(135deg, #f97316 0%, #f59e0b 50%, #ef4444 100%);
+      background: linear-gradient(135deg, #db2777 0%, #f472b6 50%, #ef4444 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-align: center; margin-bottom: 10px;
     }
     .tagline { color: #64748b; font-size: 14px; margin-bottom: 32px; text-align: center; }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 28px; padding: 36px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 28px; padding: 36px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
       max-width: 900px; margin: 0 auto;
     }
@@ -60,23 +64,23 @@
       font-size: 14px; font-weight: 700; transition: all 0.25s;
       display: flex; align-items: center; gap: 8px;
     }
-    .btn-primary { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
-    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35); }
+    .btn-primary { background: linear-gradient(135deg, #db2777, #be185d); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(219, 39, 119, 0.35); }
     .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
     .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
     button.action:disabled { opacity: 0.4; cursor: not-allowed; }
     .options-row { display: flex; gap: 20px; justify-content: center; margin-top: 20px; flex-wrap: wrap; font-size: 12.5px; color: #94a3b8; }
     .options-row label { display: flex; align-items: center; gap: 6px; }
-    .options-row input[type="checkbox"] { accent-color: #f97316; }
+    .options-row input[type="checkbox"] { accent-color: #db2777; }
     .options-row select {
-      padding: 6px 10px; border-radius: 8px; background: rgba(15, 23, 42, 0.8);
+      padding: 6px 10px; border-radius: 8px; background: rgba(24, 26, 31, 0.8);
       border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 12px;
     }
     .progress-wrap { margin-top: 20px; display: none; }
     .progress-wrap.show { display: block; }
     .progress-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
-    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
-    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #f97316, #f59e0b); transition: width 0.2s ease; }
+    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(24, 26, 31, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #db2777, #f472b6); transition: width 0.2s ease; }
     .status { margin-top: 16px; font-size: 13px; padding: 14px; border-radius: 12px; display: none; }
     .status.show { display: block; }
     .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
@@ -84,15 +88,17 @@
     .status.info { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/captureocr'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-visor">
+  <a class="lt-back" href="/captureocr" title="Voltar para Capture & OCR" aria-label="Voltar para Capture & OCR">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🎥 Gravador de Tela & GIF</div>
-  <div class="tagline">Capture uma aba ou a tela inteira e exporte como vídeo ou GIF</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/captureocr">Capture & OCR</a> / Gravador de tela & GIF</nav>
+    <h1 class="modo-titulo">Gravador de tela & GIF</h1>
+    <p class="modo-sub">Capture uma aba ou a tela inteira e exporte como vídeo ou GIF</p>
+  </header>
 
   <div class="card">
     <div class="stage" id="stage">
@@ -108,10 +114,10 @@
     </div>
 
     <div class="controls">
-      <button class="action btn-primary" id="start-btn" onclick="startRecording()">🎥 Iniciar gravação</button>
-      <button class="action btn-danger" id="stop-btn" onclick="stopRecording()" disabled>⏹️ Parar</button>
-      <button class="action btn-secondary" id="download-video-btn" onclick="downloadVideo()" disabled>⬇️ Baixar WEBM</button>
-      <button class="action btn-secondary" id="gif-btn" onclick="convertToGif()" disabled>🎞️ Converter para GIF</button>
+      <button class="action btn-primary" id="start-btn" onclick="startRecording()">Iniciar gravação</button>
+      <button class="action btn-danger" id="stop-btn" onclick="stopRecording()" disabled>Parar</button>
+      <button class="action btn-secondary" id="download-video-btn" onclick="downloadVideo()" disabled>Baixar WEBM</button>
+      <button class="action btn-secondary" id="gif-btn" onclick="convertToGif()" disabled>Converter para GIF</button>
     </div>
 
     <div class="progress-wrap" id="progress-wrap">
@@ -175,7 +181,7 @@
           liveVideo.play().catch(() => {});
           downloadVideoBtn.disabled = false;
           gifBtn.disabled = false;
-          showResult('ok', '✅ Gravação concluída! Baixe o WEBM ou converta para GIF.');
+          showResult('ok', 'Gravação concluída! Baixe o WEBM ou converta para GIF.');
         };
 
         stream.getVideoTracks()[0].addEventListener('ended', () => stopRecording());
@@ -193,7 +199,7 @@
         gifBtn.disabled = true;
         statusBox.classList.remove('show');
       } catch (e) {
-        showResult('err', '❌ Não foi possível iniciar a captura: ' + e.message);
+        showResult('err', 'Não foi possível iniciar a captura: ' + e.message);
       }
     }
 
@@ -284,13 +290,13 @@
           a.click();
           progressWrap.classList.remove('show');
           gifBtn.disabled = false;
-          showResult('ok', '✅ GIF gerado e baixado!' + (video.duration > MAX_DURATION ? ` (limitado aos primeiros ${MAX_DURATION}s para manter o arquivo leve)` : ''));
+          showResult('ok', 'GIF gerado e baixado!' + (video.duration > MAX_DURATION ? ` (limitado aos primeiros ${MAX_DURATION}s para manter o arquivo leve)` : ''));
         });
         gif.render();
       } catch (e) {
         progressWrap.classList.remove('show');
         gifBtn.disabled = false;
-        showResult('err', '❌ Erro ao gerar GIF: ' + e.message);
+        showResult('err', 'Erro ao gerar GIF: ' + e.message);
       }
     }
   </script>

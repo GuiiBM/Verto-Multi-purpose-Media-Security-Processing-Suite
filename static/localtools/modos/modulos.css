@@ -1,0 +1,40 @@
+/* QR Code · modo módulos: os quadrados-guia do QR nos cantos dos cards. */
+body.modo-modulos { --acc: #fb923c; }
+body.modo-modulos .modo-cab::after {
+  content: ''; width: 96px; height: 12px; margin-top: 4px;
+  background: repeating-linear-gradient(90deg, var(--lt-ink) 0 12px, transparent 12px 18px, var(--lt-ink) 18px 24px, transparent 24px 36px);
+  opacity: 0.8;
+}
+body.modo-modulos .card, body.modo-modulos .preview-card {
+  position: relative;
+  border-radius: 6px !important;
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.05) 1.2px, transparent 1.4px) 0 0 / 14px 14px,
+    linear-gradient(180deg, #1c1f24, #15171b) !important;
+}
+body.modo-modulos .card::before, body.modo-modulos .preview-card::before {
+  content: ''; position: absolute; top: 14px; left: 14px; width: 26px; height: 26px;
+  border: 4px solid var(--lt-ink); outline: 3px solid transparent;
+  box-shadow: inset 0 0 0 4px #16181c, inset 0 0 0 9px var(--acc);
+  opacity: 0.9;
+}
+body.modo-modulos .card::after, body.modo-modulos .preview-card::after {
+  content: ''; position: absolute; top: 14px; right: 14px; width: 26px; height: 26px;
+  border: 4px solid var(--lt-ink);
+  box-shadow: inset 0 0 0 4px #16181c, inset 0 0 0 9px var(--lt-ink);
+  opacity: 0.55;
+}
+body.modo-modulos .type-btn.active, body.modo-modulos .style-option.active, body.modo-modulos .type-btn.selected { border-color: var(--acc) !important; color: #fff !important; }
+
+body.modo-modulos .btn-primary, body.modo-modulos button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-modulos button[type="submit"], body.modo-modulos .action-btn, body.modo-modulos .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 6px !important;
+  background: linear-gradient(180deg, #c2410c, #9a3412) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #5c1f0a, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-modulos .btn-primary:hover, body.modo-modulos button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-modulos button[type="submit"]:hover, body.modo-modulos .action-btn:hover, body.modo-modulos .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-modulos .btn-primary:active, body.modo-modulos button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-modulos button[type="submit"]:active, body.modo-modulos .action-btn:active, body.modo-modulos .process-btn:active { transform: translateY(2px); }

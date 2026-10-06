@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Matcha Effect</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/matcha.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image:
         radial-gradient(at 0% 0%, rgba(139, 195, 74, 0.10) 0px, transparent 50%),
         radial-gradient(at 100% 0%, rgba(124, 179, 66, 0.08) 0px, transparent 50%),
@@ -21,7 +25,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -50,7 +54,7 @@
       gap: 20px; max-width: 700px; margin: 0 auto 32px;
     }
     .tool-card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 20px; padding: 24px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 20px; padding: 24px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
       cursor: pointer; transition: all 0.3s;
     }
@@ -59,73 +63,75 @@
     .tool-title { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }
     .tool-desc { font-size: 13px; color: #94a3b8; line-height: 1.6; }
     .formats-note {
-      max-width: 700px; margin: 0 auto; background: rgba(15, 23, 42, 0.4);
+      max-width: 700px; margin: 0 auto; background: rgba(24, 26, 31, 0.4);
       border: 1px solid rgba(148, 163, 184, 0.08); border-radius: 16px;
       padding: 20px 24px; font-size: 13px; color: #94a3b8; line-height: 1.8;
     }
     .formats-note b { color: #cbd5e1; }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-matcha">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🍵 Matcha Effect</div>
-  <div class="tagline">O filtro viral "Wild Hearts Whisper" (TikTok/CapCut) — geração real por IA local, ou um filtro rápido de cor como aproximação</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-imagem)"><img src="/static/localtools/apps/matchaeffect.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Matcha Effect</h1>
+    <p class="modo-sub">O filtro viral "Wild Hearts Whisper" (TikTok/CapCut) — geração real por IA local, ou um filtro rápido de cor como aproximação</p>
+  </header>
 
-  <div class="group-title">🤖 IA generativa real (Stable Diffusion + ControlNet)</div>
+  <div class="group-title">IA generativa real (Stable Diffusion + ControlNet)</div>
   <div class="tools-grid">
-    <div class="tool-card" onclick="window.location.href='/matchaeffect/ai/add'">
-      <div class="tool-icon">➕</div>
+    <a class="tool-card" href="/matchaeffect/ai/add">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M196.89,130.94,144.4,111.6,125.06,59.11a13.92,13.92,0,0,0-26.12,0L79.6,111.6,27.11,130.94a13.92,13.92,0,0,0,0,26.12L79.6,176.4l19.34,52.49a13.92,13.92,0,0,0,26.12,0L144.4,176.4l52.49-19.34a13.92,13.92,0,0,0,0-26.12Zm-4.15,14.86-55.08,20.3a6,6,0,0,0-3.56,3.56l-20.3,55.08a1.92,1.92,0,0,1-3.6,0L89.9,169.66a6,6,0,0,0-3.56-3.56L31.26,145.8a1.92,1.92,0,0,1,0-3.6l55.08-20.3a6,6,0,0,0,3.56-3.56l20.3-55.08a1.92,1.92,0,0,1,3.6,0l20.3,55.08a6,6,0,0,0,3.56,3.56l55.08,20.3a1.92,1.92,0,0,1,0,3.6ZM146,40a6,6,0,0,1,6-6h18V16a6,6,0,0,1,12,0V34h18a6,6,0,0,1,0,12H182V64a6,6,0,0,1-12,0V46H152A6,6,0,0,1,146,40ZM246,88a6,6,0,0,1-6,6H230v10a6,6,0,0,1-12,0V94H208a6,6,0,0,1,0-12h10V72a6,6,0,0,1,12,0V82h10A6,6,0,0,1,246,88Z"/></svg></div>
       <div class="tool-title">Adicionar com IA</div>
       <div class="tool-desc">Img2img + ControlNet SoftEdge reconstroem sua foto com a textura "fluid art" verde-matcha, preservando rosto e silhueta. Roda localmente; sem GPU, pode levar minutos por imagem</div>
-    </div>
-    <div class="tool-card" onclick="window.location.href='/matchaeffect/ai/remove'">
-      <div class="tool-icon">➖</div>
+    </a>
+    <a class="tool-card" href="/matchaeffect/ai/remove">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M223.57,81.81,182.19,40.43a22,22,0,0,0-31.12,0L32.43,159.07a22,22,0,0,0,0,31.11L62.5,220.24A6,6,0,0,0,66.74,222H216a6,6,0,0,0,0-12H126.49l97.08-97.08A22,22,0,0,0,223.57,81.81ZM109.51,210H69.22l-28.3-28.3a10,10,0,0,1,0-14.15L96,112.48,151.52,168ZM215.08,104.44,160,159.51,104.48,104l55.08-55.07a10,10,0,0,1,14.14,0l41.38,41.37A10,10,0,0,1,215.08,104.44Z"/></svg></div>
       <div class="tool-title">Remover com IA</div>
       <div class="tool-desc">Restaure o original exato (se você guardou o arquivo) ou peça uma reconstrução aproximada por IA de uma foto matcha de qualquer origem</div>
-    </div>
-    <div class="tool-card" onclick="window.location.href='/matchaeffect/ai/video'">
-      <div class="tool-icon">🎬</div>
+    </a>
+    <a class="tool-card" href="/matchaeffect/ai/video">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,42H40A14,14,0,0,0,26,56V200a14,14,0,0,0,14,14H216a14,14,0,0,0,14-14V56A14,14,0,0,0,216,42ZM38,86h84v84H38Zm96-12V54h36V74Zm-12,0H86V54h36Zm0,108v20H86V182Zm12,0h36v20H134Zm0-12V86h84v84ZM218,56V74H182V54h34A2,2,0,0,1,218,56ZM40,54H74V74H38V56A2,2,0,0,1,40,54ZM38,200V182H74v20H40A2,2,0,0,1,38,200Zm178,2H182V182h36v18A2,2,0,0,1,216,202Z"/></svg></div>
       <div class="tool-title">Vídeo: adicionar (still + transição derretendo)</div>
       <div class="tool-desc">Gera 1 quadro com o efeito via IA e renderiza localmente a transição "derretendo" até ele, como no CapCut/Premiere</div>
-    </div>
-    <div class="tool-card" onclick="window.location.href='/matchaeffect/ai/video/remove'">
-      <div class="tool-icon">🎬</div>
+    </a>
+    <a class="tool-card" href="/matchaeffect/ai/video/remove">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,106H86.68L209.53,73.57a6,6,0,0,0,4.26-7.38l-8.16-30a13.94,13.94,0,0,0-17-9.72L36.32,66.67a13.77,13.77,0,0,0-8.48,6.47,13.57,13.57,0,0,0-1.36,10.42L34,111.34c0,.22,0,.44,0,.66v88a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V112A6,6,0,0,0,216,106ZM125.75,55.48l33,19.07-42.43,11.2-33-19.07Zm66-17.41a1.92,1.92,0,0,1,2.34,1.26l6.57,24.18L175.26,70.2l-33-19.07ZM38.23,79.14a1.85,1.85,0,0,1,1.15-.87L66.86,71l33,19.08L44.66,104.68l-6.6-24.27A1.63,1.63,0,0,1,38.23,79.14ZM210,200a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V118H210Z"/></svg></div>
       <div class="tool-title">Vídeo: remover (engenharia reversa)</div>
       <div class="tool-desc">O mesmo pipeline ao contrário: gera 1 quadro reconstruído sem o efeito via IA e renderiza a transição restaurando o vídeo</div>
-    </div>
+    </a>
   </div>
 
-  <div class="group-title">⚡ Filtro rápido — Fotos (aproximação de cor, sem IA)</div>
+  <div class="group-title">Filtro rápido — Fotos (aproximação de cor, sem IA)</div>
   <div class="tools-grid">
-    <div class="tool-card" onclick="window.location.href='/matchaeffect/add'">
-      <div class="tool-icon">➕</div>
+    <a class="tool-card" href="/matchaeffect/add">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,26A102,102,0,1,0,230,128,102.12,102.12,0,0,0,128,26Zm0,192a90,90,0,1,1,90-90A90.1,90.1,0,0,1,128,218Zm46-90a6,6,0,0,1-6,6H134v34a6,6,0,0,1-12,0V134H88a6,6,0,0,1,0-12h34V88a6,6,0,0,1,12,0v34h34A6,6,0,0,1,174,128Z"/></svg></div>
       <div class="tool-title">Adicionar Efeito Matcha</div>
       <div class="tool-desc">Aplique a cor esverdeada, o grão e o "haze" do filtro, instantâneo e sem instalar nada — apenas um filtro de cor, não a geração por IA real</div>
-    </div>
-    <div class="tool-card" onclick="window.location.href='/matchaeffect/remove'">
-      <div class="tool-icon">➖</div>
+    </a>
+    <a class="tool-card" href="/matchaeffect/remove">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M174,128a6,6,0,0,1-6,6H88a6,6,0,0,1,0-12h80A6,6,0,0,1,174,128Zm56,0A102,102,0,1,1,128,26,102.12,102.12,0,0,1,230,128Zm-12,0a90,90,0,1,0-90,90A90.1,90.1,0,0,0,218,128Z"/></svg></div>
       <div class="tool-title">Remover Efeito Matcha</div>
       <div class="tool-desc">Corrige automaticamente o tom esverdeado de uma foto já filtrada, aproximando das cores originais</div>
-    </div>
+    </a>
   </div>
 
-  <div class="group-title">⚡ Filtro rápido — Vídeos (aproximação de cor, sem IA)</div>
+  <div class="group-title">Filtro rápido — Vídeos (aproximação de cor, sem IA)</div>
   <div class="tools-grid">
-    <div class="tool-card" onclick="window.location.href='/matchaeffect/video/add'">
-      <div class="tool-icon">➕</div>
+    <a class="tool-card" href="/matchaeffect/video/add">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M163.33,107l-48-32A6,6,0,0,0,106,80v64a6,6,0,0,0,9.33,5l48-32a6,6,0,0,0,0-10ZM118,132.79V91.21L149.18,112ZM216,42H40A14,14,0,0,0,26,56V168a14,14,0,0,0,14,14H216a14,14,0,0,0,14-14V56A14,14,0,0,0,216,42Zm2,126a2,2,0,0,1-2,2H40a2,2,0,0,1-2-2V56a2,2,0,0,1,2-2H216a2,2,0,0,1,2,2Zm12,40a6,6,0,0,1-6,6H32a6,6,0,0,1,0-12H224A6,6,0,0,1,230,208Z"/></svg></div>
       <div class="tool-title">Adicionar Efeito Matcha</div>
       <div class="tool-desc">Renderiza o vídeo quadro a quadro com o mesmo tom esverdeado, grão e haze — prévia ao vivo antes de exportar</div>
-    </div>
-    <div class="tool-card" onclick="window.location.href='/matchaeffect/video/remove'">
-      <div class="tool-icon">➖</div>
+    </a>
+    <a class="tool-card" href="/matchaeffect/video/remove">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M250.83,74.71a6,6,0,0,0-6.16.3L206,100.79V72a14,14,0,0,0-14-14H113.06a6,6,0,0,0,0,12H192a2,2,0,0,1,2,2v87.63a6,6,0,0,0,12,0v-4.42L244.67,181a6,6,0,0,0,9.33-5V80A6,6,0,0,0,250.83,74.71ZM242,164.79l-36-24V115.21l36-24ZM52.44,36A6,6,0,0,0,43.56,44L56.25,58H32A14,14,0,0,0,18,72V184a14,14,0,0,0,14,14H183.53l20,22a6,6,0,0,0,8.88-8.08ZM32,186a2,2,0,0,1-2-2V72a2,2,0,0,1,2-2H67.16L172.62,186Z"/></svg></div>
       <div class="tool-title">Remover Efeito Matcha</div>
       <div class="tool-desc">Corrige o tom esverdeado do vídeo quadro a quadro e reexporta, com opção de realce leve contra o haze</div>
-    </div>
+    </a>
   </div>
 
   <div class="formats-note">

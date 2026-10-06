@@ -1,0 +1,27 @@
+/* Tempo · modo calendário: folha de calendário com argolas no topo. */
+body.modo-calendario { --acc: #fb923c; }
+body.modo-calendario .card { position: relative; border-radius: 6px 6px 18px 18px !important; padding-top: 44px !important; }
+body.modo-calendario .card::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 22px; border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, #ea580c, #c2410c);
+}
+body.modo-calendario .card::after {
+  content: ''; position: absolute; left: 10%; right: 10%; top: -8px; height: 20px;
+  background: radial-gradient(circle at 50% 50%, #d6d9de 0 4px, #6b7280 4.5px 5.5px, transparent 6px) 0 0 / 60px 20px repeat-x;
+}
+body.modo-calendario .legend-chip { border-radius: 4px !important; }
+
+body.modo-calendario .btn-primary, body.modo-calendario button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-calendario button[type="submit"], body.modo-calendario .action-btn, body.modo-calendario .process-btn, body.modo-calendario .nav-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, #c2410c, #9a3412) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #5c1f0a, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-calendario .btn-primary:hover, body.modo-calendario button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-calendario button[type="submit"]:hover, body.modo-calendario .action-btn:hover, body.modo-calendario .process-btn:hover, body.modo-calendario .nav-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-calendario .btn-primary:active, body.modo-calendario button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-calendario button[type="submit"]:active, body.modo-calendario .action-btn:active, body.modo-calendario .process-btn:active, body.modo-calendario .nav-btn:active { transform: translateY(2px); }
+body.modo-calendario .container { max-width: 100%; }
+body.modo-calendario .card.calendar { max-width: 100%; overflow-x: auto; }

@@ -4,11 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Efeitos</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     :root {
       --bg: #0a0f1e;
-      --card: rgba(15, 23, 42, 0.55);
+      --card: rgba(24, 26, 31, 0.55);
       --line: rgba(148, 163, 184, 0.12);
       --line-strong: rgba(148, 163, 184, 0.25);
       --text: #e2e8f0;
@@ -39,7 +42,7 @@
 
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 50; color: #cbd5e1; text-decoration: none;
@@ -83,7 +86,7 @@
     .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
     .btn-primary.small { padding: 8px 16px; font-size: 13px; }
     .btn-ghost {
-      border: 1px solid var(--line-strong); background: rgba(15, 23, 42, 0.6); color: #cbd5e1;
+      border: 1px solid var(--line-strong); background: rgba(24, 26, 31, 0.6); color: #cbd5e1;
       border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
       transition: border-color 0.2s, color 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
     }
@@ -93,7 +96,7 @@
     .files { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 18px; align-items: stretch; }
     .file {
       flex: 0 0 auto; display: flex; align-items: center; gap: 10px; max-width: 260px;
-      border: 1px solid var(--line); border-radius: 14px; background: rgba(2, 6, 23, 0.45);
+      border: 1px solid var(--line); border-radius: 14px; background: rgba(12, 13, 16, 0.45);
       padding: 6px 8px 6px 6px; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative;
     }
     .file:hover { border-color: var(--line-strong); }
@@ -129,7 +132,7 @@
     .stage-col { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 12px; }
     .stage {
       position: relative; border-radius: 18px; overflow: hidden; background:
-        repeating-conic-gradient(rgba(148,163,184,0.08) 0% 25%, transparent 0% 50%) 50% / 22px 22px, rgba(2, 6, 23, 0.6);
+        repeating-conic-gradient(rgba(148,163,184,0.08) 0% 25%, transparent 0% 50%) 50% / 22px 22px, rgba(12, 13, 16, 0.6);
       border: 1px solid var(--line); display: flex; align-items: center; justify-content: center;
       min-height: 320px; max-height: 72vh; user-select: none; touch-action: none;
     }
@@ -143,17 +146,17 @@
     }
     .handle::after {
       content: '⇆'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 36px; height: 36px; border-radius: 50%; background: rgba(15, 23, 42, 0.85); border: 2px solid #fff;
+      width: 36px; height: 36px; border-radius: 50%; background: rgba(24, 26, 31, 0.85); border: 2px solid #fff;
       color: #fff; font-size: 16px; line-height: 32px; text-align: center;
     }
     .tag {
       position: absolute; top: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.4px; line-height: 1;
-      background: rgba(15, 23, 42, 0.78); color: #e2e8f0; padding: 6px 9px; border-radius: 8px; pointer-events: none;
+      background: rgba(24, 26, 31, 0.78); color: #e2e8f0; padding: 6px 9px; border-radius: 8px; pointer-events: none;
     }
     .tag.l { left: 12px; } .tag.r { right: 12px; }
     .stage-loading {
       position: absolute; right: 14px; bottom: 14px; display: flex; align-items: center; gap: 8px;
-      background: rgba(15, 23, 42, 0.85); border-radius: 999px; padding: 7px 12px; font-size: 12px; color: #cbd5e1;
+      background: rgba(24, 26, 31, 0.85); border-radius: 999px; padding: 7px 12px; font-size: 12px; color: #cbd5e1;
     }
     .stage-empty { color: var(--dim); font-size: 14px; text-align: center; padding: 30px; line-height: 1.6; }
     .stage-info { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--dim); align-items: center; }
@@ -168,7 +171,7 @@
     .group-title { font-size: 12px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); margin: 4px 0 10px; }
     .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
     .fx {
-      position: relative; border: 1.5px solid var(--line); border-radius: 14px; background: rgba(2, 6, 23, 0.45);
+      position: relative; border: 1.5px solid var(--line); border-radius: 14px; background: rgba(12, 13, 16, 0.45);
       cursor: pointer; overflow: hidden; text-align: left; color: inherit; padding: 0;
       transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
     }
@@ -189,18 +192,18 @@
     .fx.selected .fx-check { display: flex; }
     .fx-face {
       position: absolute; top: 6px; left: 6px; font-size: 12px; line-height: 1; padding: 3px 5px; border-radius: 999px;
-      background: rgba(15, 23, 42, 0.8); color: #fff;
+      background: rgba(24, 26, 31, 0.8); color: #fff;
     }
     .fx[hidden] { display: none; }
     .gallery-tools { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
     .fx-search {
-      width: 100%; background: rgba(15, 23, 42, 0.9); color: #f1f5f9; border: 1px solid var(--line-strong);
+      width: 100%; background: rgba(24, 26, 31, 0.9); color: #f1f5f9; border: 1px solid var(--line-strong);
       border-radius: 10px; padding: 9px 12px; font-size: 13px; outline: none;
     }
     .fx-search:focus { border-color: var(--accent); }
     .jump { display: flex; flex-wrap: wrap; gap: 6px; }
     .jump button {
-      border: 1px solid var(--line-strong); background: rgba(15, 23, 42, 0.7); color: #cbd5e1; border-radius: 999px;
+      border: 1px solid var(--line-strong); background: rgba(24, 26, 31, 0.7); color: #cbd5e1; border-radius: 999px;
       padding: 5px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer;
     }
     .jump button:hover { border-color: var(--accent); color: #fff; }
@@ -216,7 +219,7 @@
     .field-top span:last-child { color: var(--dim); font-variant-numeric: tabular-nums; }
     input[type=range] { width: 100%; accent-color: var(--accent); }
     select {
-      width: 100%; background: rgba(15, 23, 42, 0.9); color: #f1f5f9; border: 1px solid var(--line-strong);
+      width: 100%; background: rgba(24, 26, 31, 0.9); color: #f1f5f9; border: 1px solid var(--line-strong);
       border-radius: 10px; padding: 9px 10px; font-size: 13px;
     }
     .color-row { display: flex; align-items: center; gap: 10px; }
@@ -229,7 +232,7 @@
     .check { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #cbd5e1; cursor: pointer; font-weight: 600; }
     .check input { width: 18px; height: 18px; accent-color: var(--accent); }
 
-    .mode { display: flex; background: rgba(2, 6, 23, 0.55); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
+    .mode { display: flex; background: rgba(12, 13, 16, 0.55); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
     .mode button {
       flex: 1; border: none; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 700;
       padding: 9px 8px; border-radius: 9px; cursor: pointer;
@@ -252,7 +255,7 @@
     /* ---------- Resultados ---------- */
     .results-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
     .results-head h2 { font-size: 18px; color: #f8fafc; }
-    .job { border: 1px solid var(--line); border-radius: 16px; background: rgba(2, 6, 23, 0.45); padding: 14px; margin-bottom: 10px; }
+    .job { border: 1px solid var(--line); border-radius: 16px; background: rgba(12, 13, 16, 0.45); padding: 14px; margin-bottom: 10px; }
     .job.done { border-color: rgba(34, 197, 94, 0.35); }
     .job.error { border-color: rgba(248, 113, 113, 0.35); }
     .job-head { display: flex; align-items: center; gap: 12px; }
@@ -279,7 +282,7 @@
       /* A prévia fica presa no topo enquanto a galeria rola por baixo */
       .stage-col {
         top: 0; z-index: 20; margin: 0 -8px; padding: 8px 8px 10px;
-        background: rgba(10, 15, 30, 0.94); backdrop-filter: blur(12px); border-radius: 0 0 16px 16px;
+        background: rgba(11, 12, 15, 0.94); backdrop-filter: blur(12px); border-radius: 0 0 16px 16px;
       }
       .stage { min-height: 180px; max-height: 42vh; }
       .compare img { max-height: 40vh; }
@@ -294,24 +297,76 @@
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
+  <style>
+    /* ---------- Visual LocalTools: tokens da suíte, cor do grupo Imagem e vídeo ---------- */
+    :root {
+      --bg: var(--lt-bg);
+      --card: rgba(255, 255, 255, 0.035);
+      --line: var(--lt-line);
+      --line-strong: var(--lt-line-2);
+      --text: var(--lt-ink);
+      --muted: var(--lt-muted);
+      --dim: var(--lt-faint);
+      --accent: var(--lt-cat-imagem);
+      --accent-2: #fb7185;
+      --accent-3: #c084fc;
+    }
+    html { overflow-x: clip; }
+    body.lt-body { font-family: var(--lt-sans); padding-top: 28px; }
+    body > * { position: relative; z-index: 1; }
+    .topo { display: flex; justify-content: center; margin-bottom: 22px; }
+    header.lt-head { margin-bottom: 30px; }
+    .lt-head p b { color: var(--lt-ink); font-weight: 600; }
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
+      box-shadow: var(--lt-shadow);
+      backdrop-filter: none;
+    }
+    .drop { border: 2px dashed color-mix(in srgb, var(--accent) 35%, transparent); }
+    .drop-icon { display: flex; justify-content: center; gap: 14px; margin-bottom: 18px; font-size: inherit; }
+    .btn-primary {
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: linear-gradient(180deg, #db2777, #be185d);
+      color: #fff;
+      text-shadow: 0 1px 0 rgba(131, 24, 67, 0.6);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 0 #9d174d, 0 14px 26px -10px rgba(236, 72, 153, 0.6);
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 5px 0 #9d174d, 0 18px 30px -10px rgba(236, 72, 153, 0.65); }
+    .btn-primary:active:not(:disabled) { transform: translateY(3px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 0 #9d174d; }
+    .btn-ghost { border-radius: 11px; background: linear-gradient(180deg, #23262c, #191b20); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 2px 0 rgba(0, 0, 0, 0.45); }
+    .file, .fx, .job, .stage { background-color: rgba(255, 255, 255, 0.025); }
+    .fx-search, select { background: rgba(255, 255, 255, 0.04); border-color: var(--lt-line); border-radius: 12px; }
+    .fx.selected { border-color: color-mix(in srgb, var(--accent) 70%, transparent); }
+    .fx.focused { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
+    .mode button.on { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+    .group-title { letter-spacing: 0.08em; color: var(--lt-faint); }
+    .feature .fi { margin-bottom: 14px; }
+    @media (max-width: 980px) { .stage-col { background: rgba(11, 12, 15, 0.94); } }
+    @media (max-width: 560px) { body.lt-body { padding-top: 72px; } }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-laboratorio.css">
 </head>
-<body>
-  <a class="back-button" href="/" title="Voltar ao menu">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+<body class="lt-body tema-laboratorio">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </a>
 
-  <header>
-    <div class="logo"><span class="logo-icon">🪄</span> EFEITOS</div>
-    <div class="tagline">43 efeitos para <b>fotos e vídeos</b>, dos clássicos aos engraçados — o arquivo sai no <b>mesmo formato</b>, com o nome do efeito:<br>
-      <b>praia.jpg</b> → <b>praia (Sépia).jpg</b>. Tudo processado na sua máquina.</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-imagem)"><img src="/static/localtools/apps/efeitos.webp" alt="" width="76" height="76"></span>
+    <h1>Efeitos</h1>
+    <p>43 efeitos para <b>fotos e vídeos</b>, dos clássicos aos engraçados. O arquivo sai no <b>mesmo formato</b>, com o nome do efeito:
+      <b>praia.jpg</b> → <b>praia (Sépia).jpg</b>. Tudo processado na sua máquina.</p>
   </header>
 
   <main class="wrap">
     <section class="card drop" id="drop">
-      <div class="drop-icon">🖼️🎬</div>
-      <button class="btn-primary" id="pick" type="button">📎 Escolher fotos ou vídeos</button>
+      <div class="drop-icon" aria-hidden="true">
+        <span class="lt-key" style="--hue: var(--lt-cat-imagem)"><svg class="lt-icon"><use href="/static/localtools/icons.svg#paint-brush"/></svg></span>
+        <span class="lt-key" style="--hue: var(--lt-cat-imagem)"><svg class="lt-icon"><use href="/static/localtools/icons.svg#film-reel"/></svg></span>
+      </div>
+      <button class="btn-primary" id="pick" type="button">Escolher fotos ou vídeos</button>
       <div class="drop-hint">ou arraste para cá · <b>Ctrl+V</b> cola uma imagem · vários arquivos de uma vez<br>
         JPG, PNG, WEBP, HEIC, AVIF, TIFF, BMP, GIF animado, SVG… · MP4, MOV, MKV, WEBM, AVI, WMV, MPG, 3GP…</div>
     </section>
@@ -339,7 +394,7 @@
             </div>
             <div class="combine-note hidden" id="combine-note"></div>
             <div class="outnames" id="outnames"></div>
-            <button class="btn-primary apply" id="apply" type="button" disabled>✨ Aplicar efeito</button>
+            <button class="btn-primary apply" id="apply" type="button" disabled>Aplicar efeito</button>
             <div class="apply-hint" id="apply-hint">Salvo na pasta <b>Downloads</b>, sem sobrescrever nada.</div>
           </div>
         </div>
@@ -356,10 +411,10 @@
 
     <section class="card">
       <div class="features">
-        <div class="feature"><div class="fi">📁</div><h3>Mesmo formato, mesmo nome</h3><p>O resultado mantém o formato, a extensão, o EXIF, o perfil de cor e a transparência do original. Só ganha o efeito entre parênteses: <b>foto (Glitch).png</b>.</p></div>
-        <div class="feature"><div class="fi">🎬</div><h3>Vídeos com som</h3><p>Cada quadro recebe o efeito e o áudio original é copiado sem perda. Vídeos verticais de celular continuam na orientação certa.</p></div>
-        <div class="feature"><div class="fi">🧪</div><h3>Vários de uma vez</h3><p>Marque vários efeitos para gerar um arquivo de cada, ou combine-os em um só: <b>foto (Vintage + Vinheta).jpg</b>.</p></div>
-        <div class="feature"><div class="fi">🔒</div><h3>Nada sai da máquina</h3><p>Sem upload para servidores. A Silhueta pode usar IA local (rembg) para recortar o assunto da foto.</p></div>
+        <div class="feature"><div class="fi"><span class="lt-key sm" style="--hue: var(--lt-cat-imagem)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#folders"/></svg></span></div><h3>Mesmo formato, mesmo nome</h3><p>O resultado mantém o formato, a extensão, o EXIF, o perfil de cor e a transparência do original. Só ganha o efeito entre parênteses: <b>foto (Glitch).png</b>.</p></div>
+        <div class="feature"><div class="fi"><span class="lt-key sm" style="--hue: var(--lt-cat-imagem)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#film-reel"/></svg></span></div><h3>Vídeos com som</h3><p>Cada quadro recebe o efeito e o áudio original é copiado sem perda. Vídeos verticais de celular continuam na orientação certa.</p></div>
+        <div class="feature"><div class="fi"><span class="lt-key sm" style="--hue: var(--lt-cat-imagem)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#magic-wand"/></svg></span></div><h3>Vários de uma vez</h3><p>Marque vários efeitos para gerar um arquivo de cada, ou combine-os em um só: <b>foto (Vintage + Vinheta).jpg</b>.</p></div>
+        <div class="feature"><div class="fi"><span class="lt-key sm" style="--hue: var(--lt-cat-imagem)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#fingerprint"/></svg></span></div><h3>Nada sai da máquina</h3><p>Sem upload para servidores. A Silhueta pode usar IA local (rembg) para recortar o assunto da foto.</p></div>
       </div>
     </section>
   </main>
@@ -528,10 +583,10 @@
       for (const g of CATALOG.groups) {
         const wrap = document.createElement('div');
         wrap.dataset.group = g.id;
-        wrap.innerHTML = `<div class="group-title" id="grupo-${g.id}">${g.icon} ${esc(g.label)}</div><div class="grid"></div>`;
+        wrap.innerHTML = `<div class="group-title" id="grupo-${g.id}">${esc(g.label)}</div><div class="grid"></div>`;
         const chip = document.createElement('button');
         chip.type = 'button';
-        chip.textContent = `${g.icon} ${g.label.split(' ')[0]}`;
+        chip.textContent = g.label.split(' ')[0];
         chip.addEventListener('click', () => {
           $('#fx-search').value = '';
           filterGallery();
@@ -546,7 +601,7 @@
           b.dataset.id = eff.id;
           b.title = eff.desc;
           b.innerHTML = `<div class="fx-img">${eff.icon}</div><div class="fx-name">${esc(eff.label)}</div><div class="fx-check"></div>` +
-            (eff.face ? '<div class="fx-face" title="Usa detecção de rosto">🙂</div>' : '');
+            (eff.face ? '<div class="fx-face" title="Usa detecção de rosto"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M173.19,155c-9.92,17.16-26.39,27-45.19,27s-35.27-9.84-45.19-27a6,6,0,0,1,10.38-6c7.84,13.54,20.2,21,34.81,21s27-7.46,34.81-21a6,6,0,1,1,10.38,6ZM230,128A102,102,0,1,1,128,26,102.12,102.12,0,0,1,230,128Zm-12,0a90,90,0,1,0-90,90A90.1,90.1,0,0,0,218,128ZM92,118a10,10,0,1,0-10-10A10,10,0,0,0,92,118Zm72-20a10,10,0,1,0,10,10A10,10,0,0,0,164,98Z"/></svg></div>' : '');
           b.dataset.search = fold(eff.label + ' ' + eff.desc + ' ' + eff.id);
           b.addEventListener('click', () => toggleEffect(eff.id));
           grid.appendChild(b);
@@ -763,7 +818,7 @@
       if (m.frames > 1) notes.push(`GIF/animação com ${m.frames} quadros: a prévia mostra o primeiro, o arquivo final sai animado.`);
       if (m.kind === 'svg') notes.push('SVG: o efeito é aplicado em pixels e o resultado continua sendo um .svg (com a imagem embutida).');
       if (lastPreview && lastPreview.key === f.key) {
-        if (lastPreview.error) notes.push('⚠️ ' + lastPreview.error);
+        if (lastPreview.error) notes.push('' + lastPreview.error);
         notes.push(...(lastPreview.notes || []));
       }
       if (notes.length) { notice.innerHTML = notes.map(esc).join('<br>'); notice.classList.remove('hidden'); }
@@ -826,7 +881,7 @@
       if (!chains.length) {
         box.innerHTML = 'Escolha um ou mais efeitos na galeria. Clique de novo no efeito aberto para desmarcar.';
         btn.disabled = true;
-        btn.textContent = '✨ Aplicar efeito';
+        btn.textContent = 'Aplicar efeito';
         return;
       }
       const f = activeFile();
@@ -835,7 +890,7 @@
       const total = chains.length * ready.length;
       box.innerHTML = `Vai gerar${ready.length > 1 ? ` (para cada um dos ${ready.length} arquivos)` : ''}:<br>` + names.join('<br>');
       btn.disabled = !ready.length;
-      btn.textContent = total > 1 ? `✨ Gerar ${total} arquivos` : '✨ Aplicar efeito';
+      btn.textContent = total > 1 ? `Gerar ${total} arquivos` : 'Aplicar efeito';
     }
 
     function renderCombineNote() {
@@ -908,7 +963,7 @@
       if (job.error) st = 'erro';
       else if (!d || d.status === 'queued') st = 'na fila';
       else if (d.status === 'running') st = `${pct}%` + (d.current ? ` · ${esc(d.current)}` : '');
-      else st = d.outputs.length ? `✅ ${d.outputs.length} arquivo${d.outputs.length > 1 ? 's' : ''}` : 'erro';
+      else st = d.outputs.length ? `${d.outputs.length} arquivo${d.outputs.length > 1 ? 's' : ''}` : 'erro';
       job.el.className = 'job' + (running ? '' : (job.error || !d.outputs.length ? ' error' : ' done'));
       let html = `<div class="job-head"><div class="job-title">${job.kind === 'video' ? '🎬' : '🖼️'} ${esc(job.file)}</div>
         <div class="job-state">${st}</div>` +

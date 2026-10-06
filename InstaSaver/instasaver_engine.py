@@ -375,6 +375,7 @@ def _media_entry(item, username, kind, index=None, taken_at=None):
         'type': 'video' if video else 'image',
         'url': video or image,
         'thumb': image,
+        'cover': image if video else None,  # capa do vídeo, para baixar como imagem
         'width': item.get('original_width'),
         'height': item.get('original_height'),
         'duration': item.get('video_duration'),

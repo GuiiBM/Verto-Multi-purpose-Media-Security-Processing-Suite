@@ -1,0 +1,65 @@
+/* Matcha Effect · modo matcha: tons de chá verde e cerâmica, formas orgânicas. */
+body.modo-matcha { --acc: #a3c46c; --matcha: #7f9f4f; --creme: #ece4cf; }
+body.modo-matcha.lt-body {
+  background-image:
+    radial-gradient(900px 520px at 8% -8%, rgba(163, 196, 108, 0.16), transparent 62%),
+    radial-gradient(800px 520px at 96% 0%, rgba(236, 228, 207, 0.08), transparent 62%);
+}
+body.modo-matcha .modo-titulo { color: var(--creme) !important; }
+body.modo-matcha .tool-card, body.modo-matcha .card {
+  border-radius: 30px !important;
+  background: linear-gradient(180deg, #1f231b, #181b15) !important;
+  border: 1px solid rgba(163, 196, 108, 0.16) !important;
+}
+body.modo-matcha .tool-icon {
+  width: 60px; height: 60px; display: grid; place-items: center; border-radius: 50%; font-size: 28px;
+  color: #24301a;
+  background: radial-gradient(circle at 50% 38%, #c8de97, #93b45e 70%);
+  box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.25), 0 6px 14px -6px rgba(0, 0, 0, 0.7);
+}
+body.modo-matcha .tool-card:hover { border-color: rgba(163, 196, 108, 0.5) !important; }
+body.modo-matcha .group-title { color: #b9c79a; letter-spacing: 0.04em; text-transform: none; font-size: 15px; }
+
+body.modo-matcha .btn-primary, body.modo-matcha button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-matcha button[type="submit"], body.modo-matcha .action-btn, body.modo-matcha .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, #7f9f4f, #5f7a37) !important;
+  color: #fff !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #34441c, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-matcha .btn-primary:hover, body.modo-matcha button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-matcha button[type="submit"]:hover, body.modo-matcha .action-btn:hover, body.modo-matcha .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-matcha .btn-primary:active, body.modo-matcha button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-matcha button[type="submit"]:active, body.modo-matcha .action-btn:active, body.modo-matcha .process-btn:active { transform: translateY(2px); }
+
+/* hub: tudo em pares "Adicionar | Remover", duas colunas da mesma largura, e o
+   título de cada grupo alinhado com a grade (com a folhinha de matcha na frente) */
+body.modo-matcha .tools-grid {
+  max-width: 900px;
+  margin: 0 auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-content: stretch;
+  gap: 18px;
+}
+body.modo-matcha .group-title {
+  max-width: 900px;
+  margin: 40px auto 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+body.modo-matcha .group-title::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 0 60% 0 60%;
+  background: linear-gradient(135deg, #c8de97, #7f9f4f);
+}
+body.modo-matcha .group-title::after { content: ''; flex: 1; height: 1px; background: rgba(163, 196, 108, 0.18); }
+body.modo-matcha .tool-card { display: flex; flex-direction: column; }
+body.modo-matcha .formats-note { max-width: 900px; margin-top: 34px; }
+@media (max-width: 640px) {
+  body.modo-matcha .tools-grid { grid-template-columns: 1fr; }
+}

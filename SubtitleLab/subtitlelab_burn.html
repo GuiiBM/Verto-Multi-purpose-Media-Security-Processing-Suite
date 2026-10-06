@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Burn-in de Legenda</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/legenda.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(202, 138, 4, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -18,22 +22,22 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
     }
-    .back-button:hover { border-color: rgba(16, 185, 129, 0.4); color: #10b981; transform: translateX(-6px); }
+    .back-button:hover { border-color: rgba(202, 138, 4, 0.4); color: #ca8a04; transform: translateX(-6px); }
     .logo {
       font-size: 36px; font-weight: 900;
-      background: linear-gradient(135deg, #fbbf24 0%, #10b981 50%, #06b6d4 100%);
+      background: linear-gradient(135deg, #fbbf24 0%, #ca8a04 50%, #facc15 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-align: center; margin-bottom: 10px;
     }
     .tagline { color: #64748b; font-size: 14px; margin-bottom: 28px; text-align: center; }
     .layout { display: flex; gap: 20px; max-width: 1180px; margin: 0 auto; flex-wrap: wrap; align-items: flex-start; }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 24px; padding: 28px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
     }
     .stage-col { flex: 1 1 600px; min-width: 320px; }
@@ -42,7 +46,7 @@
       border: 2px dashed rgba(148, 163, 184, 0.25); border-radius: 16px; padding: 34px 20px;
       text-align: center; cursor: pointer; transition: all 0.25s; color: #94a3b8; font-size: 13px;
     }
-    .dropzone:hover, .dropzone.drag { border-color: #10b981; background: rgba(16, 185, 129, 0.05); color: #cbd5e1; }
+    .dropzone:hover, .dropzone.drag { border-color: #ca8a04; background: rgba(202, 138, 4, 0.05); color: #cbd5e1; }
     .dropzone b { color: #f8fafc; display: block; font-size: 15px; margin-bottom: 6px; }
     .player-wrap { position: relative; border-radius: 12px; overflow: hidden; background: #000; display: none; }
     .player-wrap.show { display: block; }
@@ -51,15 +55,15 @@
     .progress-wrap { margin-top: 16px; display: none; }
     .progress-wrap.show { display: block; }
     .progress-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
-    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
-    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #10b981, #06b6d4); transition: width 0.2s ease; }
+    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(24, 26, 31, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #ca8a04, #facc15); transition: width 0.2s ease; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
     button.action {
       padding: 12px 18px; border-radius: 10px; border: none; cursor: pointer;
       font-size: 13px; font-weight: 700; transition: all 0.25s; display: flex; align-items: center; gap: 6px;
     }
-    .btn-primary { background: linear-gradient(135deg, #10b981, #06b6d4); color: white; }
-    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35); }
+    .btn-primary { background: linear-gradient(135deg, #ca8a04, #facc15); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(202, 138, 4, 0.35); }
     .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
     button.action:disabled { opacity: 0.45; cursor: not-allowed; }
     .section-title { font-size: 13px; font-weight: 700; color: #f8fafc; margin-bottom: 12px; }
@@ -67,9 +71,9 @@
     .field:last-child { margin-bottom: 0; }
     .field-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
     .field-label b { color: #cbd5e1; font-weight: 600; }
-    input[type="range"] { width: 100%; accent-color: #10b981; }
+    input[type="range"] { width: 100%; accent-color: #ca8a04; }
     select, input[type="color"], textarea.srt-paste {
-      width: 100%; padding: 9px 11px; border-radius: 10px; background: rgba(15, 23, 42, 0.8);
+      width: 100%; padding: 9px 11px; border-radius: 10px; background: rgba(24, 26, 31, 0.8);
       border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 13px; font-family: inherit; outline: none;
     }
     input[type="color"] { height: 38px; padding: 4px; cursor: pointer; }
@@ -80,9 +84,9 @@
       background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.15); color: #94a3b8;
     }
     .position-group input { display: none; }
-    .position-group input:checked + span { color: #10b981; font-weight: 700; }
+    .position-group input:checked + span { color: #ca8a04; font-weight: 700; }
     .toggle-row { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: #cbd5e1; padding: 7px 0; }
-    .toggle-row input[type="checkbox"] { accent-color: #10b981; width: 16px; height: 16px; }
+    .toggle-row input[type="checkbox"] { accent-color: #ca8a04; width: 16px; height: 16px; }
     .status { margin-top: 16px; font-size: 13px; padding: 12px 14px; border-radius: 12px; display: none; }
     .status.show { display: block; }
     .status.ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
@@ -91,15 +95,17 @@
     .cue-count { font-size: 12px; color: #64748b; margin-top: 6px; }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/subtitlelab'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-legenda">
+  <a class="lt-back" href="/subtitlelab" title="Voltar para Subtitle Lab" aria-label="Voltar para Subtitle Lab">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🔥 Burn-in de Legenda</div>
-  <div class="tagline">Renderize o vídeo com a legenda embutida, estilo reels/shorts</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/subtitlelab">Subtitle Lab</a> / Burn-in de legenda</nav>
+    <h1 class="modo-titulo">Burn-in de legenda</h1>
+    <p class="modo-sub">Renderize o vídeo com a legenda embutida, estilo reels/shorts</p>
+  </header>
 
   <div class="layout">
     <div class="card stage-col">
@@ -119,8 +125,8 @@
       </div>
 
       <div class="toolbar">
-        <button class="action btn-primary" id="render-btn" onclick="renderBurnedVideo()" disabled>🔥 Renderizar com legenda</button>
-        <button class="action btn-secondary" id="download-btn" onclick="downloadRendered()" disabled>⬇️ Baixar vídeo</button>
+        <button class="action btn-primary" id="render-btn" onclick="renderBurnedVideo()" disabled>Renderizar com legenda</button>
+        <button class="action btn-secondary" id="download-btn" onclick="downloadRendered()" disabled>Baixar vídeo</button>
       </div>
 
       <div class="status" id="status"></div>
@@ -128,16 +134,16 @@
 
     <div class="panel-col">
       <div class="card">
-        <div class="section-title">📄 Legenda</div>
-        <button class="action btn-secondary" style="width:100%;justify-content:center;margin-bottom:10px;" onclick="document.getElementById('sub-input').click()">📂 Carregar arquivo .srt/.vtt</button>
+        <div class="section-title">Legenda</div>
+        <button class="action btn-secondary" style="width:100%;justify-content:center;margin-bottom:10px;" onclick="document.getElementById('sub-input').click()">Carregar arquivo .srt/.vtt</button>
         <input type="file" id="sub-input" accept=".srt,.vtt" style="display:none;">
         <textarea class="srt-paste" id="sub-paste" placeholder="...ou cole o conteúdo .srt/.vtt aqui"></textarea>
-        <button class="action btn-secondary" style="width:100%;justify-content:center;" onclick="loadPastedSubtitle()">✅ Usar texto colado</button>
+        <button class="action btn-secondary" style="width:100%;justify-content:center;" onclick="loadPastedSubtitle()">Usar texto colado</button>
         <div class="cue-count" id="cue-count">Nenhuma legenda carregada</div>
       </div>
 
       <div class="card">
-        <div class="section-title">🎨 Estilo</div>
+        <div class="section-title">Estilo</div>
         <div class="field">
           <div class="field-label">Fonte</div>
           <select id="style-font">
@@ -276,15 +282,15 @@
     });
     function loadPastedSubtitle() {
       const text = document.getElementById('sub-paste').value;
-      if (!text.trim()) { showResult('err', '❌ Cole o conteúdo de um arquivo .srt ou .vtt.'); return; }
+      if (!text.trim()) { showResult('err', 'Cole o conteúdo de um arquivo .srt ou .vtt.'); return; }
       loadCuesFromText(text);
     }
     function loadCuesFromText(text) {
       const parsed = parseSubtitleText(text);
-      if (parsed.length === 0) { showResult('err', '❌ Nenhum bloco de legenda reconhecido nesse texto.'); return; }
+      if (parsed.length === 0) { showResult('err', 'Nenhum bloco de legenda reconhecido nesse texto.'); return; }
       cues = parsed;
       document.getElementById('cue-count').textContent = `${cues.length} blocos de legenda carregados`;
-      showResult('ok', `✅ ${cues.length} blocos de legenda prontos para o burn-in.`);
+      showResult('ok', `${cues.length} blocos de legenda prontos para o burn-in.`);
     }
 
     function parseSubtitleText(text) {
@@ -392,7 +398,7 @@
     async function renderBurnedVideo() {
       if (!videoFile) return;
       if (cues.length === 0) {
-        showResult('info', 'ℹ️ Nenhuma legenda carregada — o vídeo será renderizado sem texto embutido.');
+        showResult('info', 'Nenhuma legenda carregada — o vídeo será renderizado sem texto embutido.');
       }
       renderBtn.disabled = true;
       downloadBtn.disabled = true;
@@ -453,10 +459,10 @@
         await finished;
         document.getElementById('progress-wrap').classList.remove('show');
         downloadBtn.disabled = false;
-        showResult('ok', '✅ Vídeo renderizado com a legenda embutida! Clique em "Baixar vídeo".');
+        showResult('ok', 'Vídeo renderizado com a legenda embutida! Clique em "Baixar vídeo".');
       } catch (e) {
         document.getElementById('progress-wrap').classList.remove('show');
-        showResult('err', '❌ Erro ao renderizar: ' + e.message);
+        showResult('err', 'Erro ao renderizar: ' + e.message);
       } finally {
         renderBtn.disabled = false;
       }

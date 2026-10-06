@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Girar PDF</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/pdfs-papel.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(217, 83, 79, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -22,7 +26,7 @@
       left: 24px;
       width: 56px;
       height: 56px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       backdrop-filter: blur(40px);
       border-radius: 16px;
       border: 1.5px solid rgba(148, 163, 184, 0.15);
@@ -35,14 +39,14 @@
       color: #cbd5e1;
     }
     .back-button:hover {
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #ef4444;
+      border-color: rgba(217, 83, 79, 0.4);
+      color: #d9534f;
       transform: translateX(-6px);
     }
     .logo {
       font-size: 48px;
       font-weight: 900;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      background: linear-gradient(135deg, #d9534f 0%, #c2413d 50%, #a8332f 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       text-align: center;
@@ -55,7 +59,7 @@
       text-align: center;
     }
     .card {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(24, 26, 31, 0.4);
       border-radius: 28px;
       padding: 40px;
       border: 1px solid rgba(148, 163, 184, 0.08);
@@ -87,16 +91,16 @@
       width: 100%;
       padding: 40px;
       border-radius: 12px;
-      border: 2px dashed rgba(239, 68, 68, 0.3);
-      background: rgba(15, 23, 42, 0.6);
+      border: 2px dashed rgba(217, 83, 79, 0.3);
+      background: rgba(24, 26, 31, 0.6);
       text-align: center;
       cursor: pointer;
       transition: all 0.3s;
       margin-bottom: 24px;
     }
     .file-upload-area:hover {
-      border-color: rgba(239, 68, 68, 0.5);
-      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(217, 83, 79, 0.5);
+      background: rgba(24, 26, 31, 0.8);
     }
     .upload-icon {
       font-size: 48px;
@@ -114,8 +118,8 @@
     .file-selected {
       margin-top: 12px;
       padding: 12px;
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.2);
+      background: rgba(217, 83, 79, 0.1);
+      border: 1px solid rgba(217, 83, 79, 0.2);
       border-radius: 8px;
       display: none;
       align-items: center;
@@ -137,9 +141,9 @@
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: rgba(239, 68, 68, 0.2);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #ef4444;
+      background: rgba(217, 83, 79, 0.2);
+      border: 1px solid rgba(217, 83, 79, 0.3);
+      color: #d9534f;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -148,7 +152,7 @@
       transition: all 0.2s;
     }
     .file-selected-remove:hover {
-      background: rgba(239, 68, 68, 0.3);
+      background: rgba(217, 83, 79, 0.3);
       transform: scale(1.1);
     }
     .rotation-section {
@@ -162,7 +166,7 @@
     }
     .rotation-option {
       padding: 20px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       border: 2px solid rgba(148, 163, 184, 0.2);
       border-radius: 12px;
       cursor: pointer;
@@ -170,12 +174,12 @@
       text-align: center;
     }
     .rotation-option:hover {
-      border-color: rgba(239, 68, 68, 0.4);
-      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(217, 83, 79, 0.4);
+      background: rgba(24, 26, 31, 0.8);
     }
     .rotation-option.active {
-      border-color: #ef4444;
-      background: rgba(239, 68, 68, 0.1);
+      border-color: #d9534f;
+      background: rgba(217, 83, 79, 0.1);
     }
     .rotation-icon {
       font-size: 32px;
@@ -197,7 +201,7 @@
     .mode-btn {
       flex: 1;
       padding: 12px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       border: 2px solid rgba(148, 163, 184, 0.2);
       border-radius: 12px;
       cursor: pointer;
@@ -208,12 +212,12 @@
       color: #cbd5e1;
     }
     .mode-btn:hover {
-      border-color: rgba(239, 68, 68, 0.4);
+      border-color: rgba(217, 83, 79, 0.4);
     }
     .mode-btn.active {
-      border-color: #ef4444;
-      background: rgba(239, 68, 68, 0.1);
-      color: #ef4444;
+      border-color: #d9534f;
+      background: rgba(217, 83, 79, 0.1);
+      color: #d9534f;
     }
     .pages-input {
       display: none;
@@ -231,11 +235,11 @@
       overflow-y: auto;
       overflow-x: hidden;
       padding: 12px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(24, 26, 31, 0.6);
       border-radius: 12px;
     }
     .page-item {
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       border: 2px solid rgba(148, 163, 184, 0.2);
       border-radius: 12px;
       padding: 12px;
@@ -269,8 +273,8 @@
     .page-rotate-btn {
       width: 28px;
       height: 28px;
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      background: rgba(217, 83, 79, 0.1);
+      border: 1px solid rgba(217, 83, 79, 0.3);
       border-radius: 6px;
       cursor: pointer;
       display: flex;
@@ -280,20 +284,20 @@
       transition: all 0.2s;
     }
     .page-rotate-btn:hover {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: #ef4444;
+      background: rgba(217, 83, 79, 0.2);
+      border-color: #d9534f;
       transform: scale(1.1);
     }
     .page-rotate-btn.active {
-      background: rgba(239, 68, 68, 0.3);
-      border-color: #ef4444;
+      background: rgba(217, 83, 79, 0.3);
+      border-color: #d9534f;
     }
     .pages-input input {
       width: 100%;
       padding: 12px;
       border-radius: 12px;
       border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(24, 26, 31, 0.8);
       color: #f1f5f9;
       font-size: 14px;
     }
@@ -311,7 +315,7 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
+      background: linear-gradient(135deg, #d9534f, #c2413d);
       color: white;
     }
     .status {
@@ -327,21 +331,24 @@
       border: 1px solid rgba(34, 197, 94, 0.3);
     }
     .status.err {
-      background: rgba(239, 68, 68, 0.1);
+      background: rgba(217, 83, 79, 0.1);
       color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      border: 1px solid rgba(217, 83, 79, 0.3);
     }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/pdfs'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body pdf-papel">
+  <a class="lt-back" href="/pdfs" title="Voltar aos PDFs" aria-label="Voltar aos PDFs">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
   
-  <div class="logo">🔃 GIRAR PDF</div>
-  <div class="tagline">Rotacione as páginas do seu PDF</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="pdf-cab">
+    <span class="pdf-selo"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M238,56v48a6,6,0,0,1-6,6H184a6,6,0,0,1,0-12h32.55l-30.38-27.8c-.06-.06-.12-.13-.19-.19a82,82,0,1,0-1.7,117.65,6,6,0,0,1,8.24,8.73A93.46,93.46,0,0,1,128,222h-1.28A94,94,0,1,1,194.37,61.4L226,90.35V56a6,6,0,1,1,12,0Z"/></svg></span>
+    <nav class="pdf-trilha" aria-label="Você está em"><a href="/pdfs">PDFs</a> / Girar</nav>
+    <h1 class="pdf-titulo">Girar</h1>
+    <p class="pdf-sub">Rotacione as páginas do seu PDF</p>
+  </header>
   
   <div class="card">
     <h1>Selecione o PDF</h1>
@@ -350,14 +357,14 @@
     <form method="POST" enctype="multipart/form-data">
       <label>Arquivo PDF</label>
       <div class="file-upload-area" id="upload-area" onclick="document.getElementById('file').click()">
-        <div class="upload-icon">📄</div>
+        <div class="upload-icon"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M222,152a6,6,0,0,1-6,6H190v20h18a6,6,0,0,1,0,12H190v18a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6h32A6,6,0,0,1,222,152ZM90,172a26,26,0,0,1-26,26H54v10a6,6,0,0,1-12,0V152a6,6,0,0,1,6-6H64A26,26,0,0,1,90,172Zm-12,0a14,14,0,0,0-14-14H54v28H64A14,14,0,0,0,78,172Zm84,8a34,34,0,0,1-34,34H112a6,6,0,0,1-6-6V152a6,6,0,0,1,6-6h16A34,34,0,0,1,162,180Zm-12,0a22,22,0,0,0-22-22H118v44h10A22,22,0,0,0,150,180ZM42,112V40A14,14,0,0,1,56,26h96a6,6,0,0,1,4.25,1.76l56,56A6,6,0,0,1,214,88v24a6,6,0,0,1-12,0V94H152a6,6,0,0,1-6-6V38H56a2,2,0,0,0-2,2v72a6,6,0,0,1-12,0ZM158,82h35.52L158,46.48Z"/></svg></div>
         <div class="upload-text">Clique ou arraste o arquivo aqui</div>
         <div class="upload-hint">Suporta apenas arquivos PDF</div>
       </div>
       <input type="file" id="file" name="file" accept=".pdf" required>
       
       <div class="file-selected" id="file-selected">
-        <div class="file-selected-icon">📄</div>
+        <div class="file-selected-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M212.24,83.76l-56-56A6,6,0,0,0,152,26H56A14,14,0,0,0,42,40V216a14,14,0,0,0,14,14H200a14,14,0,0,0,14-14V88A6,6,0,0,0,212.24,83.76ZM158,46.48,193.52,82H158ZM200,218H56a2,2,0,0,1-2-2V40a2,2,0,0,1,2-2h90V88a6,6,0,0,0,6,6h50V216A2,2,0,0,1,200,218Zm-34-82a6,6,0,0,1-6,6H96a6,6,0,0,1,0-12h64A6,6,0,0,1,166,136Zm0,32a6,6,0,0,1-6,6H96a6,6,0,0,1,0-12h64A6,6,0,0,1,166,168Z"/></svg></div>
         <div class="file-selected-name" id="file-name"></div>
         <div class="file-selected-remove" onclick="clearFile()">×</div>
       </div>
@@ -389,10 +396,10 @@
         <label>Páginas para Girar</label>
         <div class="pages-mode">
           <div class="mode-btn active" data-mode="all" onclick="selectMode('all')">
-            📄 Todas as Páginas
+            Todas as Páginas
           </div>
           <div class="mode-btn" data-mode="specific" onclick="selectMode('specific')">
-            🎯 Páginas Específicas
+            Páginas Específicas
           </div>
         </div>
         <div class="pages-input" id="pages-input">
@@ -402,7 +409,7 @@
         <input type="hidden" name="rotations" id="rotations-input" value="{}">
       </div>
       
-      <button type="submit">🔃 Girar PDF</button>
+      <button type="submit">Girar PDF</button>
     </form>
     
     {% if status %}
@@ -481,16 +488,16 @@
     
     uploadArea.addEventListener('dragover', (e) => {
       e.preventDefault();
-      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+      uploadArea.style.borderColor = 'rgba(217, 83, 79, 0.5)';
     });
     
     uploadArea.addEventListener('dragleave', () => {
-      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+      uploadArea.style.borderColor = 'rgba(217, 83, 79, 0.3)';
     });
     
     uploadArea.addEventListener('drop', (e) => {
       e.preventDefault();
-      uploadArea.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+      uploadArea.style.borderColor = 'rgba(217, 83, 79, 0.3)';
       const files = e.dataTransfer.files;
       if (files.length > 0 && files[0].name.endsWith('.pdf')) {
         fileInput.files = files;

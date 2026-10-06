@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Subtitle Lab</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/legenda.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image:
         radial-gradient(at 0% 0%, rgba(251, 191, 36, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.06) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+        radial-gradient(at 100% 0%, rgba(202, 138, 4, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(250, 204, 21, 0.05) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -21,24 +25,24 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
     }
-    .back-button:hover { border-color: rgba(16, 185, 129, 0.4); color: #10b981; transform: translateX(-6px); }
+    .back-button:hover { border-color: rgba(202, 138, 4, 0.4); color: #ca8a04; transform: translateX(-6px); }
     .logo {
       font-size: 52px; font-weight: 900;
-      background: linear-gradient(135deg, #fbbf24 0%, #10b981 50%, #06b6d4 100%);
+      background: linear-gradient(135deg, #fbbf24 0%, #ca8a04 50%, #facc15 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       letter-spacing: 2px;
-      filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.5));
+      filter: drop-shadow(0 0 25px rgba(202, 138, 4, 0.5));
       animation: glow-pulse 3s ease-in-out infinite;
       text-align: center; margin-bottom: 10px;
     }
     @keyframes glow-pulse {
-      0%, 100% { filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.5)); }
-      50% { filter: drop-shadow(0 0 35px rgba(6, 182, 212, 0.75)); }
+      0%, 100% { filter: drop-shadow(0 0 25px rgba(202, 138, 4, 0.5)); }
+      50% { filter: drop-shadow(0 0 35px rgba(250, 204, 21, 0.75)); }
     }
     .tagline { color: #64748b; font-size: 15px; margin-bottom: 48px; text-align: center; font-weight: 500; }
     .tools-grid {
@@ -46,43 +50,45 @@
       gap: 20px; max-width: 700px; margin: 0 auto 40px;
     }
     .tool-card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 20px; padding: 24px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 20px; padding: 24px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
       cursor: pointer; transition: all 0.3s;
     }
-    .tool-card:hover { border-color: rgba(16, 185, 129, 0.3); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(16, 185, 129, 0.2); }
+    .tool-card:hover { border-color: rgba(202, 138, 4, 0.3); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(202, 138, 4, 0.2); }
     .tool-icon { font-size: 44px; margin-bottom: 16px; }
     .tool-title { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }
     .tool-desc { font-size: 13px; color: #94a3b8; line-height: 1.6; }
     .formats-note {
-      max-width: 700px; margin: 0 auto; background: rgba(15, 23, 42, 0.4);
+      max-width: 700px; margin: 0 auto; background: rgba(24, 26, 31, 0.4);
       border: 1px solid rgba(148, 163, 184, 0.08); border-radius: 16px;
       padding: 20px 24px; font-size: 13px; color: #94a3b8; line-height: 1.8;
     }
     .formats-note b { color: #cbd5e1; }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-legenda">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">Subtitle Lab</div>
-  <div class="tagline">Gerador e editor local de legendas SRT/VTT — sem depender de plataformas pagas</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-audio)"><img src="/static/localtools/apps/subtitlelab.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Subtitle Lab</h1>
+    <p class="modo-sub">Gerador e editor local de legendas SRT/VTT — sem depender de plataformas pagas</p>
+  </header>
 
   <div class="tools-grid">
-    <div class="tool-card" onclick="window.location.href='/subtitlelab/editor'">
-      <div class="tool-icon">📝</div>
+    <a class="tool-card" href="/subtitlelab/editor">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M224,50H32A14,14,0,0,0,18,64V192a14,14,0,0,0,14,14H224a14,14,0,0,0,14-14V64A14,14,0,0,0,224,50Zm2,142a2,2,0,0,1-2,2H32a2,2,0,0,1-2-2V64a2,2,0,0,1,2-2H224a2,2,0,0,1,2,2ZM117.19,152.71a6,6,0,0,1-2.19,8.2,38,38,0,1,1,0-65.82,6,6,0,1,1-6,10.38,26,26,0,1,0,0,45.05A6,6,0,0,1,117.19,152.71Zm80,0a6,6,0,0,1-2.19,8.2,38,38,0,1,1,0-65.82,6,6,0,1,1-6,10.38,26,26,0,1,0,0,45.05A6,6,0,0,1,197.19,152.71Z"/></svg></div>
       <div class="tool-title">Transcrição & Timeline</div>
       <div class="tool-desc">Transcreva áudio/vídeo em blocos com tempo, ajuste entrada/saída na linha do tempo e corrija atrasos com o sincronizador de delay</div>
-    </div>
-    <div class="tool-card" onclick="window.location.href='/subtitlelab/burn'">
-      <div class="tool-icon">🔥</div>
+    </a>
+    <a class="tool-card" href="/subtitlelab/burn">
+      <div class="tool-icon"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M181.92,153A55.58,55.58,0,0,1,137,197.92a7,7,0,0,1-1,.08,6,6,0,0,1-1-11.92c17.38-2.92,32.13-17.68,35.08-35.08a6,6,0,1,1,11.84,2ZM214,144a86,86,0,0,1-172,0c0-27.47,10.85-55.61,32.25-83.64a6,6,0,0,1,9-.67l26.34,25.56,23.09-63.31a6,6,0,0,1,9.47-2.56C163.72,37.33,214,85.4,214,144Zm-12,0c0-48.4-38.65-89.84-61.07-109.8L117.64,98.06a6,6,0,0,1-9.82,2.25l-28-27.22C62.67,97.13,54,121,54,144a74,74,0,0,0,148,0Z"/></svg></div>
       <div class="tool-title">Burn-in de Legenda</div>
       <div class="tool-desc">Renderize o vídeo com as legendas embutidas, estilo reels/shorts, com fonte, cor e posição personalizáveis</div>
-    </div>
+    </a>
   </div>
 
   <div class="formats-note">

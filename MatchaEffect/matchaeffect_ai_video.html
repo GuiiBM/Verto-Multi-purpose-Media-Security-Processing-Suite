@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Efeito Matcha por IA — Vídeo</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/matcha.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: radial-gradient(at 0% 0%, rgba(139, 195, 74, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -18,7 +22,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -43,7 +47,7 @@
     .banner.info { background: rgba(59, 130, 246, 0.1); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
     .layout { display: flex; gap: 20px; max-width: 1180px; margin: 0 auto; flex-wrap: wrap; align-items: flex-start; }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 24px; padding: 28px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
     }
     .stage-col { flex: 1 1 560px; min-width: 320px; }
@@ -66,7 +70,7 @@
     .progress-wrap { margin-top: 16px; display: none; }
     .progress-wrap.show { display: block; }
     .progress-msg { font-size: 12.5px; color: #94a3b8; margin-bottom: 8px; display: flex; justify-content: space-between; gap: 10px; }
-    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
+    .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(24, 26, 31, 0.9); border: 1px solid rgba(148, 163, 184, 0.15); overflow: hidden; }
     .progress-fill { height: 100%; width: 0%; background: linear-gradient(135deg, #8bc34a, #558b2f); transition: width 0.2s ease; }
     .spinner {
       width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(139, 195, 74, 0.25);
@@ -101,16 +105,18 @@
     .format-badge.show { display: block; }
   </style>
 </head>
-<body>
-  <div class="back-button" id="back-button" onclick="if(!busy) location.href='/matchaeffect'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-matcha">
+  <a class="lt-back" href="/matchaeffect" title="Voltar para Matcha Effect" aria-label="Voltar para Matcha Effect">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🍵 Efeito Matcha por IA — Vídeo</div>
-  <div class="tagline">Gera 1 still com IA a partir de um quadro do vídeo e renderiza uma transição "derretendo" até ele — igual ao que criadores fazem no CapCut/Premiere</div>
-  <div class="banner show info">ℹ️ Difusão quadro a quadro real (recriar cada frame do vídeo com IA) é impraticável localmente — levaria de dezenas de minutos a horas para poucos segundos de vídeo. Por isso: 1 still gerado por IA + transição renderizada localmente com Canvas.</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/matchaeffect">Matcha Effect</a> / Vídeo com IA: adicionar</nav>
+    <h1 class="modo-titulo">Vídeo com IA: adicionar</h1>
+    <p class="modo-sub">Gera 1 still com IA a partir de um quadro do vídeo e renderiza uma transição "derretendo" até ele — igual ao que criadores fazem no CapCut/Premiere</p>
+  </header>
+  <div class="banner show info">Difusão quadro a quadro real (recriar cada frame do vídeo com IA) é impraticável localmente — levaria de dezenas de minutos a horas para poucos segundos de vídeo. Por isso: 1 still gerado por IA + transição renderizada localmente com Canvas.</div>
 
   <div class="banner" id="capability-banner"></div>
 
@@ -125,7 +131,7 @@
         <video id="source-video" controls muted playsinline></video>
         <div class="format-badge" id="format-badge"></div>
         <div class="toolbar">
-          <button class="action btn-secondary" onclick="captureFrame()">📸 Usar o quadro atual (pause no ponto desejado)</button>
+          <button class="action btn-secondary" onclick="captureFrame()">Usar o quadro atual (pause no ponto desejado)</button>
         </div>
       </div>
 
@@ -135,7 +141,7 @@
           <canvas id="frame-canvas"></canvas>
         </div>
         <div class="frame-col">
-          <div class="cap">🍵 Still com efeito (IA)</div>
+          <div class="cap">Still com efeito (IA)</div>
           <img id="still-img" alt="Still gerado">
         </div>
       </div>
@@ -145,19 +151,19 @@
       </div>
 
       <div class="toolbar">
-        <button class="action btn-primary" id="generate-btn" onclick="generateStill()" disabled>🍵 Gerar still com efeito (IA)</button>
+        <button class="action btn-primary" id="generate-btn" onclick="generateStill()" disabled>Gerar still com efeito (IA)</button>
       </div>
 
       <div id="transition-section" style="display:none;">
         <hr class="sep">
-        <div class="section-title">🎬 Renderizar transição derretendo</div>
+        <div class="section-title">Renderizar transição derretendo</div>
         <div class="progress-wrap" id="render-progress-wrap">
           <div class="progress-msg"><span>Renderizando vídeo...</span><span id="render-pct">0%</span></div>
           <div class="progress-track"><div class="progress-fill" id="render-fill"></div></div>
         </div>
         <div class="toolbar">
-          <button class="action btn-primary" id="render-btn" onclick="renderTransitionVideo()">🎬 Renderizar vídeo com transição</button>
-          <button class="action btn-secondary" id="download-btn" onclick="downloadRendered()" disabled>⬇️ Baixar vídeo</button>
+          <button class="action btn-primary" id="render-btn" onclick="renderTransitionVideo()">Renderizar vídeo com transição</button>
+          <button class="action btn-secondary" id="download-btn" onclick="downloadRendered()" disabled>Baixar vídeo</button>
         </div>
       </div>
 
@@ -166,7 +172,7 @@
 
     <div class="panel-col">
       <div class="card">
-        <div class="section-title">⚙️ Parâmetros (img2img)</div>
+        <div class="section-title">Parâmetros (img2img)</div>
         <div class="field">
           <div class="field-label">Denoising Strength <b id="denoise-val">0.60</b></div>
           <input type="range" id="denoise" min="0.35" max="0.85" step="0.01" value="0.60">
@@ -187,7 +193,7 @@
       </div>
 
       <div class="card">
-        <div class="section-title">🎬 Transição</div>
+        <div class="section-title">Transição</div>
         <div class="field">
           <div class="field-label">Duração do derretimento <b id="trans-duration-val">2.0s</b></div>
           <input type="range" id="trans-duration" min="0.5" max="4" step="0.1" value="2.0">
@@ -274,7 +280,7 @@
     function updateFormatBadge(w, h) {
       const badge = document.getElementById('format-badge');
       badge.className = 'format-badge show';
-      badge.textContent = `📐 Formato detectado: ${describeAspect(w, h)} — a transição renderizada sai nesse mesmo formato (o still da IA é encaixado sem esticar).`;
+      badge.textContent = `Formato detectado: ${describeAspect(w, h)} — a transição renderizada sai nesse mesmo formato (o still da IA é encaixado sem esticar).`;
     }
 
     // Carrega um blob de vídeo renderizado num <video> oculto só para ler as
@@ -304,18 +310,18 @@
         const data = await res.json();
         if (!data.available) {
           capabilityBanner.className = 'banner show err';
-          capabilityBanner.textContent = '❌ ' + data.install_message;
+          capabilityBanner.textContent = '' + data.install_message;
           generateBtn.disabled = true;
         } else if (!data.gpu) {
           capabilityBanner.className = 'banner show warn';
-          capabilityBanner.textContent = '⚠️ Nenhuma GPU NVIDIA detectada — gerar o still roda na CPU e pode levar vários minutos, especialmente na primeira vez (carregamento do modelo). A renderização da transição em si é local/rápida.';
+          capabilityBanner.textContent = 'Nenhuma GPU NVIDIA detectada — gerar o still roda na CPU e pode levar vários minutos, especialmente na primeira vez (carregamento do modelo). A renderização da transição em si é local/rápida.';
         } else {
           capabilityBanner.className = 'banner show ok';
-          capabilityBanner.textContent = '✅ GPU detectada — gerar o still deve ser rápido (segundos).';
+          capabilityBanner.textContent = 'GPU detectada — gerar o still deve ser rápido (segundos).';
         }
       } catch (e) {
         capabilityBanner.className = 'banner show err';
-        capabilityBanner.textContent = '❌ Não foi possível verificar os recursos de IA no servidor local.';
+        capabilityBanner.textContent = 'Não foi possível verificar os recursos de IA no servidor local.';
       }
     }
     checkCapabilities();
@@ -411,13 +417,13 @@
         const stillRatio = stillImg.naturalWidth / stillImg.naturalHeight;
         const videoRatio = video.videoWidth / video.videoHeight;
         const ratioDiff = Math.abs(stillRatio - videoRatio) / videoRatio;
-        let msg = `✅ Still gerado por IA em ${job.elapsed ?? '?'}s! Ajuste a transição e renderize o vídeo abaixo.`;
+        let msg = `Still gerado por IA em ${job.elapsed ?? '?'}s! Ajuste a transição e renderize o vídeo abaixo.`;
         if (ratioDiff > 0.08) {
           msg += ` ⚠️ O still saiu em ${stillImg.naturalWidth}×${stillImg.naturalHeight}, proporção diferente do vídeo (${video.videoWidth}×${video.videoHeight}) — ele será encaixado sem esticar (cover), então partes das bordas podem ser cortadas na transição.`;
         }
         showResult('ok', msg);
       } catch (e) {
-        showResult('err', '❌ ' + e.message);
+        showResult('err', '' + e.message);
       } finally {
         clearInterval(pollTimer);
         progressWrap.classList.remove('show');
@@ -536,18 +542,18 @@
           const outDims = await loadBlobVideoDimensions(renderedBlob);
           if (outDims.w === sourceW && outDims.h === sourceH) {
             downloadBtn.disabled = false;
-            showResult('ok', `✅ Vídeo com transição derretendo renderizado, formato preservado: ${describeAspect(outDims.w, outDims.h)}. Clique em "Baixar vídeo".`);
+            showResult('ok', `Vídeo com transição derretendo renderizado, formato preservado: ${describeAspect(outDims.w, outDims.h)}. Clique em "Baixar vídeo".`);
           } else {
             downloadBtn.disabled = true;
-            showResult('err', `⚠️ O vídeo renderizado saiu em ${outDims.w}×${outDims.h}, diferente do original (${sourceW}×${sourceH}). Download bloqueado — tente novamente.`);
+            showResult('err', `O vídeo renderizado saiu em ${outDims.w}×${outDims.h}, diferente do original (${sourceW}×${sourceH}). Download bloqueado — tente novamente.`);
           }
         } catch (verifyErr) {
           downloadBtn.disabled = false;
-          showResult('ok', '✅ Vídeo renderizado! (Não foi possível confirmar o formato automaticamente — confira antes de usar.) Clique em "Baixar vídeo".');
+          showResult('ok', 'Vídeo renderizado! (Não foi possível confirmar o formato automaticamente — confira antes de usar.) Clique em "Baixar vídeo".');
         }
       } catch (e) {
         document.getElementById('render-progress-wrap').classList.remove('show');
-        showResult('err', '❌ Erro ao renderizar: ' + e.message);
+        showResult('err', 'Erro ao renderizar: ' + e.message);
       } finally {
         busy = false;
         renderBtn.disabled = false;

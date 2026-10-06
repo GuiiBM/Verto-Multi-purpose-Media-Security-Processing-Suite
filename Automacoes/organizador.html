@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizador do InstaSaver · Automações</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --ig: linear-gradient(135deg, #f58529 0%, #dd2a7b 45%, #8134af 75%, #515bd4 100%);
+      --card: rgba(24, 26, 31, 0.5);
+      --line: rgba(148, 163, 184, 0.12);
+      --muted: #94a3b8;
+      --dim: #64748b;
+      --pink: #ec4899;
+      --ok: #34d399;
+      --bad: #f87171;
+    }
+    body {
+      font-family: var(--lt-sans);
+      background: #0a0f1e;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(221, 42, 123, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(81, 91, 212, 0.08) 0px, transparent 50%);
+      color: #e2e8f0; min-height: 100vh; padding: 100px 16px 60px;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; z-index: 50; color: #cbd5e1;
+    }
+    .back-button:hover { border-color: rgba(236, 72, 153, 0.45); color: var(--pink); transform: translateX(-6px); }
+    .wrap { max-width: 920px; margin: 0 auto; }
+    .logo {
+      font-size: 52px; font-weight: 900; text-align: center; letter-spacing: .5px;
+      background: var(--ig); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 25px rgba(221, 42, 123, 0.4));
+    }
+    .tagline { color: var(--dim); font-size: 15px; margin: 8px 0 32px; text-align: center; font-weight: 500; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 22px;
+      padding: 24px; backdrop-filter: blur(40px); margin-bottom: 18px;
+    }
+    .card-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+    .card-head h2 { font-size: 19px; font-weight: 800; color: #f8fafc; flex: 1; min-width: 200px; }
+    .card-head h2 small { display: block; font-size: 13px; color: var(--muted); font-weight: 500; margin-top: 3px; overflow-wrap: anywhere; }
+    h3 { font-size: 15px; font-weight: 700; color: #cbd5e1; }
+
+    .switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 700; }
+    .switch input { display: none; }
+    .switch .track { width: 46px; height: 26px; border-radius: 999px; background: rgba(148, 163, 184, 0.25); position: relative; transition: background .2s; }
+    .switch .track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .2s; }
+    .switch input:checked + .track { background: #10b981; }
+    .switch input:checked + .track::after { transform: translateX(20px); }
+    .switch .lbl { color: var(--muted); }
+    .switch input:checked ~ .lbl { color: var(--ok); }
+
+    .flow { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: stretch; }
+    .place { background: rgba(12, 13, 16, 0.45); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; min-width: 0; }
+    .place .k { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+    .place .v { font: 500 13px var(--lt-mono); color: #e2e8f0; margin: 6px 0 10px; word-break: break-all; }
+    .place .hint { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+    .arrow { align-self: center; font-size: 22px; color: var(--pink); }
+
+    .btn {
+      border: 0; cursor: pointer; border-radius: 13px; font: 700 14px var(--lt-sans);
+      padding: 11px 17px; color: #fff; background: var(--ig); transition: transform .15s, opacity .15s; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity: .5; cursor: default; transform: none; }
+    .btn.ghost { background: rgba(148, 163, 184, 0.1); color: #e2e8f0; border: 1px solid var(--line); }
+    .btn.ghost:hover { border-color: rgba(236, 72, 153, 0.4); }
+    .btn.sm { padding: 7px 11px; font-size: 12.5px; border-radius: 10px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; align-items: center; }
+
+    .status { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); margin-top: 16px; }
+    .status b { color: #f8fafc; font-weight: 700; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--dim); margin-right: 6px; vertical-align: 1px; }
+    .dot.on { background: var(--ok); box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15); animation: pulse 2s infinite; }
+    .dot.busy { background: #fbbf24; }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); } }
+
+    .edit-paths { display: none; margin-top: 16px; gap: 10px; grid-template-columns: 1fr 1fr; }
+    .edit-paths.open { display: grid; }
+    .edit-paths label { font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px; }
+    input[type=text], textarea {
+      width: 100%; background: rgba(12, 13, 16, 0.55); border: 1px solid var(--line); color: #f8fafc;
+      border-radius: 12px; padding: 11px 13px; font: 500 13px var(--lt-mono); outline: 0;
+    }
+    input[type=text]:focus, textarea:focus { border-color: rgba(236, 72, 153, 0.45); box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.08); }
+    textarea { min-height: 260px; resize: vertical; line-height: 1.6; white-space: pre; tab-size: 4; }
+
+    .import { display: none; margin-top: 18px; border-top: 1px solid var(--line); padding-top: 18px; }
+    .import.open { display: block; }
+    .imp-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+    .imp { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 13px; background: rgba(12, 13, 16, 0.4); border: 1px solid var(--line); cursor: pointer; }
+    .imp input { margin-top: 3px; accent-color: #dd2a7b; width: 16px; height: 16px; flex-shrink: 0; }
+    .imp .t { font-weight: 700; font-size: 14px; color: #f8fafc; }
+    .imp .t .to { color: var(--pink); }
+    .imp .s { font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+    .empty { color: var(--dim); font-size: 14px; padding: 18px 4px; }
+
+    .help { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 12px; }
+    .help code, .log code { font: 500 12px var(--lt-mono); background: rgba(148, 163, 184, 0.12); padding: 1px 6px; border-radius: 6px; color: #e2e8f0; }
+
+    .log { display: flex; flex-direction: column; gap: 8px; max-height: 520px; overflow-y: auto; }
+    .entry { border-left: 3px solid var(--dim); background: rgba(12, 13, 16, 0.35); border-radius: 0 12px 12px 0; padding: 10px 14px; }
+    .entry.ok { border-left-color: var(--ok); }
+    .entry.erro { border-left-color: var(--bad); background: rgba(239, 68, 68, 0.06); }
+    .entry .top { display: flex; gap: 10px; justify-content: space-between; align-items: baseline; }
+    .entry .ti { font-size: 14px; font-weight: 700; color: #f8fafc; word-break: break-word; }
+    .entry .when { font-size: 12px; color: var(--dim); white-space: nowrap; }
+    .entry ul { list-style: none; margin-top: 6px; }
+    .entry li { font-size: 13px; color: #cbd5e1; padding: 2px 0; word-break: break-word; }
+    .entry li pre { white-space: pre-wrap; font: 11.5px var(--lt-mono); color: var(--muted); }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0;
+      background: #0f172a; border: 1px solid var(--line); color: #e2e8f0; padding: 12px 18px; border-radius: 12px;
+      font-size: 14px; transition: all .25s; z-index: 200; pointer-events: none; max-width: calc(100% - 32px);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.bad { border-color: rgba(239, 68, 68, 0.4); color: #fecaca; }
+
+    @media (max-width: 760px) {
+      body { padding-top: 92px; }
+      .logo { font-size: 40px; }
+      .card { padding: 18px; }
+      .flow { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); justify-self: center; }
+      .edit-paths.open { grid-template-columns: 1fr; }
+    }
+  </style>
+  <style>
+    /* ---------- Visual LocalTools: tokens da suíte, cor do grupo (Downloads) ---------- */
+    :root {
+      --ig: linear-gradient(180deg, #86efac, #4ade80 72%);
+      --pink: #4ade80;
+      --card: rgba(255, 255, 255, 0.035);
+      --line: var(--lt-line);
+      --muted: var(--lt-muted);
+      --dim: var(--lt-faint);
+      --ok: var(--lt-green);
+      --bad: var(--lt-danger);
+    }
+    html { overflow-x: clip; }
+    body.lt-body { padding-top: 28px; }
+    body > * { position: relative; z-index: 1; }
+    .topo { display: flex; justify-content: center; margin-bottom: 22px; }
+    .lt-head { margin-bottom: 30px; }
+    .card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)); box-shadow: var(--lt-shadow); backdrop-filter: none; }
+    .btn {
+      color: #06210f;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 0 #1d7a43, 0 12px 22px -10px color-mix(in srgb, #4ade80 55%, transparent);
+    }
+    .btn:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 0 #1d7a43; }
+    .btn.ghost { background: linear-gradient(180deg, #23262c, #191b20); color: var(--lt-ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 2px 0 rgba(0, 0, 0, 0.45); }
+    .btn.ghost:hover { border-color: color-mix(in srgb, #4ade80 45%, transparent); }
+    .card-head h2 { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; }
+    .card-head h2 .lt-key { grid-row: span 2; }
+    .card-head h2 small { grid-column: 2; }
+    .chip.on { color: #06210f; }
+    @media (max-width: 760px) { body.lt-body { padding-top: 72px; } }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-fluxo.css">
+</head>
+<body class="lt-body tema-fluxo">
+  <a class="lt-back" href="/automacoes" title="Voltar às Automações" aria-label="Voltar às Automações">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+
+  <div class="wrap">
+    <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+    <header class="lt-head">
+      <span class="lt-key lg" style="--hue: var(--lt-cat-downloads)"><img src="/static/localtools/apps/automacoes.webp" alt="" width="76" height="76"></span>
+      <nav class="modo-trilha" aria-label="Você está em"><a href="/automacoes">Automações</a> / Organizador</nav>
+      <h1>Organizador do InstaSaver</h1>
+      <p>Tira de Downloads o que o InstaSaver e o VscoSaver baixaram e separa por perfil em Documentos.</p>
+    </header>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><span class="lt-key sm" style="--hue: var(--lt-cat-downloads)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#camera"/></svg></span>Organização automática
+          <small>Uma pasta por perfil, com Stories, Destaques, Posts, Reels, Fotos de Perfil e VSCO</small></h2>
+        <label class="switch" title="Organizar sozinho cada download do InstaSaver/VscoSaver">
+          <input type="checkbox" id="vigia"><span class="track"></span><span class="lbl" id="vigiaLbl">Manual</span>
+        </label>
+      </div>
+
+      <div class="flow">
+        <div class="place">
+          <div class="k">Entrada (o InstaSaver salva aqui)</div>
+          <div class="v" id="pEntrada">…</div>
+          <button class="btn ghost sm" data-abrir="entrada">Abrir</button>
+        </div>
+        <div class="arrow">➜</div>
+        <div class="place">
+          <div class="k">Destino</div>
+          <div class="v" id="pDestino">…</div>
+          <button class="btn ghost sm" data-abrir="destino">Abrir</button>
+        </div>
+      </div>
+      <div class="help" style="margin:12px 2px 0">
+        Cada perfil ganha uma pasta com <code>Stories</code>, <code>Destaques</code>, <code>Posts</code>, <code>Reels</code>,
+        <code>Fotos de Perfil</code> e <code>VSCO</code>. ZIPs são abertos e apagados só depois de conferir que todos os arquivos chegaram.
+        A pasta só é conferida quando o InstaSaver/VscoSaver termina um download, quando o Verto liga ou quando você clica em
+        “Organizar agora”: nada fica olhando a pasta sem motivo. O resto de Downloads nunca é tocado.
+      </div>
+
+      <div class="status">
+        <span><i class="dot" id="dot"></i><b id="sAtual">—</b></span>
+        <span>Esperando na entrada: <b id="sEsperando">—</b></span>
+        <span>Perfis: <b id="sPerfis">—</b></span>
+      </div>
+
+      <div class="edit-paths" id="editPaths">
+        <div><label for="iEntrada">Pasta de entrada</label><input type="text" id="iEntrada" spellcheck="false"></div>
+        <div><label for="iDestino">Pasta de destino</label><input type="text" id="iDestino" spellcheck="false"></div>
+        <div class="actions" style="margin-top:4px; grid-column: 1 / -1">
+          <button class="btn sm" id="savePaths">Salvar pastas</button>
+          <button class="btn ghost sm" id="resetPaths">Voltar ao padrão</button>
+          <span class="help" style="margin:0">Trocar o destino não move o que já foi organizado.</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="agora">Organizar agora</button>
+        <button class="btn ghost" id="abrirImport">Importar pastas já separadas…</button>
+        <button class="btn ghost sm" id="togglePaths">Alterar pastas</button>
+      </div>
+
+      <div class="import" id="import">
+        <h3>Pastas que você já separou na entrada</h3>
+        <div class="help" style="margin-top:6px">
+          Cada pasta vai inteira para o destino: o nome que você deu vira o nome do perfil (ex.: <code>Fiote</code>),
+          subpastas suas continuam (ex.: <code>Stories/niver dela &lt;3</code>), o VSCO guardado junto aponta para a mesma pasta
+          e arquivos sem @ (SaveClip, <code>.enc</code>...) vão para <code>Outros</code>.
+        </div>
+        <div class="imp-list" id="impList"></div>
+        <div class="actions" style="margin-top:4px">
+          <button class="btn" id="doImport">Importar selecionadas</button>
+          <button class="btn ghost sm" id="closeImport">Fechar</button>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="card">
+      <div class="card-head">
+        <h2><span class="lt-key sm" style="--hue: var(--lt-cat-downloads)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#user-circle"/></svg></span>Perfis <small id="perfisArq">perfis.txt</small></h2>
+        <button class="btn ghost sm" data-abrir="destino">Abrir destino</button>
+      </div>
+      <div class="help">
+        Uma linha por perfil: <code>@perfil = Nome da pasta</code>. Mude o nome depois do <code>=</code> e salve para renomear a pasta.
+        Renomear a pasta pelo gerenciador de arquivos também funciona (o app atualiza este arquivo).
+        Vários @ podem apontar para a mesma pasta, como o Instagram e o VSCO da mesma pessoa. Perfis novos entram sozinhos.
+      </div>
+      <textarea id="perfis" spellcheck="false"></textarea>
+      <div class="actions">
+        <button class="btn" id="savePerfis">Salvar perfis</button>
+        <button class="btn ghost sm" id="reloadPerfis">Recarregar</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><span class="lt-key sm" style="--hue: var(--lt-cat-downloads)"><svg class="lt-icon" aria-hidden="true"><use href="/static/localtools/icons.svg#clock-counter-clockwise"/></svg></span>Registro <small>O que foi organizado, para onde foi e o motivo de cada falha</small></h2>
+        <button class="btn ghost sm" id="limparLog">Limpar</button>
+      </div>
+      <div class="log" id="log"><div class="empty">Nada ainda. Baixe algo no InstaSaver e veja aparecer aqui.</div></div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  let toastT;
+  function toast(msg, bad) {
+    const t = $('toast'); t.textContent = msg; t.className = 'toast show' + (bad ? ' bad' : '');
+    clearTimeout(toastT); toastT = setTimeout(() => t.className = 'toast', 3500);
+  }
+  async function api(path, body) {
+    const opt = body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+    const res = await fetch('/automacoes/' + path, opt);
+    const data = await res.json().catch(() => ({ success: false, error: 'Resposta inválida do servidor.' }));
+    if (!data.success) throw new Error(data.error || 'Falhou.');
+    return data;
+  }
+
+  // ---------- estado (a cada 2 s) ----------
+  let ultimoId = 0, cfg = null;
+  const fmtQuando = ts => {
+    const d = new Date(ts * 1000), hoje = new Date();
+    const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return d.toDateString() === hoje.toDateString() ? hora : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + hora;
+  };
+  function addEntries(items) {
+    if (!items.length) return;
+    const log = $('log');
+    const vazio = log.querySelector('.empty'); if (vazio) vazio.remove();
+    for (const it of items) {
+      ultimoId = Math.max(ultimoId, it.id);
+      const el = document.createElement('div');
+      el.className = 'entry ' + it.nivel;
+      el.innerHTML = `<div class="top"><div class="ti">${esc(it.titulo)}</div><div class="when">${fmtQuando(it.quando)}</div></div>
+        ${it.detalhes.length ? '<ul>' + it.detalhes.map(d => d.includes('Traceback') ? `<li><pre>${esc(d)}</pre></li>` : `<li>${esc(d)}</li>`).join('') + '</ul>' : ''}`;
+      log.prepend(el);
+    }
+  }
+  async function refresh(verificar) {
+    try {
+      const d = await api('estado?depois=' + ultimoId + (verificar ? '&verificar=1' : ''));
+      cfg = d.config;
+      $('pEntrada').textContent = cfg.entrada;
+      $('pDestino').textContent = cfg.destino;
+      $('perfisArq').textContent = cfg.perfis_arquivo;
+      if (document.activeElement !== $('vigia')) $('vigia').checked = cfg.vigia_ativo;
+      $('vigiaLbl').textContent = cfg.vigia_ativo ? 'Automático' : 'Manual';
+      const f = d.fila;
+      $('dot').className = 'dot' + (f.atual ? ' busy' : cfg.vigia_ativo ? ' on' : '');
+      $('sAtual').textContent = f.atual ? `Organizando ${f.atual}${f.na_fila ? ` (+${f.na_fila} na fila)` : ''}`
+        : cfg.vigia_ativo ? 'Aguardando downloads' : 'Só ao clicar em “Organizar agora”';
+      const e = d.esperando, partes = [];
+      if (e) {
+        if (e.arquivos) partes.push(`${e.arquivos} ${e.arquivos === 1 ? 'arquivo' : 'arquivos'}`);
+        if (e.zips) partes.push(`${e.zips} ${e.zips === 1 ? 'ZIP' : 'ZIPs'}`);
+        $('sEsperando').textContent = partes.join(' e ') || 'nada';
+      }
+      $('sPerfis').textContent = d.perfis;
+      addEntries(d.registro);
+    } catch (err) { $('sAtual').textContent = 'Sem conexão com o Verto'; $('dot').className = 'dot'; }
+  }
+
+  // ---------- ações ----------
+  $('vigia').addEventListener('change', async e => {
+    try {
+      await api('config', { vigia_ativo: e.target.checked }); refresh(true);
+      toast(e.target.checked ? 'Cada download do InstaSaver será organizado sozinho.' : 'Automático desligado: use “Organizar agora”.');
+    }
+    catch (err) { toast(err.message, true); e.target.checked = !e.target.checked; }
+  });
+  $('agora').addEventListener('click', async () => {
+    try {
+      const d = await api('organizar', {});
+      toast(d.enfileirados ? `${d.enfileirados} ${d.enfileirados === 1 ? 'item foi para' : 'itens foram para'} a fila.` : 'Nada do InstaSaver na entrada agora.');
+      refresh(true);
+    } catch (err) { toast(err.message, true); }
+  });
+  document.querySelectorAll('[data-abrir]').forEach(b => b.addEventListener('click', async () => {
+    try { await api('abrir', { qual: b.dataset.abrir }); } catch (err) { toast(err.message, true); }
+  }));
+
+  $('togglePaths').addEventListener('click', () => {
+    const box = $('editPaths'); box.classList.toggle('open');
+    if (box.classList.contains('open') && cfg) { $('iEntrada').value = cfg.entrada; $('iDestino').value = cfg.destino; }
+  });
+  $('savePaths').addEventListener('click', async () => {
+    try {
+      const ent = $('iEntrada').value.trim(), des = $('iDestino').value.trim();
+      await api('config', { entrada: ent === cfg.entrada_padrao ? '' : ent, destino: des === cfg.destino_padrao ? '' : des });
+      $('editPaths').classList.remove('open'); toast('Pastas salvas.'); refresh(true); loadPerfis();
+    } catch (err) { toast(err.message, true); }
+  });
+  $('resetPaths').addEventListener('click', () => { $('iEntrada').value = cfg.entrada_padrao; $('iDestino').value = cfg.destino_padrao; });
+
+  // ---------- importar pastas já separadas ----------
+  $('abrirImport').addEventListener('click', async () => {
+    const box = $('import'), list = $('impList');
+    box.classList.add('open'); list.innerHTML = '<div class="empty">Procurando…</div>';
+    try {
+      const d = await api('importar/previa');
+      if (!d.pastas.length) { list.innerHTML = '<div class="empty">Nenhuma pasta com arquivos do InstaSaver/VscoSaver na entrada.</div>'; $('doImport').disabled = true; return; }
+      $('doImport').disabled = false;
+      list.innerHTML = d.pastas.map(p => `<label class="imp"><input type="checkbox" checked value="${esc(p.pasta)}">
+        <div><div class="t">${esc(p.pasta)} <span class="to">→ ${esc(p.vai_para)}</span></div>
+        <div class="s">@${esc(p.dono)}${p.outros.length ? ' + ' + p.outros.map(h => '@' + esc(h)).join(', ') : ''} · ${p.arquivos} arquivos${p.sem_arroba ? ` · ${p.sem_arroba} sem @ (vão para Outros)` : ''}</div></div></label>`).join('');
+    } catch (err) { list.innerHTML = `<div class="empty">${esc(err.message)}</div>`; }
+  });
+  $('closeImport').addEventListener('click', () => $('import').classList.remove('open'));
+  $('doImport').addEventListener('click', async () => {
+    const escolhidas = [...$('impList').querySelectorAll('input:checked')].map(i => i.value);
+    if (!escolhidas.length) return toast('Marque pelo menos uma pasta.');
+    try {
+      const d = await api('importar', { pastas: escolhidas });
+      toast(`${d.enfileirados} ${d.enfileirados === 1 ? 'pasta foi para' : 'pastas foram para'} a fila.`);
+      $('import').classList.remove('open'); refresh(); setTimeout(() => { loadPerfis(); refresh(true); }, 2500);
+    } catch (err) { toast(err.message, true); }
+  });
+
+  // ---------- perfis.txt ----------
+  let perfisSujo = false;
+  async function loadPerfis() {
+    try { const d = await api('perfis'); $('perfis').value = d.texto; perfisSujo = false; } catch (err) { toast(err.message, true); }
+  }
+  $('perfis').addEventListener('input', () => perfisSujo = true);
+  $('reloadPerfis').addEventListener('click', loadPerfis);
+  $('savePerfis').addEventListener('click', async () => {
+    try {
+      const d = await api('perfis', { texto: $('perfis').value });
+      toast(d.mudancas.length ? d.mudancas.join(' · ') : 'Perfis salvos.');
+      loadPerfis(); refresh();
+    } catch (err) { toast(err.message, true); }
+  });
+  $('limparLog').addEventListener('click', async () => {
+    if (!confirm('Apagar todo o histórico do registro? Os arquivos não são afetados.')) return;
+    try { await api('registro/limpar', {}); $('log').innerHTML = '<div class="empty">Registro limpo.</div>'; } catch (err) { toast(err.message, true); }
+  });
+
+  loadPerfis();
+  refresh(true);
+  // Só memória do servidor (fila e registro), e só com a aba visível.
+  setInterval(() => { if (!document.hidden) refresh(); }, 2500);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(true); });
+  // Perfis novos entram no arquivo enquanto a página está aberta: recarrega se você não estiver editando.
+  setInterval(() => { if (!document.hidden && !perfisSujo && document.activeElement !== $('perfis')) loadPerfis(); }, 10000);
+  </script>
+</body>
+</html>

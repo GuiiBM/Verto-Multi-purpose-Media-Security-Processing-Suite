@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Editor de Corte & Waveform</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/no-ar.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
       background-image: radial-gradient(at 0% 0%, rgba(244, 63, 94, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
@@ -18,7 +22,7 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
@@ -26,13 +30,13 @@
     .back-button:hover { border-color: rgba(244, 63, 94, 0.4); color: #f43f5e; transform: translateX(-6px); }
     .logo {
       font-size: 38px; font-weight: 900;
-      background: linear-gradient(135deg, #f43f5e 0%, #d946ef 50%, #6366f1 100%);
+      background: linear-gradient(135deg, #f43f5e 0%, #f59e0b 50%, #fbbf24 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-align: center; margin-bottom: 10px;
     }
     .tagline { color: #64748b; font-size: 14px; margin-bottom: 28px; text-align: center; }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 24px; padding: 28px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
       max-width: 980px; margin: 0 auto;
     }
@@ -40,7 +44,7 @@
       border: 2px dashed rgba(148, 163, 184, 0.25); border-radius: 16px; padding: 40px 20px;
       text-align: center; cursor: pointer; transition: all 0.25s; color: #94a3b8; font-size: 13px;
     }
-    .dropzone:hover, .dropzone.drag { border-color: #d946ef; background: rgba(217, 70, 239, 0.05); color: #cbd5e1; }
+    .dropzone:hover, .dropzone.drag { border-color: #f59e0b; background: rgba(245, 158, 11, 0.05); color: #cbd5e1; }
     .dropzone b { color: #f8fafc; display: block; font-size: 16px; margin-bottom: 8px; }
     .editor-body { display: none; }
     .editor-body.show { display: block; }
@@ -52,13 +56,13 @@
       padding: 11px 16px; border-radius: 10px; border: none; cursor: pointer;
       font-size: 12.5px; font-weight: 700; transition: all 0.25s; display: flex; align-items: center; gap: 6px;
     }
-    .btn-primary { background: linear-gradient(135deg, #f43f5e, #d946ef); color: white; }
-    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(217, 70, 239, 0.35); }
+    .btn-primary { background: linear-gradient(135deg, #f43f5e, #f59e0b); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(245, 158, 11, 0.35); }
     .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
     .btn-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
     button.action:disabled { opacity: 0.4; cursor: not-allowed; }
     .sel-info { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 10px; }
-    .sel-info b { color: #d946ef; }
+    .sel-info b { color: #f59e0b; }
     .markers-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
     .marker-chip {
       display: flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.12);
@@ -75,15 +79,17 @@
     .section-title { font-size: 13px; font-weight: 700; color: #f8fafc; margin: 20px 0 10px; }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/smartstudio'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-no-ar">
+  <a class="lt-back" href="/smartstudio" title="Voltar para Smart Studio" aria-label="Voltar para Smart Studio">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">🌊 Editor de Corte & Waveform</div>
-  <div class="tagline">Corte silêncios, recorte trechos e junte gravações direto na forma de onda</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/smartstudio">Smart Studio</a> / Editor de corte</nav>
+    <h1 class="modo-titulo">Editor de corte</h1>
+    <p class="modo-sub">Corte silêncios, recorte trechos e junte gravações direto na forma de onda</p>
+  </header>
 
   <div class="card">
     <div class="dropzone" id="dropzone">
@@ -100,25 +106,25 @@
       <div class="sel-info" id="sel-info">Arraste sobre a forma de onda para selecionar um trecho</div>
 
       <div class="controls-row">
-        <button class="action btn-primary" id="play-btn" onclick="togglePlay()">▶️ Reproduzir</button>
-        <button class="action btn-secondary" onclick="stopPlayback()">⏹️ Parar</button>
-        <button class="action btn-secondary" id="marker-btn" onclick="addMarkerAtPlayhead()">🚩 Marcar aqui</button>
+        <button class="action btn-primary" id="play-btn" onclick="togglePlay()">Reproduzir</button>
+        <button class="action btn-secondary" onclick="stopPlayback()">Parar</button>
+        <button class="action btn-secondary" id="marker-btn" onclick="addMarkerAtPlayhead()">Marcar aqui</button>
       </div>
 
       <div class="section-title">Edição</div>
       <div class="controls-row">
-        <button class="action btn-secondary" id="trim-btn" onclick="trimToSelection()" disabled>✂️ Recortar seleção</button>
-        <button class="action btn-secondary" id="delete-btn" onclick="deleteSelection()" disabled>🗑️ Remover seleção</button>
-        <button class="action btn-secondary" onclick="autoTrimSilence()">🤫 Cortar silêncios automaticamente</button>
-        <button class="action btn-secondary" onclick="document.getElementById('join-input').click()">🔗 Juntar com outro arquivo</button>
+        <button class="action btn-secondary" id="trim-btn" onclick="trimToSelection()" disabled>Recortar seleção</button>
+        <button class="action btn-secondary" id="delete-btn" onclick="deleteSelection()" disabled>Remover seleção</button>
+        <button class="action btn-secondary" onclick="autoTrimSilence()">Cortar silêncios automaticamente</button>
+        <button class="action btn-secondary" onclick="document.getElementById('join-input').click()">Juntar com outro arquivo</button>
         <input type="file" id="join-input" accept="audio/*,video/*" style="display:none;">
-        <button class="action btn-secondary" id="undo-btn" onclick="undo()" disabled>↩️ Desfazer</button>
+        <button class="action btn-secondary" id="undo-btn" onclick="undo()" disabled>Desfazer</button>
       </div>
 
       <div class="section-title">Exportar</div>
       <div class="controls-row">
-        <button class="action btn-primary" onclick="exportWav()">⬇️ Exportar como WAV</button>
-        <button class="action btn-danger" onclick="resetEditor()">🗙 Carregar outro arquivo</button>
+        <button class="action btn-primary" onclick="exportWav()">Exportar como WAV</button>
+        <button class="action btn-danger" onclick="resetEditor()">Carregar outro arquivo</button>
       </div>
 
       <div class="markers-list" id="markers-list"></div>
@@ -185,7 +191,7 @@
 
     async function loadFile(file) {
       try {
-        showResult('info', '⏳ Carregando e decodificando áudio...');
+        showResult('info', 'Carregando e decodificando áudio...');
         buffer = await decodeFile(file);
         history = [];
         markers = [];
@@ -198,7 +204,7 @@
         renderMarkers();
         statusBox.classList.remove('show');
       } catch (e) {
-        showResult('err', '❌ Não foi possível decodificar este arquivo: ' + e.message);
+        showResult('err', 'Não foi possível decodificar este arquivo: ' + e.message);
       }
     }
 
@@ -226,7 +232,7 @@
 
       const data = buffer.getChannelData(0);
       const samplesPerPx = data.length / w;
-      ctx2d.strokeStyle = '#d946ef';
+      ctx2d.strokeStyle = '#f59e0b';
       ctx2d.lineWidth = 1;
       ctx2d.beginPath();
       for (let x = 0; x < w; x++) {
@@ -248,9 +254,9 @@
       if (selStart !== null && selEnd !== null) {
         const x1 = (Math.min(selStart, selEnd) / buffer.duration) * w;
         const x2 = (Math.max(selStart, selEnd) / buffer.duration) * w;
-        ctx2d.fillStyle = 'rgba(217, 70, 239, 0.2)';
+        ctx2d.fillStyle = 'rgba(245, 158, 11, 0.2)';
         ctx2d.fillRect(x1, 0, x2 - x1, h);
-        ctx2d.strokeStyle = 'rgba(217, 70, 239, 0.8)';
+        ctx2d.strokeStyle = 'rgba(245, 158, 11, 0.8)';
         ctx2d.strokeRect(x1, 0, x2 - x1, h);
       }
 
@@ -328,7 +334,7 @@
       sourceNode.start(0, playbackStartOffset);
       sourceNode.onended = () => { if (isPlaying) stopPlayback(); };
       isPlaying = true;
-      playBtn.textContent = '⏸️ Pausar';
+      playBtn.textContent = 'Pausar';
       tick();
     }
 
@@ -336,7 +342,7 @@
       if (sourceNode) { sourceNode.onended = null; sourceNode.stop(); sourceNode = null; }
       playhead = playbackStartOffset + (audioCtx.currentTime - playbackStartCtxTime);
       isPlaying = false;
-      playBtn.textContent = '▶️ Reproduzir';
+      playBtn.textContent = 'Reproduzir';
       cancelAnimationFrame(rafId);
       drawWaveform();
     }
@@ -344,7 +350,7 @@
     function stopPlayback() {
       if (sourceNode) { sourceNode.onended = null; try { sourceNode.stop(); } catch (e) {} sourceNode = null; }
       isPlaying = false;
-      playBtn.textContent = '▶️ Reproduzir';
+      playBtn.textContent = 'Reproduzir';
       playhead = 0;
       cancelAnimationFrame(rafId);
       if (buffer) drawWaveform();
@@ -452,7 +458,7 @@
       selStart = null; selEnd = null;
       playhead = 0;
       drawWaveform();
-      showResult('ok', '✅ Áudio recortado para a seleção.');
+      showResult('ok', 'Áudio recortado para a seleção.');
     }
 
     function deleteSelection() {
@@ -465,20 +471,20 @@
       selStart = null; selEnd = null;
       playhead = Math.min(playhead, buffer.duration);
       drawWaveform();
-      showResult('ok', '✅ Trecho selecionado removido.');
+      showResult('ok', 'Trecho selecionado removido.');
     }
 
     async function joinFile(file) {
       try {
-        showResult('info', '⏳ Decodificando arquivo a juntar...');
+        showResult('info', 'Decodificando arquivo a juntar...');
         let otherBuffer = await decodeFile(file);
         otherBuffer = await normalizeBuffer(otherBuffer, buffer.sampleRate, buffer.numberOfChannels);
         pushHistory();
         buffer = concatBuffers(buffer, otherBuffer);
         drawWaveform();
-        showResult('ok', '✅ Arquivos juntados com sucesso.');
+        showResult('ok', 'Arquivos juntados com sucesso.');
       } catch (e) {
-        showResult('err', '❌ Não foi possível juntar o arquivo: ' + e.message);
+        showResult('err', 'Não foi possível juntar o arquivo: ' + e.message);
       }
     }
 
@@ -539,7 +545,7 @@
       selStart = null; selEnd = null;
       playhead = 0;
       drawWaveform();
-      showResult('ok', `✅ Silêncios cortados — ${removedSec.toFixed(1)}s removidos.`);
+      showResult('ok', `Silêncios cortados — ${removedSec.toFixed(1)}s removidos.`);
     }
 
     // ---------- Export ----------
@@ -587,7 +593,7 @@
       a.href = URL.createObjectURL(blob);
       a.download = 'edicao.wav';
       a.click();
-      showResult('ok', '✅ WAV exportado!');
+      showResult('ok', 'WAV exportado!');
     }
   </script>
 </body>

@@ -1,0 +1,67 @@
+/* Conversor · tema "planta": papel de planta técnica (grade fina + grade maior),
+   cota de medida embaixo do título, cantos com marca de corte e anotações em
+   fonte mono, como num desenho de CAD. */
+body.tema-planta {
+  --acc: #38bdf8;
+  --linha: rgba(56, 189, 248, 0.055);
+  --linha-forte: rgba(56, 189, 248, 0.1);
+  background-image:
+    linear-gradient(var(--linha-forte) 1px, transparent 1px),
+    linear-gradient(90deg, var(--linha-forte) 1px, transparent 1px),
+    linear-gradient(var(--linha) 1px, transparent 1px),
+    linear-gradient(90deg, var(--linha) 1px, transparent 1px),
+    radial-gradient(1000px 600px at 50% -10%, rgba(56, 189, 248, 0.1), transparent 65%);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px, auto;
+  background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px, 0 0;
+}
+
+/* cota: linha com os dois traços de ponta e a medida no meio */
+body.tema-planta .lt-head h1 { font-weight: 650; letter-spacing: -0.02em; }
+body.tema-planta .lt-head h1::after {
+  content: 'A → B';
+  display: block;
+  width: min(320px, 70vw);
+  margin: 14px auto 0;
+  padding-top: 0;
+  font: 500 11px/1 var(--lt-mono);
+  letter-spacing: 0.2em;
+  color: var(--acc);
+  background:
+    linear-gradient(var(--acc), var(--acc)) left 50% / 1px 11px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) right 50% / 1px 11px no-repeat,
+    linear-gradient(90deg, var(--acc) 0 38%, transparent 38% 62%, var(--acc) 62%) center / 100% 1px no-repeat;
+  opacity: 0.8;
+}
+
+/* cards: cantos com marca de corte, borda reta */
+body.tema-planta .card {
+  position: relative;
+  border-radius: 6px;
+  border-color: rgba(56, 189, 248, 0.2);
+  background: linear-gradient(180deg, rgba(12, 22, 32, 0.72), rgba(10, 16, 24, 0.72));
+  background-clip: padding-box;
+}
+body.tema-planta .card::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--acc), var(--acc)) 0 0 / 14px 1px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) 0 0 / 1px 14px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) 100% 0 / 14px 1px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) 100% 0 / 1px 14px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) 0 100% / 14px 1px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) 0 100% / 1px 14px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) 100% 100% / 14px 1px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) 100% 100% / 1px 14px no-repeat;
+  opacity: 0.55;
+}
+body.tema-planta .drop { border-style: dashed; border-radius: 6px; }
+body.tema-planta .presets-label, body.tema-planta .drop-hint { font-family: var(--lt-mono); letter-spacing: 0.02em; }
+body.tema-planta .presets-label { text-transform: uppercase; font-size: 11px; letter-spacing: 0.16em; }
+
+/* botão principal: azul de planta, reto */
+body.tema-planta .btn-primary { border-radius: 6px; }
+
+@media (max-width: 560px) { body.tema-planta .card::before { inset: -5px; } }

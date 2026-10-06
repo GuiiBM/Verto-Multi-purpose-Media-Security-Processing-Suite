@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encurtador</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/bilhete.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #07090e; --surface: #0f131c; --surface-2: #151a26; --surface-3: #1c2231;
+      --line: rgba(190, 210, 240, .1); --line-strong: rgba(190, 210, 240, .2);
+      --text: #eef2f8; --text-2: #c5ccd8; --muted: #9aa4b5;
+      --cobalt: #ea580c; --cobalt-2: #fdba74; --cobalt-btn: #c2410c; --cobalt-deep: #9a3412;
+      --bronze: #d8bd8a; --ok: #34d399; --warn: #fbbf24; --err: #f87171;
+      --chrome: linear-gradient(180deg, #ffffff 0%, #e2e6ec 32%, #9ca3af 54%, #f4f5f7 100%);
+    }
+    body {
+      font-family: 'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(at 15% 0%, rgba(234, 88, 12, .13) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(216, 189, 138, .06) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text); min-height: 100vh; padding: 100px 16px 60px; line-height: 1.5;
+    }
+    .back-button {
+      position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
+      background: rgba(15, 19, 28, .85); backdrop-filter: blur(40px);
+      border-radius: 16px; border: 1.5px solid var(--line-strong);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .3s; z-index: 50; color: var(--text-2);
+    }
+    .back-button:hover { border-color: var(--cobalt); color: #fff; transform: translateX(-6px); }
+    .wrap { max-width: 1000px; margin: 0 auto; }
+    .logo {
+      font-size: clamp(38px, 7vw, 54px); font-weight: 900; text-align: center; letter-spacing: .5px;
+      background: var(--chrome); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .tagline { color: var(--muted); font-size: 15px; margin: 6px 0 30px; text-align: center; font-weight: 500; }
+    .tagline b { color: var(--bronze); font-weight: 700; }
+
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 22px; }
+    .card + .card { margin-top: 18px; }
+    h2 { font-size: 18px; font-weight: 800; margin-bottom: 12px; }
+    h3 { font-size: 14px; font-weight: 700; color: var(--text-2); margin-bottom: 8px; }
+    p.small, .small { font-size: 13px; color: var(--muted); }
+    a { color: var(--cobalt-2); }
+
+    .btn {
+      border: 0; cursor: pointer; border-radius: 12px; font-family: inherit; font-weight: 700; font-size: 14px;
+      padding: 12px 18px; color: #fff; background: var(--cobalt-btn); transition: background .15s, transform .15s, opacity .15s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; white-space: nowrap; min-height: 44px;
+    }
+    .btn:hover { background: var(--cobalt-deep); }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .btn.ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); }
+    .btn.ghost:hover { border-color: var(--cobalt); background: var(--surface-3); }
+    .btn.danger { background: rgba(248, 113, 113, .12); color: #fecaca; border: 1px solid rgba(248, 113, 113, .3); }
+    .btn.danger:hover { background: rgba(248, 113, 113, .22); }
+    .btn.sm { padding: 7px 11px; font-size: 13px; border-radius: 10px; min-height: 36px; }
+    .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 2px; }
+
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%; background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 12px;
+      color: var(--text); font-family: inherit; font-weight: 500; font-size: 15px; padding: 11px 13px; min-height: 44px;
+    }
+    textarea { resize: vertical; min-height: 110px; }
+    input::placeholder, textarea::placeholder { color: #5f6b80; }
+    input[type="datetime-local"] { color-scheme: dark; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2); font-weight: 500; margin: 0; cursor: pointer; }
+    .check input { width: 18px; height: 18px; min-height: 0; accent-color: var(--cobalt); }
+
+    /* Encurtar */
+    .shorten { display: flex; gap: 10px; }
+    .shorten input { flex: 1; min-width: 0; font-size: 16px; padding: 14px 16px; }
+    .mode { display: flex; gap: 6px; margin-bottom: 12px; }
+    .mode button { background: transparent; border: 1px solid transparent; color: var(--muted); font-family: inherit; font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+    .mode button[aria-pressed="true"] { background: var(--surface-2); border-color: var(--line-strong); color: var(--text); }
+    details { margin-top: 14px; }
+    summary { cursor: pointer; color: var(--cobalt-2); font-size: 14px; font-weight: 600; list-style: none; display: inline-flex; gap: 6px; align-items: center; }
+    summary::-webkit-details-marker { display: none; }
+    summary::before { content: '▸'; transition: transform .2s; }
+    details[open] > summary::before { transform: rotate(90deg); }
+    .opts { margin-top: 14px; display: grid; gap: 14px; }
+    .utm { border-top: 1px solid var(--line); padding-top: 14px; }
+
+    .result { display: none; margin-top: 18px; padding: 16px; border-radius: 16px; background: var(--surface-2); border: 1px solid rgba(234, 88, 12, .35); }
+    .result.show { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .result img { width: 108px; height: 108px; border-radius: 10px; background: #fff; flex-shrink: 0; }
+    .result .info { flex: 1; min-width: 200px; }
+    .short { font-size: clamp(17px, 3.4vw, 22px); font-weight: 800; color: #fff; word-break: break-all; }
+    .dest { font-size: 13px; color: var(--muted); word-break: break-all; margin: 2px 0 10px; }
+    .bulk-res { margin-top: 14px; display: grid; gap: 6px; font-size: 14px; }
+    .bulk-res div { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); flex-wrap: wrap; }
+    .bulk-res code { color: #fff; font-weight: 700; }
+    .bulk-res .e { color: #fecaca; }
+
+    /* Lista */
+    .list-head { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .list-head h2 { margin: 0 auto 0 0; }
+    .list-head input { width: 220px; flex: 1 1 180px; max-width: 320px; }
+    .list-head select { width: auto; }
+    .links { display: grid; gap: 10px; }
+    .link {
+      display: grid; grid-template-columns: 36px 1fr auto; gap: 14px; align-items: center;
+      padding: 14px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--line);
+    }
+    .link.off { opacity: .6; }
+    .fav { width: 36px; height: 36px; border-radius: 10px; background: var(--surface-3); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--muted); font-weight: 800; }
+    .fav img { width: 22px; height: 22px; }
+    .l-main { min-width: 0; }
+    .l-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .l-short { color: var(--cobalt-2); font-weight: 700; font-size: 14px; word-break: break-all; text-decoration: none; }
+    .l-short:hover { text-decoration: underline; }
+    .l-dest { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .chip { font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--surface-3); color: var(--text-2); border: 1px solid var(--line); }
+    .chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); } .chip.err { color: var(--err); } .chip.tag { color: var(--bronze); }
+    .l-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .count { font-size: 22px; font-weight: 900; line-height: 1; }
+    .count small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; text-align: right; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .empty { text-align: center; padding: 36px 12px; color: var(--muted); }
+
+    /* Conexão */
+    .steps { counter-reset: s; display: grid; gap: 14px; margin: 14px 0 18px; }
+    .step { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; gap: 12px; }
+    .step::before { content: counter(s); width: 34px; height: 34px; border-radius: 50%; background: rgba(234, 88, 12, .18); color: var(--cobalt-2); display: flex; align-items: center; justify-content: center; font-weight: 800; }
+    .step b { color: var(--text); }
+    .step ul { margin: 6px 0 0 18px; color: var(--text-2); font-size: 14px; }
+    .preview-url { font-family: ui-monospace, monospace; background: var(--surface-2); border: 1px solid var(--line); padding: 3px 8px; border-radius: 8px; color: var(--bronze); font-size: 13px; word-break: break-all; }
+    .status-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; font-size: 13px; color: var(--muted); }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 6px; flex-shrink: 0; }
+    .dot.ok { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+    .dot.warn { background: var(--warn); }
+    .dot.off { background: var(--err); }
+    .hosts { display: grid; gap: 6px; }
+    .host { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+    .host a { color: var(--text); font-weight: 700; }
+    .host .tag { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; background: var(--surface-3); color: var(--text-2); }
+    .alts { font-size: 12.5px; color: var(--muted); margin: -4px 0 10px; word-break: break-all; }
+    .alts a { color: var(--text-2); }
+
+    .notice { display: none; margin: 0 0 18px; padding: 13px 16px; border-radius: 14px; font-size: 14px; background: rgba(248, 113, 113, .08); border: 1px solid rgba(248, 113, 113, .28); color: #fecaca; }
+    .notice.info { background: rgba(234, 88, 12, .09); border-color: rgba(234, 88, 12, .3); color: var(--text-2); }
+    .notice.show { display: block; }
+
+    /* Modal */
+    dialog { margin: auto; width: min(680px, calc(100% - 24px)); max-height: calc(100% - 32px); background: var(--surface); color: var(--text); border: 1px solid var(--line-strong); border-radius: 22px; padding: 0; }
+    dialog::backdrop { background: rgba(3, 5, 9, .75); backdrop-filter: blur(4px); }
+    .m-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 18px 22px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+    .m-head h2 { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .m-body { padding: 20px 22px 22px; display: grid; gap: 14px; }
+    .x { background: none; border: 0; color: var(--muted); font-size: 26px; cursor: pointer; width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
+    .x:hover { color: #fff; background: var(--surface-2); }
+
+    .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+    .kpi b { display: block; font-size: 24px; font-weight: 900; }
+    .kpi span { font-size: 12px; color: var(--muted); }
+    .chart { background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+    .chart svg { width: 100%; height: 150px; display: block; }
+    .chart .axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .tops { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .bars { display: grid; gap: 6px; font-size: 13px; }
+    .bar { display: grid; grid-template-columns: 1fr auto; gap: 8px; position: relative; padding: 4px 8px; border-radius: 8px; overflow: hidden; }
+    .bar i { position: absolute; inset: 0 auto 0 0; background: rgba(234, 88, 12, .2); border-radius: 8px; }
+    .bar span, .bar b { position: relative; }
+    .bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .qr-big { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .qr-big img { width: min(300px, 100%); background: #fff; border-radius: 14px; }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 30px); opacity: 0; background: var(--surface-3); border: 1px solid var(--line-strong); color: #fff; padding: 11px 18px; border-radius: 12px; font-size: 14px; font-weight: 600; transition: all .25s; z-index: 100; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .spin { width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, .3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+
+    @media (max-width: 640px) {
+      body { padding-top: 92px; }
+      .back-button { top: 16px; left: 16px; width: 48px; height: 48px; }
+      .card { padding: 18px 16px; }
+      .shorten { flex-direction: column; }
+      .link { grid-template-columns: 36px 1fr; }
+      .l-side { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; }
+      .count small { text-align: left; }
+      .kpis { grid-template-columns: 1fr 1fr 1fr; }
+      .kpi b { font-size: 19px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation-duration: 1.5s !important; } }
+  </style>
+</head>
+<body class="lt-body modo-bilhete">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+
+  <div class="wrap">
+    <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head modo-cab">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-dev)"><img src="/static/localtools/apps/encurtador.webp" alt="" width="76" height="76"></span>
+    <h1 class="modo-titulo">Encurtador</h1>
+    <p class="modo-sub">Links curtos <b>GBM</b> que abrem em qualquer lugar, mesmo com o computador desligado</p>
+  </header>
+
+    <div id="notice" class="notice" role="alert"></div>
+
+    <!-- Conexão com a Cloudflare (uma vez só) -->
+    <section id="setup" class="card hidden" aria-labelledby="setup-t">
+      <h2 id="setup-t">Conectar (uma vez só, grátis)</h2>
+      <p class="small">Os links ficam na Cloudflare, que os entrega no mundo todo 24h por dia. O plano grátis aguenta 100 mil cliques por dia, sem cartão de crédito. Seus links vão ficar assim: <span class="preview-url">https://gbmlinks.pages.dev/x7k2pq</span> (ou gbm.pages.dev, se esse nome ficar livre). Cada link também abre nos endereços de reserva, como <span class="preview-url">https://gbm.gbm.workers.dev/x7k2pq</span>: se um sair do ar, os outros continuam funcionando.</p>
+      <div class="steps">
+        <div class="step"><div><b>Crie uma conta grátis na Cloudflare</b> (pule se já tiver).<br><a href="https://dash.cloudflare.com/sign-up" target="_blank" rel="noopener">dash.cloudflare.com/sign-up</a></div></div>
+        <div class="step"><div><b>Crie o token de acesso</b> pelo link abaixo: ele já abre com as permissões certas. Role até o fim, clique em <b>Continue to summary</b> e depois em <b>Create Token</b>.<br>
+          <a id="token-link" href="#" target="_blank" rel="noopener">Abrir criação do token</a>
+          <ul><li>Permissões: Cloudflare Pages (Edit), Workers Scripts (Edit), D1 (Edit) e Account Settings (Read)</li><li>Se o link não preencher sozinho, escolha <b>Create Custom Token</b> e marque essas quatro.</li></ul></div></div>
+        <div class="step"><div><b>Cole o token aqui e conecte.</b> O Verto cria o banco e publica o encurtador na sua conta.</div></div>
+      </div>
+      <form id="setup-form" class="grid" style="grid-template-columns: 1fr;">
+        <div>
+          <label for="token">Token da API da Cloudflare</label>
+          <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Cole o token aqui" required>
+        </div>
+        <div id="acc-box" class="hidden">
+          <label for="account">Qual conta usar?</label>
+          <select id="account"></select>
+        </div>
+        <div><button class="btn" id="setup-btn" type="submit">Conectar</button></div>
+      </form>
+    </section>
+
+    <!-- App -->
+    <div id="app" class="hidden">
+      <section class="card" aria-labelledby="new-t">
+        <h2 id="new-t" class="hidden">Encurtar</h2>
+        <div class="mode" role="group" aria-label="Modo">
+          <button type="button" id="m-one" aria-pressed="true">Um link</button>
+          <button type="button" id="m-many" aria-pressed="false">Vários links</button>
+        </div>
+        <form id="new-form">
+          <div class="shorten" id="one-box">
+            <input id="url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Cole o link longo aqui" aria-label="Link para encurtar">
+            <button class="btn" id="go" type="submit">Encurtar</button>
+          </div>
+          <div id="many-box" class="hidden">
+            <textarea id="urls" placeholder="Um link por linha (até 200)" aria-label="Links para encurtar, um por linha"></textarea>
+            <div style="margin-top:10px"><button class="btn" id="go-many" type="submit">Encurtar todos</button></div>
+          </div>
+          <details id="more">
+            <summary>Mais opções</summary>
+            <div class="opts">
+              <div class="grid">
+                <div id="alias-box"><label for="alias">Apelido (opcional)</label><input id="alias" placeholder="ex.: promo-natal" spellcheck="false" autocomplete="off"></div>
+                <div><label for="tags">Tags</label><input id="tags" placeholder="ex.: instagram, cliente-x" autocomplete="off"></div>
+                <div><label for="expira">Expira em</label><input id="expira" type="datetime-local"></div>
+                <div><label for="maxc">Limite de cliques</label><input id="maxc" type="number" min="1" placeholder="Sem limite"></div>
+                <div><label for="senha">Senha (opcional)</label><input id="senha" type="password" autocomplete="new-password"></div>
+                <div><label for="tipo">Redirecionamento</label>
+                  <select id="tipo"><option value="302">302: temporário (recomendado)</option><option value="301">301: permanente</option></select></div>
+              </div>
+              <div><label for="notas">Notas</label><input id="notas" placeholder="Só você vê" autocomplete="off"></div>
+              <div class="utm">
+                <h3>Parâmetros UTM (para medir campanhas no Google Analytics)</h3>
+                <div class="grid">
+                  <div><label for="u-src">utm_source</label><input id="u-src" placeholder="instagram"></div>
+                  <div><label for="u-med">utm_medium</label><input id="u-med" placeholder="bio"></div>
+                  <div><label for="u-cmp">utm_campaign</label><input id="u-cmp" placeholder="lancamento"></div>
+                  <div><label for="u-ter">utm_term</label><input id="u-ter"></div>
+                  <div><label for="u-con">utm_content</label><input id="u-con"></div>
+                </div>
+                <p class="small" style="margin-top:6px">Sobre o redirecionamento: prefira o 302, que deixa trocar o destino depois e conta todo clique. O 301 fica guardado no navegador de quem já clicou.</p>
+              </div>
+            </div>
+          </details>
+        </form>
+
+        <div class="result" id="result" aria-live="polite">
+          <img id="r-qr" alt="QR Code do link curto">
+          <div class="info">
+            <div class="short" id="r-short"></div>
+            <div class="dest" id="r-dest"></div>
+            <div class="alts" id="r-alts"></div>
+            <div class="row">
+              <button class="btn sm" type="button" id="r-copy">Copiar</button>
+              <a class="btn sm ghost" id="r-open" target="_blank" rel="noopener">Testar</a>
+              <a class="btn sm ghost" id="r-png">QR PNG</a>
+              <a class="btn sm ghost" id="r-svg">QR SVG</a>
+            </div>
+          </div>
+        </div>
+        <div class="bulk-res" id="bulk-res" aria-live="polite"></div>
+      </section>
+
+      <section class="card" aria-labelledby="list-t">
+        <div class="list-head">
+          <h2 id="list-t">Seus links <span class="small" id="total"></span></h2>
+          <input id="q" type="search" placeholder="Buscar" aria-label="Buscar links">
+          <select id="f-status" aria-label="Filtrar por situação">
+            <option value="">Todos</option><option value="ativo">Ativos</option><option value="pausado">Pausados</option>
+            <option value="expirado">Expirados</option><option value="senha">Com senha</option>
+          </select>
+          <select id="f-tag" aria-label="Filtrar por tag"><option value="">Todas as tags</option></select>
+        </div>
+        <div class="links" id="links"></div>
+      </section>
+
+      <section class="card">
+        <div class="status-bar">
+          <div>
+            <div class="hosts" id="hosts" aria-live="polite"></div>
+            <div class="small" id="acc-name" style="margin-top:6px"></div>
+          </div>
+          <div class="row">
+            <button class="btn sm ghost" id="verificar" type="button">Verificar agora</button>
+            <a class="btn sm ghost" href="/encurtador/export" download>Exportar backup</a>
+            <label class="btn sm ghost" style="margin:0" for="imp">Importar</label>
+            <input type="file" id="imp" accept=".json,application/json" class="hidden">
+            <button class="btn sm ghost" id="disc" type="button">Desconectar</button>
+          </div>
+        </div>
+        <p class="small" style="margin-top:10px">Dica: coloque <b>+</b> no fim de qualquer link curto para ver para onde ele leva antes de abrir. Robôs de prévia (WhatsApp, Telegram, Instagram...) não contam como clique.</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- Editar -->
+  <dialog id="dlg-edit" aria-labelledby="e-t">
+    <form method="dialog" id="edit-form">
+      <div class="m-head"><h2 id="e-t">Editar link</h2><button class="x" value="cancel" aria-label="Fechar">×</button></div>
+      <div class="m-body">
+        <div><label for="e-url">Destino</label><input id="e-url" required spellcheck="false"></div>
+        <div><label for="e-titulo">Título</label><input id="e-titulo"></div>
+        <div class="grid">
+          <div><label for="e-slug">Código / apelido</label><input id="e-slug" spellcheck="false" autocomplete="off"></div>
+          <div><label for="e-tags">Tags</label><input id="e-tags"></div>
+          <div><label for="e-expira">Expira em</label><input id="e-expira" type="datetime-local"></div>
+          <div><label for="e-maxc">Limite de cliques</label><input id="e-maxc" type="number" min="1" placeholder="Sem limite"></div>
+          <div><label for="e-senha">Nova senha</label><input id="e-senha" type="password" autocomplete="new-password" placeholder="Manter como está"></div>
+          <div><label for="e-tipo">Redirecionamento</label><select id="e-tipo"><option value="302">302: temporário</option><option value="301">301: permanente</option></select></div>
+        </div>
+        <div><label for="e-notas">Notas</label><input id="e-notas"></div>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="e-ativo"> Link ativo</label>
+          <label class="check" id="e-rs-box"><input type="checkbox" id="e-rmsenha"> Remover senha</label>
+        </div>
+        <p class="small" id="e-warn"></p>
+        <div class="row" style="justify-content:space-between">
+          <button class="btn danger" type="button" id="e-del">Excluir</button>
+          <div class="row"><button class="btn ghost" value="cancel">Cancelar</button><button class="btn" type="button" id="e-save">Salvar</button></div>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Estatísticas -->
+  <dialog id="dlg-stats" aria-labelledby="s-t">
+    <div class="m-head"><h2 id="s-t">Estatísticas</h2><button class="x" type="button" onclick="this.closest('dialog').close()" aria-label="Fechar">×</button></div>
+    <div class="m-body" id="s-body"></div>
+  </dialog>
+
+  <!-- QR -->
+  <dialog id="dlg-qr" aria-labelledby="q-t">
+    <div class="m-head"><h2 id="q-t">QR Code</h2><button class="x" type="button" onclick="this.closest('dialog').close()" aria-label="Fechar">×</button></div>
+    <div class="m-body qr-big">
+      <img id="q-img" alt="QR Code do link curto">
+      <div class="short" id="q-short" style="text-align:center"></div>
+      <div class="row"><a class="btn" id="q-png">Baixar PNG</a><a class="btn ghost" id="q-svg">Baixar SVG</a></div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  let links = [];
+  let editando = null;
+
+  const TOKEN_URL = 'https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=' +
+    encodeURIComponent(JSON.stringify([
+      { key: 'page', type: 'edit' }, { key: 'workers_scripts', type: 'edit' },
+      { key: 'd1', type: 'edit' }, { key: 'account_settings', type: 'read' },
+    ])) + '&accountId=*&zoneId=all&name=' + encodeURIComponent('Encurtador GBM');
+  $('token-link').href = TOKEN_URL;
+
+  async function api(path, opts = {}) {
+    if (opts.json !== undefined) {
+      opts.body = JSON.stringify(opts.json);
+      opts.headers = { 'Content-Type': 'application/json' };
+      delete opts.json;
+    }
+    let r;
+    try { r = await fetch(path, opts); } catch { throw new Error('O Verto não respondeu. Ele está aberto?'); }
+    const data = await r.json().catch(() => ({ success: false, error: `Erro HTTP ${r.status}` }));
+    if (!data.success) throw new Error(data.error || 'Algo deu errado.');
+    return data;
+  }
+
+  function aviso(msg, info = false) {
+    const n = $('notice');
+    n.textContent = msg || '';
+    n.className = 'notice' + (msg ? ' show' : '') + (info ? ' info' : '');
+    if (msg) n.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  function carregando(btn, on, texto) {
+    if (on) { btn.dataset.txt = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="spin" aria-hidden="true"></span>' + (texto || 'Aguarde...'); }
+    else { btn.disabled = false; btn.textContent = btn.dataset.txt || btn.textContent; }
+  }
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  async function copiar(txt) {
+    try { await navigator.clipboard.writeText(txt); }
+    catch { const t = document.createElement('textarea'); t.value = txt; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+    toast('Link copiado');
+  }
+  const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
+  const toLocalInput = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts * 1000);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  };
+  const fromLocalInput = (v) => (v ? Math.floor(new Date(v).getTime() / 1000) : null);
+  const dataBR = (ts) => new Date(ts * 1000).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+  function situacao(l) {
+    const agora = Date.now() / 1000;
+    if (!l.ativo) return 'pausado';
+    if ((l.expira_em && agora >= l.expira_em) || (l.max_cliques && l.cliques >= l.max_cliques)) return 'expirado';
+    return 'ativo';
+  }
+
+  // ---------- Status / conexão ----------
+  async function iniciar() {
+    try {
+      const s = await api('/encurtador/status');
+      if (!s.conectado) { $('setup').classList.remove('hidden'); $('app').classList.add('hidden'); return; }
+      $('setup').classList.add('hidden'); $('app').classList.remove('hidden');
+      $('acc-name').textContent = s.conta ? `Conta Cloudflare: ${s.conta}` : '';
+      mostrarEnderecos(s);
+      await carregar();
+      verificarSaude(false);
+    } catch (e) { aviso(e.message); }
+  }
+
+  $('setup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    aviso('');
+    const btn = $('setup-btn');
+    carregando(btn, true, 'Conectando e publicando...');
+    try {
+      const r = await api('/encurtador/conectar', { method: 'POST', json: {
+        token: $('token').value, account_id: $('acc-box').classList.contains('hidden') ? '' : $('account').value,
+      } });
+      if (r.escolher_conta) {
+        $('account').innerHTML = r.escolher_conta.map((c) => `<option value="${esc(c.id)}">${esc(c.nome || c.id)}</option>`).join('');
+        $('acc-box').classList.remove('hidden');
+        aviso('Seu token tem acesso a mais de uma conta. Escolha qual usar e clique em Conectar de novo.', true);
+        return;
+      }
+      $('token').value = '';
+      await iniciar();
+      const hosts = (r.enderecos || []).map((e) => e.host).join(' e ');
+      const fora = Object.keys(r.indisponiveis || {}).join(' e ');
+      aviso(`Conectado! Seus links abrem em ${hosts}.` + (fora ? ` Não ficou disponível: ${fora} (detalhes no fim da página).` : '') +
+        (r.online ? '' : ' Um endereço novo pode levar alguns minutos para responder no mundo todo; pode ir criando os links.'), true);
+    } catch (err) { aviso(err.message); }
+    finally { carregando(btn, false); }
+  });
+
+  // ---------- Endereços (gbm.pages.dev, gbmlinks.pages.dev e o reserva no workers.dev) ----------
+  function mostrarEnderecos(s) {
+    const linhas = (s.enderecos || []).map((e, i) => {
+      const estado = e.online === undefined ? ['', 'verificando...']
+        : e.online ? ['ok', 'no ar']
+        : e.propagando ? ['warn', 'acabou de ser publicado, propagando']
+        : ['off', 'fora do ar'];
+      return `<div class="host"><span class="dot ${estado[0]}" aria-hidden="true"></span>
+        <a href="https://${esc(e.host)}" target="_blank" rel="noopener">${esc(e.host)}</a>
+        ${'https://' + e.host === s.base_url ? '<span class="tag">principal</span>' : '<span class="tag">reserva</span>'}
+        <span class="tag">${e.tipo === 'workers' ? 'Workers' : 'Pages'}</span>
+        <span class="small">${estado[1]}</span></div>`;
+    });
+    const indisp = Object.entries(s.indisponiveis || {}).map(([n, motivo]) =>
+      `<div class="host"><span class="dot" aria-hidden="true"></span><span>${esc(n)}</span><span class="small">${esc(motivo)}.${n.endsWith('.pages.dev') || motivo.includes('verificar agora') ? ' O Verto tenta de novo sozinho.' : ''}</span></div>`);
+    $('hosts').innerHTML = linhas.concat(indisp).join('');
+  }
+
+  let ultimaBase = null;
+  async function verificarSaude(forcar) {
+    const b = $('verificar');
+    if (forcar) carregando(b, true, 'Verificando...');
+    try {
+      const r = await api('/encurtador/saude' + (forcar ? '?forcar=1' : ''));
+      mostrarEnderecos(r);
+      if (r.acoes && r.acoes.length) aviso('Feito automaticamente: ' + r.acoes.join('. ') + '.', true);
+      else if (r.sem_internet) aviso('Não deu para conferir os endereços agora. Confira sua internet. Os links continuam no ar na Cloudflare.', true);
+      else if (forcar) toast('Tudo verificado');
+      if (r.avisos && r.avisos.length && forcar) aviso(r.avisos.join(' '), true);
+      if (ultimaBase && ultimaBase !== r.base_url) carregar();
+      ultimaBase = r.base_url;
+    } catch (e) { if (forcar) aviso(e.message); }
+    finally { if (forcar) carregando(b, false); }
+  }
+  $('verificar').onclick = () => verificarSaude(true);
+  setInterval(() => { if (!document.hidden && !$('app').classList.contains('hidden')) verificarSaude(false); }, 5 * 60 * 1000);
+
+  $('disc').onclick = async () => {
+    if (!confirm('Desconectar este computador? Os links continuam funcionando na Cloudflare. Para voltar a gerenciá-los, é só conectar de novo com um token.')) return;
+    try { await api('/encurtador/desconectar', { method: 'POST' }); location.reload(); } catch (e) { aviso(e.message); }
+  };
+
+  $('imp').onchange = async (e) => {
+    const f = e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    try {
+      const dados = JSON.parse(await f.text());
+      const r = await api('/encurtador/import', { method: 'POST', json: dados });
+      toast(`${r.importados} importados`);
+      aviso(`Importação: ${r.importados} novos, ${r.ja_existiam} já existiam, ${r.invalidos} inválidos.`, true);
+      carregar();
+    } catch (err) { aviso(err.message.includes('JSON') ? 'Esse arquivo não é um backup válido.' : err.message); }
+  };
+
+  // ---------- Criar ----------
+  let modo = 'one';
+  function setModo(m) {
+    modo = m;
+    $('m-one').setAttribute('aria-pressed', m === 'one'); $('m-many').setAttribute('aria-pressed', m === 'many');
+    $('one-box').classList.toggle('hidden', m !== 'one'); $('many-box').classList.toggle('hidden', m !== 'many');
+    $('alias-box').classList.toggle('hidden', m !== 'one');
+  }
+  $('m-one').onclick = () => setModo('one');
+  $('m-many').onclick = () => setModo('many');
+
+  function comUtm(url) {
+    const p = [['utm_source', 'u-src'], ['utm_medium', 'u-med'], ['utm_campaign', 'u-cmp'], ['utm_term', 'u-ter'], ['utm_content', 'u-con']]
+      .map(([k, id]) => [k, $(id).value.trim()]).filter(([, v]) => v);
+    if (!p.length || !url.trim()) return url;
+    let u = url.trim();
+    if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(u)) u = 'https://' + u;
+    try { const x = new URL(u); p.forEach(([k, v]) => x.searchParams.set(k, v)); return x.toString(); } catch { return url; }
+  }
+
+  function opcoes() {
+    return {
+      tags: $('tags').value, notas: $('notas').value, expira_em: fromLocalInput($('expira').value),
+      max_cliques: $('maxc').value || null, senha: $('senha').value, tipo_redirect: $('tipo').value,
+    };
+  }
+
+  function mostrarResultado(l) {
+    $('r-short').textContent = l.curto;
+    $('r-dest').textContent = '→ ' + l.url;
+    $('r-alts').innerHTML = (l.alternativos || []).length
+      ? 'Também abre em: ' + l.alternativos.map((a) => `<a href="${esc(a)}" target="_blank" rel="noopener">${esc(a.replace(/^https:\/\//, ''))}</a>`).join(', ')
+      : '';
+    $('r-qr').src = `/encurtador/links/${encodeURIComponent(l.slug)}/qr?t=${Date.now()}`;
+    $('r-open').href = l.curto;
+    $('r-png').href = `/encurtador/links/${encodeURIComponent(l.slug)}/qr?download=1`;
+    $('r-svg').href = `/encurtador/links/${encodeURIComponent(l.slug)}/qr?formato=svg&download=1`;
+    $('r-copy').onclick = () => copiar(l.curto);
+    $('result').classList.add('show');
+  }
+
+  $('new-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    aviso('');
+    $('result').classList.remove('show'); $('bulk-res').innerHTML = '';
+    if (modo === 'one') {
+      const url = $('url').value.trim();
+      if (!url) { $('url').focus(); return; }
+      const btn = $('go'); carregando(btn, true, 'Encurtando...');
+      try {
+        const r = await api('/encurtador/links', { method: 'POST', json: { ...opcoes(), url: comUtm(url), alias: $('alias').value.trim() } });
+        mostrarResultado(r.link);
+        copiar(r.link.curto);
+        $('url').value = ''; $('alias').value = ''; $('senha').value = '';
+        carregar();
+      } catch (err) { aviso(err.message); } finally { carregando(btn, false); }
+    } else {
+      const urls = $('urls').value.split('\n').map((s) => s.trim()).filter(Boolean).map(comUtm);
+      if (!urls.length) { $('urls').focus(); return; }
+      const btn = $('go-many'); carregando(btn, true, `Encurtando ${urls.length}...`);
+      try {
+        const r = await api('/encurtador/links', { method: 'POST', json: { ...opcoes(), urls } });
+        const ok = r.resultados.filter((x) => x.link);
+        $('bulk-res').innerHTML =
+          (ok.length ? `<div><button class="btn sm" type="button" id="copy-all">Copiar todos (${ok.length})</button></div>` : '') +
+          r.resultados.map((x) => x.link
+            ? `<div><code>${esc(x.link.curto)}</code><span class="small">${esc(x.url)}</span></div>`
+            : `<div class="e">✕ ${esc(x.url)}: ${esc(x.erro)}</div>`).join('');
+        const ca = $('copy-all');
+        if (ca) ca.onclick = () => copiar(ok.map((x) => `${x.link.curto}\t${x.url}`).join('\n'));
+        $('urls').value = '';
+        carregar();
+      } catch (err) { aviso(err.message); } finally { carregando(btn, false); }
+    }
+  });
+
+  // ---------- Lista ----------
+  async function carregar() {
+    try {
+      const r = await api('/encurtador/links');
+      links = r.links;
+      const tags = [...new Set(links.flatMap((l) => (l.tags || '').split(',').filter(Boolean)))].sort();
+      const atual = $('f-tag').value;
+      $('f-tag').innerHTML = '<option value="">Todas as tags</option>' + tags.map((t) => `<option ${t === atual ? 'selected' : ''}>${esc(t)}</option>`).join('');
+      $('f-tag').classList.toggle('hidden', !tags.length);
+      render();
+    } catch (e) { aviso(e.message); }
+  }
+
+  function render() {
+    const q = $('q').value.trim().toLowerCase();
+    const st = $('f-status').value;
+    const tag = $('f-tag').value;
+    const lista = links.filter((l) => {
+      if (q && ![l.slug, l.url, l.titulo, l.notas, l.tags].some((v) => (v || '').toLowerCase().includes(q))) return false;
+      if (tag && !(l.tags || '').split(',').includes(tag)) return false;
+      if (st === 'senha') return l.protegido;
+      if (st && situacao(l) !== st) return false;
+      return true;
+    });
+    $('total').textContent = links.length ? `(${lista.length === links.length ? links.length : lista.length + ' de ' + links.length})` : '';
+    if (!lista.length) {
+      $('links').innerHTML = `<div class="empty">${links.length ? 'Nenhum link encontrado com esse filtro.' : 'Nenhum link ainda. Cole um link lá em cima para começar.'}</div>`;
+      return;
+    }
+    $('links').innerHTML = lista.map((l) => {
+      const s = situacao(l);
+      const h = host(l.url);
+      const chips = [
+        s === 'ativo' ? '' : `<span class="chip ${s === 'pausado' ? 'warn' : 'err'}">${s}</span>`,
+        l.protegido ? '<span class="chip chip-senha"><svg class="traco" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,82H174V56a46,46,0,0,0-92,0V82H48A14,14,0,0,0,34,96V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V96A14,14,0,0,0,208,82ZM94,56a34,34,0,0,1,68,0V82H94ZM210,208a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V96a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Z"/></svg>senha</span>' : '',
+        l.expira_em && s !== 'expirado' ? `<span class="chip">expira ${dataBR(l.expira_em)}</span>` : '',
+        l.max_cliques ? `<span class="chip">${l.cliques}/${l.max_cliques} cliques</span>` : '',
+        l.tipo_redirect === 301 ? '<span class="chip">301</span>' : '',
+        ...(l.tags || '').split(',').filter(Boolean).map((t) => `<span class="chip tag">#${esc(t)}</span>`),
+      ].join('');
+      return `<article class="link ${s !== 'ativo' ? 'off' : ''}" data-slug="${esc(l.slug)}">
+        <div class="fav"><span>${esc((h || '?')[0].toUpperCase())}</span>${h ? `<img src="https://${esc(h)}/favicon.ico" alt="" referrerpolicy="no-referrer" hidden onload="if(this.naturalWidth>1){this.hidden=false;this.previousElementSibling.remove()}else this.remove()" onerror="this.remove()">` : ''}</div>
+        <div class="l-main">
+          <div class="l-title">${esc(l.titulo || h || l.url)}</div>
+          <a class="l-short" href="${esc(l.curto)}" target="_blank" rel="noopener">${esc(l.curto.replace(/^https:\/\//, ''))}</a>
+          <div class="l-dest" title="${esc(l.url)}">${esc(l.url)}</div>
+          ${chips ? `<div class="chips">${chips}</div>` : ''}
+        </div>
+        <div class="l-side">
+          <div class="count">${l.cliques}<small>cliques</small></div>
+          <div class="actions">
+            <button class="btn sm" data-a="copy" type="button">Copiar</button>
+            <button class="btn sm ghost" data-a="stats" type="button">Estatísticas</button>
+            <button class="btn sm ghost" data-a="qr" type="button" aria-label="QR Code">QR</button>
+            <button class="btn sm ghost" data-a="toggle" type="button">${l.ativo ? 'Pausar' : 'Ativar'}</button>
+            <button class="btn sm ghost" data-a="edit" type="button">Editar</button>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+  }
+  ['q', 'f-status', 'f-tag'].forEach((id) => $(id).addEventListener('input', render));
+
+  $('links').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-a]');
+    if (!b) return;
+    const l = links.find((x) => x.slug === b.closest('.link').dataset.slug);
+    if (!l) return;
+    const a = b.dataset.a;
+    if (a === 'copy') copiar(l.curto);
+    else if (a === 'qr') abrirQr(l);
+    else if (a === 'stats') abrirStats(l);
+    else if (a === 'edit') abrirEdicao(l);
+    else if (a === 'toggle') {
+      carregando(b, true, '');
+      try { await api(`/encurtador/links/${encodeURIComponent(l.slug)}`, { method: 'PATCH', json: { ativo: !l.ativo } }); toast(l.ativo ? 'Link pausado' : 'Link ativado'); carregar(); }
+      catch (err) { aviso(err.message); carregando(b, false); }
+    }
+  });
+
+  // ---------- QR ----------
+  function abrirQr(l) {
+    const s = encodeURIComponent(l.slug);
+    $('q-img').src = `/encurtador/links/${s}/qr?t=${Date.now()}`;
+    $('q-short').textContent = l.curto;
+    $('q-png').href = `/encurtador/links/${s}/qr?download=1`;
+    $('q-svg').href = `/encurtador/links/${s}/qr?formato=svg&download=1`;
+    $('dlg-qr').showModal();
+  }
+
+  // ---------- Editar ----------
+  function abrirEdicao(l) {
+    editando = l;
+    $('e-url').value = l.url; $('e-titulo').value = l.titulo || ''; $('e-slug').value = l.slug;
+    $('e-tags').value = (l.tags || '').split(',').join(', '); $('e-notas').value = l.notas || '';
+    $('e-expira').value = toLocalInput(l.expira_em); $('e-maxc').value = l.max_cliques || '';
+    $('e-senha').value = ''; $('e-rmsenha').checked = false; $('e-rs-box').classList.toggle('hidden', !l.protegido);
+    $('e-tipo').value = String(l.tipo_redirect); $('e-ativo').checked = l.ativo;
+    $('e-warn').textContent = '';
+    $('dlg-edit').showModal();
+  }
+  $('e-slug').addEventListener('input', () => {
+    $('e-warn').textContent = editando && $('e-slug').value.trim().toLowerCase() !== editando.slug.toLowerCase()
+      ? 'Atenção: o link antigo para de funcionar se você trocar o código.' : '';
+  });
+  $('e-save').onclick = async () => {
+    const b = $('e-save'); carregando(b, true, 'Salvando...');
+    try {
+      const dados = {
+        url: $('e-url').value, titulo: $('e-titulo').value, novo_slug: $('e-slug').value.trim(),
+        tags: $('e-tags').value, notas: $('e-notas').value, expira_em: fromLocalInput($('e-expira').value),
+        max_cliques: $('e-maxc').value || null, tipo_redirect: $('e-tipo').value, ativo: $('e-ativo').checked,
+      };
+      if ($('e-rmsenha').checked) dados.remover_senha = true;
+      else if ($('e-senha').value) dados.senha = $('e-senha').value;
+      await api(`/encurtador/links/${encodeURIComponent(editando.slug)}`, { method: 'PATCH', json: dados });
+      $('dlg-edit').close(); toast('Link salvo'); carregar();
+    } catch (err) { $('e-warn').textContent = err.message; } finally { carregando(b, false); }
+  };
+  $('e-del').onclick = async () => {
+    if (!confirm(`Excluir ${editando.curto}? Ele para de funcionar para todo mundo e as estatísticas são apagadas.`)) return;
+    try {
+      await api(`/encurtador/links/${encodeURIComponent(editando.slug)}`, { method: 'DELETE' });
+      $('dlg-edit').close(); toast('Link excluído'); carregar();
+    } catch (err) { $('e-warn').textContent = err.message; }
+  };
+
+  // ---------- Estatísticas ----------
+  const ROTULOS = { celular: 'Celular', computador: 'Computador', tablet: 'Tablet', direto: 'Direto / app', '?': 'Desconhecido' };
+  let paisNome;
+  try { paisNome = new Intl.DisplayNames(['pt-BR'], { type: 'region' }); } catch { paisNome = null; }
+  const nomePais = (c) => { if (!c || c === '?' || c === 'XX' || c === 'T1') return 'Desconhecido'; try { return paisNome ? paisNome.of(c) : c; } catch { return c; } };
+
+  function barras(titulo, itens, rot = (x) => ROTULOS[x] || x) {
+    if (!itens.length) return `<div><h3>${titulo}</h3><p class="small">Sem dados</p></div>`;
+    const max = Math.max(...itens.map((i) => i.n));
+    return `<div><h3>${titulo}</h3><div class="bars">${itens.map((i) =>
+      `<div class="bar"><i style="width:${(i.n / max * 100).toFixed(1)}%"></i><span>${esc(rot(i.nome))}</span><b>${i.n}</b></div>`).join('')}</div></div>`;
+  }
+
+  async function abrirStats(l, dias = 30) {
+    $('s-t').textContent = l.curto.replace(/^https:\/\//, '');
+    $('s-body').innerHTML = '<p class="small">Carregando...</p>';
+    if (!$('dlg-stats').open) $('dlg-stats').showModal();
+    try {
+      const r = await api(`/encurtador/links/${encodeURIComponent(l.slug)}/stats?dias=${dias}`);
+      const s = r.stats;
+      const mapa = Object.fromEntries(s.por_dia.map((d) => [d.dia, d.cliques]));
+      const serie = [];
+      for (let i = dias - 1; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        serie.push([k, mapa[k] || 0]);
+      }
+      const max = Math.max(1, ...serie.map((x) => x[1]));
+      const w = 100 / serie.length;
+      const svg = `<svg viewBox="0 0 100 50" preserveAspectRatio="none" role="img" aria-label="Cliques por dia">${serie.map(([k, v], i) =>
+        `<rect x="${(i * w + w * 0.15).toFixed(2)}" y="${(50 - v / max * 48).toFixed(2)}" width="${(w * 0.7).toFixed(2)}" height="${Math.max(v / max * 48, v ? 0.8 : 0.3).toFixed(2)}" rx="0.6" fill="${v ? '#ea580c' : 'rgba(190,210,240,.12)'}"><title>${k.split('-').reverse().join('/')}: ${v} clique${v === 1 ? '' : 's'}</title></rect>`).join('')}</svg>`;
+      const fmt = (k) => k.split('-').reverse().slice(0, 2).join('/');
+      $('s-body').innerHTML = `
+        <div class="row" style="justify-content:space-between">
+          <div class="small" style="word-break:break-all">→ ${esc(s.link.url)}</div>
+          <select id="s-dias" aria-label="Período" style="width:auto">${[7, 30, 90, 365].map((d) => `<option value="${d}" ${d === dias ? 'selected' : ''}>${d === 365 ? '1 ano' : d + ' dias'}</option>`).join('')}</select>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><b>${s.totais.cliques}</b><span>cliques no período</span></div>
+          <div class="kpi"><b>${s.totais.unicos}</b><span>visitantes únicos*</span></div>
+          <div class="kpi"><b>${s.link.cliques}</b><span>cliques no total</span></div>
+        </div>
+        <div class="chart">${svg}<div class="axis"><span>${fmt(serie[0][0])}</span><span>${fmt(serie[serie.length - 1][0])}</span></div></div>
+        <div class="tops">
+          ${barras('De onde vieram', s.referencias)}
+          ${barras('Países', s.paises, nomePais)}
+          ${barras('Dispositivos', s.dispositivos)}
+          ${barras('Navegadores', s.navegadores)}
+          ${barras('Sistemas', s.sistemas)}
+        </div>
+        <div><h3>Últimos acessos</h3>${s.recentes.length ? `<div class="bars">${s.recentes.map((c) =>
+          `<div class="bar"><span>${dataBR(c.ts)} · ${esc(ROTULOS[c.dispositivo] || c.dispositivo)} · ${esc(c.navegador)} · ${esc(nomePais(c.pais))} · ${esc(ROTULOS[c.referencia] || c.referencia)}</span><b>${c.bot ? '<span class="chip">robô</span>' : ''}</b></div>`).join('')}</div>` : '<p class="small">Ninguém abriu ainda.</p>'}</div>
+        <p class="small">* Contados por dia, sem guardar IP. ${s.totais.bots ? `${s.totais.bots} acesso(s) de robôs de prévia (WhatsApp, Telegram...) foram ignorados.` : ''} "Direto / app" é quem abriu por um app (WhatsApp, Instagram...) ou digitou o link: esses apps não informam a origem.</p>`;
+      $('s-dias').onchange = (e) => abrirStats(l, +e.target.value);
+    } catch (err) { $('s-body').innerHTML = `<p class="notice show">${esc(err.message)}</p>`; }
+  }
+
+  document.querySelectorAll('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+
+  iniciar();
+})();
+</script>
+</body>
+</html>

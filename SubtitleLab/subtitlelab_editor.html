@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Transcrição & Timeline de Legendas</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/modos/legenda.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0f1e;
-      background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      font-family: var(--lt-sans);
+      background: #0b0c0f;
+      background-image: radial-gradient(at 0% 0%, rgba(202, 138, 4, 0.08) 0px, transparent 50%);
       color: #e2e8f0;
       min-height: 100vh;
       padding: 40px 15px;
@@ -18,21 +22,21 @@
     }
     .back-button {
       position: fixed; top: 24px; left: 24px; width: 56px; height: 56px;
-      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px);
+      background: rgba(24, 26, 31, 0.8); backdrop-filter: blur(40px);
       border-radius: 16px; border: 1.5px solid rgba(148, 163, 184, 0.15);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.3s; z-index: 1000; color: #cbd5e1;
     }
-    .back-button:hover { border-color: rgba(16, 185, 129, 0.4); color: #10b981; transform: translateX(-6px); }
+    .back-button:hover { border-color: rgba(202, 138, 4, 0.4); color: #ca8a04; transform: translateX(-6px); }
     .logo {
       font-size: 36px; font-weight: 900;
-      background: linear-gradient(135deg, #fbbf24 0%, #10b981 50%, #06b6d4 100%);
+      background: linear-gradient(135deg, #fbbf24 0%, #ca8a04 50%, #facc15 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-align: center; margin-bottom: 10px;
     }
     .tagline { color: #64748b; font-size: 14px; margin-bottom: 28px; text-align: center; }
     .card {
-      background: rgba(15, 23, 42, 0.4); border-radius: 24px; padding: 28px;
+      background: rgba(24, 26, 31, 0.4); border-radius: 24px; padding: 28px;
       border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(40px);
       max-width: 1080px; margin: 0 auto;
     }
@@ -40,7 +44,7 @@
       border: 2px dashed rgba(148, 163, 184, 0.25); border-radius: 16px; padding: 40px 20px;
       text-align: center; cursor: pointer; transition: all 0.25s; color: #94a3b8; font-size: 13px;
     }
-    .dropzone:hover, .dropzone.drag { border-color: #10b981; background: rgba(16, 185, 129, 0.05); color: #cbd5e1; }
+    .dropzone:hover, .dropzone.drag { border-color: #ca8a04; background: rgba(202, 138, 4, 0.05); color: #cbd5e1; }
     .dropzone b { color: #f8fafc; display: block; font-size: 16px; margin-bottom: 8px; }
     .editor-body { display: none; }
     .editor-body.show { display: block; }
@@ -56,8 +60,8 @@
       padding: 11px 16px; border-radius: 10px; border: none; cursor: pointer;
       font-size: 12.5px; font-weight: 700; transition: all 0.25s; display: flex; align-items: center; gap: 6px;
     }
-    .btn-primary { background: linear-gradient(135deg, #10b981, #06b6d4); color: white; }
-    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35); }
+    .btn-primary { background: linear-gradient(135deg, #ca8a04, #facc15); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(202, 138, 4, 0.35); }
     .btn-secondary { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
     .btn-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
     button.action:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -71,36 +75,36 @@
       position: absolute; top: 0; bottom: 0; width: 2px; background: #f8fafc; z-index: 5; pointer-events: none;
     }
     .cue-block {
-      position: absolute; top: 6px; bottom: 6px; background: rgba(16, 185, 129, 0.25);
-      border: 1px solid rgba(16, 185, 129, 0.6); border-radius: 6px; cursor: grab;
-      display: flex; align-items: center; padding: 0 10px; font-size: 11px; color: #d1fae5;
+      position: absolute; top: 6px; bottom: 6px; background: rgba(202, 138, 4, 0.25);
+      border: 1px solid rgba(202, 138, 4, 0.6); border-radius: 6px; cursor: grab;
+      display: flex; align-items: center; padding: 0 10px; font-size: 11px; color: #fef3c7;
       overflow: hidden; white-space: nowrap;
     }
-    .cue-block.selected { background: rgba(6, 182, 212, 0.35); border-color: #06b6d4; }
+    .cue-block.selected { background: rgba(250, 204, 21, 0.35); border-color: #facc15; }
     .cue-handle {
       position: absolute; top: 0; bottom: 0; width: 8px; cursor: ew-resize; z-index: 2;
     }
     .cue-handle.left { left: 0; } .cue-handle.right { right: 0; }
     .time-labels { display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-top: 6px; font-variant-numeric: tabular-nums; }
     .cue-editor {
-      margin-top: 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.1);
+      margin-top: 16px; background: rgba(24, 26, 31, 0.6); border: 1px solid rgba(148, 163, 184, 0.1);
       border-radius: 14px; padding: 16px; display: none;
     }
     .cue-editor.show { display: block; }
     .cue-editor textarea {
       width: 100%; min-height: 60px; resize: vertical; padding: 10px 12px; border-radius: 10px;
-      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(24, 26, 31, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
       color: #e2e8f0; font-size: 13px; font-family: inherit; outline: none; margin-bottom: 10px;
     }
     .cue-editor .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .cue-editor label { font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 6px; }
     .cue-editor input[type="number"] {
-      width: 90px; padding: 7px 9px; border-radius: 8px; background: rgba(15, 23, 42, 0.8);
+      width: 90px; padding: 7px 9px; border-radius: 8px; background: rgba(24, 26, 31, 0.8);
       border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 12px;
     }
     .delay-row { display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
     .delay-row input[type="number"] {
-      width: 100px; padding: 8px 10px; border-radius: 8px; background: rgba(15, 23, 42, 0.8);
+      width: 100px; padding: 8px 10px; border-radius: 8px; background: rgba(24, 26, 31, 0.8);
       border: 1px solid rgba(148, 163, 184, 0.2); color: #e2e8f0; font-size: 13px;
     }
     .status { margin-top: 16px; font-size: 13px; padding: 12px 14px; border-radius: 12px; display: none; }
@@ -111,15 +115,17 @@
     .cue-count { text-align: center; font-size: 12px; color: #64748b; margin-top: 8px; }
   </style>
 </head>
-<body>
-  <div class="back-button" onclick="location.href='/subtitlelab'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<body class="lt-body modo-legenda">
+  <a class="lt-back" href="/subtitlelab" title="Voltar para Subtitle Lab" aria-label="Voltar para Subtitle Lab">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 
-  <div class="logo">📝 Transcrição & Timeline de Legendas</div>
-  <div class="tagline">Transcreva, ajuste o tempo de cada bloco e exporte em .srt ou .vtt</div>
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="modo-cab modo-cab-ferramenta">
+    <nav class="modo-trilha" aria-label="Você está em"><a href="/subtitlelab">Subtitle Lab</a> / Transcrição & timeline</nav>
+    <h1 class="modo-titulo">Transcrição & timeline</h1>
+    <p class="modo-sub">Transcreva, ajuste o tempo de cada bloco e exporte em .srt ou .vtt</p>
+  </header>
 
   <div class="card">
     <div class="dropzone" id="dropzone">
@@ -135,11 +141,11 @@
       </div>
 
       <div class="toolbar">
-        <button class="action btn-primary" id="transcribe-btn" onclick="transcribeAudio()">🎙️ Transcrever automaticamente</button>
-        <button class="action btn-secondary" onclick="addBlockAtPlayhead()">➕ Adicionar bloco</button>
-        <button class="action btn-secondary" onclick="document.getElementById('import-input').click()">📂 Importar .srt/.vtt</button>
+        <button class="action btn-primary" id="transcribe-btn" onclick="transcribeAudio()">Transcrever automaticamente</button>
+        <button class="action btn-secondary" onclick="addBlockAtPlayhead()">Adicionar bloco</button>
+        <button class="action btn-secondary" onclick="document.getElementById('import-input').click()">Importar .srt/.vtt</button>
         <input type="file" id="import-input" accept=".srt,.vtt" style="display:none;">
-        <button class="action btn-danger" onclick="clearAllCues()">🗑️ Limpar tudo</button>
+        <button class="action btn-danger" onclick="clearAllCues()">Limpar tudo</button>
       </div>
 
       <div class="section-title">Linha do tempo</div>
@@ -156,7 +162,7 @@
         <div class="row">
           <label>Início (s) <input type="number" id="cue-start" step="0.1" min="0"></label>
           <label>Fim (s) <input type="number" id="cue-end" step="0.1" min="0"></label>
-          <button class="action btn-danger" onclick="deleteSelectedCue()">🗑️ Excluir bloco</button>
+          <button class="action btn-danger" onclick="deleteSelectedCue()">Excluir bloco</button>
         </div>
       </div>
 
@@ -170,8 +176,8 @@
 
       <div class="section-title">Exportar</div>
       <div class="toolbar">
-        <button class="action btn-primary" onclick="exportSubtitle('srt')">⬇️ Baixar .SRT</button>
-        <button class="action btn-primary" onclick="exportSubtitle('vtt')">⬇️ Baixar .VTT</button>
+        <button class="action btn-primary" onclick="exportSubtitle('srt')">Baixar .SRT</button>
+        <button class="action btn-primary" onclick="exportSubtitle('vtt')">Baixar .VTT</button>
       </div>
 
       <div class="status" id="status"></div>
@@ -267,8 +273,8 @@
     async function transcribeAudio() {
       if (!currentFile) return;
       transcribeBtn.disabled = true;
-      transcribeBtn.textContent = '⏳ Transcrevendo... (pode levar alguns minutos)';
-      showResult('info', '⏳ Enviando para o motor de transcrição local e aguardando o resultado...');
+      transcribeBtn.textContent = 'Transcrevendo... (pode levar alguns minutos)';
+      showResult('info', 'Enviando para o motor de transcrição local e aguardando o resultado...');
       try {
         const formData = new FormData();
         formData.append('file', currentFile);
@@ -280,12 +286,12 @@
         });
         cues.sort((a, b) => a.start - b.start);
         renderTimeline();
-        showResult('ok', `✅ ${data.segments.length} blocos transcritos! Ajuste o tempo/texto na linha do tempo se necessário.`);
+        showResult('ok', `${data.segments.length} blocos transcritos! Ajuste o tempo/texto na linha do tempo se necessário.`);
       } catch (e) {
-        showResult('err', '❌ ' + e.message);
+        showResult('err', '' + e.message);
       } finally {
         transcribeBtn.disabled = false;
-        transcribeBtn.textContent = '🎙️ Transcrever automaticamente';
+        transcribeBtn.textContent = 'Transcrever automaticamente';
       }
     }
 
@@ -429,7 +435,7 @@
         cue.end = newStart + len;
       });
       renderTimeline();
-      showResult('ok', `✅ Offset de ${delta > 0 ? '+' : ''}${delta}s aplicado a ${cues.length} legendas.`);
+      showResult('ok', `Offset de ${delta > 0 ? '+' : ''}${delta}s aplicado a ${cues.length} legendas.`);
     }
 
     // ---------- Import / export ----------
@@ -462,9 +468,9 @@
         if (imported.length === 0) throw new Error('Nenhum bloco de legenda encontrado no arquivo.');
         cues = cues.concat(imported).sort((a, b) => a.start - b.start);
         renderTimeline();
-        showResult('ok', `✅ ${imported.length} blocos importados.`);
+        showResult('ok', `${imported.length} blocos importados.`);
       } catch (e) {
-        showResult('err', '❌ Não foi possível importar: ' + e.message);
+        showResult('err', 'Não foi possível importar: ' + e.message);
       }
     }
 
@@ -475,14 +481,14 @@
       return 'WEBVTT\n\n' + cues.map((cue, i) => `${i + 1}\n${secToVttTime(cue.start)} --> ${secToVttTime(cue.end)}\n${cue.text}\n`).join('\n');
     }
     function exportSubtitle(format) {
-      if (cues.length === 0) { showResult('err', '❌ Não há legendas para exportar.'); return; }
+      if (cues.length === 0) { showResult('err', 'Não há legendas para exportar.'); return; }
       const content = format === 'vtt' ? buildVTT() : buildSRT();
       const blob = new Blob([content], { type: 'text/plain' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'legendas.' + format;
       a.click();
-      showResult('ok', `✅ Arquivo .${format} exportado!`);
+      showResult('ok', `Arquivo .${format} exportado!`);
     }
   </script>
 </body>

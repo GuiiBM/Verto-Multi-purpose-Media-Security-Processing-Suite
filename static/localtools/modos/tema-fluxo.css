@@ -1,0 +1,80 @@
+/* Automações · tema "fluxo": um diagrama de três nós ligados embaixo do título,
+   os cards empilhados como etapas de um pipeline (ligados por um trilho com
+   um pulso que desce) e a seta entre Entrada e Destino desenhada como conexão. */
+body.tema-fluxo {
+  --acc: #4ade80;
+  --trilho: rgba(74, 222, 128, 0.35);
+  background-image:
+    radial-gradient(900px 520px at 8% -10%, rgba(74, 222, 128, 0.12), transparent 62%),
+    radial-gradient(800px 500px at 94% -6%, rgba(45, 212, 191, 0.09), transparent 62%),
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 1.5px);
+  background-size: auto, auto, 22px 22px;
+}
+
+/* diagrama: nó — nó — nó */
+body.tema-fluxo .lt-head h1::after {
+  content: '';
+  display: block;
+  width: 168px;
+  height: 14px;
+  margin: 16px auto 0;
+  background:
+    radial-gradient(circle, var(--acc) 0 4px, transparent 4.5px) 0 50% / 14px 14px no-repeat,
+    radial-gradient(circle, #0b0c0f 0 3px, var(--acc) 3.5px 5px, transparent 5.5px) 50% 50% / 14px 14px no-repeat,
+    radial-gradient(circle, #0b0c0f 0 3px, rgba(74, 222, 128, 0.55) 3.5px 5px, transparent 5.5px) 100% 50% / 14px 14px no-repeat,
+    linear-gradient(90deg, var(--acc) 0 50%, rgba(74, 222, 128, 0.3) 50%) 50% 50% / calc(100% - 14px) 2px no-repeat;
+}
+
+/* etapas ligadas por um trilho */
+body.tema-fluxo .card { position: relative; border-radius: 16px; margin-bottom: 26px; }
+body.tema-fluxo .card + .card::before {
+  content: '';
+  position: absolute;
+  left: 46px;
+  top: -27px;
+  width: 2px;
+  height: 26px;
+  background: linear-gradient(180deg, var(--trilho), rgba(74, 222, 128, 0.12));
+}
+body.tema-fluxo .card + .card::after {
+  content: '';
+  position: absolute;
+  left: 43px;
+  top: -6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--acc);
+  box-shadow: 0 0 0 3px #0b0c0f, 0 0 12px rgba(74, 222, 128, 0.6);
+}
+body.tema-fluxo .card-head h2 { letter-spacing: -0.02em; }
+
+/* conexão Entrada → Destino */
+body.tema-fluxo .flow .arrow {
+  position: relative;
+  width: 54px;
+  height: 2px;
+  font-size: 0;
+  color: transparent;
+  background: repeating-linear-gradient(90deg, var(--acc) 0 6px, transparent 6px 10px);
+  background-size: 20px 2px;
+  animation: fl-corre 900ms linear infinite;
+}
+body.tema-fluxo .flow .arrow::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: -4px;
+  border-left: 8px solid var(--acc);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+@keyframes fl-corre { to { background-position: 20px 0; } }
+body.tema-fluxo .place { border-radius: 12px; border-left: 3px solid rgba(74, 222, 128, 0.45); }
+
+@media (max-width: 760px) {
+  body.tema-fluxo .flow .arrow { width: 40px; margin: 14px 0; }
+  body.tema-fluxo .card + .card::before { left: 36px; }
+  body.tema-fluxo .card + .card::after { left: 33px; }
+}
+@media (prefers-reduced-motion: reduce) { body.tema-fluxo .flow .arrow { animation: none; } }

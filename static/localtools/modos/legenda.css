@@ -1,0 +1,32 @@
+/* Subtitle Lab · modo legenda: régua de timecode e legenda amarela de cinema. */
+body.modo-legenda { --acc: #fbbf24; }
+body.modo-legenda .modo-titulo { display: inline-block; padding: 0.06em 0.3em; background: rgba(0, 0, 0, 0.75); color: #ffd84a !important; border-radius: 6px; }
+body.modo-legenda .modo-cab::before {
+  content: '00:00:01,000 --> 00:00:03,500'; font: 500 12px var(--lt-mono); color: var(--lt-faint); letter-spacing: 0.04em;
+}
+body.modo-legenda .tool-card, body.modo-legenda .card {
+  position: relative; border-radius: 12px !important; padding-top: 40px !important;
+  background: linear-gradient(180deg, #17191d, #121417) !important;
+}
+body.modo-legenda .tool-card::before, body.modo-legenda .card::before {
+  content: ''; position: absolute; left: 14px; right: 14px; top: 12px; height: 14px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.35) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.15) 0 1px, transparent 1px 8px);
+  background-size: 100% 14px, 100% 7px; background-repeat: no-repeat; background-position: 0 0, 0 7px;
+}
+body.modo-legenda .tool-title { display: inline-block; padding: 2px 8px; background: rgba(0, 0, 0, 0.7); color: #ffd84a; border-radius: 4px; }
+body.modo-legenda .tool-card:hover { border-color: rgba(251, 191, 36, 0.5) !important; }
+
+body.modo-legenda .btn-primary, body.modo-legenda button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag), body.modo-legenda button[type="submit"], body.modo-legenda .action-btn, body.modo-legenda .process-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #facc15, #eab308) !important;
+  color: #1a1405 !important;
+  font-family: var(--lt-sans);
+  font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 0 #854d0e, 0 12px 22px -12px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 140ms var(--lt-ease-out), filter 140ms var(--lt-ease-out) !important;
+}
+body.modo-legenda .btn-primary:hover, body.modo-legenda button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):hover, body.modo-legenda button[type="submit"]:hover, body.modo-legenda .action-btn:hover, body.modo-legenda .process-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+body.modo-legenda .btn-primary:active, body.modo-legenda button.action:not(.btn-danger):not(.btn-secondary):not(.btn-flag):active, body.modo-legenda button[type="submit"]:active, body.modo-legenda .action-btn:active, body.modo-legenda .process-btn:active { transform: translateY(2px); }
