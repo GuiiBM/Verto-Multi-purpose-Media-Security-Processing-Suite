@@ -15,6 +15,8 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 - Funciona offline após instalação
 - Cleanup automático de arquivos temporários em todos os fluxos
 
+Exceções, porque a função delas depende da internet: os downloaders (Verto, InstaSaver, VscoSaver, WhatsSaver), o **Transcrever** e o **Subtitle Lab** (o áudio vai para o reconhecimento de voz do Google), o **Encurtador** (Cloudflare na conta do usuário) e a publicação do **Social Preview** (APIs oficiais das redes, com os tokens do próprio usuário).
+
 ---
 
 ## Stack Técnico
@@ -27,12 +29,14 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | IA — Transcrição         | faster-whisper (Editor de Vídeo, palavra por palavra) · Google Speech (Transcrever, Subtitle Lab) |
 | Criptografia                | AES-256 (esteganografia)                      |
 | Download de Mídia          | yt-dlp                                        |
-| Manipulação de PDF        | PyPDF2 + img2pdf                              |
+| Manipulação de PDF        | PyPDF2 + pikepdf + PyMuPDF + reportlab        |
 | Office (Word/Excel/PPT)     | LibreOffice headless + python-docx/pptx/openpyxl |
 | Vetorização / CAD           | potrace (potracer) + scikit-image + ezdxf     |
 | Geometria 3D (Vetor3D)      | shapely + mapbox-earcut + trimesh + manifold3d; visualizador three.js (local) |
-| Detecção de Objetos       | YOLOv8 (Censor)                               |
-| Detecção de Rostos        | YuNet via OpenCV (Efeitos)                    |
+| Detecção no navegador     | TensorFlow.js (BlazeFace) + Tesseract.js (Censor, Capture & OCR) |
+| Detecção de Rostos        | YuNet via OpenCV (Efeitos, Editor de Vídeo, Social Preview) |
+| Vídeo e Áudio               | FFmpeg / ffprobe                              |
+| Redes Sociais               | APIs oficiais (Graph da Meta, Threads, X, LinkedIn, Bluesky, Mastodon, Telegram, Discord, Pinterest, YouTube) |
 | Web Scraping                | BeautifulSoup4 + requests                     |
 | Frontend                    | HTML/CSS/JS puro (zero frameworks)            |
 
@@ -43,24 +47,30 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | App                         | Categoria      | Detalhe Técnico                                                   |
 | --------------------------- | -------------- | ------------------------------------------------------------------ |
 | 🎬**Verto**           | Mídia         | Download MP4/MP3/Thumbnail com estimativa de tamanho em tempo real |
+| 📸**InstaSaver**      | Mídia         | Stories, destaques, posts, reels e foto de perfil do Instagram a partir de um link ou @, com download individual ou em ZIP |
+| 🎞️**VscoSaver**       | Mídia         | Galeria, coleção e spaces do VSCO em tamanho original; vídeos HLS juntados num .mp4 sem perder qualidade |
+| 💬**WhatsSaver**      | Mídia         | Conecta como aparelho do WhatsApp (só leitura) e baixa fotos e vídeos das conversas, inclusive os enviados como arquivo, conferidos pela chave da mensagem |
 | 🕵️**Stealth**       | Security       | Esteganografia LSB com criptografia AES-256 — anti-forensics      |
 | 👻**Ghost Tool**      | Anti-forensics | Remoção de metadados EXIF/ID3/XMP em 150+ formatos               |
-| 🔒**Censor**          | Privacy AI     | Detecção e censura de 9 tipos de dados sensíveis com YOLOv8     |
+| 🔒**Censor**          | Privacy AI     | Censura automática no navegador: rostos (BlazeFace/TensorFlow.js) e, por OCR (Tesseract.js), documentos, placas, e-mails, telefones, cartões, sites, nomes e @IDs |
 | 🎤**Isolador de Voz** | AI Audio       | Separação vocal/instrumental com Demucs (htdemucs model)         |
+| 🎙️**Smart Studio**    | Áudio          | Gravador com teleprompter, filtros de áudio em tempo real (Web Audio), marcadores e corte pela forma de onda, tudo no navegador |
+| 📝**Subtitle Lab**    | Legendas       | Legendas .srt/.vtt geradas pelo mesmo reconhecimento de voz do Transcrever, editor de timeline, sincronizador de delay e legenda embutida no vídeo |
 | 🎨**Transparência**  | AI Vision      | Remoção de fundo com rembg + ONNX Runtime                        |
-| 🎤**Transcrever**     | AI NLP         | Áudio para texto com Whisper                                      |
+| 🍵**Matcha Effect**   | AI Vision      | Efeito verde "hazy" em fotos e vídeos: filtro de cor instantâneo ou geração por IA local (Stable Diffusion + ControlNet) |
+| 🎤**Transcrever**     | AI NLP         | Áudio e vídeo para texto pelo reconhecimento de voz do Google (requer internet), com pré-processamento no FFmpeg e trechos de 20 s |
 | 📁**Arquivos**        | Conversão     | Conversor universal 150+ formatos                                  |
 | 🪄**Efeitos**         | Mídia         | 43 efeitos em fotos e vídeos: clássicos (Sépia, P&B, Vintage, Glitch, Pop Art...), engraçados com detecção de rosto (Thug Life, Olhos de Desenho, Nariz de Palhaço, Cabeção), deformações, câmeras (VHS, CCTV, Visão Noturna, Matrix) e estilos (Quadrinhos, Lápis, Neon...); o arquivo sai no mesmo formato, como `foto (Sépia).jpg` |
 | 🔁**Conversor**       | Conversão / CAD | Estilo Convertio: fila de arquivos, 1.700+ rotas diretas, imagem → DXF com potrace (contorno, linha central ou por cor) e PDF/SVG/AI/EPS → DXF sem rasterizar |
 | 🧊**Vetor3D**         | Conversão / 3D | SVG, DXF, PDF/AI, EPS ou imagem → modelo 3D em alta definição: chanfro ou inflado por peça, cores no DXF preto e branco, fila em etapas que acompanha o hardware (CPU, RAM, temperatura) e exporta GLB/STL/3MF/OBJ/PLY ou código copia-e-cola (HTML, Netlify, React, PHP, Python, Node) com giro 360° e zoom |
-| 📄**PDFs**            | Documentos     | Dividir, comprimir, girar, converter, mesclar                      |
+| 📄**PDFs**            | Documentos     | Dividir, mesclar, converter, comprimir, girar, comparar, reparar, proteger, desbloquear, editar, marca d'água e corromper |
 | 🗃️**Office**          | Documentos     | Converte e repara Word/Excel/PowerPoint — recuperação em 5 níveis, incluindo extensão trocada |
 | 🔲**QR Code**         | Utilitário    | Gerador estático (URLs, Wi-Fi, vCard, PIX) sem rastreamento       |
 | 🔗**Encurtador**      | Utilitário    | Links curtos GBM (`gbm.pages.dev/x7k2pq`, `gbmlinks.pages.dev/x7k2pq` ou `gbm.gbm.workers.dev/x7k2pq`) que funcionam no mundo todo com o PC desligado: Cloudflare Pages + Workers + D1 na conta grátis do usuário, estatísticas sem IP, validade, senha, QR e UTM |
 | 🗜️**Compressor**    | Utilitário    | Redução de tamanho com controle de qualidade                     |
 | 📱**Social Preview**  | Redes sociais  | Um post adaptado a 14 destinos (Instagram, Facebook, Threads, X, LinkedIn, Bluesky, Mastodon, Telegram, Discord, Pinterest, YouTube, TikTok, Status do WhatsApp, prévia de link): configuração automática na primeira foto (enquadramento pelo rosto com YuNet), edição individual por rede (cortar, encaixar ou preenchimento automático), prévia fiel de cada app, fotos com música virando vídeo e publicação direta pelas APIs oficiais com os tokens do próprio usuário |
 | 🧹**Clean Reader**    | Produtividade  | Extração de conteúdo + modo leitura                             |
-| 🎮**PurpleFlix**      | Streaming      | Player integrado                                                   |
+| 🎮**PurpleFlix**      | Streaming      | Abre a plataforma PurpleFlix numa sala de cinema 3D (three.js + CSS3DRenderer) com o site de verdade na tela, ou em nova aba |
 | ⏰**Tempo**           | Utilitário    | Relógio + calendário com feriados brasileiros                    |
 | 🧰**Dev/Data**        | Desenvolvimento | Beautifier/minifier, gerador de dados mock, conversor JSON/CSV/YAML/XML e encode/decode — tudo no navegador |
 | 🖌️**Image Studio**   | Mídia         | Editor individual (corte manual com arrasto, antes/depois, sem ZIP), crop & resize em massa, filtros/marca d'água em lote e gerador de favicon via Canvas |
@@ -176,8 +186,16 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 
 **Censor (Privacy AI)**
 
-- YOLOv8 para detecção de rostos, placas, documentos e 6 outros tipos
+- Roda inteiro no navegador: rostos com BlazeFace (TensorFlow.js) e o resto por OCR com Tesseract.js + padrões de texto (CPF/RG/CNH, placas antiga e Mercosul, e-mails, telefones com DDD, cartões, URLs, nomes e @IDs)
 - Aplica blur ou pixelização configurável sobre as regiões detectadas
+
+**Social Preview (um post, cada rede no formato certo)**
+
+- Catálogo único de formatos e limites (`SocialPreview/redes.py`), servido para a página e usado pelo publicador
+- Enquadramento por rede, automático na primeira foto: rostos com YuNet ou, sem rosto, a região de mais detalhe; corta em volta do assunto ou põe a foto inteira e preenche o resto (desfoque, cor da foto, espelho, bordas esticadas, cor sólida). A página (canvas) e o servidor (FFmpeg) usam a mesma conta de recorte, então a prévia é o arquivo que sai
+- Fotos com música viram vídeo (transições `xfade`, zoom lento com `zoompan`, trecho da música com fade) no formato de cada rede
+- Publicação direta pelas APIs oficiais, em paralelo, com progresso por rede; a assinatura OAuth 1.0a da X foi conferida com o vetor oficial. Instagram e Threads só aceitam mídia por URL pública: um túnel rápido da Cloudflare expõe só os arquivos do post durante a publicação (Litterbox como reserva)
+- Tokens em `SocialPreview/dados/contas.json` (gitignored, permissão 600), nunca devolvidos à página
 
 **Dev/Data, Image Studio, Text Clean & Diff, Capture & OCR, AI Guard & Diff**
 
@@ -239,7 +257,7 @@ Modelos de IA do Vetor3D: o instalador confere o espaço livre e o que já está
 ## Estrutura
 
 ```
-├── app.py                        # Flask app — 70+ rotas, 34 apps
+├── app.py                        # Flask app — 206 rotas, 34 apps
 ├── Office/                       # Conversor e reparador de Word/Excel/PowerPoint
 ├── Efeitos/                     # Efeitos em fotos e vídeos, saída no mesmo formato do original
 ├── Conversor/                    # Conversor universal estilo Convertio (imagem → DXF, CAD, documentos, mídia...)
@@ -259,14 +277,21 @@ Modelos de IA do Vetor3D: o instalador confere o espaço livre e o que já está
 ├── TextClean/                    # Text diff, sanitizador e contador estatístico
 ├── CaptureOCR/                   # OCR local (Tesseract.js) e gravador de tela/GIF
 ├── AIGuard/                      # Detector heurístico de IA, reescritor/diff e plágio interno
+├── InstaSaver/ · VscoSaver/      # Downloaders do Instagram e do VSCO
+├── WhatsSaver/                   # Mídia do WhatsApp: ponte Node (bridge/) e sessão em dados/ (gitignored)
+├── MatchaEffect/                 # Efeito matcha: filtro de cor e geração por IA (diffusers)
+├── SmartStudio/ · SubtitleLab/   # Gravador/teleprompter e legendas
+├── PDFs/                         # Ferramentas de PDF
 ├── executaveis/
 │   ├── INSTALAR.py               # Setup universal (Windows + Linux)
 │   ├── INICIAR.py                # Launcher universal
 │   └── ATUALIZAR.py              # Atualiza yt-dlp e dependências
-├── web/                          # Versão estática (Netlify)
+├── deploy/                       # Deploy no Render (Procfile, render.yaml)
+├── templates/                    # HTML dos apps que não têm pasta própria
+├── scripts/                      # Ícones 3D (icones_3d.py) e migração dos modos visuais (visual_modos.py)
 ├── docs/                         # Documentação detalhada por app
 ├── downloads/                    # Output local (gitignored)
-└── requirements.txt              # 22 dependências
+└── requirements.txt              # 50 dependências
 ```
 
 ---
