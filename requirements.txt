@@ -39,3 +39,12 @@ PyYAML
 opencv-python-headless
 Send2Trash
 faster-whisper
+shapely
+mapbox-earcut
+manifold3d
+fast-simplification
+psutil
+svgelements
+transformers
+einops
+diffusers

@@ -37,3 +37,6 @@ Encurtador/dados/
 
 # Automações: configuração e histórico locais
 Automacoes/dados/
+
+# Social Preview: tokens das redes sociais (dão acesso às contas!), mídias temporárias e cloudflared baixado
+SocialPreview/dados/

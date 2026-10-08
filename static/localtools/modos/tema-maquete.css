@@ -1,0 +1,111 @@
+/* Vetor3D · tema "maquete": a bancada de quem transforma planta em volume.
+   O palco 3D fica sobre uma base de corte quadriculada (linhas de 1 e 5 cm),
+   os cartões são folhas de papel-cartão empilhadas (as bordas de baixo
+   aparecem deslocadas, como camadas coladas) e o título ganha as camadas de
+   uma extrusão. Azul do grupo Conversão, sem néon e sem movimento em loop. */
+body.tema-maquete {
+  --acc: #38bdf8;
+  --acc-tinta: #04202c;
+  --folha: #15181d;
+  --folha-2: #111419;
+  --corte: #0f1418;
+  background-image:
+    radial-gradient(900px 520px at 6% -10%, rgba(56, 189, 248, 0.12), transparent 62%),
+    radial-gradient(800px 520px at 96% -6%, rgba(96, 165, 250, 0.08), transparent 62%),
+    radial-gradient(900px 500px at 50% 112%, rgba(45, 212, 191, 0.04), transparent 65%);
+}
+
+/* título: três camadas de extrusão saindo da palavra */
+body.tema-maquete .lt-head h1 {
+  letter-spacing: -0.04em;
+  text-shadow:
+    1px 1px 0 #1f6f93,
+    2px 2px 0 #1a5e7d,
+    3px 3px 0 #154d66,
+    4px 5px 10px rgba(0, 0, 0, 0.55);
+}
+body.tema-maquete .lt-head h1::after {
+  content: '';
+  display: block;
+  width: min(300px, 70vw);
+  height: 18px;
+  margin: 14px auto 0;
+  background:
+    linear-gradient(90deg, transparent, #38bdf8 18%, #38bdf8 82%, transparent) 0 0 / 100% 4px no-repeat,
+    linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.55) 22%, rgba(56, 189, 248, 0.55) 78%, transparent) 6px 7px / calc(100% - 12px) 4px no-repeat,
+    linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.25) 26%, rgba(56, 189, 248, 0.25) 74%, transparent) 12px 14px / calc(100% - 24px) 4px no-repeat;
+}
+
+/* folhas de papel-cartão empilhadas */
+body.tema-maquete .card {
+  background: linear-gradient(180deg, #181b21, var(--folha));
+  border-color: rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    4px 4px 0 -1px var(--folha-2),
+    4px 4px 0 0 rgba(56, 189, 248, 0.13),
+    8px 8px 0 -1px #0e1115,
+    8px 8px 0 0 rgba(56, 189, 248, 0.06),
+    0 22px 40px -22px rgba(0, 0, 0, 0.9);
+}
+body.tema-maquete .card-h h2,
+body.tema-maquete .sub,
+body.tema-maquete .abas button { font-family: var(--lt-mono); letter-spacing: 0.14em; }
+
+/* base de corte do palco 3D: grade fina de 1 cm e grossa de 5 cm */
+body.tema-maquete .palco {
+  background-color: var(--corte);
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(56, 189, 248, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.12) 1px, transparent 1px),
+    radial-gradient(70% 60% at 50% 45%, rgba(56, 189, 248, 0.07), transparent 70%);
+  background-size: 18px 18px, 18px 18px, 90px 90px, 90px 90px, 100% 100%;
+  background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px, 0 0;
+}
+/* régua no canto, como na base de corte */
+body.tema-maquete .palco::after {
+  content: '0   1   2   3   4   5 cm';
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  font: 500 10px var(--lt-mono);
+  letter-spacing: 0.08em;
+  color: rgba(56, 189, 248, 0.38);
+  white-space: pre;
+  pointer-events: none;
+}
+
+/* peça escolhida: recorte com a borda da cor do grupo */
+body.tema-maquete .peca[aria-selected="true"] {
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.14), rgba(56, 189, 248, 0.04));
+  box-shadow: inset 3px 0 0 #38bdf8;
+}
+body.tema-maquete .amostra { box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45); }
+body.tema-maquete .fmt[aria-pressed="true"],
+body.tema-maquete .proj[aria-current="true"] { box-shadow: 3px 3px 0 rgba(56, 189, 248, 0.18); }
+body.tema-maquete .drop {
+  border-style: dashed;
+  border-radius: 14px;
+  background:
+    repeating-linear-gradient(-45deg, rgba(56, 189, 248, 0.03) 0 10px, transparent 10px 20px);
+}
+
+/* entrada: as folhas pousam na bancada uma vez, na abertura */
+@media (prefers-reduced-motion: no-preference) {
+  body.tema-maquete .lt-head,
+  body.tema-maquete .wrap > .card,
+  body.tema-maquete .mesa .card {
+    animation: maquete-pousar 520ms var(--lt-ease-out) both;
+  }
+  body.tema-maquete .wrap > .card { animation-delay: 60ms; }
+  body.tema-maquete .mesa .col.esquerda .card { animation-delay: 120ms; }
+  body.tema-maquete .mesa .col.centro .card { animation-delay: 180ms; }
+  body.tema-maquete .mesa .col.direita .card { animation-delay: 240ms; }
+}
+@keyframes maquete-pousar {
+  from { opacity: 0; transform: translate(-6px, -10px); }
+  to { opacity: 1; transform: none; }
+}

@@ -338,6 +338,7 @@ TEMAS = [
     ('WhatsSaver/whatssaver.html', 'conversa'),
     ('Conversor/conversor.html', 'planta'),
     ('Efeitos/efeitos.html', 'laboratorio'),
+    ('Vetor3D/vetor3d.html', 'maquete'),
     ('Automacoes/automacoes.html', 'fluxo'),
     ('Automacoes/organizador.html', 'fluxo'),
     ('Automacoes/editor.html', 'timeline'),

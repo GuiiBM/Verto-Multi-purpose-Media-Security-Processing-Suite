@@ -2,7 +2,7 @@
 
 > Processamento 100% local. Dados sensíveis nunca saem da máquina do usuário.
 
-Suíte de 27 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
+Suíte de 34 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
 
 ---
 
@@ -30,6 +30,7 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | Manipulação de PDF        | PyPDF2 + img2pdf                              |
 | Office (Word/Excel/PPT)     | LibreOffice headless + python-docx/pptx/openpyxl |
 | Vetorização / CAD           | potrace (potracer) + scikit-image + ezdxf     |
+| Geometria 3D (Vetor3D)      | shapely + mapbox-earcut + trimesh + manifold3d; visualizador three.js (local) |
 | Detecção de Objetos       | YOLOv8 (Censor)                               |
 | Detecção de Rostos        | YuNet via OpenCV (Efeitos)                    |
 | Web Scraping                | BeautifulSoup4 + requests                     |
@@ -51,12 +52,13 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 | 📁**Arquivos**        | Conversão     | Conversor universal 150+ formatos                                  |
 | 🪄**Efeitos**         | Mídia         | 43 efeitos em fotos e vídeos: clássicos (Sépia, P&B, Vintage, Glitch, Pop Art...), engraçados com detecção de rosto (Thug Life, Olhos de Desenho, Nariz de Palhaço, Cabeção), deformações, câmeras (VHS, CCTV, Visão Noturna, Matrix) e estilos (Quadrinhos, Lápis, Neon...); o arquivo sai no mesmo formato, como `foto (Sépia).jpg` |
 | 🔁**Conversor**       | Conversão / CAD | Estilo Convertio: fila de arquivos, 1.700+ rotas diretas, imagem → DXF com potrace (contorno, linha central ou por cor) e PDF/SVG/AI/EPS → DXF sem rasterizar |
+| 🧊**Vetor3D**         | Conversão / 3D | SVG, DXF, PDF/AI, EPS ou imagem → modelo 3D em alta definição: chanfro ou inflado por peça, cores no DXF preto e branco, fila em etapas que acompanha o hardware (CPU, RAM, temperatura) e exporta GLB/STL/3MF/OBJ/PLY ou código copia-e-cola (HTML, Netlify, React, PHP, Python, Node) com giro 360° e zoom |
 | 📄**PDFs**            | Documentos     | Dividir, comprimir, girar, converter, mesclar                      |
 | 🗃️**Office**          | Documentos     | Converte e repara Word/Excel/PowerPoint — recuperação em 5 níveis, incluindo extensão trocada |
 | 🔲**QR Code**         | Utilitário    | Gerador estático (URLs, Wi-Fi, vCard, PIX) sem rastreamento       |
 | 🔗**Encurtador**      | Utilitário    | Links curtos GBM (`gbm.pages.dev/x7k2pq`, `gbmlinks.pages.dev/x7k2pq` ou `gbm.gbm.workers.dev/x7k2pq`) que funcionam no mundo todo com o PC desligado: Cloudflare Pages + Workers + D1 na conta grátis do usuário, estatísticas sem IP, validade, senha, QR e UTM |
 | 🗜️**Compressor**    | Utilitário    | Redução de tamanho com controle de qualidade                     |
-| 📱**Social Preview**  | Design         | Simulação de posts em 24 formatos Mobile/Desktop/Tablet          |
+| 📱**Social Preview**  | Redes sociais  | Um post adaptado a 14 destinos (Instagram, Facebook, Threads, X, LinkedIn, Bluesky, Mastodon, Telegram, Discord, Pinterest, YouTube, TikTok, Status do WhatsApp, prévia de link): configuração automática na primeira foto (enquadramento pelo rosto com YuNet), edição individual por rede (cortar, encaixar ou preenchimento automático), prévia fiel de cada app, fotos com música virando vídeo e publicação direta pelas APIs oficiais com os tokens do próprio usuário |
 | 🧹**Clean Reader**    | Produtividade  | Extração de conteúdo + modo leitura                             |
 | 🎮**PurpleFlix**      | Streaming      | Player integrado                                                   |
 | ⏰**Tempo**           | Utilitário    | Relógio + calendário com feriados brasileiros                    |
@@ -100,6 +102,20 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 - DXF em mm pelo DPI da imagem (ou largura informada), polilinhas ou splines, hachura opcional e versões R12–R2018. Validado rasterizando o DXF de volta: IoU de 0,988 com a imagem original
 - PDF, SVG, AI, EPS, CorelDRAW e Visio → DXF extraindo os vetores reais (linhas, Béziers, cores e textos) em vez de rasterizar
 - DWG é formato fechado: é suportado automaticamente se o ODA File Converter ou o LibreDWG estiverem instalados
+
+**Vetor3D (vetor → 3D em alta definição)**
+- Importação para um modelo comum de peças 2D em mm: SVG (svgelements, transformações e `fill-rule` nonzero/evenodd calculados por número de voltas), DXF (ezdxf: linhas, arcos, polilinhas com bulge, splines, hachuras, blocos explodidos e textos em curvas), PDF/AI (PyMuPDF), EPS (Ghostscript → PDF) e imagens (vetorização por cor do Conversor)
+- Imagens (PNG/JPG/WEBP/HEIC): fundo removido pela transparência existente, pela cor das bordas (preenchimento a partir das bordas) ou por IA (rembg); PNG sem fundo para baixar. Modo desenho: tinta (limiar de Otsu, frestas fechadas) + áreas fechadas como regiões pintáveis com a cor original, vãos de hachura somados à tinta, contornos de subpixel (marching squares sobre máscara suavizada); modo cores: vetorização por cor do Conversor
+- Personagem 3D, dois motores de IA (`Vetor3D/v3d_modelos.py` decide e baixa): **Máxima qualidade** = Hunyuan3D-2 mini turbo (Tencent, código de geração de forma adaptado em `Vetor3D/hy3dgen/` com a licença Tencent Hunyuan 3D 2.0 Community, que vale fora da UE, Reino Unido e Coreia do Sul; ~4,3 GB), rodando no processador com pesos fp16 mapeados do disco (redes montadas sem alocar memória, camadas lineares convertidas para fp32 só no cálculo), leitura da imagem pelo DINOv2-giant a 1022 px, 5 passos de difusão e volume pelo decodificador FlashVDM: ~7 min por imagem na primeira vez (depois em cache), ~1,2 GB de memória real; o volume é alinhado ao desenho por uma câmera em PERSPECTIVA ajustada (distância, escala e posição otimizadas pela sobreposição das silhuetas: desenhos usam perspectiva, a IA reconstrói sem ela). **Leve** = TripoSR (~1,7 GB, ~1 min), usado em máquinas com menos de 6 GB de RAM, sem espaço em disco ou se o máximo falhar. Opção **Ajuste** (padrão: *Desenho adaptado ao 3D*): a forma 3D da IA fica limpa e o desenho se adapta a ela por um registro elástico ("demons" em várias escalas) entre a silhueta do modelo vista da câmera e a do desenho, que leva cada traço ao lugar certo do corpo (~97–98% de coincidência), sem distorcer nem perder partes; *Contorno exato* deforma o 3D até o contorno do desenho. Todo corpo passa por fechamento morfológico (fendas, furos e cavidades), espessura mínima em placas finas e fechamento de furos que atravessam o corpo onde o desenho é sólido; a cor das costas só herda a da frente perto de onde ela é vista (sem manchas que parecem buracos).
+- Personagem 3D (imagens), método padrão "Reconstrução 360°" (`Vetor3D/v3d_reconstrucao.py`): forma fiel ao desenho + volume reconstruído por IA (qualquer um dos dois motores). O DESENHO manda na vista de frente (um "cone" que sai da câmera e passa pelo contorno da imagem limita o volume: silhueta 99%+ igual à do desenho, medida a cada geração) e a imagem original vira a textura da frente; a REDE TripoSR (Stability AI + Tripo AI, MIT, código adaptado em `Vetor3D/triposr/`, ~1,7 GB baixados uma vez, roda num processo filho que devolve toda a memória ao terminar) dá o volume que a imagem não mostra (costas, lados, embaixo). O corpo da rede vira distância assinada (256³, em cache por imagem) e é DEFORMADO para a silhueta do desenho (correspondência pelas distâncias 2D, sem paredes de recorte); partes que a rede perdeu viram tubos redondos; nada fica muito mais fundo do que largo no desenho. Campo final numa grade de até 1000 voxels no lado maior, em fatias com orçamento de memória (colunas fora da silhueta são puladas), amostragem por B-spline cúbica aproximante (sem dobras nem oscilações), marching cubes com costura exata pelos índices, Taubin proporcional à resolução. Preview ~400 mil triângulos e textura 2048; HD ~2,5 milhões e textura 4096 (qualidade fixa por nível; máquina fraca só demora mais). Textura assada em blocos: frente projetada da imagem onde é visível da câmera, costas/lados com a cor de base da frente levada ao ponto escondido mais próximo e a cor da rede ajustada à paleta. Atlas UV próprio por projeção em ilhas (~1 s para 2,5 milhões de triângulos).
+- Personagem 3D, método "Inflado": volume fechado de 360° em vez de extrusão — inflação da silhueta pela equação de Poisson (sqrt(2u): partes finas com seção redonda, partes largas limitadas pela profundidade), deslocamento e relevo pela profundidade estimada localmente (Depth Anything V2 Small via transformers, ~100 MB no primeiro uso, liberado da RAM após o uso e guardado em cache por projeto), traço como sulco, superfície por marching cubes (estanque) suavizada por Taubin e reduzida conforme o perfil; textura em atlas (frente com a imagem, costas lisas) com UV por lado
+- Fila: limite de quantas etapas aparecem (lembrado no navegador), "Limpar concluídas" e "Cancelar tudo"
+- DXF preto e branco: as linhas soltas são unidas num arranjo plano (pontas soldadas por tolerância, inclusive junções em "T") e cada face fechada vira uma região pintável; o nível de aninhamento decide sólido/furo
+- Geometria por "curvas de nível": a forma encolhe em degraus (buffer negativo) e cada faixa é costurada anel a anel (ou triangulada com earcut quando a topologia muda), então chanfro e inflado funcionam em qualquer forma, sem auto-interseção, e a malha sai fechada; normais com vinco calculadas por componentes conexos
+- Painel de hardware com valores reais lidos a cada 1,5 s: RAM em uso, cache que o sistema libera e livre; swap usado e troca com o disco em MB/s; temperaturas de CPU, GPU e SSD; uso e VRAM da GPU. Cada etapa rodando mostra a RAM real que está usando (sem os pesos mapeados do disco), o teto dela e o uso de CPU
+- Fila de IA (personagem 3D): na ordem do pedido (duas ao mesmo tempo só com memória e núcleos para as duas), cada etapa num processo novo com TETO RÍGIDO de memória, limite macio um pouco abaixo e PRIORIDADE BAIXA de CPU e disco (cgroup via `systemd-run --user --scope`: MemoryMax, MemoryHigh, CPUWeight=20, IOWeight=20; a IA usa os núcleos que estão livres no momento), para o computador continuar livre para outros programas: se a etapa passar do teto só ela é encerrada, o computador não trava, e ela recomeça sozinha em modo de pouca memória (mesma qualidade, fatias menores, até 3 tentativas); vigia da RAM do sistema como segunda proteção; cada item da fila mostra quando começa e quando fica pronto (custo por etapa calibrado a cada execução em `~/.cache/verto/vetor3d_ritmo.json`)
+- Fila em processos separados (`python -m Vetor3D.v3d_trabalho`): leitura/preview num processo sempre pronto, alta definição em processos dedicados que dividem as peças entre núcleos; perfil pelo hardware (núcleos, RAM), admissão por memória livre, menos processos com CPU quente ou ocupada, pausar (processo congelado), cancelar (árvore de processos encerrada) e aviso claro se o sistema matar um processo por falta de memória
+- Código copia-e-cola gerado de um único visualizador (`static/localtools/vetor3d/viewer.js`), empacotado com esbuild em duas versões: three.js via jsDelivr (13 KB) ou embutido (650 KB, offline); qualidade adaptada ao aparelho do visitante, desenho só quando algo muda e só enquanto visível
 
 **Efeitos (fotos e vídeos)**
 
@@ -176,6 +192,30 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 
 ---
 
+## Social Preview: versão web por assinatura (planejada)
+
+O Social Preview vai ganhar uma versão própria, fora da suíte. **Por enquanto nada mudou:** o Social Preview do Verto (`/social`) continua e segue os padrões do Verto. Os dois só viram sistemas separados quando o app novo for criado.
+
+- **Mesmo backend** (`SocialPreview/`) nas duas versões, para uma correção valer nas duas; o que muda é o front.
+- **Aplicação web multiusuário**, com login simples e segurança completa. Cada pessoa conecta as próprias contas com os próprios tokens, guardados criptografados e isolados por usuário.
+- **Website por assinatura, quase autônomo e de custo mínimo:**
+  - planos mensal e anual, com "você economiza 10% no plano anual" exato: anual = 13 × valor base (para o cliente aparece só "1 ano"); mensal = anual ÷ 12 ÷ 0,9, arredondado para cima; valor, multiplicador e percentual editáveis no menu do administrador;
+  - teste grátis de 1 semana, só por convite do administrador;
+  - limites tirados das cotas dos provedores compartilhados (servidor, Gmail, nota, pagamento), com teto diário por pessoa;
+  - nota fiscal automática e e-mails por código próprio, pelo Gmail pessoal;
+  - 2FA obrigatório para todos, com app autenticador (gratuito) e códigos de recuperação;
+  - quem não paga: 3 dias de carência, bloqueio, dados apagados 1 mês depois;
+  - quem cancela: 1 mês para renovar, com 3 e-mails de aviso, e depois os dados são apagados;
+  - nos dois casos, um aviso curto com o motivo fica no sistema por 6 meses.
+- **Conta de administrador:** vê as contas criadas e a situação de cada uma; cria, bloqueia, desbloqueia e remove contas; e acompanha cobranças e o painel do negócio. Nunca vê os tokens dos usuários.
+- **A versão do Verto não terá** login, administrador nem cobrança.
+- **Leve e focada:** leva do Verto só o que o Social Preview usa, sem as dependências da suíte.
+- **Sem os nomes Verto e LocalTools.** Nome provisório: Social Preview. Identidade visual definida na criação.
+
+Plano completo, com a lista do que o app faz hoje, o contrato das rotas, a segurança, a administração, a assinatura e as decisões em aberto (listadas no topo): [`docs/SOCIAL-APP-NOVO.md`](docs/SOCIAL-APP-NOVO.md).
+
+---
+
 ## Instalação
 
 ```bash
@@ -189,6 +229,8 @@ python executaveis/INICIAR.py
 http://localhost:5000
 ```
 
+Modelos de IA do Vetor3D: o instalador confere o espaço livre e o que já está baixado no cache do Hugging Face (não baixa de novo o que está completo, continua downloads interrompidos, atualiza o que mudou no servidor) e mostra velocidade e tempo estimado. Com espaço, ficam os dois motores (~6 GB); sem espaço para o de máxima qualidade, só o leve; sem espaço nenhum, o app baixa na primeira vez. Para conferir a qualquer hora: `venv/bin/python -m Vetor3D.v3d_modelos --servidor` (ou `--instalar` para baixar o que falta).
+
 **Windows:** `INSTALAR_DEPENDENCIAS.bat` → `INICIAR.bat`
 **Linux:** `./INSTALAR_DEPENDENCIAS.sh` → `./INICIAR.sh`
 
@@ -197,11 +239,14 @@ http://localhost:5000
 ## Estrutura
 
 ```
-├── app.py                        # Flask app — 70+ rotas, 27 apps
+├── app.py                        # Flask app — 70+ rotas, 34 apps
 ├── Office/                       # Conversor e reparador de Word/Excel/PowerPoint
 ├── Efeitos/                     # Efeitos em fotos e vídeos, saída no mesmo formato do original
 ├── Conversor/                    # Conversor universal estilo Convertio (imagem → DXF, CAD, documentos, mídia...)
+├── Vetor3D/                      # Vetor/DXF → 3D: importação, geometria (chanfro/inflado), fila por hardware, exportação e código
 ├── Encurtador/                   # Encurtador de links: painel no Verto + Worker/D1 da Cloudflare (cloudflare/)
+├── SocialPreview/                # Social Preview: catálogo das redes, publicação pelas APIs, mídia (ffmpeg/YuNet) e hospedagem temporária;
+│                                 # tokens em dados/ (gitignored). Backend que será compartilhado com a futura versão web
 ├── static/localtools/            # Design system da suíte: base.css (tokens --lt-*) e app.css (componentes), fonte Geist,
 │                                 # ícones 3D dos apps renderizados por scripts/icones_3d.py (apps/) e símbolos Phosphor (MIT), tudo local
 ├── Automacoes/                   # Automações em segundo plano
@@ -229,6 +274,6 @@ http://localhost:5000
 ## Segurança e Privacidade
 
 - Sem coleta de dados — zero telemetria
-- Sem dependência de APIs externas
+- Sem dependência de APIs externas. Exceções opcionais, que só falam com a internet quando o usuário conecta a própria conta: Encurtador (Cloudflare) e Social Preview (APIs das redes sociais)
 - Arquivos temporários removidos automaticamente após cada operação
 - `downloads/` e `venv/` excluídos do controle de versão via `.gitignore`

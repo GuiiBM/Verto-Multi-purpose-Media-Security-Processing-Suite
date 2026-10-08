@@ -185,10 +185,28 @@ def main():
         # palavra e detector de rosto (YuNet) do editor de vídeo
         "Send2Trash",
         "faster-whisper",
-        "opencv-python-headless"
+        "opencv-python-headless",
+        # Vetor3D: geometria 2D/3D (polígonos, triangulação, união de sólidos,
+        # redução de malha), leitura de SVG e monitor de hardware
+        "shapely",
+        "mapbox-earcut",
+        "manifold3d",
+        "fast-simplification",
+        "svgelements",
+        "psutil",
+        # Vetor3D (personagem 3D): profundidade por IA (Depth Anything V2 Small,
+        # ~100 MB baixados do Hugging Face no primeiro uso; o torch vem com o demucs)
+        "transformers",
+        # Vetor3D (personagem 3D): dois motores de IA. Leve (TripoSR, ~1,7 GB)
+        # e máxima qualidade (Hunyuan3D-2 mini, ~4,3 GB; o agendador da
+        # difusão vem do diffusers). Os modelos são baixados no passo seguinte,
+        # conforme o espaço em disco.
+        "pyyaml",
+        "einops",
+        "diffusers"
     ]
     
-    total_etapas = len(packages) + 4  # pacotes + FFmpeg + LibreOffice + runtime JS (Deno) + WhatsSaver
+    total_etapas = len(packages) + 5  # pacotes + FFmpeg + LibreOffice + runtime JS (Deno) + WhatsSaver + modelos Vetor3D
     etapa_atual = 0
     inicio_instalacao = time.time()
 
@@ -354,6 +372,18 @@ def main():
         print_colored("[AVISO] O WhatsSaver não foi preparado agora.", "yellow")
         print_colored("        Dá para instalar depois pelo botão \"Instalar agora\" dentro do app.", "white")
 
+    etapa_atual += 1
+    print_progress_bar(etapa_atual, total_etapas, inicio_instalacao)
+
+    # Modelos de IA do Vetor3D: confere o espaço livre e o que já está baixado
+    # (não baixa de novo o que está completo, continua downloads interrompidos,
+    # atualiza o que mudou) e mostra velocidade e tempo estimado. Sem espaço
+    # para o motor de máxima qualidade, fica só o leve; sem espaço nenhum, o
+    # app baixa quando precisar.
+    print_colored("\nModelos de IA do Vetor3D (personagem 3D)...", "yellow")
+    result = subprocess.run([python_venv, "-m", "Vetor3D.v3d_modelos", "--instalar"])
+    if result.returncode != 0:
+        print_colored("[AVISO] Os modelos do Vetor3D serão baixados quando forem usados.", "yellow")
     etapa_atual += 1
     print_progress_bar(etapa_atual, total_etapas, inicio_instalacao)
     print_colored(f"Tempo total de instalação: {format_eta(time.time() - inicio_instalacao)}", "white")

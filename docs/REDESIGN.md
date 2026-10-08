@@ -8,12 +8,13 @@ Leia isto antes de continuar o redesign. Marca: **LocalTools** (título); projet
 - Ícones: **peças 3D próprias** (`static/localtools/apps/<id>.webp`), geradas por `scripts/icones_3d.py`. Nada de emoji, néon, ícones prontos de pacote ou fundo branco.
 - Cor = grupo do app (tokens `--lt-cat-*` em `static/localtools/base.css`).
 - Nunca deixar servidor rodando: testar na porta 5055 e encerrar (o usuário usa a 5000 via `executaveis/INICIAR.py`).
+- **Social Preview no teste**: `/social/contas*` e `/social/publicar` chamam as APIs reais das redes com as contas salvas em `SocialPreview/dados/contas.json`. Para testar a publicação, apontar o conector para uma API falsa (ex.: trocar `publicador.GRAPH_IG`) e usar uma pasta de dados temporária (`publicador.CONTAS_PATH`).
 - **WhatsSaver no teste**: as chamadas `/whatssaver/*` ligam a ponte do WhatsApp (`node bridge.mjs`) com a sessão real em `WhatsSaver/dados/auth`. Só abrir a página com **todas** as `/whatssaver/*` interceptadas no Playwright (`page.route`, como faz o `foto.py`); a rota `/whatssaver` sozinha só desenha o HTML. O mesmo para `/encurtador/*` (token real da Cloudflare).
 - Sem commit, a não ser que o usuário peça.
 
 ## Identidade de cada app (pedido do usuário, 2026-10-05) — feito
 - **Não padronizar tudo.** O comum é só a base: fundo grafite (`lt-body`), fonte Geist, `lt-back`, marca `LOCALTOOLS` (sem o V) e o ícone 3D do app no topo.
-- Cada app tem um **modo visual próprio** ligado ao que ele faz (metáfora, material, detalhe-assinatura), sem néon. Os 33 já têm (coluna "Modo" abaixo).
+- Cada app tem um **modo visual próprio** ligado ao que ele faz (metáfora, material, detalhe-assinatura), sem néon. Os 34 já têm (coluna "Modo" abaixo).
 
 ## Onde ficam os modos
 - `static/localtools/modos/<modo>.css`: um arquivo por modo. Todo seletor começa com `body.modo-X` (ou `body.tema-X`), porque a classe fica no próprio `<body>` e precisa vencer a base `body[class*="modo-"]` do `app.css` (especificidade 0,2,1).
@@ -28,7 +29,7 @@ Leia isto antes de continuar o redesign. Marca: **LocalTools** (título); projet
 - `--temas`: aplica `tema-X` nas 9 páginas de `TEMAS`.
 - Ícones de traço novos: Phosphor *light* em `https://unpkg.com/@phosphor-icons/core@2.1.1/assets/light/<nome>-light.svg`, salvos com `fill="currentColor"` e sem o `<rect>` de fundo.
 
-## Os 33 apps
+## Os 34 apps
 "Fonte" = onde está o HTML. "Modo" = arquivo em `static/localtools/modos/` (`tema …` = `tema-<nome>.css`).
 
 | # | App | Rota | Grupo (cor) | Ícone 3D (`apps/`) | Fonte | Modo |
@@ -45,7 +46,7 @@ Leia isto antes de continuar o redesign. Marca: **LocalTools** (título); projet
 | 10 | Transparência | `/transparent` | imagem | transparent | HTML embutido em `app.py` | ✅ recorte |
 | 11 | Matcha Effect | `/matchaeffect` (+ subpáginas) | imagem | matchaeffect | `MatchaEffect/` | ✅ matcha |
 | 12 | Capture & OCR | `/captureocr` | imagem | captureocr | `CaptureOCR/` (hub) | ✅ visor |
-| 13 | Social Preview | `/social` | imagem | social | HTML embutido em `app.py` | ✅ feed |
+| 13 | Social Preview | `/social` (+ `/social/*` API) | imagem | social | `templates/social.html` + `static/localtools/social/` (estudio.js/css, marcas.js); backend em `SocialPreview/` (redes.py = catálogo de formatos e limites; publicador.py = contas e publicação pelas APIs oficiais; hospedagem.py = endereço público temporário para Instagram/Threads; midia.py = recorte, preenchimento e vídeo com música no ffmpeg + foco automático com o YuNet do Efeitos). Enquadramento por rede (chave `rede:formato:proporção`), automático na primeira foto e editável no diálogo "Editar". Credenciais em `SocialPreview/dados/` (fora do git). Vai virar um app separado do Verto: manter o SocialPreview/ sem depender de outras partes do app.py | ✅ feed |
 | 14 | Transcrever | `/transcribe` | audio (amarelo) | transcribe | HTML embutido em `app.py` | ✅ fita |
 | 15 | Isolador de Voz | `/isolate` | audio | isolate | HTML embutido em `app.py` | ✅ mesa-de-som |
 | 16 | Smart Studio | `/smartstudio` (+ editor/studio) | audio | smartstudio | `SmartStudio/` | ✅ no-ar |
@@ -66,6 +67,7 @@ Leia isto antes de continuar o redesign. Marca: **LocalTools** (título); projet
 | 31 | Encurtador | `/encurtador` | dev | encurtador | `Encurtador/encurtador.html` | ✅ bilhete |
 | 32 | Tempo | `/tempo` | dev | tempo | HTML embutido em `app.py` | ✅ calendario |
 | 33 | Instruções | `/instructions` | ajuda (cinza) | instructions | `templates/instructions.html` | ✅ tema manual |
+| 34 | Vetor3D | `/vetor3d` | conversao | vetor3d (cube) | `Vetor3D/vetor3d.html` (viewer em `static/localtools/vetor3d/`) | ✅ tema maquete (base de corte quadriculada, folhas de papel-cartão empilhadas, título em camadas de extrusão) |
 
 "HTML embutido em `app.py`": procurar a rota com `grep -n '@app.route("/<rota>"' app.py` e seguir até a constante/`render_template_string`. Apps com várias páginas (hub + ferramentas) precisam de todas as páginas migradas.
 

@@ -69,6 +69,10 @@ from Encurtador.encurtador_templates import ENCURTADOR_HTML
 from Encurtador import encurtador_engine
 from Automacoes.automacoes_templates import AUTOMACOES_HTML, AUTOMACOES_ORGANIZADOR_HTML, AUTOMACOES_EDITOR_HTML
 from Automacoes import automacoes_engine
+from Vetor3D.vetor3d_templates import VETOR3D_HTML
+from Vetor3D import vetor3d_engine
+from SocialPreview.social_templates import SOCIAL_HTML
+from SocialPreview import publicador as social_pub, redes as social_redes, midia as social_midia
 
 app = Flask(__name__)
 
@@ -590,7 +594,7 @@ MENU_HTML = """
       <div class="segundos" aria-hidden="true"><div class="barra"><i id="secfill"></i></div><span class="sec" id="sec">00</span></div>
       <div class="date" id="date">Segunda-feira, 1 de janeiro</div>
     </div>
-    <div class="tagline"><span class="dot"></span><span class="tag-extra">Menu de aplicativos · </span>33 ferramentas · tudo neste computador<span class="dot"></span></div>
+    <div class="tagline"><span class="dot"></span><span class="tag-extra">Menu de aplicativos · </span>34 ferramentas · tudo neste computador<span class="dot"></span></div>
     <label class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input type="search" id="search" placeholder="Buscar app ou o que você quer fazer…" autocomplete="off" spellcheck="false" aria-label="Buscar app ou função">
@@ -601,7 +605,7 @@ MENU_HTML = """
       <button type="button" class="grupo" data-cat="imagem" style="--hue: var(--lt-cat-imagem)" aria-pressed="false"><span class="gdot"></span>Imagem e vídeo<span class="gn">7</span></button>
       <button type="button" class="grupo" data-cat="audio" style="--hue: var(--lt-cat-audio)" aria-pressed="false"><span class="gdot"></span>Áudio e legendas<span class="gn">4</span></button>
       <button type="button" class="grupo" data-cat="documentos" style="--hue: var(--lt-cat-documentos)" aria-pressed="false"><span class="gdot"></span>Documentos<span class="gn">2</span></button>
-      <button type="button" class="grupo" data-cat="conversao" style="--hue: var(--lt-cat-conversao)" aria-pressed="false"><span class="gdot"></span>Conversão<span class="gn">3</span></button>
+      <button type="button" class="grupo" data-cat="conversao" style="--hue: var(--lt-cat-conversao)" aria-pressed="false"><span class="gdot"></span>Conversão<span class="gn">4</span></button>
       <button type="button" class="grupo" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade)" aria-pressed="false"><span class="gdot"></span>Privacidade<span class="gn">3</span></button>
       <button type="button" class="grupo" data-cat="texto" style="--hue: var(--lt-cat-texto)" aria-pressed="false"><span class="gdot"></span>Texto<span class="gn">3</span></button>
       <button type="button" class="grupo" data-cat="dev" style="--hue: var(--lt-cat-dev)" aria-pressed="false"><span class="gdot"></span>Dev e utilitários<span class="gn">4</span></button>
@@ -697,47 +701,51 @@ MENU_HTML = """
       <div class="app-icon"><img src="/static/localtools/apps/compress.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Compressor</div>
     </a>
-    <a href="/ghost" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 22" title="Ghost Tool · Privacidade">
+    <a href="/vetor3d" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 22" title="Vetor3D · Conversão">
+      <div class="app-icon"><img src="/static/localtools/apps/vetor3d.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Vetor3D</div>
+    </a>
+    <a href="/ghost" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 23" title="Ghost Tool · Privacidade">
       <div class="app-icon"><img src="/static/localtools/apps/ghost.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Ghost Tool</div>
     </a>
-    <a href="/stealth" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 23" title="Stealth · Privacidade">
+    <a href="/stealth" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 24" title="Stealth · Privacidade">
       <div class="app-icon"><img src="/static/localtools/apps/stealth.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Stealth</div>
     </a>
-    <a href="/censor" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 24" title="Censor · Privacidade">
+    <a href="/censor" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 25" title="Censor · Privacidade">
       <div class="app-icon"><img src="/static/localtools/apps/censor.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Censor</div>
     </a>
-    <a href="/textclean" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 25" title="Text Clean & Diff · Texto">
+    <a href="/textclean" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 26" title="Text Clean & Diff · Texto">
       <div class="app-icon"><img src="/static/localtools/apps/textclean.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Text Clean & Diff</div>
     </a>
-    <a href="/aiguard" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 26" title="AI Guard & Diff · Texto">
+    <a href="/aiguard" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 27" title="AI Guard & Diff · Texto">
       <div class="app-icon"><img src="/static/localtools/apps/aiguard.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">AI Guard & Diff</div>
     </a>
-    <a href="/clean" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 27" title="Clean Reader · Texto">
+    <a href="/clean" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 28" title="Clean Reader · Texto">
       <div class="app-icon"><img src="/static/localtools/apps/clean.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Clean Reader</div>
     </a>
-    <a href="/devdata" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 28" title="Dev/Data · Dev e utilitários">
+    <a href="/devdata" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 29" title="Dev/Data · Dev e utilitários">
       <div class="app-icon"><img src="/static/localtools/apps/devdata.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Dev/Data</div>
     </a>
-    <a href="/qrcode" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 29" title="QR Code · Dev e utilitários">
+    <a href="/qrcode" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 30" title="QR Code · Dev e utilitários">
       <div class="app-icon"><img src="/static/localtools/apps/qrcode.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">QR Code</div>
     </a>
-    <a href="/encurtador" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 30" title="Encurtador · Dev e utilitários">
+    <a href="/encurtador" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 31" title="Encurtador · Dev e utilitários">
       <div class="app-icon"><img src="/static/localtools/apps/encurtador.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Encurtador</div>
     </a>
-    <a href="/tempo" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 31" title="Tempo · Dev e utilitários">
+    <a href="/tempo" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 32" title="Tempo · Dev e utilitários">
       <div class="app-icon"><img src="/static/localtools/apps/tempo.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Tempo</div>
     </a>
-    <a href="/instructions" class="app" data-cat="ajuda" style="--hue: var(--lt-cat-ajuda); --i: 32" title="Instruções · Ajuda">
+    <a href="/instructions" class="app" data-cat="ajuda" style="--hue: var(--lt-cat-ajuda); --i: 33" title="Instruções · Ajuda">
       <div class="app-icon"><img src="/static/localtools/apps/instructions.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Instruções</div>
     </a>
@@ -808,6 +816,7 @@ MENU_HTML = """
       ['icone', 'favicon', 'ico'],
       ['assistir', 'streaming', 'filmes', 'series'],
       ['story', 'stories', 'destaque'],
+      ['3d', 'tridimensional', 'modelo', 'extrusao', 'extrudar', 'relevo', 'inflar', 'chanfro', 'stl', 'glb', 'obj', '3mf', 'impressao', 'vetor', 'vetorial', 'dxf', 'svg', 'cad'],
       ['organizar', 'organizador', 'separar', 'separador', 'pasta', 'pastas', 'automacao', 'automatico', 'mover'],
     ];
 
@@ -2720,6 +2729,121 @@ def automacoes_editor_arquivo(job_id, n=None):
     # conditional=True responde Range: o player consegue avançar e voltar.
     return send_file(caminho, conditional=True, as_attachment=request.args.get('baixar') == '1',
                      download_name=caminho.name)
+
+# --- Vetor3D: desenho vetorial (SVG, DXF, PDF/AI, EPS) ou imagem -> modelo 3D em alta definição ---
+# Cada arquivo vira um projeto com peças 2D (cor e estilo 3D por peça). As etapas
+# pesadas (leitura, preview, alta definição, exportação, código) rodam numa fila
+# em processos separados, de acordo com o hardware; a página acompanha por polling.
+
+def _vetor3d(fn):
+    try:
+        return jsonify({'success': True, **(fn() or {})})
+    except vetor3d_engine.Vetor3DError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro inesperado: {e}'})
+
+@app.route("/vetor3d", strict_slashes=False)
+def vetor3d():
+    return Response(VETOR3D_HTML(), mimetype='text/html')
+
+@app.route("/vetor3d/formatos", methods=["GET"], strict_slashes=False)
+def vetor3d_formatos():
+    return _vetor3d(lambda: vetor3d_engine.formatos())
+
+@app.route("/vetor3d/enviar", methods=["POST"], strict_slashes=False)
+def vetor3d_enviar():
+    opcoes = {k: request.form.get(k) for k in ('cores_imagem', 'tracos', 'fundo', 'modo_imagem', 'detalhe')
+              if request.form.get(k)}
+    return _vetor3d(lambda: {'projeto': vetor3d_engine.enviar(request.files.get('file'), opcoes)})
+
+@app.route("/vetor3d/projetos", methods=["GET"], strict_slashes=False)
+def vetor3d_projetos():
+    return _vetor3d(lambda: {'projetos': vetor3d_engine.listar()})
+
+@app.route("/vetor3d/projeto/<pid>", methods=["GET", "PATCH", "DELETE"], strict_slashes=False)
+def vetor3d_projeto(pid):
+    if request.method == 'DELETE':
+        return _vetor3d(lambda: {'removido': vetor3d_engine.remover(pid)})
+    if request.method == 'PATCH':
+        dados = request.get_json(silent=True) or {}
+        return _vetor3d(lambda: {'projeto': vetor3d_engine.atualizar(pid, dados)})
+    return _vetor3d(lambda: {'projeto': vetor3d_engine.projeto(pid)})
+
+@app.route("/vetor3d/projeto/<pid>/reler", methods=["POST"], strict_slashes=False)
+def vetor3d_reler(pid):
+    opcoes = request.get_json(silent=True) or {}
+    return _vetor3d(lambda: {'projeto': vetor3d_engine.reler(pid, opcoes)})
+
+@app.route("/vetor3d/projeto/<pid>/gerar", methods=["POST"], strict_slashes=False)
+def vetor3d_gerar(pid):
+    nivel = (request.get_json(silent=True) or {}).get('nivel', 'preview')
+    return _vetor3d(lambda: vetor3d_engine.gerar(pid, nivel))
+
+@app.route("/vetor3d/projeto/<pid>/exportar", methods=["POST"], strict_slashes=False)
+def vetor3d_exportar(pid):
+    d = request.get_json(silent=True) or {}
+    return _vetor3d(lambda: vetor3d_engine.exportar(pid, d.get('nivel', 'preview'), d.get('formato'), d.get('unir')))
+
+@app.route("/vetor3d/projeto/<pid>/codigo", methods=["POST"], strict_slashes=False)
+def vetor3d_codigo(pid):
+    d = request.get_json(silent=True) or {}
+    return _vetor3d(lambda: vetor3d_engine.codigo(pid, d.get('nivel', 'preview'), d.get('opcoes')))
+
+@app.route("/vetor3d/arquivo/<pid>/<nome>", methods=["GET"], strict_slashes=False)
+def vetor3d_arquivo(pid, nome):
+    try:
+        caminho = vetor3d_engine.arquivo(pid, nome)
+    except vetor3d_engine.Vetor3DError as e:
+        return Response(str(e), status=404, mimetype='text/plain; charset=utf-8')
+    tipo = {'glb': 'model/gltf-binary', 'png': 'image/png'}.get(nome.rsplit('.', 1)[-1], 'application/json')
+    baixar = request.args.get('baixar') == '1'
+    resp = send_file(caminho, mimetype=tipo, max_age=0, as_attachment=baixar,
+                     download_name=nome if not baixar else f"{vetor3d_engine.projeto(pid)['nome']} (sem fundo).png")
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+@app.route("/vetor3d/fila", methods=["GET"], strict_slashes=False)
+def vetor3d_fila():
+    return _vetor3d(lambda: {'tarefas': vetor3d_engine.fila(request.args.get('projeto') or None)})
+
+@app.route("/vetor3d/fila/limpar", methods=["POST"], strict_slashes=False)
+def vetor3d_fila_limpar():
+    d = request.get_json(silent=True) or {}
+    return _vetor3d(lambda: vetor3d_engine.limpar_fila(bool(d.get('cancelar'))))
+
+@app.route("/vetor3d/tarefa/<tid>", methods=["GET"], strict_slashes=False)
+def vetor3d_tarefa(tid):
+    return _vetor3d(lambda: {'tarefa': vetor3d_engine.tarefa(tid)})
+
+@app.route("/vetor3d/tarefa/<tid>/<acao>", methods=["POST"], strict_slashes=False)
+def vetor3d_tarefa_acao(tid, acao):
+    return _vetor3d(lambda: {'ok': vetor3d_engine.acao_tarefa(tid, acao)})
+
+@app.route("/vetor3d/codigo/<tid>", methods=["GET"], strict_slashes=False)
+def vetor3d_codigo_texto(tid):
+    def ler():
+        texto, ext = vetor3d_engine.codigo_texto(tid)
+        return {'texto': texto, 'ext': ext}
+    return _vetor3d(ler)
+
+@app.route("/vetor3d/hardware", methods=["GET"], strict_slashes=False)
+def vetor3d_hardware():
+    return _vetor3d(lambda: {'hardware': vetor3d_engine.hardware()})
+
+@app.route("/vetor3d/preferencias", methods=["POST"], strict_slashes=False)
+def vetor3d_preferencias():
+    d = request.get_json(silent=True) or {}
+    return _vetor3d(lambda: vetor3d_engine.preferencias(d.get('modo'), d.get('nucleos')))
+
+@app.route("/vetor3d/download/<token>", methods=["GET"], strict_slashes=False)
+def vetor3d_download(token):
+    path = vetor3d_engine.output_path(token)
+    if not path:
+        return Response("Arquivo não encontrado (ele pode ter sido movido da pasta Downloads).",
+                        status=404, mimetype='text/plain; charset=utf-8')
+    inline = request.args.get('inline') == '1'
+    return send_file(path, as_attachment=not inline, download_name=os.path.basename(path))
 
 # --- Dev/Data: ferramentas de formatação, dados mock, conversão e encode/decode ---
 # Todas processadas 100% no navegador (JS) - sem rotas de upload/processamento no backend.
@@ -12026,13 +12150,134 @@ def censor():
     except:
         return "<h1>Erro ao carregar Censor</h1>"
 
+# --- Social Preview: um post adaptado ao formato de cada rede e publicado direto ---
+# As contas ficam em SocialPreview/dados/contas.json (fora do git); a página nunca
+# recebe os segredos de volta, só o perfil (nome, @, foto) e quais campos existem.
+
+def _social(fn):
+    try:
+        return jsonify({'success': True, **(fn() or {})})
+    except (social_pub.PublicarError, social_midia.MidiaError) as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro inesperado: {e}'})
+
 @app.route("/social", methods=["GET"], strict_slashes=False)
 def social():
+    return Response(SOCIAL_HTML(), mimetype='text/html')
+
+@app.route("/social/catalogo", methods=["GET"], strict_slashes=False)
+def social_catalogo():
+    return _social(social_redes.catalogo)
+
+@app.route("/social/contas", methods=["GET"], strict_slashes=False)
+def social_contas():
+    return _social(social_pub.status)
+
+@app.route("/social/contas/<rede>", methods=["POST", "DELETE"], strict_slashes=False)
+def social_conta(rede):
+    if request.method == 'DELETE':
+        return _social(lambda: social_pub.desconectar(rede))
+    d = request.get_json(silent=True) or {}
+    return _social(lambda: social_pub.salvar(rede, d.get('campos') or {}))
+
+@app.route("/social/contas/<rede>/testar", methods=["POST"], strict_slashes=False)
+def social_conta_testar(rede):
+    return _social(lambda: social_pub.testar(rede))
+
+@app.route("/social/config", methods=["POST"], strict_slashes=False)
+def social_config():
+    return _social(lambda: social_pub.configurar(request.get_json(silent=True) or {}))
+
+def _social_redirect(rede):
+    # O Google aceita qualquer porta em 127.0.0.1 para clientes "App para computador".
+    porta = request.host.rsplit(':', 1)[1] if ':' in request.host else '80'
+    return f"http://127.0.0.1:{porta}/social/oauth/{rede}/retorno"
+
+@app.route("/social/oauth/<rede>/iniciar", methods=["GET"], strict_slashes=False)
+def social_oauth_iniciar(rede):
     try:
-        with open('templates/social.html', 'r', encoding='utf-8') as f:
-            return f.read()
-    except:
-        return "<h1>Erro ao carregar Social Preview</h1>"
+        url = social_pub.oauth_iniciar(rede, _social_redirect(rede))
+    except social_pub.PublicarError as e:
+        return Response(f"<p>{e}</p>", mimetype='text/html', status=400)
+    return Response('', status=302, headers={'Location': url})
+
+@app.route("/social/oauth/<rede>/retorno", methods=["GET"], strict_slashes=False)
+def social_oauth_retorno(rede):
+    erro = request.args.get('error')
+    try:
+        if erro:
+            raise social_pub.PublicarError(f'Login cancelado ({erro}).')
+        perfil = social_pub.oauth_concluir(rede, request.args.get('code', ''), request.args.get('state', ''))
+        msg, ok = f"Conectado como {perfil.get('nome', '')}. Pode fechar esta aba.", 'true'
+    except Exception as e:
+        msg, ok = str(e), 'false'
+    import html as _html
+    return Response(f"""<!doctype html><meta charset="utf-8"><title>Social Preview</title>
+<body style="font:16px system-ui;background:#0b0c0f;color:#eef0f3;display:grid;place-items:center;height:100vh">
+<p>{_html.escape(msg)}</p><script>try{{window.opener&&window.opener.postMessage({{socialOauth:'{rede}',ok:{ok}}},'*')}}catch(e){{}}
+if({ok})setTimeout(()=>window.close(),1200)</script>""", mimetype='text/html')
+
+@app.route("/social/midia", methods=["POST"], strict_slashes=False)
+def social_midia_enviar():
+    f = request.files.get('arquivo')
+    if not f:
+        return jsonify({'success': False, 'error': 'Nenhum arquivo.'})
+    return _social(lambda: social_pub.guardar_midia(f))
+
+@app.route("/social/foco", methods=["POST"], strict_slashes=False)
+def social_foco():
+    f = request.files.get('imagem')
+    if not f:
+        return jsonify({'success': False, 'error': 'Nenhuma imagem.'})
+    dados = f.read()
+    return _social(lambda: social_pub.analisar(dados))
+
+@app.route("/social/audio", methods=["POST"], strict_slashes=False)
+def social_audio_enviar():
+    f = request.files.get('arquivo')
+    if not f:
+        return jsonify({'success': False, 'error': 'Nenhum arquivo.'})
+    return _social(lambda: social_pub.guardar_audio(f))
+
+@app.route("/social/render-slideshow", methods=["POST"], strict_slashes=False)
+def social_render_slideshow():
+    try:
+        d = json.loads(request.form.get('dados') or '{}')
+        fotos = [request.files[k].read() for k in sorted(request.files, key=lambda k: int(k[1:]))]
+        caminho = social_pub.renderizar_show(fotos, int(d.get('w', 1080)), int(d.get('h', 1920)),
+                                             d.get('opcoes') or {}, d.get('audio_id'))
+    except (social_pub.PublicarError, social_midia.MidiaError, ValueError) as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    return send_file(caminho, mimetype='video/mp4', as_attachment=True, download_name=d.get('nome') or 'video.mp4')
+
+@app.route("/social/render-video", methods=["POST"], strict_slashes=False)
+def social_render_video():
+    d = request.get_json(silent=True) or {}
+    try:
+        caminho = social_pub.renderizar(d.get('midia_id', ''), int(d.get('w', 1080)), int(d.get('h', 1920)),
+                                        d.get('enquadre') or {}, d.get('max_s'))
+    except (social_pub.PublicarError, social_midia.MidiaError) as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    return send_file(caminho, mimetype='video/mp4', as_attachment=True,
+                     download_name=d.get('nome') or 'video.mp4')
+
+@app.route("/social/publicar", methods=["POST"], strict_slashes=False)
+def social_publicar():
+    try:
+        plano = json.loads(request.form.get('plano') or '{}')
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Plano inválido.'})
+    arquivos = {k: v.read() for k, v in request.files.items()}
+    return _social(lambda: social_pub.iniciar(plano, arquivos))
+
+@app.route("/social/publicar/<job>", methods=["GET"], strict_slashes=False)
+def social_publicar_status(job):
+    return _social(lambda: social_pub.acompanhar(job))
+
+@app.route("/social/historico", methods=["GET"], strict_slashes=False)
+def social_historico():
+    return _social(social_pub.historico)
 
 @app.route("/clean", methods=["GET"], strict_slashes=False)
 def clean():

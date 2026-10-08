@@ -1,0 +1,1376 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vetor3D</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="modulepreload" href="/static/localtools/vendor/three/three.module.min.js">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "/static/localtools/vendor/three/three.module.min.js",
+      "three/addons/": "/static/localtools/vendor/three/addons/"
+    }
+  }
+  </script>
+  <style>
+    :root { --acc: var(--lt-cat-conversao); --acc-tinta: #04202c; --painel: rgba(255, 255, 255, 0.03); }
+    * { box-sizing: border-box; }
+    body.lt-body { margin: 0; min-height: 100vh; padding: 28px 24px 64px; overflow-x: clip; }
+    body.lt-body > *:not(.lt-back):not(.toast) { position: relative; z-index: 1; }
+    .lt-head { margin: 0 auto 22px; max-width: 760px; }
+    .lt-head p { margin: 0; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    .wrap { max-width: 1480px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018)); border: 1px solid var(--lt-line); border-radius: 18px; box-shadow: var(--lt-shadow); }
+    .card-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px 0; }
+    .card-h h2 { margin: 0; font-size: 13px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--lt-faint); }
+    .card-b { padding: 12px 16px 16px; }
+    .muted { color: var(--lt-muted); }
+    .faint { color: var(--lt-faint); }
+    .mono { font-family: var(--lt-mono); }
+    .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .grow { flex: 1 1 auto; min-width: 0; }
+    .sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* botões e controles */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 14px; border-radius: 11px; border: 1px solid var(--lt-line-2); background: linear-gradient(180deg, #23262c, #191b20); color: var(--lt-ink); font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: border-color var(--lt-dur-fast) var(--lt-ease-out), transform var(--lt-dur-fast) var(--lt-ease-out), filter var(--lt-dur-fast); }
+    .btn:hover:not(:disabled) { border-color: color-mix(in srgb, var(--acc) 50%, transparent); }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn:focus-visible, .seg button:focus-visible, .chip:focus-visible, .peca:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+    .btn.pri { background: linear-gradient(180deg, color-mix(in srgb, var(--acc) 92%, #fff), color-mix(in srgb, var(--acc) 82%, #000)); color: var(--acc-tinta); border-color: rgba(255,255,255,.18); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 3px 0 color-mix(in srgb, var(--acc) 45%, #000); }
+    .btn.pri:hover:not(:disabled) { filter: brightness(1.06); }
+    .btn.sm { min-height: 32px; padding: 0 10px; font-size: 12.5px; border-radius: 9px; }
+    .btn.ico { width: 36px; padding: 0; }
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .seg { display: inline-flex; padding: 3px; border-radius: 11px; background: rgba(0,0,0,.25); border: 1px solid var(--lt-line); gap: 2px; flex-wrap: wrap; }
+    .seg button { min-height: 32px; padding: 0 11px; border: 0; border-radius: 8px; background: transparent; color: var(--lt-muted); font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .seg button[aria-pressed="true"] { background: color-mix(in srgb, var(--acc) 20%, #1b1e24); color: #fff; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 45%, transparent); }
+    .seg button:disabled { opacity: .4; cursor: default; }
+    .seg button small { font-weight: 500; opacity: .75; margin-left: 4px; font-family: var(--lt-mono); font-size: 11px; }
+    .campo { display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 8px 10px; margin: 8px 0; }
+    .campo > * { min-width: 0; }
+    .campo > label, .campo > span.rot { font-size: 12.5px; color: var(--lt-muted); }
+    .num { display: flex; align-items: center; gap: 8px; }
+    .num input[type=range] { flex: 1; min-width: 0; accent-color: var(--acc); }
+    .num input[type=number] { width: 78px; min-height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--lt-line); background: rgba(255,255,255,.04); font-family: var(--lt-mono); font-size: 12.5px; }
+    select, .txt { min-height: 34px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--lt-line); background: #16181c; font-size: 13px; }
+    input[type=color] { width: 34px; height: 34px; padding: 2px; border-radius: 9px; border: 1px solid var(--lt-line-2); background: #16181c; cursor: pointer; }
+    input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--acc); outline-offset: 1px; }
+    .chk { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--lt-muted); cursor: pointer; min-height: 32px; }
+    .chk input { accent-color: var(--acc); width: 16px; height: 16px; }
+
+    /* hardware */
+    .hw { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; padding: 12px 16px; }
+    .hw-cpu { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .nucleos { display: flex; gap: 3px; align-items: flex-end; height: 34px; }
+    .nucleos i { display: block; width: 7px; height: 100%; border-radius: 2px; background: rgba(255,255,255,.07); position: relative; overflow: hidden; }
+    .nucleos i b { position: absolute; left: 0; right: 0; bottom: 0; background: var(--acc); border-radius: 2px; transition: height .5s var(--lt-ease-out); }
+    .hw-num { font-family: var(--lt-mono); font-size: 12px; color: var(--lt-muted); line-height: 1.45; }
+    .hw-num b { color: var(--lt-ink); font-weight: 600; }
+    .hw-mid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px 18px; min-width: 0; }
+    .medidor { min-width: 0; }
+    /* valores reais completos: o rótulo em cima, o valor (que pode ser longo) quebra a linha */
+    .medidor .rot { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; row-gap: 1px; font-size: 11.5px; color: var(--lt-faint); margin-bottom: 4px; }
+    .medidor .rot b { color: var(--lt-muted); font-family: var(--lt-mono); font-weight: 500; font-size: 11px; white-space: normal; overflow-wrap: anywhere; }
+    .barra { height: 6px; border-radius: 99px; background: rgba(255,255,255,.07); overflow: hidden; }
+    .barra > div { height: 100%; width: 0; background: var(--acc); border-radius: 99px; transition: width .5s var(--lt-ease-out), background-color .3s; }
+    .barra.alerta > div { background: #fbbf24; }
+    .barra.perigo > div { background: var(--lt-danger); }
+    .hw-perfil { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .hw-perfil .faint { font-size: 11.5px; text-align: right; }
+
+    /* área de trabalho */
+    .mesa { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr) minmax(300px, 360px); gap: 18px; align-items: start; }
+    .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+    /* envio */
+    .drop { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 22px 16px; border: 1.5px dashed color-mix(in srgb, var(--acc) 35%, transparent); border-radius: 16px; transition: border-color .2s, background-color .2s; }
+    .drop.sobre { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 8%, transparent); }
+    .drop p { margin: 0; font-size: 12.5px; line-height: 1.5; }
+    .drop.compacto { padding: 12px; flex-direction: row; justify-content: center; }
+    .drop.compacto p { display: none; }
+    .img-op { margin-top: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--lt-line); background: rgba(255,255,255,.02); }
+    .img-op .rot { font-size: 11.5px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--lt-faint); margin-bottom: 6px; display: block; }
+    .img-op .campo { margin: 6px 0; grid-template-columns: 70px 1fr; }
+    .img-op select { width: 100%; }
+    .imagem-box { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: start; margin-bottom: 10px; }
+    .xadrez { width: 92px; height: 92px; border-radius: 10px; border: 1px solid var(--lt-line); background: repeating-conic-gradient(#2b2f36 0 25%, #1c1f24 0 50%) 0 0 / 14px 14px; display: grid; place-items: center; overflow: hidden; }
+    .xadrez img { max-width: 100%; max-height: 100%; }
+    .projetos { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+    .proj { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 11px; border: 1px solid var(--lt-line); background: rgba(255,255,255,.02); cursor: pointer; text-align: left; width: 100%; }
+    .proj[aria-current="true"] { border-color: color-mix(in srgb, var(--acc) 55%, transparent); background: color-mix(in srgb, var(--acc) 8%, transparent); }
+    .proj .nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; }
+    .proj .ext { font-family: var(--lt-mono); font-size: 10.5px; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,.06); color: var(--lt-muted); text-transform: uppercase; }
+    .proj .x { width: 28px; height: 28px; border-radius: 8px; border: 0; background: transparent; color: var(--lt-faint); cursor: pointer; display: grid; place-items: center; }
+    .proj .x:hover { color: var(--lt-danger); background: rgba(248,113,113,.1); }
+
+    /* peças */
+    .abas { display: flex; gap: 4px; padding: 12px 16px 0; }
+    .abas button { flex: 1; min-height: 34px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--lt-faint); font-size: 12.5px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
+    .abas button[aria-selected="true"] { color: var(--lt-ink); border-bottom-color: var(--acc); }
+    .paleta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .paleta button.cor { width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(255,255,255,.18); cursor: pointer; padding: 0; }
+    .paleta button.cor[aria-pressed="true"] { outline: 2px solid #fff; outline-offset: 2px; }
+    .lista { display: flex; flex-direction: column; gap: 4px; max-height: 330px; overflow: auto; margin: 10px -6px 0; padding: 0 6px; scrollbar-width: thin; }
+    .peca { display: grid; grid-template-columns: 26px 1fr auto auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; user-select: none; }
+    .peca:hover { background: rgba(255,255,255,.03); }
+    .peca[aria-selected="true"] { border-color: color-mix(in srgb, var(--acc) 50%, transparent); background: color-mix(in srgb, var(--acc) 9%, transparent); }
+    .peca.off .pn { opacity: .45; text-decoration: line-through; }
+    .amostra { width: 22px; height: 22px; border-radius: 7px; border: 1px solid rgba(255,255,255,.2); }
+    .amostra.sem { background: repeating-linear-gradient(45deg, #2a2d34 0 4px, #43474f 4px 8px); }
+    .pn { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pn small { color: var(--lt-faint); font-size: 11px; margin-left: 4px; }
+    .tag { font-size: 10.5px; font-family: var(--lt-mono); padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,.06); color: var(--lt-muted); }
+    .mini { width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--lt-faint); display: grid; place-items: center; cursor: pointer; }
+    .mini:hover { color: var(--lt-ink); background: rgba(255,255,255,.06); }
+    .mini svg { width: 16px; height: 16px; }
+    .editor { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--lt-line); }
+    .editor h3 { margin: 0 0 6px; font-size: 13px; font-weight: 650; }
+    .aviso { font-size: 12.5px; line-height: 1.5; padding: 9px 11px; border-radius: 10px; background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.25); color: #fde68a; margin-bottom: 8px; }
+    .aviso.info { background: color-mix(in srgb, var(--acc) 8%, transparent); border-color: color-mix(in srgb, var(--acc) 28%, transparent); color: color-mix(in srgb, var(--acc) 40%, #fff); }
+    .aviso.erro { background: rgba(248,113,113,.08); border-color: rgba(248,113,113,.3); color: #fecaca; }
+
+    /* palco 3D */
+    .palco-card { overflow: hidden; }
+    .ferramentas { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 12px 14px; border-bottom: 1px solid var(--lt-line); }
+    .palco { position: relative; aspect-ratio: 4 / 3; max-height: 74vh; min-height: 300px; width: 100%; }
+    .palco canvas { position: absolute; inset: 0; }
+    .mapa { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; padding: 18px; }
+    .mapa svg { width: 100%; height: 100%; }
+    .mapa path { cursor: pointer; stroke: rgba(255,255,255,.35); vector-effect: non-scaling-stroke; stroke-width: 1; transition: opacity .15s; }
+    .mapa path:hover { stroke: #fff; stroke-width: 2; }
+    .mapa path.sel { stroke: var(--acc); stroke-width: 2.5; }
+    .mapa path.furo { fill: transparent !important; stroke-dasharray: 4 3; }
+    .mapa path.off { opacity: .15; }
+    .vazio { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--lt-muted); font-size: 14px; line-height: 1.6; }
+    .status { position: absolute; left: 12px; top: 12px; display: flex; gap: 6px; flex-wrap: wrap; pointer-events: none; z-index: 2; }
+    .pilula { font-size: 11.5px; font-family: var(--lt-mono); padding: 5px 9px; border-radius: 99px; background: rgba(11,12,15,.72); border: 1px solid var(--lt-line); color: var(--lt-muted); backdrop-filter: blur(6px); }
+    .pilula.ok { color: #86efac; }
+    .pilula.at { color: #fde68a; }
+    .acoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border-top: 1px solid var(--lt-line); }
+    .acoes .faint { font-size: 12px; }
+    .dica-pintar { position: absolute; right: 12px; top: 12px; z-index: 2; font-size: 12px; padding: 6px 10px; border-radius: 10px; background: color-mix(in srgb, var(--acc) 22%, #0b0c0f); color: #e0f2fe; pointer-events: none; }
+
+    /* fila */
+    .tarefas { display: flex; flex-direction: column; gap: 8px; }
+    .tarefa { padding: 10px 11px; border-radius: 12px; border: 1px solid var(--lt-line); background: rgba(255,255,255,.02); }
+    .tarefa.rodando { border-color: color-mix(in srgb, var(--acc) 40%, transparent); }
+    .tarefa .t1 { display: flex; align-items: center; gap: 8px; }
+    .tarefa .rot { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tarefa .t2 { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: var(--lt-faint); margin-top: 6px; font-family: var(--lt-mono); }
+    .tarefa .barra { margin-top: 7px; }
+    .tarefa .msg { font-size: 12px; margin-top: 6px; color: var(--lt-muted); line-height: 1.45; }
+    .tarefa .msg.erro { color: #fecaca; }
+    .estado { font-size: 10.5px; font-family: var(--lt-mono); padding: 2px 7px; border-radius: 6px; background: rgba(255,255,255,.06); color: var(--lt-muted); white-space: nowrap; }
+    .estado.rodando { background: color-mix(in srgb, var(--acc) 18%, transparent); color: #bae6fd; }
+    .estado.pronto { background: rgba(74,222,128,.12); color: #86efac; }
+    .estado.erro { background: rgba(248,113,113,.12); color: #fecaca; }
+    .estado.aguardando_memoria, .estado.pausado { background: rgba(251,191,36,.12); color: #fde68a; }
+    .tarefa .bts { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+
+    /* exportar */
+    .formatos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .fmt { text-align: left; padding: 10px; border-radius: 11px; border: 1px solid var(--lt-line); background: rgba(255,255,255,.02); cursor: pointer; }
+    .fmt b { display: block; font-size: 13px; }
+    .fmt span { display: block; font-size: 11.5px; color: var(--lt-faint); margin-top: 2px; line-height: 1.35; }
+    .fmt[aria-pressed="true"] { border-color: color-mix(in srgb, var(--acc) 60%, transparent); background: color-mix(in srgb, var(--acc) 9%, transparent); }
+    .saidas { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+    .saida { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 8px 10px; border-radius: 10px; background: rgba(74,222,128,.06); border: 1px solid rgba(74,222,128,.2); }
+    .saida a { color: #86efac; font-weight: 600; text-decoration: none; }
+    .saida a:hover { text-decoration: underline; }
+    .tam { font-family: var(--lt-mono); font-size: 12px; color: var(--lt-muted); }
+    textarea.codigo { width: 100%; min-height: 180px; max-height: 320px; resize: vertical; padding: 10px; border-radius: 11px; border: 1px solid var(--lt-line); background: #0d0f12; color: #cbd5e1; font: 11.5px/1.5 var(--lt-mono); white-space: pre; overflow: auto; }
+    .sub { font-size: 12px; font-weight: 650; color: var(--lt-faint); letter-spacing: .05em; text-transform: uppercase; margin: 14px 0 6px; }
+
+    .toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 20px); opacity: 0; z-index: 90; padding: 10px 16px; border-radius: 12px; background: #1d2026; border: 1px solid var(--lt-line-2); font-size: 13.5px; box-shadow: 0 18px 40px -14px rgba(0,0,0,.8); transition: opacity .2s, transform .25s var(--lt-ease-out); pointer-events: none; max-width: calc(100vw - 32px); }
+    .toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 1280px) {
+      .mesa { grid-template-columns: minmax(290px, 340px) minmax(0, 1fr); }
+      .col.direita { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 900px) {
+      body.lt-body { padding: 72px 16px 48px; }
+      .mesa { grid-template-columns: minmax(0, 1fr); }
+      .col.centro { order: -1; }
+      .col.direita { grid-template-columns: minmax(0, 1fr); }
+      .hw { grid-template-columns: minmax(0, 1fr); }
+      .hw-perfil { align-items: flex-start; }
+      .hw-perfil .faint { text-align: left; }
+      .palco { aspect-ratio: 1 / 1; }
+      .campo { grid-template-columns: 96px 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-maquete.css">
+</head>
+<body class="lt-body tema-maquete">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-conversao)"><img src="/static/localtools/apps/vetor3d.webp" alt="" width="76" height="76"></span>
+    <h1>Vetor3D</h1>
+    <p>Desenho vetorial (<b>SVG, DXF, PDF, AI, EPS</b>) ou imagem vira <b>modelo 3D em alta definição</b>, com chanfro ou inflado por peça.
+      Exporte o arquivo ou um <b>código copia-e-cola</b> que mostra o 3D em qualquer site. Tudo processado na sua máquina, em etapas que acompanham o hardware.</p>
+  </header>
+
+  <main class="wrap">
+    <!-- Hardware -->
+    <section class="card hw" id="hw" aria-label="Hardware">
+      <div class="hw-cpu">
+        <div class="nucleos" id="nucleos" aria-hidden="true"></div>
+        <div class="hw-num" id="hwCpu">Lendo o hardware…</div>
+      </div>
+      <div class="hw-mid">
+        <div class="medidor"><div class="rot">RAM <b id="hwRamT">–</b></div><div class="barra" id="hwRam"><div></div></div></div>
+        <div class="medidor"><div class="rot">Swap <b id="hwSwapT">–</b></div><div class="barra" id="hwSwap"><div></div></div></div>
+        <div class="medidor"><div class="rot">Temperatura <b id="hwTempT">–</b></div><div class="barra" id="hwTemp"><div></div></div></div>
+        <div class="medidor"><div class="rot">GPU <b id="hwGpuT">–</b></div><div class="barra" id="hwGpu"><div></div></div></div>
+      </div>
+      <div class="hw-perfil">
+        <div class="row">
+          <label class="sr" for="perfilModo">Perfil de processamento</label>
+          <select id="perfilModo" title="Perfil de processamento">
+            <option value="auto">Automático</option>
+            <option value="economico">Econômico</option>
+            <option value="maximo">Máximo</option>
+          </select>
+          <label class="sr" for="perfilNucleos">Limite de núcleos</label>
+          <select id="perfilNucleos" title="Limite de núcleos"><option value="">Núcleos: auto</option></select>
+        </div>
+        <div class="faint" id="hwPerfil">–</div>
+      </div>
+    </section>
+
+    <div class="mesa">
+      <!-- Coluna esquerda: arquivos e peças -->
+      <div class="col esquerda">
+        <section class="card" aria-labelledby="tArq">
+          <div class="card-h"><h2 id="tArq">Arquivos</h2><span class="faint" id="fmtInfo" style="font-size:11.5px"></span></div>
+          <div class="card-b">
+            <div class="drop" id="drop">
+              <button class="btn pri" id="escolher" type="button">
+                <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0ZM93.66,77.66,120,51.31V144a8,8,0,0,0,16,0V51.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,77.66Z"/></svg>
+                Enviar desenho
+              </button>
+              <p class="muted">ou arraste para cá · vários de uma vez<br><span class="faint">SVG · DXF · PDF · AI · EPS · PNG/JPG (tira o fundo e vetoriza)</span></p>
+              <input type="file" id="arquivo" class="sr" multiple accept=".svg,.svgz,.dxf,.pdf,.ai,.eps,.ps,.png,.jpg,.jpeg,.webp,.bmp,.gif,.tif,.tiff">
+            </div>
+            <details class="img-op" id="imgOp">
+              <summary class="rot" style="cursor:pointer">Imagens (PNG, JPG…): fundo e modo</summary>
+              <div class="campo"><label for="opFundo">Fundo</label>
+                <select id="opFundo">
+                  <option value="auto">Tirar automaticamente (transparência ou cor da borda)</option>
+                  <option value="ia">Tirar com IA (fotos)</option>
+                  <option value="nenhum">Manter o fundo</option>
+                </select></div>
+              <div class="campo"><label for="opModo">Modo</label>
+                <select id="opModo">
+                  <option value="auto">Automático</option>
+                  <option value="desenho">Desenho: traço + regiões para pintar</option>
+                  <option value="cores">Cores: separa por cor</option>
+                  <option value="volume">Personagem 3D: reconstrução 360° por IA, com textura</option>
+                </select></div>
+              <div class="campo"><label for="opCores">Cores</label><div class="num"><input type="range" id="opCoresR" min="2" max="16" step="1" value="8" aria-label="Número de cores"><input type="number" id="opCores" min="2" max="16" value="8"></div></div>
+              <div class="campo"><label for="opDetalhe">Detalhe</label>
+                <select id="opDetalhe">
+                  <option value="0.0012">Menos regiões (ignora áreas pequenas)</option>
+                  <option value="0.0004" selected>Normal</option>
+                  <option value="0.0001">Mais regiões (até áreas pequenas)</option>
+                </select></div>
+              <p class="faint" style="font-size:11.5px;margin:6px 0 0;line-height:1.45">Vale para as próximas imagens enviadas e para "Reprocessar".</p>
+            </details>
+            <div class="projetos" id="projetos"></div>
+          </div>
+        </section>
+
+        <section class="card" id="cardPecas" aria-label="Peças e modelo" hidden>
+          <div class="abas" role="tablist">
+            <button role="tab" id="abaPecas" aria-selected="true" aria-controls="painelPecas">Peças e cores</button>
+            <button role="tab" id="abaModelo" aria-selected="false" aria-controls="painelModelo">Modelo</button>
+          </div>
+          <div class="card-b" id="painelPecas" role="tabpanel">
+            <div id="imagemBox"></div>
+            <div id="avisos"></div>
+            <div class="paleta" id="paleta" aria-label="Paleta"></div>
+            <div class="row" style="margin-top:10px">
+              <button class="btn sm" id="btPintar" aria-pressed="false" type="button" title="Clique nas regiões do desenho (2D ou 3D) para pintar com a cor escolhida">
+                <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><use href="/static/localtools/icons.svg#paint-brush"/></svg>Pintar clicando</button>
+              <button class="btn sm" id="btAuto" type="button" title="Dá uma cor da paleta a cada peça sem cor">Colorir sem cor</button>
+              <button class="btn sm" id="btTodas" type="button">Selecionar todas</button>
+            </div>
+            <div class="lista" id="lista" role="listbox" aria-multiselectable="true" aria-label="Peças"></div>
+            <div class="editor" id="editor" hidden></div>
+          </div>
+          <div class="card-b" id="painelModelo" role="tabpanel" hidden></div>
+        </section>
+      </div>
+
+      <!-- Centro: palco 3D -->
+      <div class="col centro">
+        <section class="card palco-card" aria-label="Visualização">
+          <div class="ferramentas">
+            <div class="seg" id="segVisao" role="group" aria-label="Visão">
+              <button type="button" data-v="3d" aria-pressed="true">3D</button>
+              <button type="button" data-v="2d" aria-pressed="false">2D</button>
+            </div>
+            <div class="seg" id="segNivel" role="group" aria-label="Qual modelo mostrar">
+              <button type="button" data-n="preview" aria-pressed="true">Preview</button>
+              <button type="button" data-n="hd" aria-pressed="false" disabled>Alta definição</button>
+            </div>
+            <div class="seg" id="segVista" role="group" aria-label="Vista">
+              <button type="button" data-vista="frente" aria-pressed="false">Frente</button>
+              <button type="button" data-vista="iso" aria-pressed="false">3/4</button>
+              <button type="button" data-vista="lado" aria-pressed="false">Lado</button>
+              <button type="button" data-vista="topo" aria-pressed="false">Topo</button>
+            </div>
+            <span class="grow"></span>
+            <button class="btn sm" id="btGirar" type="button" aria-pressed="false" title="Girar sozinho">Girar</button>
+            <button class="btn sm" id="btMalha" type="button" aria-pressed="false" title="Mostrar a malha (triângulos)">Malha</button>
+            <button class="btn sm" id="btFoto" type="button" title="Salvar a imagem do preview (PNG)">Foto</button>
+          </div>
+          <div class="palco" id="palco">
+            <div class="vazio" id="vazio">Envie um desenho para começar.<br><span class="faint">O preview 3D aparece aqui: arraste para girar, role ou pince para aproximar.</span></div>
+            <div class="mapa" id="mapa" hidden></div>
+            <div class="status" id="status"></div>
+            <div class="dica-pintar" id="dicaPintar" hidden>Pintando: clique nas regiões</div>
+          </div>
+          <div class="acoes">
+            <button class="btn" id="btPreview" type="button" disabled>Atualizar preview</button>
+            <button class="btn pri" id="btHD" type="button" disabled>Gerar alta definição</button>
+            <span class="faint grow" id="acoesInfo"></span>
+          </div>
+        </section>
+      </div>
+
+      <!-- Direita: fila e exportação -->
+      <div class="col direita">
+        <section class="card" aria-labelledby="tFila">
+          <div class="card-h"><h2 id="tFila">Fila de processamento</h2><span class="faint" id="filaResumo" style="font-size:11.5px"></span></div>
+          <div class="card-b">
+            <div class="row" style="margin-bottom:10px">
+              <label class="faint" for="filaLimite" style="font-size:12px">Mostrar</label>
+              <select id="filaLimite" title="Quantas etapas mostrar na lista">
+                <option value="3">3</option><option value="5">5</option><option value="10">10</option>
+                <option value="20">20</option><option value="0">Todas</option>
+              </select>
+              <span class="grow"></span>
+              <button class="btn sm" id="btLimparFila" type="button" title="Tira da lista as etapas terminadas">Limpar concluídas</button>
+              <button class="btn sm" id="btCancelarFila" type="button" title="Cancela tudo o que está na fila ou rodando">Cancelar tudo</button>
+            </div>
+            <div class="tarefas" id="tarefas"><div class="faint" style="font-size:13px">Nenhuma etapa na fila.</div></div>
+            <div class="faint" id="filaOcultas" style="font-size:12px;margin-top:8px"></div></div>
+        </section>
+
+        <section class="card" aria-label="Exportar">
+          <div class="abas" role="tablist">
+            <button role="tab" id="abaArq" aria-selected="true" aria-controls="painelArq">Arquivo</button>
+            <button role="tab" id="abaCod" aria-selected="false" aria-controls="painelCod">Código</button>
+          </div>
+          <div class="card-b" id="painelArq" role="tabpanel">
+            <div class="sub" style="margin-top:4px">Modelo</div>
+            <div class="seg" id="arqNivel" role="group" aria-label="Qual modelo exportar">
+              <button type="button" data-n="preview" aria-pressed="true">Preview</button>
+              <button type="button" data-n="hd" aria-pressed="false" disabled>Alta definição</button>
+            </div>
+            <div class="sub">Formato</div>
+            <div class="formatos" id="formatos"></div>
+            <label class="chk" style="margin-top:8px"><input type="checkbox" id="unir"> Unir tudo num sólido único (STL, para impressão)</label>
+            <div class="row" style="margin-top:10px"><button class="btn pri" id="btExportar" type="button" disabled>Exportar para Downloads</button></div>
+            <div class="saidas" id="saidas"></div>
+          </div>
+          <div class="card-b" id="painelCod" role="tabpanel" hidden>
+            <div class="sub" style="margin-top:4px">Modelo</div>
+            <div class="seg" id="codNivel" role="group" aria-label="Qual modelo usar no código">
+              <button type="button" data-n="preview" aria-pressed="true">Preview</button>
+              <button type="button" data-n="hd" aria-pressed="false" disabled>Alta definição</button>
+            </div>
+            <div class="sub">Como o modelo vai no código</div>
+            <div class="seg" id="codCarga" role="group" aria-label="Carga">
+              <button type="button" data-c="exato" aria-pressed="true">Exato<small id="tamExato"></small></button>
+              <button type="button" data-c="receita" aria-pressed="false">Receita leve<small id="tamReceita"></small></button>
+            </div>
+            <div class="faint" id="cargaInfo" style="font-size:12px;margin-top:6px;line-height:1.45"></div>
+            <div class="sub">three.js</div>
+            <div class="seg" id="codThree" role="group" aria-label="three.js">
+              <button type="button" data-t="cdn" aria-pressed="true">CDN<small id="tamCdn"></small></button>
+              <button type="button" data-t="embutido" aria-pressed="false">Embutido<small id="tamEmb"></small></button>
+            </div>
+            <div class="faint" id="threeInfo" style="font-size:12px;margin-top:6px;line-height:1.45"></div>
+            <div class="sub">Onde vai usar</div>
+            <select id="codAlvo" style="width:100%">
+              <option value="html">HTML / JS — qualquer site, WordPress, Netlify, Webflow (trecho)</option>
+              <option value="pagina">Página completa — index.html (Netlify Drop, GitHub Pages)</option>
+              <option value="react">React / Next.js — componente .jsx</option>
+              <option value="php">PHP — arquivo que mostra e gera o modelo</option>
+              <option value="python">Python — Flask, Django, FastAPI, Streamlit</option>
+              <option value="node">Node.js — Express, Netlify Functions, script</option>
+            </select>
+            <div class="sub">Visual</div>
+            <div class="campo"><span class="rot">Proporção</span>
+              <div class="seg" id="codProp" role="group" aria-label="Proporção">
+                <button type="button" data-p="1/1" aria-pressed="true">1:1</button>
+                <button type="button" data-p="4/3" aria-pressed="false">4:3</button>
+                <button type="button" data-p="16/9" aria-pressed="false">16:9</button>
+                <button type="button" data-p="3/4" aria-pressed="false">3:4</button>
+              </div>
+            </div>
+            <div class="campo"><label for="codFundo">Fundo</label>
+              <div class="row"><label class="chk"><input type="checkbox" id="codFundoTransp" checked> Transparente</label><input type="color" id="codFundo" value="#0b0c0f" aria-label="Cor de fundo"></div>
+            </div>
+            <div class="campo"><label for="codVerniz">Verniz</label><div class="num"><input type="range" id="codVerniz" min="0" max="1" step="0.05" value="0.35"></div></div>
+            <div class="row">
+              <label class="chk"><input type="checkbox" id="codGirar" checked> Girar sozinho</label>
+              <label class="chk"><input type="checkbox" id="codPan"> Permitir arrastar (pan)</label>
+              <label class="chk"><input type="checkbox" id="codBaixar" checked> Botão de baixar</label>
+            </div>
+            <div id="codExtras">
+              <div class="campo"><label for="codReducao">Otimizar web</label><div class="num"><input type="range" id="codReducao" min="0" max="0.8" step="0.1" value="0"><span class="tam" id="codReducaoT">0%</span></div></div>
+              <div class="row" id="codExtrasFmt"><span class="faint" style="font-size:12px">Embutir também:</span>
+                <label class="chk"><input type="checkbox" value="stl"> STL</label>
+                <label class="chk"><input type="checkbox" value="3mf"> 3MF</label>
+                <label class="chk"><input type="checkbox" value="obj"> OBJ</label>
+                <label class="chk"><input type="checkbox" value="ply"> PLY</label>
+              </div>
+            </div>
+            <div class="row" style="margin-top:12px">
+              <button class="btn pri" id="btCodigo" type="button" disabled>Gerar código</button>
+              <span class="tam" id="codTotal"></span>
+            </div>
+            <div id="codSaida" hidden style="margin-top:12px">
+              <label class="sr" for="codTexto">Código gerado</label>
+              <textarea class="codigo" id="codTexto" readonly spellcheck="false"></textarea>
+              <div class="row" style="margin-top:8px">
+                <button class="btn sm pri" id="btCopiar" type="button">Copiar</button>
+                <button class="btn sm" id="btSalvarCod" type="button">Salvar arquivo</button>
+                <button class="btn sm" id="btTestar" type="button">Testar numa aba</button>
+                <span class="tam grow" id="codTam"></span>
+              </div>
+              <div class="faint" id="codUso" style="font-size:12px;margin-top:8px;line-height:1.5"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module">
+    import { montar, carregarGLB } from '/static/localtools/vetor3d/viewer.js';
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const kb = (n) => n >= 1073741824 ? (n / 1073741824).toFixed(1) + ' GB' : n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+    const mil = (n) => n >= 1e6 ? (n / 1e6).toFixed(2) + ' mi' : n >= 1e3 ? (n / 1e3).toFixed(1) + ' mil' : String(n);
+    const seg = (s) => s == null ? '' : s < 60 ? Math.round(s) + ' s' : Math.floor(s / 60) + ' min ' + Math.round(s % 60) + ' s';
+    const PALETA = ['#e11d48', '#f97316', '#facc15', '#22c55e', '#14b8a6', '#38bdf8', '#2563eb', '#7c3aed', '#db2777', '#f5f5f4', '#a8a29e', '#1f2937'];
+    const SEM_COR = '#9aa1ac';
+
+    let toastT;
+    function toast(msg) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('on');
+      clearTimeout(toastT);
+      toastT = setTimeout(() => t.classList.remove('on'), 3200);
+    }
+
+    async function api(caminho, op = {}) {
+      const init = { method: op.method || 'GET', headers: {} };
+      if (op.json !== undefined) { init.method = op.method || 'POST'; init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(op.json); }
+      if (op.form) { init.method = 'POST'; init.body = op.form; }
+      const r = await fetch(caminho, init);
+      const d = await r.json().catch(() => ({ success: false, error: 'Resposta inválida do servidor.' }));
+      if (!d.success) throw new Error(d.error || 'Erro');
+      return d;
+    }
+
+    const E = {
+      projetos: [], atual: null, sel: new Set(), pintar: false, pincel: PALETA[0],
+      visao: '3d', nivelVer: 'preview', carregado: { preview: 0, hd: 0 }, nivelCarregado: null,
+      formatos: null, fila: [], hw: null, formato: 'glb', arqNivel: 'preview', saidas: [],
+      cod: { nivel: 'preview', carga: 'exato', three: 'cdn', proporcao: '1/1' }, codTarefa: null, codTexto: '', codExt: 'html',
+      exportando: new Set(), pendentes: { pecas: new Map(), config: {} }, salvarT: null,
+    };
+
+    /* ---------------- Visualizador ---------------- */
+    let viewer = null;
+    try {
+      viewer = montar($('palco'), { pan: true, capturavel: true, verniz: 0.35 });
+      viewer.aoTocar((hit) => tocar(hit));
+    } catch (e) {
+      $('vazio').innerHTML = 'Este navegador não consegue mostrar 3D (WebGL desligado).<br><span class="faint">O mapa 2D e as exportações continuam funcionando.</span>';
+    }
+
+    function escala() {
+      const p = E.atual;
+      if (!p || !p.largura_original) return 1;
+      return (p.config.largura || p.largura_original) / p.largura_original;
+    }
+    const tela = document.createElement('canvas').getContext('2d');
+    const caminhos = new Map();
+    function pecaNoPonto(x, y) {
+      // x, y em mm do desenho original (y para cima)
+      const ps = [...E.atual.pecas].filter((p) => p.ativo && !p.furo).sort((a, b) => b.ordem - a.ordem);
+      for (const p of ps) {
+        const c = p.caixa;
+        if (x < c[0] || x > c[2] || y < c[1] || y > c[3]) continue;
+        let path = caminhos.get(p.id);
+        if (!path) { path = new Path2D(p.d); caminhos.set(p.id, path); }
+        if (tela.isPointInPath(path, x, -y, 'evenodd')) return p;
+      }
+      return null;
+    }
+    function tocar(hit) {
+      if (!E.atual || !hit) return;
+      const s = escala();
+      // o modelo foi centrado pela caixa 3D; o centro 2D do desenho é a origem da geometria
+      const p = pecaNoPonto(hit.x / s, hit.y / s) || E.atual.pecas.find((q) => hit.ids.includes(q.id));
+      if (!p) return;
+      clicarPeca(p.id, { shift: false, pintar: E.pintar });
+    }
+
+    /* ---------------- Hardware ---------------- */
+    async function lerHardware() {
+      try {
+        const { hardware: h } = await api('/vetor3d/hardware');
+        E.hw = h;
+        const nuc = $('nucleos');
+        if (nuc.children.length !== h.cpu.por_nucleo.length) nuc.innerHTML = h.cpu.por_nucleo.map(() => '<i><b></b></i>').join('');
+        h.cpu.por_nucleo.forEach((v, i) => { nuc.children[i].firstChild.style.height = Math.max(4, v) + '%'; });
+        $('hwCpu').innerHTML = `<b>${esc(h.cpu.nome || 'CPU')}</b><br>${h.cpu.fisicos} núcleos · ${h.cpu.logicos} threads · <b>${Math.round(h.cpu.uso)}%</b>${h.cpu.mhz ? ' · ' + (h.cpu.mhz / 1000).toFixed(1) + ' GHz' : ''}`;
+        // valores reais do sistema (lidos agora, a cada 1,5 s)
+        const emUso = h.ram.em_uso ?? (h.ram.total - h.ram.livre);
+        medidor('hwRam', emUso / h.ram.total, `${kb(emUso)} em uso · ${kb(h.ram.cache || 0)} cache · ${kb(h.ram.disponivel ?? h.ram.livre)} livre (de ${kb(h.ram.total)})`);
+        const troca = h.swap.troca_mb_s || 0;
+        medidor('hwSwap', h.swap.total ? h.swap.usado / h.swap.total : 0,
+          h.swap.total ? `${kb(h.swap.usado)} / ${kb(h.swap.total)}${troca >= 0.1 ? ' · trocando ' + troca.toFixed(1) + ' MB/s' : ' · parado'}` : 'sem swap',
+          troca >= 20 ? 'perigo' : troca >= 5 ? 'alerta' : '');
+        const tp = h.temperaturas || {};
+        const t = tp.cpu ?? h.cpu.temperatura;
+        const extras = [tp.gpu != null ? `GPU ${Math.round(tp.gpu)} °C` : '', tp.disco != null ? `SSD ${Math.round(tp.disco)} °C` : ''].filter(Boolean).join(' · ');
+        medidor('hwTemp', t ? Math.min(1, (t - 30) / 70) : 0, t ? `CPU ${t.toFixed(0)} °C${extras ? ' · ' + extras : ''}` : (extras || 'sem sensor'), t >= 90 ? 'perigo' : t >= 80 ? 'alerta' : '');
+        const vram = h.gpu.vram_total ? ` · VRAM ${kb(h.gpu.vram_usada || 0)} / ${kb(h.gpu.vram_total)}` : '';
+        medidor('hwGpu', h.gpu.uso != null ? h.gpu.uso / 100 : 0, `${h.gpu.nome || h.gpu.fabricante || 'não detectada'}${h.gpu.uso != null ? ' · ' + h.gpu.uso + '%' : ''}${vram}`);
+        const pf = h.perfil;
+        $('hwPerfil').textContent = `Perfil ${pf.nome}${pf.modo === 'auto' ? '' : ' (automático seria ' + pf.automatico + ')'} · ${pf.workers} processo(s) por HD · ${pf.hd_simultaneos} HD por vez · até ${mil(pf.max_triangulos)} triângulos`;
+        $('perfilModo').value = pf.modo;
+        const sel = $('perfilNucleos');
+        if (sel.options.length === 1) for (let i = 1; i <= h.cpu.logicos; i++) sel.add(new Option(`Até ${i} núcleo${i > 1 ? 's' : ''}`, i));
+        sel.value = pf.nucleos_limite || '';
+        const f = h.fila;
+        $('filaResumo').textContent = `${f.rodando} rodando · ${f.esperando} na fila · ${f.processos} processo(s) · ${kb(f.memoria_mb * 1048576)}`;
+      } catch (e) { /* servidor ocupado: tenta de novo */ }
+    }
+    function medidor(id, frac, texto, classe = '') {
+      const b = $(id);
+      b.firstElementChild.style.width = Math.round(Math.max(0, Math.min(1, frac)) * 100) + '%';
+      b.className = 'barra ' + (classe || (frac > 0.9 ? 'perigo' : frac > 0.75 ? 'alerta' : ''));
+      $(id + 'T').textContent = texto;
+    }
+    async function preferir(dados) {
+      try {
+        await api('/vetor3d/preferencias', { json: dados });
+        lerHardware();
+        toast('Perfil atualizado: vale para as próximas etapas.');
+      } catch (e) { toast(e.message); }
+    }
+    $('perfilModo').addEventListener('change', (e) => preferir({ modo: e.target.value }));
+    $('perfilNucleos').addEventListener('change', (e) => preferir({ nucleos: e.target.value || 0 }));
+
+    /* ---------------- Projetos ---------------- */
+    async function carregarProjetos() {
+      const { projetos } = await api('/vetor3d/projetos');
+      E.projetos = projetos;
+      renderProjetos();
+      if (!E.atual && projetos.length) abrir(projetos[0].id);
+    }
+    function renderProjetos() {
+      $('drop').classList.toggle('compacto', E.projetos.length > 0);
+      $('projetos').innerHTML = E.projetos.map((p) => `
+        <div class="proj" role="button" tabindex="0" data-id="${p.id}" aria-current="${E.atual && E.atual.id === p.id}">
+          <span class="ext">${esc(p.ext)}</span><span class="nome">${esc(p.nome)}</span>
+          <span class="faint" style="font-size:11.5px">${p.estado === 'lendo' ? 'lendo…' : p.estado === 'erro' ? 'erro' : p.pecas + ' peças'}${p.tem_hd ? ' · HD' : ''}</span>
+          <button class="x" type="button" data-rm="${p.id}" title="Remover" aria-label="Remover ${esc(p.nome)}">✕</button>
+        </div>`).join('');
+    }
+    $('projetos').addEventListener('click', async (e) => {
+      const rm = e.target.closest('[data-rm]');
+      if (rm) {
+        e.stopPropagation();
+        await api('/vetor3d/projeto/' + rm.dataset.rm, { method: 'DELETE' }).catch((x) => toast(x.message));
+        if (E.atual && E.atual.id === rm.dataset.rm) { E.atual = null; limparPalco(); }
+        carregarProjetos();
+        return;
+      }
+      const el = e.target.closest('.proj');
+      if (el) abrir(el.dataset.id);
+    });
+    $('projetos').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.classList.contains('proj')) abrir(e.target.dataset.id); });
+
+    function limparPalco() {
+      $('cardPecas').hidden = true;
+      $('vazio').hidden = false;
+      $('mapa').hidden = true;
+      $('status').innerHTML = '';
+      $('lista').innerHTML = '';
+      $('editor').hidden = true;
+      if (viewer) viewer.limpar();
+      E.carregado = { preview: 0, hd: 0 };
+      E.nivelCarregado = null;
+      atualizarBotoes();
+    }
+
+    async function abrir(id) {
+      try {
+        const { projeto } = await api('/vetor3d/projeto/' + id);
+        const trocou = !E.atual || E.atual.id !== id;
+        E.atual = projeto;
+        if (trocou) {
+          E.sel.clear();
+          caminhos.clear();
+          E.carregado = { preview: 0, hd: 0 };
+          E.nivelVer = projeto.resultados.hd && !projeto.resultados.hd.desatualizado ? 'hd' : 'preview';
+          E.saidas = [];
+          $('codSaida').hidden = true;
+          E.nivelCarregado = null;
+          if (viewer) viewer.limpar();
+        }
+        renderProjetos();
+        renderTudo();
+        await mostrarModelo();
+      } catch (e) { toast(e.message); }
+    }
+
+    async function enviarArquivos(lista) {
+      for (const f of lista) {
+        const fd = new FormData();
+        fd.append('file', f);
+        for (const [k, v] of Object.entries(opcoesImagem())) fd.append(k, v);
+        try {
+          const { projeto } = await api('/vetor3d/enviar', { form: fd });
+          toast(`${f.name}: lendo o arquivo…`);
+          E.projetos.unshift({ id: projeto.id, nome: projeto.nome, ext: projeto.ext, estado: 'lendo', pecas: 0 });
+          if (lista.length === 1 || !E.atual) { E.atual = null; await abrir(projeto.id); }
+          renderProjetos();
+        } catch (e) { toast(`${f.name}: ${e.message}`); }
+      }
+      pollFila(true);
+    }
+    $('escolher').addEventListener('click', () => $('arquivo').click());
+    $('arquivo').addEventListener('change', (e) => { enviarArquivos([...e.target.files]); e.target.value = ''; });
+    const drop = $('drop');
+    ['dragenter', 'dragover'].forEach((t) => document.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add('sobre'); }));
+    ['dragleave', 'drop'].forEach((t) => document.addEventListener(t, (e) => { e.preventDefault(); if (t === 'drop' || e.target === document.documentElement) drop.classList.remove('sobre'); }));
+    document.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files.length) enviarArquivos([...e.dataTransfer.files]); });
+
+    /* ---------------- Peças ---------------- */
+    function renderTudo() {
+      const p = E.atual;
+      $('cardPecas').hidden = !p;
+      if (!p) return;
+      renderAvisos();
+      renderPaleta();
+      renderLista();
+      renderEditor();
+      renderModelo();
+      renderMapa();
+      atualizarBotoes();
+      renderExportar();
+    }
+    function opcoesImagem() {
+      return { fundo: $('opFundo').value, modo_imagem: $('opModo').value, cores_imagem: $('opCores').value, detalhe: $('opDetalhe').value };
+    }
+    $('opCoresR').addEventListener('input', (e) => { $('opCores').value = e.target.value; });
+    $('opCores').addEventListener('input', (e) => { $('opCoresR').value = e.target.value; });
+    function renderImagem() {
+      const p = E.atual;
+      if (!p || !p.imagem) { $('imagemBox').innerHTML = ''; return; }
+      const imp = p.importacao || {};
+      const fundo = { auto: 'automático', ia: 'IA', nenhum: 'mantido' }[imp.fundo || 'auto'];
+      const modo = { auto: 'automático', desenho: 'desenho', cores: 'cores', volume: 'personagem 3D' }[imp.modo_imagem || 'auto'];
+      $('imagemBox').innerHTML = `<div class="imagem-box">
+        <div class="xadrez">${p.sem_fundo ? `<img src="${p.sem_fundo}?v=${p.versao}" alt="Imagem sem fundo">` : '<span class="faint" style="font-size:11px">…</span>'}</div>
+        <div><div style="font-size:13px;font-weight:600">Imagem sem fundo</div>
+          <div class="faint" style="font-size:12px;margin:3px 0 8px">Fundo ${fundo} · modo ${modo}</div>
+          <div class="row">${p.sem_fundo ? `<a class="btn sm" href="${p.sem_fundo}?baixar=1">Baixar PNG</a>` : ''}
+          <button class="btn sm" type="button" id="btReler" title="Lê a imagem de novo com as opções de 'Imagens' do cartão Arquivos">Reprocessar</button>
+          ${imp.modo_imagem !== 'volume' ? '<button class="btn sm pri" type="button" id="btVolume" title="Vira um personagem 3D de verdade: a IA reconstrói o objeto inteiro (costas e lados incluídos) e a imagem vira a textura da frente">Personagem 3D</button>' : ''}</div></div></div>`;
+      if ($('btVolume')) $('btVolume').addEventListener('click', () => { $('opModo').value = 'volume'; $('btReler').click(); });
+      $('btReler').addEventListener('click', async () => {
+        $('imgOp').open = true;
+        try {
+          const { projeto } = await api(`/vetor3d/projeto/${p.id}/reler`, { json: opcoesImagem() });
+          E.sel.clear(); caminhos.clear(); E.carregado = { preview: 0, hd: 0 }; E.nivelCarregado = null;
+          if (viewer) viewer.limpar();
+          E.atual = projeto; renderTudo(); mostrarModelo(); pollFila(true);
+          toast('Reprocessando a imagem com as novas opções…');
+        } catch (e) { toast(e.message); }
+      });
+    }
+    function renderAvisos() {
+      renderImagem();
+      const p = E.atual;
+      let h = '';
+      if (p.estado === 'lendo') h += '<div class="aviso info">Lendo o arquivo… acompanhe na fila.</div>';
+      if (p.estado === 'erro') h += `<div class="aviso erro">${esc(p.erro)}</div>`;
+      for (const a of p.avisos || []) h += `<div class="aviso${/não tem cores|clique/.test(a) ? '' : ' info'}">${esc(a)}</div>`;
+      $('avisos').innerHTML = h;
+    }
+    function renderPaleta() {
+      $('paleta').innerHTML = PALETA.map((c) => `<button type="button" class="cor" style="background:${c}" data-cor="${c}" aria-label="Cor ${c}" aria-pressed="${c === E.pincel}"></button>`).join('') +
+        `<label class="sr" for="corLivre">Outra cor</label><input type="color" id="corLivre" value="${E.pincel}" title="Outra cor">`;
+    }
+    $('paleta').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-cor]');
+      if (!b) return;
+      E.pincel = b.dataset.cor;
+      if (E.sel.size && !E.pintar) alterarPecas([...E.sel], { cor: E.pincel });
+      renderPaleta();
+    });
+    $('paleta').addEventListener('input', (e) => {
+      if (e.target.id !== 'corLivre') return;
+      E.pincel = e.target.value;
+      if (E.sel.size && !E.pintar) alterarPecas([...E.sel], { cor: E.pincel });
+    });
+    $('btPintar').addEventListener('click', () => {
+      E.pintar = !E.pintar;
+      $('btPintar').setAttribute('aria-pressed', E.pintar);
+      $('dicaPintar').hidden = !E.pintar;
+    });
+    $('btAuto').addEventListener('click', () => {
+      const sem = E.atual.pecas.filter((p) => !p.cor && p.ativo && !p.furo);
+      if (!sem.length) { toast('Todas as peças já têm cor.'); return; }
+      sem.forEach((p, i) => alterarPecas([p.id], { cor: PALETA[i % (PALETA.length - 3)] }, false));
+      agendarSalvar();
+      renderLista(); renderMapa(); renderEditor();
+    });
+    $('btTodas').addEventListener('click', () => {
+      const todas = E.atual.pecas.map((p) => p.id);
+      if (E.sel.size === todas.length) E.sel.clear(); else todas.forEach((i) => E.sel.add(i));
+      renderLista(); renderEditor(); renderMapa(); destacar();
+    });
+
+    function renderLista() {
+      const p = E.atual;
+      const max = 600;
+      const ps = p.pecas.slice(0, max);
+      $('lista').innerHTML = ps.map((q) => `
+        <div class="peca${q.ativo ? '' : ' off'}" role="option" tabindex="0" data-id="${q.id}" aria-selected="${E.sel.has(q.id)}">
+          <span class="amostra${q.cor ? '' : ' sem'}" style="${q.cor ? 'background:' + q.cor : ''}"></span>
+          <span class="pn">${esc(q.nome)}<small>${q.furo ? 'furo' : q.estilo === 'volume' ? 'personagem 3D' : q.estilo === 'inflado' ? 'inflado' : 'chanfro'}</small></span>
+          <button class="mini" type="button" data-furo="${q.id}" title="${q.furo ? 'É um furo: clique para virar peça' : 'Transformar em furo'}" aria-label="Alternar furo">${q.furo ? '◌' : '●'}</button>
+          <button class="mini" type="button" data-on="${q.id}" title="${q.ativo ? 'Esconder' : 'Mostrar'}" aria-label="${q.ativo ? 'Esconder' : 'Mostrar'}">
+            <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">${q.ativo ? '<path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z"/>' : '<path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm149.15,147-26-28.62A64,64,0,0,0,128,64a8,8,0,0,0-1.32,15.89l-.21-.23Z"/>'}</svg>
+          </button>
+        </div>`).join('') + (p.pecas.length > max ? `<div class="faint" style="font-size:12px;padding:6px">+ ${p.pecas.length - max} peças (use o mapa 2D para selecionar)</div>` : '');
+    }
+    $('lista').addEventListener('click', (e) => {
+      const fu = e.target.closest('[data-furo]');
+      if (fu) { const q = peca(+fu.dataset.furo); alterarPecas([q.id], { furo: !q.furo }); return; }
+      const on = e.target.closest('[data-on]');
+      if (on) { const q = peca(+on.dataset.on); alterarPecas([q.id], { ativo: !q.ativo }); return; }
+      const el = e.target.closest('.peca');
+      if (el) clicarPeca(+el.dataset.id, { shift: e.shiftKey || e.ctrlKey || e.metaKey, pintar: false });
+    });
+    $('lista').addEventListener('keydown', (e) => {
+      const el = e.target.closest('.peca');
+      if (!el) return;
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); clicarPeca(+el.dataset.id, { shift: e.shiftKey || e.ctrlKey, pintar: false }); }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const n = e.key === 'ArrowDown' ? el.nextElementSibling : el.previousElementSibling; if (n && n.focus) n.focus(); }
+    });
+    const peca = (id) => E.atual.pecas.find((p) => p.id === id);
+
+    function clicarPeca(id, { shift, pintar }) {
+      if (pintar) { alterarPecas([id], { cor: E.pincel }); return; }
+      if (shift) { E.sel.has(id) ? E.sel.delete(id) : E.sel.add(id); } else { E.sel.clear(); E.sel.add(id); }
+      renderLista(); renderEditor(); renderMapa(); destacar();
+      const el = $('lista').querySelector(`[data-id="${id}"]`);
+      if (el) el.scrollIntoView({ block: 'nearest' });
+    }
+    function destacar() { if (viewer) viewer.destacar([...E.sel]); }
+
+    /* edição: aplica na hora (lista, mapa, 3D) e salva com atraso */
+    function alterarPecas(ids, campos, salvar = true) {
+      for (const id of ids) {
+        const q = peca(id);
+        if (!q) continue;
+        Object.assign(q, campos);
+        E.pendentes.pecas.set(id, Object.assign(E.pendentes.pecas.get(id) || {}, campos));
+      }
+      if ('cor' in campos && viewer) {
+        const mapa = {};
+        ids.forEach((i) => { mapa[i] = campos.cor || SEM_COR; });
+        viewer.definirCores(mapa);
+      }
+      if (salvar) { agendarSalvar(); renderLista(); renderMapa(); renderEditor(); }
+    }
+    function alterarConfig(campos) {
+      Object.assign(E.atual.config, campos);
+      Object.assign(E.pendentes.config, campos);
+      agendarSalvar();
+    }
+    function agendarSalvar() {
+      clearTimeout(E.salvarT);
+      $('acoesInfo').textContent = 'Alterações pendentes…';
+      E.salvarT = setTimeout(salvar, 450);
+    }
+    async function salvar() {
+      if (!E.atual) return;
+      const pecas = [...E.pendentes.pecas.entries()].map(([id, c]) => ({ id, ...c }));
+      const config = E.pendentes.config;
+      E.pendentes = { pecas: new Map(), config: {} };
+      if (!pecas.length && !Object.keys(config).length) return;
+      try {
+        const corpo = { pecas, config };
+        if ('largura' in config) corpo.escalar = $('escalar') ? $('escalar').checked : true;
+        const { projeto } = await api('/vetor3d/projeto/' + E.atual.id, { method: 'PATCH', json: corpo });
+        mesclar(projeto);
+        pollFila(true);
+      } catch (e) { toast(e.message); }
+    }
+    function mesclar(projeto) {
+      // mantém o que ainda não foi salvo por cima do que voltou do servidor
+      for (const [id, c] of E.pendentes.pecas) { const q = projeto.pecas.find((p) => p.id === id); if (q) Object.assign(q, c); }
+      Object.assign(projeto.config, E.pendentes.config);
+      E.atual = projeto;
+      const foco = document.activeElement && document.activeElement.closest && document.activeElement.closest('#editor, #painelModelo');
+      renderAvisos(); renderLista(); renderMapa(); atualizarBotoes(); renderExportar();
+      if (!foco) { renderEditor(); renderModelo(); }
+    }
+
+    function valor(lista, campo) {
+      const vs = [...new Set(lista.map((q) => q[campo]))];
+      return vs.length === 1 ? vs[0] : null;
+    }
+    function campoNum(rot, campo, v, min, max, passo, unidade = 'mm') {
+      return `<div class="campo"><label for="ed_${campo}">${rot}</label><div class="num">
+        <input type="range" id="ed_${campo}_r" data-campo="${campo}" min="${min}" max="${max}" step="${passo}" value="${v ?? min}" aria-label="${rot}">
+        <input type="number" id="ed_${campo}" data-campo="${campo}" min="0" step="${passo}" value="${v ?? ''}" placeholder="vários"><span class="faint" style="font-size:11px;width:18px">${unidade}</span></div></div>`;
+    }
+    function segmento(campo, opcoes, v) {
+      return `<div class="seg" role="group">${opcoes.map(([val, rot]) => `<button type="button" data-campo="${campo}" data-val="${val}" aria-pressed="${v === val}">${rot}</button>`).join('')}</div>`;
+    }
+    function renderEditor() {
+      const ed = $('editor');
+      const lista = [...E.sel].map(peca).filter(Boolean);
+      if (!lista.length) { ed.hidden = true; return; }
+      ed.hidden = false;
+      const L = E.atual.config.largura || 100;
+      const v = (c) => valor(lista, c);
+      const est = v('estilo');
+      let h = `<h3>${lista.length === 1 ? esc(lista[0].nome) : lista.length + ' peças selecionadas'}</h3>
+        <div class="campo"><span class="rot">Cor</span><div class="row"><input type="color" id="ed_cor" value="${v('cor') || SEM_COR}" aria-label="Cor da peça">
+          <button class="btn sm" type="button" id="ed_semcor">Sem cor</button>
+          <label class="chk"><input type="checkbox" id="ed_ativo" ${v('ativo') !== false ? 'checked' : ''}> Visível</label>
+          <label class="chk"><input type="checkbox" id="ed_furo" ${v('furo') ? 'checked' : ''}> Furo</label></div></div>
+        <div class="campo"><span class="rot">Estilo</span>${segmento('estilo', [['chanfro', 'Chanfro'], ['inflado', 'Inflado']].concat((E.atual.importacao || {}).modo_imagem === 'volume' ? [['volume', 'Personagem 3D']] : []), est)}</div>`;
+      if (est === 'volume') {
+        const met = v('metodo') || 'reconstrucao';
+        h += `<div class="campo"><span class="rot">Método</span>${segmento('metodo', [['reconstrucao', 'Reconstrução 360°'], ['inflado', 'Inflado']], met)}</div>`;
+        if (met === 'reconstrucao') {
+          h += `<div class="campo"><span class="rot">Motor</span>${segmento('motor', [['auto', 'Automático'], ['maximo', 'Máxima qualidade'], ['leve', 'Leve']], v('motor') || 'auto')}</div>`;
+          if ((v('motor') || 'auto') !== 'leve') h += `<div class="campo"><span class="rot">Ajuste</span>${segmento('contorno', [['ia', 'Desenho adaptado ao 3D'], ['exato', 'Contorno exato']], v('contorno') || 'ia')}</div>`;
+          h += campoNum('Espessura', 'espessura', v('espessura') ?? 1, 0.3, 3, 0.05, '×');
+        } else {
+          h += campoNum('Profundidade', 'profundidade', v('profundidade'), 0.05, 1.2, 0.05, '×');
+          h += campoNum('Volume', 'volume', v('volume'), 0.2, 2.5, 0.05, '×');
+          h += campoNum('Relevo (IA)', 'detalhe', v('detalhe'), 0, 1.5, 0.05, '×');
+          h += campoNum('Traço', 'traco', v('traco'), 0, 2, 0.05, '×');
+          h += `<div class="campo"><span class="rot">Costas</span>${segmento('costas', [['lisa', 'Lisas'], ['imagem', 'Com a imagem']], v('costas'))}</div>`;
+        }
+        h += campoNum('Metal', 'metal', v('metal'), 0, 1, 0.05, '');
+        h += campoNum('Rugosidade', 'rugosidade', v('rugosidade'), 0, 1, 0.05, '');
+        h += met === 'reconstrucao'
+          ? '<p class="faint" style="font-size:11.5px;line-height:1.45;margin:8px 0 0">Reconstrução 360°: uma IA treinada em objetos 3D monta o volume inteiro (costas, lados, embaixo) e a frente recebe a imagem original. <b>Motor</b>: Máxima qualidade (Hunyuan3D, forma 3D muito mais fiel; ~7 min na primeira vez por imagem, depois fica em cache) ou Leve (TripoSR, ~1 min; para computadores com pouca RAM ou disco). Automático usa o máximo quando o computador comporta. <b>Ajuste</b>: Desenho adaptado ao 3D (padrão) = a forma 3D da IA fica limpa e redonda e cada traço do desenho é levado ao lugar certo do corpo, sem distorcer nem se perder; Contorno exato = o 3D é deformado até ter exatamente o contorno do desenho visto de frente (pode criar frisos nas bordas). Preview ~400 mil triângulos e textura 2048; alta definição ~2,5 milhões e textura 4096. As etapas de IA rodam com prioridade baixa e limite de memória: o computador continua livre para outros programas (com pouca memória livre, demora mais, mas não trava).</p>'
+          : '<p class="faint" style="font-size:11.5px;line-height:1.45;margin:8px 0 0">Inflado: a silhueta ganha volume dos dois lados (mais rápido, mas as costas são uma cópia lisa da frente). Profundidade: espessura máxima em relação à largura. Volume: quão roliças ficam as partes finas. Relevo: quanto a IA de profundidade empurra cada parte para a frente ou para trás.</p>';
+        ed.innerHTML = h;
+        return;
+      }
+      h += campoNum(est === 'inflado' ? 'Parede' : 'Espessura', 'altura', v('altura'), 0, Math.max(1, +(L * 0.25).toFixed(1)), 0.1);
+      if (est !== 'inflado') {
+        h += campoNum('Chanfro', 'chanfro', v('chanfro'), 0, Math.max(0.5, +(L * 0.05).toFixed(1)), 0.05);
+        h += `<div class="campo"><span class="rot">Perfil</span>${segmento('perfil', [['redondo', 'Redondo'], ['reto', 'Reto']], v('perfil'))}</div>`;
+        h += `<div class="campo"><span class="rot">Lados</span>${segmento('lados', [['topo', 'Em cima'], ['ambos', 'Dos dois lados']], v('lados'))}</div>`;
+      }
+      if (est !== 'chanfro') {
+        h += campoNum('Estufar', 'inflado', v('inflado'), 0.1, 2, 0.05, '×');
+        h += `<div class="campo"><span class="rot">Fundo</span>${segmento('fundo', [['plano', 'Plano'], ['duplo', 'Balão']], v('fundo'))}</div>`;
+      }
+      h += campoNum('Elevação', 'z', v('z'), 0, Math.max(1, +(L * 0.2).toFixed(1)), 0.1);
+      h += campoNum('Metal', 'metal', v('metal'), 0, 1, 0.05, '');
+      h += campoNum('Rugosidade', 'rugosidade', v('rugosidade'), 0, 1, 0.05, '');
+      ed.innerHTML = h;
+    }
+    $('editor').addEventListener('input', (e) => {
+      const ids = [...E.sel];
+      const t = e.target;
+      if (t.id === 'ed_cor') { alterarPecas(ids, { cor: t.value }, false); agendarSalvar(); renderLista(); renderMapa(); return; }
+      if (t.dataset.campo && (t.type === 'range' || t.type === 'number')) {
+        const n = parseFloat(t.value);
+        if (!isFinite(n)) return;
+        const par = $(t.type === 'range' ? `ed_${t.dataset.campo}` : `ed_${t.dataset.campo}_r`);
+        if (par) par.value = n;
+        alterarPecas(ids, { [t.dataset.campo]: n }, false);
+        agendarSalvar();
+      }
+    });
+    $('editor').addEventListener('change', (e) => {
+      const ids = [...E.sel];
+      if (e.target.id === 'ed_ativo') alterarPecas(ids, { ativo: e.target.checked });
+      if (e.target.id === 'ed_furo') alterarPecas(ids, { furo: e.target.checked });
+    });
+    $('editor').addEventListener('click', (e) => {
+      const ids = [...E.sel];
+      if (e.target.id === 'ed_semcor') { alterarPecas(ids, { cor: null }); return; }
+      const b = e.target.closest('button[data-campo]');
+      if (!b) return;
+      const campos = { [b.dataset.campo]: b.dataset.val };
+      if (b.dataset.campo === 'estilo') {
+        // medidas que combinam com o estilo escolhido
+        const L = E.atual.config.largura || 100;
+        campos.altura = b.dataset.val === 'inflado' ? +(L * 0.012).toFixed(2) : +(L * 0.05).toFixed(2);
+        if (b.dataset.val === 'volume') Object.assign(campos, { metodo: 'reconstrucao', motor: 'auto', contorno: 'ia', espessura: 1, profundidade: 0.45, volume: 1, detalhe: 0.6, traco: 0.5, costas: 'lisa' });
+      }
+      alterarPecas(ids, campos);
+    });
+
+    /* ---------------- Modelo (configuração geral) ---------------- */
+    function renderModelo() {
+      const c = E.atual.config;
+      const L = c.largura || 100;
+      const s = (campo, ops) => `<div class="seg" role="group">${ops.map(([v, r]) => `<button type="button" data-cfg="${campo}" data-val="${v}" aria-pressed="${c[campo] === v}">${r}</button>`).join('')}</div>`;
+      const n = (rot, campo, v, max, passo = 0.1) => `<div class="campo"><label for="cf_${campo}">${rot}</label><div class="num"><input type="range" data-cfg="${campo}" min="0" max="${max}" step="${passo}" value="${v ?? 0}" aria-label="${rot}"><input type="number" id="cf_${campo}" data-cfg="${campo}" min="0" step="${passo}" value="${v ?? ''}" placeholder="auto"><span class="faint" style="font-size:11px;width:18px">mm</span></div></div>`;
+      $('painelModelo').innerHTML = `
+        <div class="campo"><label for="cf_largura">Largura</label><div class="num"><input type="number" id="cf_largura" data-cfg="largura" min="1" step="1" value="${c.largura ?? ''}" style="width:110px"><span class="faint" style="font-size:12px">mm (altura ${(E.atual.altura_original * escala()).toFixed(1)} mm)</span></div></div>
+        <label class="chk"><input type="checkbox" id="escalar" checked> Espessuras e chanfros acompanham a largura</label>
+        <div class="sub">Formas sobrepostas</div>
+        ${s('sobreposicao', [['recortar', 'Recortar (como no desenho)'], ['empilhar', 'Empilhar em camadas']])}
+        <label class="chk" style="margin-top:8px"><input type="checkbox" data-cfg-chk="unir_iguais" ${c.unir_iguais ? 'checked' : ''}> Juntar peças vizinhas iguais (sem emendas)</label>
+        <div class="sub">Base</div>
+        ${s('base', [['nenhuma', 'Sem base'], ['retangulo', 'Placa'], ['contorno', 'Contorno']])}
+        ${c.base !== 'nenhuma' ? `${n('Espessura', 'base_altura', c.base_altura ?? +(L * 0.02).toFixed(2), +(L * 0.1).toFixed(1))}
+          ${n('Margem', 'base_margem', c.base_margem ?? +(L * 0.04).toFixed(2), +(L * 0.2).toFixed(1))}
+          ${c.base === 'retangulo' ? n('Cantos', 'base_raio', c.base_raio ?? 0, +(L * 0.15).toFixed(1)) : ''}
+          <div class="campo"><label for="cf_base_cor">Cor da base</label><input type="color" id="cf_base_cor" data-cfg="base_cor" value="${c.base_cor || '#2a2d34'}"></div>` : ''}
+        <div class="sub">Preview</div>
+        <label class="chk"><input type="checkbox" data-cfg-chk="auto_preview" ${c.auto_preview !== false ? 'checked' : ''}> Atualizar o preview sozinho a cada mudança</label>`;
+    }
+    $('painelModelo').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-cfg]');
+      if (!b) return;
+      alterarConfig({ [b.dataset.cfg]: b.dataset.val });
+      renderModelo();
+    });
+    $('painelModelo').addEventListener('input', (e) => {
+      const t = e.target;
+      if (!t.dataset.cfg) return;
+      if (t.type === 'color') { alterarConfig({ [t.dataset.cfg]: t.value }); return; }
+      const n = parseFloat(t.value);
+      if (!isFinite(n)) return;
+      if (t.dataset.cfg === 'largura') return; // só no change (evita reescalar a cada tecla)
+      const irmaos = $('painelModelo').querySelectorAll(`[data-cfg="${t.dataset.cfg}"]`);
+      irmaos.forEach((x) => { if (x !== t) x.value = n; });
+      alterarConfig({ [t.dataset.cfg]: n });
+    });
+    $('painelModelo').addEventListener('change', (e) => {
+      const t = e.target;
+      if (t.dataset.cfgChk) { alterarConfig({ [t.dataset.cfgChk]: t.checked }); return; }
+      if (t.dataset.cfg === 'largura') {
+        const n = parseFloat(t.value);
+        if (isFinite(n) && n > 0) alterarConfig({ largura: n });
+      }
+    });
+    function aba(prefixo, alvo) {
+      const pares = prefixo === 'p' ? [['abaPecas', 'painelPecas'], ['abaModelo', 'painelModelo']] : [['abaArq', 'painelArq'], ['abaCod', 'painelCod']];
+      for (const [b, p] of pares) { const on = b === alvo; $(b).setAttribute('aria-selected', on); $(p).hidden = !on; }
+    }
+    $('abaPecas').addEventListener('click', () => aba('p', 'abaPecas'));
+    $('abaModelo').addEventListener('click', () => aba('p', 'abaModelo'));
+    $('abaArq').addEventListener('click', () => aba('e', 'abaArq'));
+    $('abaCod').addEventListener('click', () => aba('e', 'abaCod'));
+
+    /* ---------------- Mapa 2D ---------------- */
+    function renderMapa() {
+      const p = E.atual;
+      if (!p || !p.pecas.length) { $('mapa').innerHTML = ''; return; }
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const q of p.pecas) { x0 = Math.min(x0, q.caixa[0]); y0 = Math.min(y0, q.caixa[1]); x1 = Math.max(x1, q.caixa[2]); y1 = Math.max(y1, q.caixa[3]); }
+      const m = Math.max(x1 - x0, y1 - y0) * 0.03;
+      const vb = `${x0 - m} ${-y1 - m} ${x1 - x0 + 2 * m} ${y1 - y0 + 2 * m}`;
+      const ps = [...p.pecas].sort((a, b) => a.ordem - b.ordem);
+      $('mapa').innerHTML = `<svg viewBox="${vb}" role="img" aria-label="Mapa 2D das peças: clique para selecionar">
+        <defs><pattern id="hach" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45) scale(${(x1 - x0) / 300})"><rect width="6" height="6" fill="#2a2d34"/><rect width="3" height="6" fill="#40444c"/></pattern></defs>
+        ${ps.map((q) => `<path d="${q.d}" fill-rule="evenodd" data-id="${q.id}" class="${E.sel.has(q.id) ? 'sel' : ''}${q.furo ? ' furo' : ''}${q.ativo ? '' : ' off'}" fill="${q.cor || 'url(#hach)'}"><title>${esc(q.nome)}</title></path>`).join('')}</svg>`;
+    }
+    $('mapa').addEventListener('click', (e) => {
+      const el = e.target.closest('path[data-id]');
+      if (el) clicarPeca(+el.dataset.id, { shift: e.shiftKey || e.ctrlKey || e.metaKey, pintar: E.pintar });
+    });
+    $('segVisao').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-v]');
+      if (!b) return;
+      E.visao = b.dataset.v;
+      [...$('segVisao').children].forEach((x) => x.setAttribute('aria-pressed', x === b));
+      $('mapa').hidden = E.visao !== '2d' || !E.atual;
+      if (viewer) viewer.renderer.domElement.style.visibility = E.visao === '3d' ? 'visible' : 'hidden';
+    });
+
+    /* ---------------- Modelo 3D ---------------- */
+    async function mostrarModelo() {
+      const p = E.atual;
+      if (!p) return;
+      const r = p.resultados || {};
+      if (!r.hd) E.nivelVer = 'preview';
+      const nivel = r[E.nivelVer] ? E.nivelVer : (r.preview ? 'preview' : null);
+      renderStatus();
+      if (!nivel) {
+        $('vazio').hidden = false;
+        $('vazio').innerHTML = p.estado === 'lendo' ? 'Lendo o arquivo…<br><span class="faint">O preview 3D aparece aqui assim que ficar pronto.</span>'
+          : p.estado === 'erro' ? `Não deu para ler este arquivo.<br><span class="faint">${esc(p.erro)}</span>` : 'Gerando o preview 3D…';
+        return;
+      }
+      $('vazio').hidden = true;
+      $('mapa').hidden = E.visao !== '2d';
+      if (!viewer) return;
+      if (E.carregado[nivel] === r[nivel].quando && E.nivelCarregado === nivel) return;
+      try {
+        const buf = await (await fetch(r[nivel].url)).arrayBuffer();
+        const obj = await carregarGLB(buf);
+        if (!E.atual || E.atual.id !== p.id) return;
+        viewer.carregar(obj);
+        E.carregado[nivel] = r[nivel].quando;
+        E.nivelCarregado = nivel;
+        // cores que ainda não chegaram ao servidor continuam valendo
+        const mapa = {};
+        for (const q of E.atual.pecas) mapa[q.id] = q.cor || SEM_COR;
+        viewer.definirCores(mapa);
+        destacar();
+        renderStatus();
+      } catch (e) { toast('Não foi possível abrir o modelo 3D.'); }
+    }
+    function renderStatus() {
+      const p = E.atual;
+      const r = p && p.resultados[E.nivelCarregado || E.nivelVer];
+      let h = '';
+      if (r) {
+        h += `<span class="pilula">${E.nivelCarregado === 'hd' ? 'Alta definição' : 'Preview'} · ${mil(r.triangulos)} triângulos</span>`;
+        h += `<span class="pilula ${r.estanques === r.partes ? 'ok' : 'at'}">${r.estanques === r.partes ? 'malha fechada ✓' : r.estanques + '/' + r.partes + ' fechadas'}</span>`;
+        if (r.desatualizado) h += '<span class="pilula at">desatualizado</span>';
+        if (viewer) h += `<span class="pilula">tela: ${viewer.nivel}</span>`;
+      }
+      $('status').innerHTML = h;
+      [...$('segNivel').children].forEach((b) => { b.disabled = !(p && p.resultados[b.dataset.n]); b.setAttribute('aria-pressed', b.dataset.n === (E.nivelCarregado || E.nivelVer)); });
+    }
+    $('segNivel').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-n]');
+      if (!b || b.disabled) return;
+      E.nivelVer = b.dataset.n;
+      mostrarModelo();
+    });
+    $('segVista').addEventListener('click', (e) => { const b = e.target.closest('[data-vista]'); if (b && viewer) viewer.enquadrar(b.dataset.vista); });
+    $('btGirar').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); if (viewer) viewer.autoRotacao(on); });
+    $('btMalha').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); if (viewer) viewer.wireframe(on); });
+    $('btFoto').addEventListener('click', () => {
+      if (!viewer || !viewer.modelo) return;
+      const a = document.createElement('a');
+      a.href = viewer.capturar();
+      a.download = `${E.atual ? E.atual.nome : 'modelo'} (3D).png`;
+      a.click();
+    });
+
+    function atualizarBotoes() {
+      const p = E.atual;
+      const pronto = p && p.estado === 'pronto';
+      $('btPreview').disabled = !pronto;
+      $('btHD').disabled = !pronto;
+      const r = p && p.resultados || {};
+      for (const id of ['arqNivel', 'codNivel']) [...$(id).children].forEach((b) => { b.disabled = !r[b.dataset.n]; });
+      $('btExportar').disabled = !r[E.arqNivel];
+      $('btCodigo').disabled = !r[E.cod.nivel];
+      if (!E.salvarT || !E.pendentes.pecas.size) {
+        const hd = r.hd;
+        const av = (r.hd && r.hd.aviso) || (r.preview && r.preview.aviso);
+        $('acoesInfo').textContent = av ? av : !pronto ? '' : hd ? `HD: ${mil(hd.triangulos)} triângulos em ${seg(hd.tempo)}${hd.desatualizado ? ' (desatualizado)' : ''}${hd.ajuste ? ' · ' + hd.ajuste : ''}` : 'A alta definição roda na fila, no ritmo do seu hardware.';
+      }
+    }
+    $('btPreview').addEventListener('click', () => gerar('preview'));
+    $('btHD').addEventListener('click', () => gerar('hd'));
+    async function gerar(nivel) {
+      if (!E.atual) return;
+      clearTimeout(E.salvarT);
+      await salvar();
+      try {
+        const r = await api(`/vetor3d/projeto/${E.atual.id}/gerar`, { json: { nivel } });
+        toast(nivel === 'hd' ? `Alta definição na fila: ~${mil(r.triangulos_estimados)} triângulos${r.ajuste ? ' · ' + r.ajuste : ''}` : 'Preview na fila.');
+        pollFila(true);
+      } catch (e) { toast(e.message); }
+    }
+
+    /* ---------------- Fila ---------------- */
+    const NOMES_ESTADO = { fila: 'na fila', aguardando_memoria: 'aguardando memória', rodando: 'rodando', pausado: 'pausado', pronto: 'pronto', erro: 'erro', cancelado: 'cancelado' };
+    let filaT = null;
+    let vistas = new Map();
+    async function pollFila(agora) {
+      clearTimeout(filaT);
+      if (agora !== true && document.hidden) { filaT = setTimeout(pollFila, 2000); return; }
+      let ativas = false;
+      try {
+        const { tarefas } = await api('/vetor3d/fila');
+        E.fila = tarefas;
+        ativas = tarefas.some((t) => ['fila', 'aguardando_memoria', 'rodando', 'pausado'].includes(t.estado));
+        renderFila();
+        // algo do projeto aberto terminou? recarrega
+        let recarregar = false;
+        for (const t of tarefas) {
+          const antes = vistas.get(t.id);
+          if (antes !== t.estado && ['pronto', 'erro'].includes(t.estado) && antes) {
+            if (E.atual && t.projeto === E.atual.id) recarregar = true;
+            if (t.tipo === 'hd' && t.estado === 'pronto') toast('Alta definição pronta.');
+            if (t.estado === 'erro') toast(t.erro || 'Uma etapa falhou.');
+            if (t.tipo === 'leitura') carregarProjetos();
+          }
+          vistas.set(t.id, t.estado);
+          const fim = ['pronto', 'erro', 'cancelado'].includes(t.estado);
+          if (fim && E.exportando.has(t.id)) concluirExportacao(t);
+          if (fim && t.id === E.codTarefa) { E.codTarefa = null; concluirCodigo(t); }
+        }
+        if (recarregar && E.atual) {
+          const tinhaHD = E.atual.resultados.hd && E.atual.resultados.hd.quando;
+          const leu = E.atual.estado === 'lendo';
+          const { projeto } = await api('/vetor3d/projeto/' + E.atual.id);
+          if (E.atual && projeto.id === E.atual.id) {
+            mesclar(projeto);
+            if (leu) { renderTudo(); }
+            const hd = projeto.resultados.hd;
+            if (hd && hd.quando !== tinhaHD && !hd.desatualizado) E.nivelVer = 'hd';
+            await mostrarModelo();
+          }
+        }
+      } catch (e) { /* tenta de novo */ }
+      filaT = setTimeout(pollFila, ativas ? 700 : 2500);
+    }
+    function renderFila() {
+      const todas = E.fila.filter((t) => t.tipo !== 'codigo' || t.estado !== 'pronto');
+      const limite = +$('filaLimite').value;
+      const ts = limite ? todas.slice(0, limite) : todas;
+      const ocultas = todas.length - ts.length;
+      $('filaOcultas').textContent = ocultas > 0 ? `+ ${ocultas} etapa(s) ocultas pelo limite` : '';
+      if (!ts.length) { $('tarefas').innerHTML = '<div class="faint" style="font-size:13px">Nenhuma etapa na fila.</div>'; return; }
+      $('tarefas').innerHTML = ts.map((t) => {
+        const ativa = ['fila', 'aguardando_memoria', 'rodando', 'pausado'].includes(t.estado);
+        const pct = Math.round((t.progresso || 0) * 100);
+        let info = t.estado === 'rodando' ? `${pct}% · ${seg(t.decorrido)}${t.eta ? ' · falta ~' + seg(t.eta) : ''}` : t.estado === 'pronto' ? `em ${seg(t.decorrido)}` : t.posicao ? `posição ${t.posicao}${t.eta ? ' · ~' + seg(t.eta) : ''}` : '';
+        if (t.classe === 'ia' && t.estado === 'aguardando_memoria') {
+          info = `posição ${t.posicao || 1} · começa quando houver memória livre${t.previsto_s ? ' · depois leva ~' + seg(t.previsto_s) : ''}`;
+        } else if (t.classe === 'ia' && t.estado === 'fila' && t.inicio_previsto != null) {
+          info = `posição ${t.posicao || 1} · começa ${t.inicio_previsto > 3 ? 'em ~' + seg(t.inicio_previsto) : 'agora'}${t.eta ? ' · pronto em ~' + seg(t.eta) : ''}`;
+        }
+        const iaEsperando = t.classe === 'ia' && !t.inicio;
+        const mem = t.estimativa_mb ? (t.classe === 'ia'
+          ? `${iaEsperando ? 'precisa de ~' : 'até '}${kb((iaEsperando ? (t.minimo_mb || t.estimativa_mb) : t.estimativa_mb) * 1048576)}`
+          : `~${kb(t.estimativa_mb * 1048576)}${t.workers > 1 ? ' · ' + t.workers + ' proc.' : ''}`) : '';
+        return `<div class="tarefa ${t.estado}" data-t="${t.id}">
+          <div class="t1"><span class="rot" title="${esc(t.rotulo)}">${esc(t.rotulo)}</span><span class="estado ${t.estado}">${NOMES_ESTADO[t.estado] || t.estado}</span></div>
+          ${ativa ? `<div class="barra"><div style="width:${t.estado === 'rodando' || t.estado === 'pausado' ? pct : 0}%"></div></div>` : ''}
+          <div class="t2"><span>${esc(t.estado === 'rodando' || t.estado === 'pausado' ? t.etapa : '')}</span><span>${info}</span></div>
+          ${t.uso_real ? `<div class="t2"><span>uso real agora</span><span>RAM ${kb(t.uso_real.mem_mb * 1048576)}${t.uso_real.limite_mb ? ' de ' + kb(t.uso_real.limite_mb * 1048576) : ''} · CPU ${t.uso_real.cpu}%</span></div>` : ativa && mem ? `<div class="t2"><span>${t.classe === 'ia' ? 'memória' : 'memória estimada'}</span><span>${mem}</span></div>` : ''}
+          ${t.mensagem ? `<div class="msg">${esc(t.mensagem)}</div>` : ''}
+          ${t.erro ? `<div class="msg erro">${esc(t.erro)}</div>` : ''}
+          ${t.extra && t.extra.ajuste && t.estado !== 'erro' ? `<div class="msg">${esc(t.extra.ajuste)}</div>` : ''}
+          ${ativa ? `<div class="bts">
+            ${t.estado === 'pausado' ? '<button class="btn sm" data-acao="retomar">Retomar</button>' : '<button class="btn sm" data-acao="pausar">Pausar</button>'}
+            <button class="btn sm" data-acao="cancelar">Cancelar</button>
+            ${t.posicao ? '<button class="btn sm ico" data-acao="subir" title="Subir na fila" aria-label="Subir na fila">↑</button><button class="btn sm ico" data-acao="descer" title="Descer na fila" aria-label="Descer na fila">↓</button>' : ''}
+            ${t.estado === 'aguardando_memoria' ? '<button class="btn sm" data-acao="forcar" title="Começa mesmo sem folga de memória">Rodar assim mesmo</button>' : ''}
+          </div>` : ''}
+        </div>`;
+      }).join('');
+    }
+    try { $('filaLimite').value = localStorage.getItem('v3d-fila-limite') || '5'; } catch (e) { $('filaLimite').value = '5'; }
+    $('filaLimite').addEventListener('change', (e) => {
+      try { localStorage.setItem('v3d-fila-limite', e.target.value); } catch (x) { /* sem armazenamento */ }
+      renderFila();
+    });
+    async function limparFila(cancelar) {
+      if (cancelar) {
+        const ativas = E.fila.filter((t) => ['fila', 'aguardando_memoria', 'rodando', 'pausado'].includes(t.estado)).length;
+        if (!ativas) { toast('Nada rodando ou esperando.'); return; }
+        if (!confirm(`Cancelar ${ativas} etapa(s) que estão na fila ou rodando?`)) return;
+      }
+      try {
+        const r = await api('/vetor3d/fila/limpar', { json: { cancelar } });
+        toast(cancelar ? `${r.canceladas} cancelada(s) e ${r.removidas} removida(s) da lista.` : `${r.removidas} etapa(s) concluída(s) removida(s) da lista.`);
+        E.exportando.clear();
+        pollFila(true);
+      } catch (e) { toast(e.message); }
+    }
+    $('btLimparFila').addEventListener('click', () => limparFila(false));
+    $('btCancelarFila').addEventListener('click', () => limparFila(true));
+    $('tarefas').addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-acao]');
+      if (!b) return;
+      const tid = b.closest('[data-t]').dataset.t;
+      try { await api(`/vetor3d/tarefa/${tid}/${b.dataset.acao}`, { json: {} }); } catch (x) { toast(x.message); }
+      pollFila(true);
+    });
+
+    /* ---------------- Exportar: arquivo ---------------- */
+    const FORMATOS = [
+      ['glb', 'GLB', 'Cores e materiais. Web, Blender, AR.'],
+      ['stl', 'STL', 'Impressão 3D. Sem cor.'],
+      ['3mf', '3MF', 'Impressão 3D com cores por peça.'],
+      ['obj', 'OBJ + MTL', 'Compatível com tudo (zip).'],
+      ['ply', 'PLY', 'Cor por vértice.'],
+    ];
+    function renderExportar() {
+      $('formatos').innerHTML = FORMATOS.map(([k, n, d]) => `<button type="button" class="fmt" data-f="${k}" aria-pressed="${E.formato === k}"><b>${n}</b><span>${d}</span></button>`).join('');
+      [...$('arqNivel').children].forEach((b) => b.setAttribute('aria-pressed', b.dataset.n === E.arqNivel));
+      [...$('codNivel').children].forEach((b) => b.setAttribute('aria-pressed', b.dataset.n === E.cod.nivel));
+      $('saidas').innerHTML = E.saidas.map((s) => `<div class="saida"><span class="grow">${esc(s.nome)} <span class="tam">${kb(s.bytes)}</span></span><a href="/vetor3d/download/${s.token}">Baixar</a></div>`).join('') +
+        [...E.exportando].map(() => '<div class="faint" style="font-size:12.5px">Exportando… (acompanhe na fila)</div>').join('');
+      tamanhosCodigo();
+      atualizarBotoes();
+    }
+    $('formatos').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (b) { E.formato = b.dataset.f; renderExportar(); } });
+    $('arqNivel').addEventListener('click', (e) => { const b = e.target.closest('[data-n]'); if (b && !b.disabled) { E.arqNivel = b.dataset.n; renderExportar(); } });
+    $('btExportar').addEventListener('click', async () => {
+      try {
+        const r = await api(`/vetor3d/projeto/${E.atual.id}/exportar`, { json: { nivel: E.arqNivel, formato: E.formato, unir: $('unir').checked } });
+        E.exportando.add(r.tarefa);
+        renderExportar();
+        pollFila(true);
+      } catch (e) { toast(e.message); }
+    });
+    async function concluirExportacao(t) {
+      if (!E.exportando.has(t.id)) return;
+      E.exportando.delete(t.id);
+      if (t.estado !== 'pronto') { renderExportar(); return; }
+      try {
+        const { tarefa } = await api('/vetor3d/tarefa/' + t.id);
+        E.saidas.unshift(tarefa.resultado);
+        toast(`${tarefa.resultado.nome} salvo em Downloads.`);
+      } catch (e) { toast(e.message); }
+      renderExportar();
+    }
+
+    /* ---------------- Exportar: código ---------------- */
+    function segAtivo(id, attr, val) { [...$(id).children].forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === val)); }
+    function tamanhosCodigo() {
+      const r = E.atual && E.atual.resultados[E.cod.nivel];
+      const vw = (E.formatos && E.formatos.viewer) || {};
+      const red = parseFloat($('codReducao').value) || 0;
+      const exato = r ? r.exato_b64 * (1 - red * 0.85) : 0;
+      $('tamExato').textContent = r ? kb(exato) : '';
+      $('tamReceita').textContent = r ? (r.receita_b64 ? kb(r.receita_b64) : 'n/d') : '';
+      const semReceita = r && !r.receita_b64;
+      $('codCarga').querySelector('[data-c="receita"]').disabled = !!semReceita;
+      if (semReceita && E.cod.carga === 'receita') { E.cod.carga = 'exato'; segAtivo('codCarga', 'c', 'exato'); }
+      $('tamCdn').textContent = vw.cdn ? kb(vw.cdn) : '';
+      $('tamEmb').textContent = vw.embutido ? kb(vw.embutido) : '';
+      const carga = E.cod.carga === 'exato' ? exato : (r ? r.receita_b64 : 0);
+      const extras = [...$('codExtrasFmt').querySelectorAll('input:checked')].length;
+      const total = carga * (E.cod.carga === 'exato' ? 1 + extras * 0.6 : 1) + (vw[E.cod.three] || 0) + 3000;
+      $('codTotal').textContent = r ? `≈ ${kb(total)} no total` : '';
+      $('cargaInfo').textContent = E.cod.carga === 'exato'
+        ? 'O GLB vai comprimido dentro do código: idêntico ao preview, e o botão de baixar entrega exatamente este arquivo.'
+        : 'Só os contornos e as medidas: o navegador do visitante reconstrói o 3D. Bem menor; o chanfro e o inflado podem diferir um pouco do arquivo gerado aqui.';
+      $('threeInfo').textContent = E.cod.three === 'cdn'
+        ? 'O three.js vem do jsDelivr (versão fixa 0.170.0). Código curto; o site precisa de internet.'
+        : 'O three.js vai dentro do código: funciona offline e sem depender de CDN, mas o código fica maior.';
+      const servidor = ['php', 'python', 'node'].includes($('codAlvo').value);
+      $('codExtras').hidden = E.cod.carga !== 'exato';
+      $('codExtrasFmt').hidden = !servidor;
+    }
+    $('codNivel').addEventListener('click', (e) => { const b = e.target.closest('[data-n]'); if (b && !b.disabled) { E.cod.nivel = b.dataset.n; segAtivo('codNivel', 'n', b.dataset.n); tamanhosCodigo(); } });
+    $('codCarga').addEventListener('click', (e) => { const b = e.target.closest('[data-c]'); if (b) { E.cod.carga = b.dataset.c; segAtivo('codCarga', 'c', b.dataset.c); tamanhosCodigo(); } });
+    $('codThree').addEventListener('click', (e) => { const b = e.target.closest('[data-t]'); if (b) { E.cod.three = b.dataset.t; segAtivo('codThree', 't', b.dataset.t); tamanhosCodigo(); } });
+    $('codProp').addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (b) { E.cod.proporcao = b.dataset.p; segAtivo('codProp', 'p', b.dataset.p); } });
+    $('codReducao').addEventListener('input', (e) => { $('codReducaoT').textContent = Math.round(e.target.value * 100) + '%'; tamanhosCodigo(); });
+    $('codAlvo').addEventListener('change', tamanhosCodigo);
+    $('codExtrasFmt').addEventListener('change', tamanhosCodigo);
+    $('btCodigo').addEventListener('click', async () => {
+      const opcoes = {
+        carga: E.cod.carga, three: E.cod.three, alvo: $('codAlvo').value, proporcao: E.cod.proporcao,
+        autoRotacao: $('codGirar').checked, pan: $('codPan').checked, botaoBaixar: $('codBaixar').checked,
+        verniz: parseFloat($('codVerniz').value), fundo: $('codFundoTransp').checked ? null : $('codFundo').value,
+        reducao: E.cod.carga === 'exato' ? parseFloat($('codReducao').value) : 0,
+        extras: [...$('codExtrasFmt').querySelectorAll('input:checked')].map((i) => i.value),
+      };
+      try {
+        $('btCodigo').disabled = true;
+        $('btCodigo').textContent = 'Gerando…';
+        const r = await api(`/vetor3d/projeto/${E.atual.id}/codigo`, { json: { nivel: E.cod.nivel, opcoes } });
+        E.codTarefa = r.tarefa;
+        vistas.set(r.tarefa, 'fila');
+        pollFila(true);
+      } catch (e) { toast(e.message); fimBotaoCodigo(); }
+    });
+    function fimBotaoCodigo() { $('btCodigo').disabled = false; $('btCodigo').textContent = 'Gerar código'; }
+    const USO = {
+      html: 'Cole onde quiser que o 3D apareça: no HTML da página, num bloco "HTML personalizado" do WordPress, num Embed do Webflow ou no index.html do Netlify.',
+      pagina: 'Uma página pronta: salve como index.html e arraste a pasta para o Netlify Drop (app.netlify.com/drop) ou suba no GitHub Pages.',
+      react: 'Salve como Modelo3D.jsx e use <Modelo3D /> em qualquer componente (Next.js: já vem com "use client").',
+      php: 'Salve como modelo3d.php e use <?php include "modelo3d.php"; ?> na página. modelo3d.php?baixar=glb entrega o arquivo.',
+      python: 'Salve como modelo3d.py: "python modelo3d.py" grava o arquivo 3D e um .html; no Flask/Django/FastAPI use html(pagina=True).',
+      node: 'Salve como modelo3d.cjs: "node modelo3d.cjs" grava o arquivo 3D e um .html; no Express use res.send(html({ pagina: true })).',
+    };
+    async function concluirCodigo(t) {
+      fimBotaoCodigo();
+      if (t.estado !== 'pronto') { if (t.erro) toast(t.erro); return; }
+      try {
+        const { texto, ext } = await api('/vetor3d/codigo/' + t.id);
+        E.codTexto = texto;
+        E.codExt = ext;
+        const ta = $('codTexto');
+        ta.value = texto.length > 400000 ? texto.slice(0, 400000) + '\n\n/* … (o código completo vai no botão Copiar / Salvar) */' : texto;
+        $('codSaida').hidden = false;
+        $('codTam').textContent = kb(new Blob([texto]).size);
+        $('codUso').textContent = USO[$('codAlvo').value] || '';
+        $('btTestar').hidden = !['html', 'pagina'].includes($('codAlvo').value);
+        toast('Código pronto: é só copiar e colar.');
+      } catch (e) { toast(e.message); }
+    }
+    $('btCopiar').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(E.codTexto); toast('Código copiado.'); }
+      catch (e) { $('codTexto').select(); document.execCommand('copy'); toast('Código copiado.'); }
+    });
+    $('btSalvarCod').addEventListener('click', () => {
+      const nomes = { html: 'modelo3d.html', jsx: 'Modelo3D.jsx', php: 'modelo3d.php', py: 'modelo3d.py', cjs: 'modelo3d.cjs' };
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([E.codTexto], { type: 'text/plain' }));
+      a.download = nomes[E.codExt] || 'modelo3d.txt';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    });
+    $('btTestar').addEventListener('click', () => {
+      const pag = E.codTexto.trim().startsWith('<!doctype') ? E.codTexto
+        : `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Teste do código 3D</title><style>body{margin:0;padding:24px;background:#f3f4f6;font-family:system-ui}main{max-width:900px;margin:0 auto}</style></head><body><main><p>Pré-visualização do código colado numa página comum:</p>${E.codTexto}</main></body></html>`;
+      window.open(URL.createObjectURL(new Blob([pag], { type: 'text/html' })), '_blank');
+    });
+
+    /* ---------------- Início ---------------- */
+    (async () => {
+      try {
+        const f = await api('/vetor3d/formatos');
+        E.formatos = f;
+        if (!f.ghostscript) $('fmtInfo').textContent = 'EPS precisa do Ghostscript';
+      } catch (e) { /* segue */ }
+      renderExportar();
+      await carregarProjetos().catch((e) => toast(e.message));
+      lerHardware();
+      setInterval(() => { if (!document.hidden) lerHardware(); }, 1500);
+      pollFila(true);
+    })();
+  </script>
+</body>
+</html>

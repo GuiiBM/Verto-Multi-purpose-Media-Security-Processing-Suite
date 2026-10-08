@@ -3,3 +3,4 @@ Bibliotecas copiadas para o app funcionar sem CDN.
 - gsap 3.12.5 (licença padrão GreenSock, uso gratuito): dist/gsap.min.js
 - three addons extras (MIT): objects/Reflector, postprocessing (EffectComposer, RenderPass, UnrealBloomPass, OutputPass, ShaderPass, MaskPass, Pass), shaders (Copy, LuminosityHighPass, Output)
 - three addons (MIT): environments/RoomEnvironment
+- three addons (MIT) para o Vetor3D: controls/OrbitControls, loaders/GLTFLoader, exporters/GLTFExporter
