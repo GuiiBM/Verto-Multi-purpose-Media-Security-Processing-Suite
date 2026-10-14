@@ -2,7 +2,7 @@
 
 > Processamento 100% local. Dados sensíveis nunca saem da máquina do usuário.
 
-Suíte de 34 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
+Suíte de 37 ferramentas integradas cobrindo IA, criptografia, manipulação de binários e automação de mídia. Arquitetura local-first por design — não por limitação.
 
 ---
 
@@ -15,7 +15,7 @@ Ferramentas que lidam com **esteganografia, remoção de metadados e separação
 - Funciona offline após instalação
 - Cleanup automático de arquivos temporários em todos os fluxos
 
-Exceções, porque a função delas depende da internet: os downloaders (Verto, InstaSaver, VscoSaver, WhatsSaver), o **Transcrever** e o **Subtitle Lab** (o áudio vai para o reconhecimento de voz do Google), o **Encurtador** (Cloudflare na conta do usuário) e a publicação do **Social Preview** (APIs oficiais das redes, com os tokens do próprio usuário).
+Exceções, porque a função delas depende da internet: os downloaders (Verto, InstaSaver, VscoSaver, WhatsSaver, SunoSaver), o **Transcrever** e o **Subtitle Lab** (o áudio vai para o reconhecimento de voz do Google), o **Encurtador** (Cloudflare na conta do usuário) e a publicação do **Social Preview** (APIs oficiais das redes, com os tokens do próprio usuário).
 
 ---
 
@@ -31,7 +31,7 @@ Exceções, porque a função delas depende da internet: os downloaders (Verto, 
 | Download de Mídia          | yt-dlp                                        |
 | Manipulação de PDF        | PyPDF2 + pikepdf + PyMuPDF + reportlab        |
 | Office (Word/Excel/PPT)     | LibreOffice headless + python-docx/pptx/openpyxl |
-| Vetorização / CAD           | potrace (potracer) + scikit-image + ezdxf     |
+| Vetorização / CAD           | potrace (potracer) + vtracer + scikit-image + ezdxf |
 | Geometria 3D (Vetor3D)      | shapely + mapbox-earcut + trimesh + manifold3d; visualizador three.js (local) |
 | Detecção no navegador     | TensorFlow.js (BlazeFace) + Tesseract.js (Censor, Capture & OCR) |
 | Detecção de Rostos        | YuNet via OpenCV (Efeitos, Editor de Vídeo, Social Preview) |
@@ -49,12 +49,14 @@ Exceções, porque a função delas depende da internet: os downloaders (Verto, 
 | 🎬**Verto**           | Mídia         | Download MP4/MP3/Thumbnail com estimativa de tamanho em tempo real |
 | 📸**InstaSaver**      | Mídia         | Stories, destaques, posts, reels e foto de perfil do Instagram a partir de um link ou @, com download individual ou em ZIP |
 | 🎞️**VscoSaver**       | Mídia         | Galeria, coleção e spaces do VSCO em tamanho original; vídeos HLS juntados num .mp4 sem perder qualidade |
+| 💿**SunoSaver**       | Mídia         | Músicas do Suno por link (inclusive o de compartilhamento), playlist, perfil ou lote, sem login: áudio original sem recodificar (tirado do vídeo público), MP3/WAV/FLAC com capa e letra embutidas, MP4, capa, letra e letra sincronizada LRC/SRT/VTT gerada no PC (Demucs + faster-whisper, com teto de memória) |
 | 💬**WhatsSaver**      | Mídia         | Conecta como aparelho do WhatsApp (só leitura) e baixa fotos e vídeos das conversas, inclusive os enviados como arquivo, conferidos pela chave da mensagem |
 | 🕵️**Stealth**       | Security       | Esteganografia LSB com criptografia AES-256 — anti-forensics      |
 | 👻**Ghost Tool**      | Anti-forensics | Remoção de metadados EXIF/ID3/XMP em 150+ formatos               |
 | 🔒**Censor**          | Privacy AI     | Censura automática no navegador: rostos (BlazeFace/TensorFlow.js) e, por OCR (Tesseract.js), documentos, placas, e-mails, telefones, cartões, sites, nomes e @IDs |
 | 🎤**Isolador de Voz** | AI Audio       | Separação vocal/instrumental com Demucs (htdemucs model)         |
-| 🎙️**Smart Studio**    | Áudio          | Gravador com teleprompter, filtros de áudio em tempo real (Web Audio), marcadores e corte pela forma de onda, tudo no navegador |
+| 🎙️**Smart Studio**    | Áudio          | Gravador com teleprompter, filtros de áudio em tempo real (Web Audio) e marcadores, tudo no navegador; "Editar no Áudio Studio" leva a gravação e os marcadores |
+| 🎚️**Áudio Studio**    | Áudio          | Editor multipista offline: corte livre com fade de 5 ms em cada emenda, sugestões de corte (pausas, vícios, frases refeitas, respirações, estouro), edição pelo texto (faster-whisper), efeitos FFmpeg com prévia Web Audio, loudness por alvo, ducking, receitas (Podcast, Celular, Aula, Audiobook ACX, Reels pelo refrão, Karaokê com Demucs), lote e modo fila em blocos de 10 min para áudios de horas |
 | 📝**Subtitle Lab**    | Legendas       | Legendas .srt/.vtt geradas pelo mesmo reconhecimento de voz do Transcrever, editor de timeline, sincronizador de delay e legenda embutida no vídeo |
 | 🎨**Transparência**  | AI Vision      | Remoção de fundo com rembg + ONNX Runtime                        |
 | 🍵**Matcha Effect**   | AI Vision      | Efeito verde "hazy" em fotos e vídeos: filtro de cor instantâneo ou geração por IA local (Stable Diffusion + ControlNet) |
@@ -63,6 +65,7 @@ Exceções, porque a função delas depende da internet: os downloaders (Verto, 
 | 🪄**Efeitos**         | Mídia         | 43 efeitos em fotos e vídeos: clássicos (Sépia, P&B, Vintage, Glitch, Pop Art...), engraçados com detecção de rosto (Thug Life, Olhos de Desenho, Nariz de Palhaço, Cabeção), deformações, câmeras (VHS, CCTV, Visão Noturna, Matrix) e estilos (Quadrinhos, Lápis, Neon...); o arquivo sai no mesmo formato, como `foto (Sépia).jpg` |
 | 🔁**Conversor**       | Conversão / CAD | Estilo Convertio: fila de arquivos, 1.700+ rotas diretas, imagem → DXF com potrace (contorno, linha central ou por cor) e PDF/SVG/AI/EPS → DXF sem rasterizar |
 | 🧊**Vetor3D**         | Conversão / 3D | SVG, DXF, PDF/AI, EPS ou imagem → modelo 3D em alta definição: chanfro ou inflado por peça, cores no DXF preto e branco, fila em etapas que acompanha o hardware (CPU, RAM, temperatura) e exporta GLB/STL/3MF/OBJ/PLY ou código copia-e-cola (HTML, Netlify, React, PHP, Python, Node) com giro 360° e zoom |
+| ✒️**Vetorizar 4K**    | Conversão / Vetor | Pixel art, logo, traço ou foto → vetor limpo: detecta o tipo (e a grade real da pixel art, mesmo ampliada e em JPEG), pixel art exata (polígonos célula a célula) ou suave, paleta em Lab editável com cores da marca travadas, fundo removido pela borda ou por IA, fidelidade medida, modo automático; exporta SVG/PDF/AI/EPS/DXF e PNG/WebP em 4K a 8K |
 | 📄**PDFs**            | Documentos     | Dividir, mesclar, converter, comprimir, girar, comparar, reparar, proteger, desbloquear, editar, marca d'água e corromper |
 | 🗃️**Office**          | Documentos     | Converte e repara Word/Excel/PowerPoint — recuperação em 5 níveis, incluindo extensão trocada |
 | 🔲**QR Code**         | Utilitário    | Gerador estático (URLs, Wi-Fi, vCard, PIX) sem rastreamento       |
@@ -257,10 +260,11 @@ Modelos de IA do Vetor3D: o instalador confere o espaço livre e o que já está
 ## Estrutura
 
 ```
-├── app.py                        # Flask app — 206 rotas, 34 apps
+├── app.py                        # Flask app — 250 rotas, 37 apps
 ├── Office/                       # Conversor e reparador de Word/Excel/PowerPoint
 ├── Efeitos/                     # Efeitos em fotos e vídeos, saída no mesmo formato do original
 ├── Conversor/                    # Conversor universal estilo Convertio (imagem → DXF, CAD, documentos, mídia...)
+├── Vetorizar/                    # Vetorizar 4K: análise, pixel art, paleta, traçado e exportação (projetos em dados/, gitignored)
 ├── Vetor3D/                      # Vetor/DXF → 3D: importação, geometria (chanfro/inflado), fila por hardware, exportação e código
 ├── Encurtador/                   # Encurtador de links: painel no Verto + Worker/D1 da Cloudflare (cloudflare/)
 ├── SocialPreview/                # Social Preview: catálogo das redes, publicação pelas APIs, mídia (ffmpeg/YuNet) e hospedagem temporária;
@@ -278,6 +282,8 @@ Modelos de IA do Vetor3D: o instalador confere o espaço livre e o que já está
 ├── CaptureOCR/                   # OCR local (Tesseract.js) e gravador de tela/GIF
 ├── AIGuard/                      # Detector heurístico de IA, reescritor/diff e plágio interno
 ├── InstaSaver/ · VscoSaver/      # Downloaders do Instagram e do VSCO
+├── AudioStudio/                  # Áudio Studio: fila em blocos, mídia/picos, lista de edição, sugestões, transcrição, render e receitas (projetos em dados/, gitignored)
+├── SunoSaver/                    # Downloader do Suno (motor, letra sincronizada; letras feitas em dados/, gitignored)
 ├── WhatsSaver/                   # Mídia do WhatsApp: ponte Node (bridge/) e sessão em dados/ (gitignored)
 ├── MatchaEffect/                 # Efeito matcha: filtro de cor e geração por IA (diffusers)
 ├── SmartStudio/ · SubtitleLab/   # Gravador/teleprompter e legendas

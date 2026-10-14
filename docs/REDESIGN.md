@@ -29,7 +29,7 @@ Leia isto antes de continuar o redesign. Marca: **LocalTools** (título); projet
 - `--temas`: aplica `tema-X` nas 9 páginas de `TEMAS`.
 - Ícones de traço novos: Phosphor *light* em `https://unpkg.com/@phosphor-icons/core@2.1.1/assets/light/<nome>-light.svg`, salvos com `fill="currentColor"` e sem o `<rect>` de fundo.
 
-## Os 34 apps
+## Os 37 apps
 "Fonte" = onde está o HTML. "Modo" = arquivo em `static/localtools/modos/` (`tema …` = `tema-<nome>.css`).
 
 | # | App | Rota | Grupo (cor) | Ícone 3D (`apps/`) | Fonte | Modo |
@@ -49,7 +49,7 @@ Leia isto antes de continuar o redesign. Marca: **LocalTools** (título); projet
 | 13 | Social Preview | `/social` (+ `/social/*` API) | imagem | social | `templates/social.html` + `static/localtools/social/` (estudio.js/css, marcas.js); backend em `SocialPreview/` (redes.py = catálogo de formatos e limites; publicador.py = contas e publicação pelas APIs oficiais; hospedagem.py = endereço público temporário para Instagram/Threads; midia.py = recorte, preenchimento e vídeo com música no ffmpeg + foco automático com o YuNet do Efeitos). Enquadramento por rede (chave `rede:formato:proporção`), automático na primeira foto e editável no diálogo "Editar". Credenciais em `SocialPreview/dados/` (fora do git). Vai virar um app separado do Verto: manter o SocialPreview/ sem depender de outras partes do app.py | ✅ feed |
 | 14 | Transcrever | `/transcribe` | audio (amarelo) | transcribe | HTML embutido em `app.py` | ✅ fita |
 | 15 | Isolador de Voz | `/isolate` | audio | isolate | HTML embutido em `app.py` | ✅ mesa-de-som |
-| 16 | Smart Studio | `/smartstudio` (+ editor/studio) | audio | smartstudio | `SmartStudio/` | ✅ no-ar |
+| 16 | Smart Studio | `/smartstudio` (+ studio; `/smartstudio/editor` redireciona para o Áudio Studio) | audio | smartstudio | `SmartStudio/` | ✅ no-ar |
 | 17 | Subtitle Lab | `/subtitlelab` (+ editor/burn) | audio | subtitlelab | `SubtitleLab/` | ✅ legenda |
 | 18 | PDFs | `/pdfs` (+ ferramentas) | documentos (coral) | pdfs | `PDFS_HTML` + 12 ferramentas (`PDFs/`, `PDFS_MERGE_HTML`) | ✅ papel (`pdfs-papel.css`) |
 | 19 | Office | `/office` | documentos | office | `Office/` (hub) | ✅ pastas |
@@ -68,6 +68,9 @@ Leia isto antes de continuar o redesign. Marca: **LocalTools** (título); projet
 | 32 | Tempo | `/tempo` | dev | tempo | HTML embutido em `app.py` | ✅ calendario |
 | 33 | Instruções | `/instructions` | ajuda (cinza) | instructions | `templates/instructions.html` | ✅ tema manual |
 | 34 | Vetor3D | `/vetor3d` | conversao | vetor3d (cube) | `Vetor3D/vetor3d.html` (viewer em `static/localtools/vetor3d/`) | ✅ tema maquete (base de corte quadriculada, folhas de papel-cartão empilhadas, título em camadas de extrusão) |
+| 35 | SunoSaver | `/sunosaver` | downloads | sunosaver (vinyl-record) | `SunoSaver/sunosaver.html`; motor em `SunoSaver/sunosaver_engine.py` (links, API pública do Suno, áudio do MP4 público, tags/capa/letra) e `SunoSaver/sunosaver_letra.py` (LRC/SRT/VTT com Demucs + faster-whisper, um por vez, com teto de memória) | ✅ tema disco (capa como selo de vinil que gira só tocando, letra em encarte de papel, formatos como etiquetas de lado A/B) |
+| 36 | Vetorizar 4K | `/vetorizar` | conversao | vetorizar (bezier-curve) | `Vetorizar/vetorizar.html`; núcleo em `Vetorizar/vz_nucleo.py` (tipo, grade da pixel art, paleta Lab, traçado, render e fidelidade) e motor em `Vetorizar/vetorizar_engine.py` (projetos, automático, fundo IA, exportação) | ✅ tema milimetrado (comparação numa folha de papel milimetrado com régua, "4K" em selo de plotter, formatos como etiquetas de rolo) |
+| 37 | Áudio Studio | `/audiostudio` | audio | audiostudio (faders) | `AudioStudio/audiostudio.html` + `static/localtools/audiostudio/` (estudio.js = linha do tempo em canvas, reprodução Web Audio por janelas, painéis; estudio.css); backend em `AudioStudio/` (as_fila, as_midia, as_projeto, as_edicao, as_analise, as_transcrever, as_efeitos, as_render, as_receitas) | ✅ tema ilha (régua de fita com perfurações, agulha de leitura, etiquetas das sugestões coladas na onda) |
 
 "HTML embutido em `app.py`": procurar a rota com `grep -n '@app.route("/<rota>"' app.py` e seguir até a constante/`render_template_string`. Apps com várias páginas (hub + ferramentas) precisam de todas as páginas migradas.
 

@@ -1,0 +1,73 @@
+/* SunoSaver · tema "disco": loja de discos à noite. A capa vira o selo de um
+   vinil (que só gira enquanto a prévia toca), a letra fica num encarte de
+   papel e os formatos são etiquetas de lado A/B. Verde do grupo Downloads. */
+body.tema-disco {
+  --acc: #4ade80;
+  --papel: #ece6d6;
+  --papel-tinta: #2a2620;
+  background-image:
+    radial-gradient(900px 520px at 50% -14%, rgba(74, 222, 128, 0.09), transparent 64%),
+    radial-gradient(700px 420px at 100% 100%, rgba(251, 191, 36, 0.045), transparent 60%);
+}
+
+/* título com o sulco de um disco por trás */
+body.tema-disco .lt-head h1 { letter-spacing: 0.02em; }
+body.tema-disco .lt-head::after {
+  content: '';
+  display: block;
+  width: 120px;
+  height: 6px;
+  margin: 14px auto 0;
+  border-radius: 99px;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 5px);
+  opacity: 0.6;
+}
+
+/* disco: sombra de vitrola e brilho parado */
+body.tema-disco .disco { filter: drop-shadow(0 22px 26px rgba(0, 0, 0, 0.65)); }
+body.tema-disco .disco .furo { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25); }
+body.tema-disco .disco .selo { box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.12); }
+
+/* formatos: etiquetas com a ponta de lado */
+body.tema-disco .fmt { border-radius: 4px 12px 12px 4px; border-left-width: 4px; }
+body.tema-disco .fmt.recomendado { border-left-color: var(--acc); }
+body.tema-disco .fmt.recomendado::after {
+  content: 'LADO A';
+  position: absolute;
+  top: -7px;
+  right: 10px;
+  padding: 0 5px;
+  background: var(--lt-bg);
+  border-radius: 4px;
+  font: 700 9.5px var(--lt-mono);
+  letter-spacing: 0.12em;
+  color: var(--acc);
+}
+
+/* a letra é um encarte de papel */
+body.tema-disco .letra { background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015)); }
+body.tema-disco .encarte {
+  background: var(--papel);
+  color: var(--papel-tinta);
+  border-radius: 4px;
+  padding: 18px 18px 18px 22px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5), 0 18px 30px -16px rgba(0, 0, 0, 0.8);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 15.5px;
+}
+body.tema-disco .encarte .ln { color: #4a443a; }
+body.tema-disco .encarte .ln[data-t]:hover { background: rgba(0, 0, 0, 0.05); }
+body.tema-disco .encarte .ln.agora { color: #0f0d0a; background: rgba(74, 222, 128, 0.28); }
+body.tema-disco .encarte .ln.chute { color: #7a7266; }
+body.tema-disco .encarte .sec { color: #8a8170; font-family: var(--lt-mono); }
+body.tema-disco .encarte::-webkit-scrollbar { width: 8px; }
+body.tema-disco .encarte::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 8px; }
+
+/* lista: as faixas como contracapa */
+body.tema-disco .faixa .dur { color: var(--acc); opacity: 0.8; }
+body.tema-disco .faixa img { border-radius: 3px; box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.8); }
+body.tema-disco .lote-barra { backdrop-filter: blur(18px); background: rgba(16, 18, 21, 0.86); }
+
+@media (prefers-reduced-motion: reduce) {
+  body.tema-disco .disco .vinil { animation: none !important; }
+}

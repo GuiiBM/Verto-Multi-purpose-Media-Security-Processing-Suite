@@ -17,4 +17,3 @@ def _load(filename):
 
 def SMARTSTUDIO_HUB_HTML(): return _load('smartstudio_hub.html')
 def SMARTSTUDIO_STUDIO_HTML(): return _load('smartstudio_studio.html')
-def SMARTSTUDIO_EDITOR_HTML(): return _load('smartstudio_editor.html')

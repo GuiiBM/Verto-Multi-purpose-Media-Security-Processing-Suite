@@ -30,13 +30,13 @@ GRUPOS = {
 }
 APPS = {  # id: (símbolo, grupo)
     'verto': ('youtube-logo', 'downloads'), 'instasaver': ('camera', 'downloads'), 'vscosaver': ('aperture', 'downloads'),
-    'whatssaver': ('chat-circle-dots', 'downloads'), 'automacoes': ('lightning', 'downloads'), 'purpleflix': ('film-reel', 'downloads'),
+    'whatssaver': ('chat-circle-dots', 'downloads'), 'sunosaver': ('vinyl-record', 'downloads'), 'automacoes': ('lightning', 'downloads'), 'purpleflix': ('film-reel', 'downloads'),
     'efeitos': ('magic-wand', 'imagem'), 'editor': ('scissors', 'imagem'), 'imagestudio': ('paint-brush', 'imagem'),
     'transparent': ('eraser', 'imagem'), 'matchaeffect': ('leaf', 'imagem'), 'captureocr': ('scan', 'imagem'),
     'social': ('device-mobile', 'imagem'), 'transcribe': ('microphone', 'audio'), 'isolate': ('waveform', 'audio'),
-    'smartstudio': ('microphone-stage', 'audio'), 'subtitlelab': ('closed-captioning', 'audio'), 'pdfs': ('file-pdf', 'documentos'),
+    'smartstudio': ('microphone-stage', 'audio'), 'audiostudio': ('faders', 'audio'), 'subtitlelab': ('closed-captioning', 'audio'), 'pdfs': ('file-pdf', 'documentos'),
     'office': ('file-doc', 'documentos'), 'files': ('folders', 'conversao'), 'conversor': ('arrows-clockwise', 'conversao'),
-    'compress': ('arrows-in', 'conversao'), 'vetor3d': ('cube', 'conversao'),
+    'compress': ('arrows-in', 'conversao'), 'vetor3d': ('cube', 'conversao'), 'vetorizar': ('bezier-curve', 'conversao'),
     'ghost': ('ghost', 'privacidade'), 'stealth': ('fingerprint', 'privacidade'),
     'censor': ('eye-slash', 'privacidade'), 'textclean': ('git-diff', 'texto'), 'aiguard': ('detective', 'texto'),
     'clean': ('book-open', 'texto'), 'devdata': ('brackets-curly', 'dev'), 'qrcode': ('qr-code', 'dev'),

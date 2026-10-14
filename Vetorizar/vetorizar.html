@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vetorizar 4K</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <style>
+    :root { --acc: var(--lt-cat-conversao); --acc-tinta: #04202c; }
+    * { box-sizing: border-box; }
+    body.lt-body { margin: 0; min-height: 100vh; padding: 28px 24px 64px; overflow-x: clip; }
+    body.lt-body > *:not(.lt-back):not(.toast) { position: relative; z-index: 1; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    .lt-head { margin: 0 auto 22px; max-width: 760px; }
+    .lt-head p { margin: 0; }
+    .muted { color: var(--lt-muted); }
+    .faint { color: var(--lt-faint); }
+    .mono { font-family: var(--lt-mono); }
+    .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018)); border: 1px solid var(--lt-line); border-radius: 18px; box-shadow: var(--lt-shadow); }
+    .card-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px 0; }
+    .card-h h2 { margin: 0; font-size: 12.5px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--lt-faint); }
+    .card-b { padding: 12px 16px 16px; }
+
+    .btn { border: 1px solid transparent; cursor: pointer; border-radius: 11px; font-weight: 650; font-size: 13.5px; padding: 9px 14px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; text-decoration: none;
+      background: var(--acc); color: var(--acc-tinta); transition: transform var(--lt-dur-fast) var(--lt-ease-out), opacity var(--lt-dur-fast); }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn.ghost { background: var(--lt-surface); color: var(--lt-ink); border-color: var(--lt-line-2); }
+    .btn.ghost:hover:not(:disabled) { border-color: color-mix(in srgb, var(--acc) 55%, transparent); }
+    .btn.sm { padding: 6px 10px; font-size: 12.5px; border-radius: 9px; }
+    .btn.icone { width: 34px; height: 34px; padding: 0; }
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .btn.full { width: 100%; }
+    :focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+
+    .mesa { max-width: 1560px; margin: 0 auto; display: grid; grid-template-columns: 300px minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+    .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+    /* envio */
+    .soltar { display: block; border: 1.5px dashed var(--lt-line-2); border-radius: 14px; padding: 18px 14px; text-align: center; cursor: pointer;
+      transition: border-color var(--lt-dur), background var(--lt-dur); font-size: 13.5px; color: var(--lt-muted); line-height: 1.5; }
+    .soltar:hover, .soltar.sobre { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 7%, transparent); }
+    .soltar b { color: var(--lt-ink); display: block; font-size: 14.5px; margin-bottom: 2px; }
+    .projetos { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; max-height: 280px; overflow: auto; }
+    .proj { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; }
+    .proj:hover { background: var(--lt-surface); }
+    .proj.ativo { border-color: color-mix(in srgb, var(--acc) 50%, transparent); background: color-mix(in srgb, var(--acc) 8%, transparent); }
+    .proj img { width: 44px; height: 44px; object-fit: contain; border-radius: 6px; background: repeating-conic-gradient(#2a2d33 0 25%, #1f2227 0 50%) 0 0 / 10px 10px; }
+    .proj b { display: block; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .proj span { font-size: 12px; color: var(--lt-faint); }
+    .proj .x { opacity: 0; }
+    .proj:hover .x, .proj.ativo .x { opacity: 1; }
+    .proj.enviando { opacity: .6; pointer-events: none; }
+
+    /* ajustes */
+    .campo { margin-bottom: 14px; }
+    .campo > label, .campo > .rot { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .campo > label .faint, .campo > .rot .faint { font-weight: 500; font-size: 12px; }
+    .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 3px; border-radius: 10px; background: var(--lt-surface); border: 1px solid var(--lt-line); }
+    .seg button { border: 0; background: transparent; border-radius: 8px; padding: 6px 4px; font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--lt-muted); }
+    .seg button[aria-pressed="true"] { background: var(--acc); color: var(--acc-tinta); }
+    .motivo { font-size: 12.5px; color: var(--lt-faint); line-height: 1.45; margin: 6px 0 0; }
+    input[type=range] { width: 100%; accent-color: var(--acc); }
+    .dica { font-size: 11.5px; color: var(--lt-faint); display: flex; justify-content: space-between; margin-top: 2px; }
+    .marca { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .marca .chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 4px 3px 3px; border-radius: 8px; background: var(--lt-surface); border: 1px solid var(--lt-line-2); font: 11.5px var(--lt-mono); }
+    .marca .chip i { width: 16px; height: 16px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,.2); }
+    .marca .chip button { border: 0; background: none; cursor: pointer; color: var(--lt-faint); padding: 0 2px; }
+    .marca input[type=color] { width: 30px; height: 26px; border: 1px solid var(--lt-line-2); border-radius: 7px; background: none; padding: 1px; cursor: pointer; }
+    .acoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* palco */
+    .palco-card { display: flex; flex-direction: column; }
+    .barra-palco { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--lt-line); flex-wrap: wrap; }
+    .barra-palco .seg { grid-auto-columns: auto; }
+    .barra-palco .seg button { padding: 6px 10px; }
+    .zoom { display: flex; align-items: center; gap: 4px; font: 12.5px var(--lt-mono); color: var(--lt-muted); }
+    .zoom span { min-width: 48px; text-align: center; }
+    .janela { position: relative; height: min(72vh, 760px); min-height: 380px; overflow: auto; cursor: grab; border-radius: 0 0 18px 18px; }
+    .janela.arrastando { cursor: grabbing; }
+    .folha { position: relative; margin: auto; user-select: none; }
+    .folha img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+    .folha .original.pixel { image-rendering: pixelated; }
+    .folha .vetor { clip-path: inset(0 0 0 var(--corte, 50%)); }
+    .modo-vetor .folha .original { opacity: 0; }
+    .modo-contorno .folha .original { opacity: .28; }
+    .modo-original .folha .vetor { opacity: 0; }
+    .modo-vetor .folha .vetor, .modo-contorno .folha .vetor { clip-path: none; }
+    .divisoria { position: absolute; top: 0; bottom: 0; left: var(--corte, 50%); width: 0; z-index: 3; cursor: ew-resize; }
+    .divisoria::before { content: ''; position: absolute; top: 0; bottom: 0; left: -1px; width: 2px; background: var(--acc); box-shadow: 0 0 0 1px rgba(0,0,0,.35); }
+    .divisoria button { position: absolute; top: 50%; left: 0; transform: translate(-50%, -50%); width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff;
+      background: var(--acc); color: var(--acc-tinta); cursor: ew-resize; display: grid; place-items: center; padding: 0; box-shadow: 0 4px 12px rgba(0,0,0,.45); }
+    .divisoria button svg { width: 16px; height: 16px; }
+    .modo-vetor .divisoria, .modo-original .divisoria, .modo-contorno .divisoria { display: none; }
+    .etq { position: absolute; top: 10px; z-index: 2; font: 600 11px var(--lt-mono); letter-spacing: .08em; padding: 4px 7px; border-radius: 6px; background: rgba(0,0,0,.62); color: #fff; pointer-events: none; }
+    .etq.esq { left: 10px; } .etq.dir { right: 10px; }
+    .modo-vetor .etq, .modo-original .etq, .modo-contorno .etq { display: none; }
+    .vazio { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: var(--lt-faint); font-size: 14px; padding: 20px; line-height: 1.6; }
+    .trabalhando { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(11,12,15,.55); z-index: 5; backdrop-filter: blur(2px); font-size: 14px; }
+    .trabalhando > div { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .giro { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--lt-line-2); border-top-color: var(--acc); animation: giro .8s linear infinite; }
+    @keyframes giro { to { transform: rotate(360deg); } }
+    .numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 1px; background: var(--lt-line); border-top: 1px solid var(--lt-line); border-radius: 0 0 18px 18px; overflow: hidden; }
+    .numeros div { background: #121417; padding: 9px 12px; }
+    .numeros b { display: block; font: 600 16px var(--lt-mono); }
+    .numeros span { font-size: 11.5px; color: var(--lt-faint); }
+    .fid-boa { color: #4ade80; } .fid-media { color: #fbbf24; } .fid-baixa { color: #f87171; }
+
+    /* paleta */
+    .paleta { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; }
+    .cor { border: 1px solid var(--lt-line-2); border-radius: 10px; padding: 0; background: var(--lt-surface); cursor: pointer; overflow: hidden; text-align: left; position: relative; }
+    .cor i { display: block; height: 34px; }
+    .cor span { display: block; padding: 4px 6px; font: 11px var(--lt-mono); color: var(--lt-muted); white-space: nowrap; }
+    .cor small { display: block; padding: 0 6px 5px; font-size: 10.5px; color: var(--lt-faint); }
+    .cor.sel { outline: 2px solid var(--acc); outline-offset: 1px; }
+    .cor.apagada i { background-image: repeating-linear-gradient(45deg, transparent 0 5px, rgba(0,0,0,.55) 5px 7px) !important; }
+    .cor.apagada span { text-decoration: line-through; }
+    .cor.juntada { opacity: .5; }
+    .cor .seta { position: absolute; top: 4px; right: 4px; font-size: 10px; background: rgba(0,0,0,.6); color: #fff; border-radius: 4px; padding: 1px 4px; }
+    .editor-cor { margin-top: 12px; padding: 12px; border-radius: 12px; border: 1px solid var(--lt-line-2); background: var(--lt-surface); display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+    .editor-cor .row input[type=color] { width: 40px; height: 32px; border: 1px solid var(--lt-line-2); border-radius: 8px; background: none; padding: 2px; cursor: pointer; }
+    .nota { font-size: 12px; color: var(--lt-faint); line-height: 1.5; margin: 8px 0 0; }
+
+    /* exportar */
+    .fmts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .fmt { border: 1px solid var(--lt-line-2); background: var(--lt-surface); border-radius: 10px; padding: 8px 6px; cursor: pointer; text-align: center; transition: border-color var(--lt-dur-fast); }
+    .fmt:hover:not(:disabled) { border-color: color-mix(in srgb, var(--acc) 60%, transparent); }
+    .fmt:disabled { opacity: .45; cursor: default; }
+    .fmt b { display: block; font-size: 13.5px; }
+    .fmt span { display: block; font-size: 10.5px; color: var(--lt-faint); margin-top: 1px; }
+    .fmt.ocupado { opacity: .55; pointer-events: none; }
+    select, .num { width: 100%; background: var(--lt-surface); border: 1px solid var(--lt-line-2); border-radius: 9px; padding: 7px 9px; font-size: 13px; }
+    select option { background: #16181c; }
+    .grade2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .checks { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; margin: 6px 0 10px; }
+    .checks label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+    .checks input { accent-color: var(--acc); }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 60;
+      padding: 10px 16px; border-radius: 12px; background: #1b1d22; border: 1px solid var(--lt-line-2); font-size: 14px; max-width: calc(100vw - 32px);
+      transition: opacity var(--lt-dur), transform var(--lt-dur) var(--lt-ease-out); }
+    .toast.on { opacity: 1; transform: translate(-50%, 0); }
+    .toast.erro { border-color: rgba(248,113,113,.5); color: #fecaca; }
+
+    @media (max-width: 1240px) {
+      .mesa { grid-template-columns: 290px minmax(0, 1fr); }
+      .col.direita { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 860px) {
+      body.lt-body { padding: 72px 16px 48px; }
+      .mesa { grid-template-columns: minmax(0, 1fr); }
+      .col.centro { order: -1; }
+      .col.direita { grid-template-columns: minmax(0, 1fr); }
+      .janela { height: 58vh; min-height: 300px; }
+      .barra-palco .seg button { padding: 6px 7px; font-size: 12px; }
+    }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-milimetrado.css">
+</head>
+<body class="lt-body tema-milimetrado">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-conversao)"><img src="/static/localtools/apps/vetorizar.webp" alt="" width="76" height="76"></span>
+    <h1>Vetorizar <span class="k4">4K</span></h1>
+    <p>Pixel art, logo pequeno, desenho escaneado ou foto viram <b>vetor limpo</b> (SVG, PDF, AI, EPS, DXF) e imagem em <b>4K ou 8K</b>.
+      O app reconhece o tipo da imagem, mede a fidelidade e deixa você editar a paleta. Tudo processado nesta máquina.</p>
+  </header>
+
+  <main class="mesa">
+    <!-- esquerda: imagens e ajustes -->
+    <div class="col">
+      <section class="card" aria-label="Imagens">
+        <div class="card-h"><h2>Imagens</h2><span class="faint" id="nProj" style="font-size:12px"></span></div>
+        <div class="card-b">
+          <label class="soltar" id="soltar" tabindex="0">
+            <b>Solte as imagens aqui</b>ou clique para escolher. PNG, JPG, WebP, GIF, BMP, TIFF, HEIC. Várias de uma vez viram um lote.
+            <input type="file" id="arquivo" accept="image/*,.heic,.heif,.avif" multiple hidden>
+          </label>
+          <div class="projetos" id="projetos"></div>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Ajustes" id="ajustes">
+        <div class="card-h"><h2>Ajustes</h2></div>
+        <div class="card-b">
+          <div class="campo">
+            <div class="rot">Tipo da imagem</div>
+            <div class="seg" id="tipo" role="group" aria-label="Tipo da imagem">
+              <button type="button" data-v="auto">Auto</button><button type="button" data-v="pixel">Pixel</button>
+              <button type="button" data-v="logo">Logo</button><button type="button" data-v="traco">Traço</button><button type="button" data-v="foto">Foto</button>
+            </div>
+            <p class="motivo" id="motivo"></p>
+          </div>
+          <div class="campo" data-so="pixel">
+            <div class="rot">Pixel art</div>
+            <div class="seg" id="pixel_estilo" role="group" aria-label="Estilo da pixel art"><button type="button" data-v="exato">Exato (quadrados)</button><button type="button" data-v="suave">Suave (curvas)</button></div>
+          </div>
+          <div class="campo" data-so="foto">
+            <div class="rot">Foto</div>
+            <div class="seg" id="foto_estilo" role="group" aria-label="Estilo da foto"><button type="button" data-v="poster">Pôster</button><button type="button" data-v="detalhado">Detalhado</button></div>
+          </div>
+          <div class="campo" data-so="traco">
+            <div class="rot">Traço</div>
+            <div class="seg" id="traco_modo" role="group" aria-label="Modo do traço"><button type="button" data-v="contorno">Contorno</button><button type="button" data-v="centro">Linha central</button></div>
+          </div>
+          <div class="campo" data-so="logo foto">
+            <label for="cores">Cores <span class="faint" id="coresV">automático</span></label>
+            <input type="range" id="cores" min="0" max="48" step="1" value="0">
+            <div class="dica"><span>auto</span><span>48</span></div>
+          </div>
+          <div class="campo" data-nao="pixel-exato">
+            <label for="suavidade">Curvas <span class="faint" id="suavidadeV"></span></label>
+            <input type="range" id="suavidade" min="0" max="100" value="55">
+            <div class="dica"><span>cantos vivos</span><span>bem lisas</span></div>
+          </div>
+          <div class="campo" data-nao="pixel-exato">
+            <label for="detalhe">Detalhe <span class="faint" id="detalheV"></span></label>
+            <input type="range" id="detalhe" min="0" max="100" value="50">
+            <div class="dica"><span>limpo</span><span>cada pontinho</span></div>
+          </div>
+          <div class="campo">
+            <label for="fundo">Fundo</label>
+            <select id="fundo">
+              <option value="manter">Manter o fundo</option>
+              <option value="remover">Tirar a cor do fundo (só a que encosta na borda)</option>
+              <option value="ia">Tirar o fundo com IA (objeto principal)</option>
+            </select>
+          </div>
+          <div class="campo" data-nao="traco">
+            <div class="rot">Cores da marca <span class="faint">ficam exatas</span></div>
+            <div class="marca" id="marca"><input type="color" id="novaMarca" value="#0066cc" title="Escolher cor"><button class="btn ghost sm" id="addMarca" type="button">+ Travar cor</button></div>
+          </div>
+          <div class="acoes">
+            <button class="btn" id="aplicar" type="button">Vetorizar</button>
+            <button class="btn ghost" id="auto" type="button" title="Testa várias combinações e fica com a de melhor fidelidade e menos nós">Automático</button>
+          </div>
+          <button class="btn ghost sm full" id="lote" type="button" style="margin-top:8px">Aplicar estes ajustes a todas</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- centro: comparação -->
+    <div class="col centro">
+      <section class="card palco-card" aria-label="Comparação">
+        <div class="barra-palco">
+          <div class="seg" id="modoVer" role="group" aria-label="Visualização">
+            <button type="button" data-v="comparar" aria-pressed="true">Comparar</button><button type="button" data-v="vetor">Vetor</button>
+            <button type="button" data-v="original">Original</button><button type="button" data-v="contorno">Contornos</button>
+          </div>
+          <div class="zoom">
+            <button class="btn ghost icone" id="zMenos" type="button" aria-label="Diminuir zoom">−</button>
+            <span id="zValor">100%</span>
+            <button class="btn ghost icone" id="zMais" type="button" aria-label="Aumentar zoom">+</button>
+            <button class="btn ghost sm" id="zCaber" type="button">Caber</button>
+          </div>
+        </div>
+        <div class="janela modo-comparar" id="janela" tabindex="0" aria-label="Área de comparação: arraste para mover, roda do mouse para zoom">
+          <div class="vazio" id="vazio">Envie uma imagem para começar.<br><span class="faint">Ela é vetorizada sozinha, no melhor ajuste que o app encontrar.</span></div>
+          <div class="folha" id="folha" hidden>
+            <img class="original" id="imgOriginal" alt="Imagem original">
+            <img class="vetor" id="imgVetor" alt="Resultado vetorizado">
+            <span class="etq esq">ORIGINAL</span><span class="etq dir">VETOR</span>
+            <div class="divisoria" id="divisoria"><button type="button" aria-label="Arraste para comparar"><svg viewBox="0 0 256 256" fill="currentColor"><path d="M136,40V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0ZM96,120H35.31l18.35-18.34A8,8,0,0,0,42.34,90.34l-32,32a8,8,0,0,0,0,11.32l32,32a8,8,0,0,0,11.32-11.32L35.31,136H96a8,8,0,0,0,0-16Zm149.66,2.34-32-32a8,8,0,0,0-11.32,11.32L220.69,120H160a8,8,0,0,0,0,16h60.69l-18.35,18.34a8,8,0,0,0,11.32,11.32l32-32A8,8,0,0,0,245.66,122.34Z"/></svg></button></div>
+          </div>
+          <div class="trabalhando" id="trabalhando" hidden><div><div class="giro"></div><span id="trabalhandoT">Vetorizando…</span></div></div>
+        </div>
+        <div class="numeros" id="numeros" hidden>
+          <div><b id="nFid">–</b><span>fidelidade</span></div>
+          <div><b id="nNos">–</b><span>nós</span></div>
+          <div><b id="nFormas">–</b><span>formas</span></div>
+          <div><b id="nCores">–</b><span>cores</span></div>
+          <div><b id="nTam">–</b><span>SVG</span></div>
+          <div><b id="nTempo">–</b><span id="nTempoR">tempo</span></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- direita: paleta e exportar -->
+    <div class="col direita">
+      <section class="card" aria-label="Paleta">
+        <div class="card-h"><h2>Paleta</h2><button class="btn ghost sm" id="desfazerPaleta" type="button" hidden>Desfazer edições</button></div>
+        <div class="card-b">
+          <div class="paleta" id="paleta"></div>
+          <div class="editor-cor" id="editorCor" hidden>
+            <div class="row" style="justify-content:space-between"><b id="ecTitulo">Cor</b><button class="btn ghost sm" id="ecFechar" type="button">Fechar</button></div>
+            <div class="row"><input type="color" id="ecCor" aria-label="Nova cor"><button class="btn ghost sm" id="ecTrocar" type="button">Trocar a cor</button></div>
+            <div class="row"><button class="btn ghost sm" id="ecJuntar" type="button">Juntar com outra…</button><button class="btn ghost sm" id="ecApagar" type="button">Apagar</button><button class="btn ghost sm" id="ecRestaurar" type="button">Restaurar</button></div>
+            <p class="nota" id="ecDica" style="margin:0"></p>
+          </div>
+          <p class="nota" id="paletaNota">Clique numa cor para trocar, juntar com outra ou apagar. As edições valem para o próximo "Vetorizar".</p>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Exportar">
+        <div class="card-h"><h2>Exportar</h2></div>
+        <div class="card-b">
+          <div class="grade2" style="margin-bottom:10px">
+            <div><label class="faint" for="tamanho" style="font-size:12px">Tamanho do PNG/WebP</label>
+              <select id="tamanho"><option value="4k">4K · 3840 px</option><option value="4k-dci">4K DCI · 4096 px</option><option value="5k">5K · 5120 px</option><option value="8k">8K · 7680 px</option><option value="livre">Livre…</option></select></div>
+            <div><label class="faint" for="fundoExp" style="font-size:12px">Fundo</label>
+              <select id="fundoExp"><option value="transparente">Transparente</option><option value="#ffffff">Branco</option><option value="#000000">Preto</option><option value="cor">Outra cor…</option></select></div>
+          </div>
+          <div class="grade2" id="livres" hidden style="margin-bottom:10px">
+            <input class="num" type="number" id="ladoLivre" min="64" max="8192" value="6000" aria-label="Lado maior em pixels">
+            <input type="color" id="corLivre" value="#f5f5f5" aria-label="Cor do fundo" style="width:100%;height:34px;border-radius:9px;border:1px solid var(--lt-line-2);background:none" hidden>
+          </div>
+          <div class="fmts" id="fmts">
+            <button class="fmt" data-f="svg" type="button"><b>SVG</b><span>web, Inkscape</span></button>
+            <button class="fmt" data-f="pdf" type="button"><b>PDF</b><span>vetorial</span></button>
+            <button class="fmt" data-f="ai" type="button"><b>AI</b><span>Illustrator</span></button>
+            <button class="fmt" data-f="eps" type="button"><b>EPS</b><span>gráfica</span></button>
+            <button class="fmt" data-f="dxf" type="button"><b>DXF</b><span>corte, CNC</span></button>
+            <button class="fmt" data-f="png" type="button"><b>PNG</b><span id="pngTam">4K</span></button>
+            <button class="fmt" data-f="webp" type="button"><b>WebP</b><span id="webpTam">4K</span></button>
+            <button class="fmt" data-f="gpl" type="button"><b>Paleta</b><span>.gpl</span></button>
+            <button class="fmt" data-f="txt" type="button"><b>Cores</b><span>.txt hex</span></button>
+          </div>
+          <div style="margin-top:14px">
+            <b style="font-size:13px">Baixar em ZIP</b>
+            <div class="checks" id="zipFmts">
+              <label><input type="checkbox" value="svg" checked> SVG</label><label><input type="checkbox" value="pdf" checked> PDF</label>
+              <label><input type="checkbox" value="ai"> AI</label><label><input type="checkbox" value="eps"> EPS</label><label><input type="checkbox" value="dxf"> DXF</label>
+              <label><input type="checkbox" value="png" checked> PNG</label><label><input type="checkbox" value="webp"> WebP</label><label><input type="checkbox" value="gpl"> Paleta</label>
+            </div>
+            <div class="grade2"><button class="btn ghost sm" id="zipEsta" type="button">Esta imagem</button><button class="btn ghost sm" id="zipTodas" type="button">Todas (<span id="nTodas">0</span>)</button></div>
+          </div>
+          <p class="nota">O vetor não tem resolução: amplia sem perder nada. PNG e WebP são o vetor desenhado no tamanho escolhido.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  (() => {
+    const $ = (s, el = document) => el.querySelector(s);
+    const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+    const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const NOME_TIPO = { pixel: 'Pixel art', logo: 'Logo', traco: 'Traço', foto: 'Foto' };
+
+    let projetos = [];
+    let atual = null;           // projeto aberto
+    let op = null;              // opções em edição
+    let corSel = null;          // índice da cor em edição
+    let juntando = false;
+    let zoom = 1, caber = true;
+    let ocupado = false;
+
+    // ---------- avisos ----------
+    let toastT;
+    function toast(msg, erro = false) {
+      const t = $('#toast'); t.textContent = msg; t.classList.toggle('erro', erro); t.classList.add('on');
+      clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), erro ? 6500 : 3000);
+    }
+    async function api(url, opts) {
+      const r = await fetch(url, opts);
+      const d = await r.json().catch(() => ({ success: false, error: 'Resposta inválida do servidor.' }));
+      if (!d.success) throw new Error(d.error || 'Falhou.');
+      return d;
+    }
+    const json = (url, corpo, metodo = 'POST') => api(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo || {}) });
+    function trabalhando(msg) { ocupado = !!msg; $('#trabalhando').hidden = !msg; if (msg) $('#trabalhandoT').textContent = msg;
+      ['#aplicar', '#auto', '#lote'].forEach((s) => { $(s).disabled = !!msg; }); }
+
+    async function baixar(url, opts, padrao) {
+      const r = await fetch(url, opts);
+      if (!r.ok) throw new Error((await r.text()) || 'Falhou.');
+      const blob = await r.blob();
+      const cd = r.headers.get('Content-Disposition') || '';
+      const m = cd.match(/filename\*=UTF-8''([^;]+)/i) || cd.match(/filename="?([^";]+)"?/i);
+      const nome = m ? decodeURIComponent(m[1]) : padrao;
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+      return nome;
+    }
+
+    // ---------- lista de projetos ----------
+    function desenharLista() {
+      $('#nProj').textContent = projetos.length ? `${projetos.length}` : '';
+      $('#nTodas').textContent = projetos.length;
+      $('#projetos').innerHTML = projetos.map((p) => {
+        const r = p.resultado || {};
+        const sub = p.enviando ? 'Enviando e vetorizando…' : r.erro ? 'Erro' : `${NOME_TIPO[r.tipo] || ''} · ${r.fidelidade ?? '–'}%`;
+        return `<div class="proj${atual && p.id === atual.id ? ' ativo' : ''}${p.enviando ? ' enviando' : ''}" data-id="${esc(p.id)}" role="button" tabindex="0">
+          ${p.enviando ? '<img alt="">' : `<img src="/vetorizar/projeto/${p.id}/original" alt="" loading="lazy">`}
+          <div style="min-width:0"><b title="${esc(p.nome)}">${esc(p.nome)}</b><span>${esc(sub)} · ${p.largura || ''}×${p.altura || ''}</span></div>
+          ${p.enviando ? '' : `<button class="btn ghost icone sm x" data-apagar="${esc(p.id)}" type="button" aria-label="Apagar ${esc(p.nome)}" title="Apagar">✕</button>`}
+        </div>`;
+      }).join('');
+    }
+    $('#projetos').addEventListener('click', async (e) => {
+      const ap = e.target.closest('[data-apagar]');
+      if (ap) {
+        e.stopPropagation();
+        try { await api(`/vetorizar/projeto/${ap.dataset.apagar}`, { method: 'DELETE' }); } catch (err) { toast(err.message, true); return; }
+        projetos = projetos.filter((p) => p.id !== ap.dataset.apagar);
+        if (atual && atual.id === ap.dataset.apagar) abrir(projetos[0] || null); else desenharLista();
+        return;
+      }
+      const el = e.target.closest('.proj'); if (!el || ocupado) return;
+      abrir(projetos.find((p) => p.id === el.dataset.id));
+    });
+    $('#projetos').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.classList.contains('proj')) e.target.click(); });
+
+    // ---------- envio ----------
+    const soltar = $('#soltar');
+    soltar.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#arquivo').click(); } });
+    $('#arquivo').addEventListener('change', (e) => { enviar([...e.target.files]); e.target.value = ''; });
+    ['dragenter', 'dragover'].forEach((ev) => soltar.addEventListener(ev, (e) => { e.preventDefault(); soltar.classList.add('sobre'); }));
+    ['dragleave', 'drop'].forEach((ev) => soltar.addEventListener(ev, () => soltar.classList.remove('sobre')));
+    soltar.addEventListener('drop', (e) => { e.preventDefault(); enviar([...e.dataTransfer.files].filter((f) => /^image\//.test(f.type) || /\.(heic|heif|avif)$/i.test(f.name))); });
+    document.addEventListener('paste', (e) => {
+      const fs = [...(e.clipboardData?.files || [])].filter((f) => /^image\//.test(f.type));
+      if (fs.length) enviar(fs.map((f, i) => new File([f], f.name && f.name !== 'image.png' ? f.name : `colada-${Date.now()}-${i}.png`, { type: f.type })));
+    });
+
+    async function enviar(arquivos) {
+      if (!arquivos.length) return;
+      for (const arq of arquivos) {
+        const tmp = { id: 'tmp' + Math.random().toString(36).slice(2), nome: arq.name.replace(/\.[^.]+$/, ''), enviando: true };
+        projetos.unshift(tmp); desenharLista();
+        if (!atual) trabalhando('Analisando e vetorizando…');
+        try {
+          const fd = new FormData(); fd.append('file', arq);
+          const d = await api('/vetorizar/enviar', { method: 'POST', body: fd });
+          projetos = projetos.map((p) => (p.id === tmp.id ? d.projeto : p));
+          if (!atual || arquivos.length === 1) abrir(d.projeto); else desenharLista();
+          if (d.projeto.resultado && d.projeto.resultado.erro) toast(`${d.projeto.nome}: ${d.projeto.resultado.erro}`, true);
+        } catch (err) {
+          projetos = projetos.filter((p) => p.id !== tmp.id); desenharLista(); toast(`${arq.name}: ${err.message}`, true);
+        } finally { if (!atual || arquivos.length === 1) trabalhando(null); }
+      }
+      trabalhando(null);
+    }
+
+    // ---------- abrir projeto ----------
+    function abrir(p) {
+      atual = p; corSel = null; juntando = false; $('#editorCor').hidden = true;
+      desenharLista();
+      const tem = !!p;
+      $('#vazio').hidden = tem; $('#folha').hidden = !tem; $('#numeros').hidden = !tem || !(p.resultado && !p.resultado.erro);
+      if (!tem) { $('#paleta').innerHTML = ''; return; }
+      op = JSON.parse(JSON.stringify(p.opcoes || {}));
+      op.mapa = op.mapa || {}; op.travadas = op.travadas || [];
+      const r = p.resultado || {};
+      const tipoReal = r.tipo || p.info.tipo;
+      $('#imgOriginal').src = `/vetorizar/projeto/${p.id}/original`;
+      $('#imgOriginal').classList.toggle('pixel', tipoReal === 'pixel');
+      atualizarVetor();
+      desenharAjustes();
+      desenharNumeros();
+      desenharPaleta();
+      caber = true; ajustarZoom();
+    }
+
+    function atualizarVetor() {
+      if (!atual) return;
+      const contorno = $('#janela').classList.contains('modo-contorno');
+      $('#imgVetor').src = `/vetorizar/projeto/${atual.id}/svg?v=${atual.versao}${contorno ? '&contorno=1' : ''}`;
+    }
+
+    // ---------- ajustes ----------
+    function segmento(id, valor) { $$(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === valor))); }
+    function tipoEfetivo() { return op.tipo === 'auto' ? atual.info.tipo : op.tipo; }
+    function desenharAjustes() {
+      if (!atual) return;
+      segmento('tipo', op.tipo || 'auto');
+      segmento('pixel_estilo', op.pixel_estilo || 'exato');
+      segmento('foto_estilo', op.foto_estilo || 'poster');
+      segmento('traco_modo', op.traco_modo || 'contorno');
+      const t = tipoEfetivo();
+      $('#motivo').textContent = `Detectado: ${atual.info.motivo}`;
+      $$('[data-so]').forEach((el) => { el.hidden = !el.dataset.so.split(' ').includes(t); });
+      const pixelExato = t === 'pixel' && (op.pixel_estilo || 'exato') === 'exato';
+      $$('[data-nao]').forEach((el) => { el.hidden = el.dataset.nao === 'pixel-exato' ? pixelExato : el.dataset.nao === t; });
+      $('#cores').value = op.cores || 0; $('#suavidade').value = op.suavidade ?? 55; $('#detalhe').value = op.detalhe ?? 50;
+      $('#fundo').value = op.fundo || 'manter';
+      rotulos(); desenharMarca();
+    }
+    function rotulos() {
+      const c = +$('#cores').value; $('#coresV').textContent = c ? `${c}` : 'automático';
+      $('#suavidadeV').textContent = $('#suavidade').value; $('#detalheV').textContent = $('#detalhe').value;
+    }
+    ['tipo', 'pixel_estilo', 'foto_estilo', 'traco_modo'].forEach((id) => $(`#${id}`).addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b || !atual) return;
+      op[id] = b.dataset.v;
+      if (id === 'tipo') op.mapa = {};   // paleta muda com o tipo
+      desenharAjustes(); vetorizar(false);
+    }));
+    $('#cores').addEventListener('input', rotulos);
+    $('#cores').addEventListener('change', () => { op.cores = +$('#cores').value; op.mapa = {}; vetorizar(false); });
+    ['suavidade', 'detalhe'].forEach((id) => {
+      $(`#${id}`).addEventListener('input', rotulos);
+      $(`#${id}`).addEventListener('change', () => { op[id] = +$(`#${id}`).value; vetorizar(false); });
+    });
+    $('#fundo').addEventListener('change', () => { op.fundo = $('#fundo').value; vetorizar(false); });
+    function desenharMarca() {
+      $$('#marca .chip').forEach((c) => c.remove());
+      const ref = $('#novaMarca');
+      (op.travadas || []).forEach((h, i) => {
+        const c = document.createElement('span'); c.className = 'chip';
+        c.innerHTML = `<i style="background:${esc(h)}"></i>${esc(h)}<button type="button" aria-label="Destravar ${esc(h)}">✕</button>`;
+        c.querySelector('button').addEventListener('click', () => { op.travadas.splice(i, 1); op.mapa = {}; desenharMarca(); vetorizar(false); });
+        $('#marca').insertBefore(c, ref);
+      });
+    }
+    $('#addMarca').addEventListener('click', () => {
+      const h = $('#novaMarca').value.toLowerCase();
+      if (!op.travadas.includes(h)) { op.travadas.push(h); op.mapa = {}; desenharMarca(); vetorizar(false); }
+    });
+    $('#aplicar').addEventListener('click', () => vetorizar(false));
+    $('#auto').addEventListener('click', () => vetorizar(true));
+
+    async function vetorizar(auto) {
+      if (!atual || ocupado) return;
+      trabalhando(auto ? 'Testando combinações…' : op.fundo === 'ia' ? 'Separando o fundo com IA e vetorizando…' : 'Vetorizando…');
+      try {
+        const d = await json(`/vetorizar/projeto/${atual.id}/processar`, { opcoes: op, auto });
+        trocarProjeto(d.projeto);
+        if (auto) toast(`Melhor de ${d.projeto.resultado.testados} combinações: fidelidade ${d.projeto.resultado.fidelidade}%.`);
+      } catch (err) { toast(err.message, true); }
+      finally { trabalhando(null); }
+    }
+    function trocarProjeto(p) {
+      projetos = projetos.map((x) => (x.id === p.id ? p : x));
+      const zoomAntes = zoom, caberAntes = caber;
+      atual = p; op = JSON.parse(JSON.stringify(p.opcoes)); op.mapa = op.mapa || {}; op.travadas = op.travadas || [];
+      desenharLista(); atualizarVetor(); desenharAjustes(); desenharNumeros(); desenharPaleta();
+      $('#imgOriginal').classList.toggle('pixel', p.resultado.tipo === 'pixel');
+      $('#numeros').hidden = false;
+      zoom = zoomAntes; caber = caberAntes; ajustarZoom();
+    }
+
+    $('#lote').addEventListener('click', async () => {
+      if (!atual || projetos.length < 2) { toast('Envie mais de uma imagem para usar o lote.'); return; }
+      const outros = projetos.filter((p) => p.id !== atual.id && !p.enviando);
+      const base = { ...op, mapa: {} };
+      let n = 0;
+      for (const p of outros) {
+        trabalhando(`Aplicando a todas… ${++n} de ${outros.length}`);
+        try { const d = await json(`/vetorizar/projeto/${p.id}/processar`, { opcoes: base, auto: false }); projetos = projetos.map((x) => (x.id === p.id ? d.projeto : x)); }
+        catch (err) { toast(`${p.nome}: ${err.message}`, true); }
+      }
+      trabalhando(null); desenharLista(); toast('Ajustes aplicados a todas as imagens.');
+    });
+
+    // ---------- números ----------
+    function desenharNumeros() {
+      const r = (atual && atual.resultado) || {};
+      if (r.erro) { $('#numeros').hidden = true; return; }
+      const f = r.fidelidade ?? 0;
+      const nf = $('#nFid'); nf.textContent = `${f}%`; nf.className = f >= 85 ? 'fid-boa' : f >= 70 ? 'fid-media' : 'fid-baixa';
+      nf.parentElement.title = `Comparação do vetor com a imagem: estrutura (SSIM) e cor (erro médio ${r.erro_cor} ΔE).`;
+      $('#nNos').textContent = (r.nos ?? 0).toLocaleString('pt-BR');
+      $('#nFormas').textContent = (r.formas ?? 0).toLocaleString('pt-BR');
+      $('#nCores').textContent = r.cores_saida ?? '–';
+      const kb = (r.bytes || 0) / 1024; $('#nTam').textContent = kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(kb))} KB`;
+      $('#nTempo').textContent = `${r.segundos ?? 0}s`;
+      $('#nTempoR').textContent = r.testados > 1 ? `${r.testados} testes` : 'tempo';
+    }
+
+    // ---------- paleta ----------
+    function desenharPaleta() {
+      const r = (atual && atual.resultado) || {};
+      const pal = r.paleta || [];
+      $('#paletaNota').hidden = !pal.length && !!atual;
+      if (!pal.length) {
+        $('#paleta').innerHTML = atual ? `<p class="nota" style="grid-column:1/-1;margin:0">${r.tipo === 'traco' ? 'Desenho a traço sai em uma cor (preto). Troque a cor depois, no editor de vetor.' : 'Sem paleta neste modo.'}</p>` : '';
+        $('#desfazerPaleta').hidden = true; return;
+      }
+      $('#paleta').innerHTML = pal.map((c) => {
+        const e = op.mapa[String(c.i)] || {};
+        const hex = e.hex || c.hex;
+        const cls = ['cor', corSel === c.i ? 'sel' : '', e.apagar ? 'apagada' : '', e.para != null ? 'juntada' : ''].join(' ');
+        return `<button class="${cls}" type="button" data-i="${c.i}" title="${esc(c.hex)} · ${c.pct}% da imagem">
+          <i style="background:${esc(hex)}"></i>${e.para != null ? `<em class="seta">→${e.para + 1}</em>` : ''}
+          <span>${c.i + 1}. ${esc(hex)}</span><small>${c.pct}%${e.hex ? ' · trocada' : ''}</small></button>`;
+      }).join('');
+      $('#desfazerPaleta').hidden = !Object.keys(op.mapa).length;
+    }
+    $('#paleta').addEventListener('click', (e) => {
+      const b = e.target.closest('.cor'); if (!b) return;
+      const i = +b.dataset.i;
+      if (juntando && corSel != null && i !== corSel) {
+        op.mapa[String(corSel)] = { ...(op.mapa[String(corSel)] || {}), para: i, apagar: false };
+        juntando = false; corSel = null; $('#editorCor').hidden = true; desenharPaleta(); vetorizar(false); return;
+      }
+      corSel = i; juntando = false; abrirEditorCor();
+    });
+    function abrirEditorCor() {
+      const c = atual.resultado.paleta.find((x) => x.i === corSel); if (!c) return;
+      const e = op.mapa[String(corSel)] || {};
+      $('#editorCor').hidden = false; $('#ecTitulo').textContent = `Cor ${corSel + 1} · ${c.pct}%`;
+      $('#ecCor').value = e.hex || c.hex; $('#ecDica').textContent = '';
+      $('#ecRestaurar').hidden = !op.mapa[String(corSel)];
+      desenharPaleta();
+    }
+    $('#ecFechar').addEventListener('click', () => { corSel = null; juntando = false; $('#editorCor').hidden = true; desenharPaleta(); });
+    $('#ecTrocar').addEventListener('click', () => { op.mapa[String(corSel)] = { ...(op.mapa[String(corSel)] || {}), hex: $('#ecCor').value }; abrirEditorCor(); vetorizar(false); });
+    $('#ecApagar').addEventListener('click', () => { op.mapa[String(corSel)] = { apagar: true }; abrirEditorCor(); vetorizar(false); });
+    $('#ecRestaurar').addEventListener('click', () => { delete op.mapa[String(corSel)]; abrirEditorCor(); vetorizar(false); });
+    $('#ecJuntar').addEventListener('click', () => { juntando = true; $('#ecDica').textContent = 'Agora clique na cor que vai ficar no lugar dela.'; });
+    $('#desfazerPaleta').addEventListener('click', () => { op.mapa = {}; corSel = null; $('#editorCor').hidden = true; vetorizar(false); });
+
+    // ---------- comparação e zoom ----------
+    const janela = $('#janela'), folha = $('#folha');
+    $('#modoVer').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      segmento('modoVer', b.dataset.v);
+      janela.className = `janela modo-${b.dataset.v}`;
+      atualizarVetor();
+    });
+    function ajustarZoom() {
+      if (!atual) return;
+      const w = atual.largura, h = atual.altura;
+      const cw = janela.clientWidth - 24, ch = janela.clientHeight - 24;
+      if (caber) zoom = Math.min(cw / w, ch / h);
+      zoom = Math.max(0.02, Math.min(64, zoom));
+      folha.style.width = `${Math.round(w * zoom)}px`; folha.style.height = `${Math.round(h * zoom)}px`;
+      folha.style.margin = `${Math.max(12, (janela.clientHeight - h * zoom) / 2)}px ${Math.max(12, (janela.clientWidth - w * zoom) / 2)}px`;
+      $('#zValor').textContent = `${Math.round(zoom * 100)}%`;
+    }
+    function zoomEm(fator, cx, cy) {
+      const r = janela.getBoundingClientRect();
+      const px = (cx ?? r.left + r.width / 2) - r.left, py = (cy ?? r.top + r.height / 2) - r.top;
+      const fx = (janela.scrollLeft + px - folha.offsetLeft) / (folha.offsetWidth || 1);
+      const fy = (janela.scrollTop + py - folha.offsetTop) / (folha.offsetHeight || 1);
+      caber = false; zoom *= fator; ajustarZoom();
+      janela.scrollLeft = folha.offsetLeft + fx * folha.offsetWidth - px;
+      janela.scrollTop = folha.offsetTop + fy * folha.offsetHeight - py;
+    }
+    $('#zMais').addEventListener('click', () => zoomEm(1.5));
+    $('#zMenos').addEventListener('click', () => zoomEm(1 / 1.5));
+    $('#zCaber').addEventListener('click', () => { caber = true; ajustarZoom(); });
+    janela.addEventListener('wheel', (e) => { if (!atual) return; e.preventDefault(); zoomEm(e.deltaY < 0 ? 1.18 : 1 / 1.18, e.clientX, e.clientY); }, { passive: false });
+    window.addEventListener('resize', () => { if (caber) ajustarZoom(); });
+
+    // arrastar: divisória ou mover a vista
+    let arr = null;
+    janela.addEventListener('pointerdown', (e) => {
+      if (!atual) return;
+      if (e.target.closest('.divisoria')) { arr = { tipo: 'corte' }; }
+      else { arr = { tipo: 'mover', x: e.clientX, y: e.clientY, sl: janela.scrollLeft, st: janela.scrollTop }; janela.classList.add('arrastando'); }
+      janela.setPointerCapture(e.pointerId);
+    });
+    janela.addEventListener('pointermove', (e) => {
+      if (!arr) return;
+      if (arr.tipo === 'corte') {
+        const r = folha.getBoundingClientRect();
+        folha.style.setProperty('--corte', `${Math.max(0, Math.min(100, 100 * (e.clientX - r.left) / r.width))}%`);
+      } else { janela.scrollLeft = arr.sl - (e.clientX - arr.x); janela.scrollTop = arr.st - (e.clientY - arr.y); }
+    });
+    const soltarArr = () => { arr = null; janela.classList.remove('arrastando'); };
+    janela.addEventListener('pointerup', soltarArr); janela.addEventListener('pointercancel', soltarArr);
+    janela.addEventListener('keydown', (e) => {
+      if (e.key === '+' || e.key === '=') zoomEm(1.25); else if (e.key === '-') zoomEm(0.8); else if (e.key === '0') { caber = true; ajustarZoom(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        const v = parseFloat(getComputedStyle(folha).getPropertyValue('--corte')) || 50;
+        folha.style.setProperty('--corte', `${Math.max(0, Math.min(100, v + (e.key === 'ArrowLeft' ? -5 : 5)))}%`);
+      }
+    });
+
+    // ---------- exportar ----------
+    function lado() { const t = $('#tamanho').value; return t === 'livre' ? Math.max(64, Math.min(8192, +$('#ladoLivre').value || 3840)) : t; }
+    function fundoExp() { const f = $('#fundoExp').value; return f === 'cor' ? $('#corLivre').value : f; }
+    function rotTamanho() {
+      const t = $('#tamanho').value;
+      const txt = { '4k': '4K', '4k-dci': '4K DCI', '5k': '5K', '8k': '8K' }[t] || `${lado()} px`;
+      $('#pngTam').textContent = txt; $('#webpTam').textContent = txt;
+      $('#livres').hidden = t !== 'livre' && $('#fundoExp').value !== 'cor';
+      $('#ladoLivre').hidden = t !== 'livre'; $('#corLivre').hidden = $('#fundoExp').value !== 'cor';
+    }
+    ['#tamanho', '#fundoExp', '#ladoLivre'].forEach((s) => $(s).addEventListener('input', rotTamanho));
+    $('#fmts').addEventListener('click', async (e) => {
+      const b = e.target.closest('.fmt'); if (!b) return;
+      if (!atual || !atual.resultado || atual.resultado.erro) { toast('Vetorize uma imagem primeiro.', true); return; }
+      b.classList.add('ocupado'); const sp = b.querySelector('span'); const antes = sp.textContent; sp.textContent = 'Gerando…';
+      try {
+        const q = new URLSearchParams({ tamanho: lado(), fundo: fundoExp() });
+        const nome = await baixar(`/vetorizar/projeto/${atual.id}/exportar/${b.dataset.f}?${q}`, null, `vetor.${b.dataset.f}`);
+        toast(`Baixado: ${nome}`);
+      } catch (err) { toast(err.message, true); }
+      finally { b.classList.remove('ocupado'); sp.textContent = antes; }
+    });
+    async function zip(ids, botao) {
+      const formatos = $$('#zipFmts input:checked').map((i) => i.value);
+      if (!formatos.length) { toast('Marque pelo menos um formato.', true); return; }
+      if (!ids.length) { toast('Nenhuma imagem vetorizada.', true); return; }
+      const antes = botao.innerHTML; botao.disabled = true; botao.textContent = 'Montando…';
+      try {
+        const nome = await baixar('/vetorizar/zip', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids, formatos, tamanho: lado(), fundo: fundoExp(), nome: ids.length === 1 ? atual.nome : 'Vetorizar 4K' }) }, 'vetores.zip');
+        toast(`Baixado: ${nome}`);
+      } catch (err) { toast(err.message, true); }
+      finally { botao.disabled = false; botao.innerHTML = antes; $('#nTodas').textContent = projetos.length; }
+    }
+    $('#zipEsta').addEventListener('click', (e) => atual && zip([atual.id], e.currentTarget));
+    $('#zipTodas').addEventListener('click', (e) => zip(projetos.filter((p) => p.resultado && !p.resultado.erro).map((p) => p.id), e.currentTarget));
+
+    // ---------- início ----------
+    (async () => {
+      rotTamanho();
+      try { const d = await api('/vetorizar/projetos'); projetos = d.projetos; } catch { projetos = []; }
+      desenharLista();
+      if (projetos.length) abrir(projetos[0]);
+    })();
+  })();
+  </script>
+</body>
+</html>

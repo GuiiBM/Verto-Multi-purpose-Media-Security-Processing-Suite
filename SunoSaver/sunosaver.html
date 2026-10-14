@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SunoSaver</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <style>
+    :root { --acc: var(--lt-cat-downloads); --acc-tinta: #052e16; }
+    * { box-sizing: border-box; }
+    body.lt-body { margin: 0; min-height: 100vh; padding: 28px 24px 64px; overflow-x: clip; }
+    body.lt-body > *:not(.lt-back):not(.toast) { position: relative; z-index: 1; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    .lt-head { margin: 0 auto 22px; max-width: 760px; }
+    .lt-head p { margin: 0; }
+    .wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+    .muted { color: var(--lt-muted); }
+    .faint { color: var(--lt-faint); }
+    .mono { font-family: var(--lt-mono); }
+    .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018)); border: 1px solid var(--lt-line); border-radius: 18px; box-shadow: var(--lt-shadow); }
+
+    /* botões */
+    .btn { border: 1px solid transparent; cursor: pointer; border-radius: 12px; font-weight: 650; font-size: 14px; padding: 10px 16px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; text-decoration: none;
+      background: var(--acc); color: var(--acc-tinta); transition: transform var(--lt-dur-fast) var(--lt-ease-out), opacity var(--lt-dur-fast); }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn.ghost { background: var(--lt-surface); color: var(--lt-ink); border-color: var(--lt-line-2); }
+    .btn.ghost:hover:not(:disabled) { border-color: color-mix(in srgb, var(--acc) 55%, transparent); }
+    .btn.sm { padding: 7px 11px; font-size: 13px; border-radius: 10px; }
+    .btn:focus-visible, .fmt:focus-visible, .faixa:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* busca */
+    .busca { display: flex; gap: 8px; padding: 8px; max-width: 820px; margin: 0 auto; width: 100%; }
+    .busca textarea { flex: 1; min-width: 0; resize: none; background: transparent; border: 0; outline: 0; padding: 10px 12px; font-size: 15px;
+      line-height: 1.45; height: 44px; max-height: 160px; color: var(--lt-ink); }
+    .busca textarea::placeholder { color: var(--lt-faint); }
+    .busca:focus-within { border-color: color-mix(in srgb, var(--acc) 50%, transparent); }
+    .dica { text-align: center; font-size: 13px; color: var(--lt-faint); margin: -6px auto 0; max-width: 820px; line-height: 1.5; }
+    .aviso { max-width: 820px; margin: 0 auto; width: 100%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5;
+      background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.3); color: #fecaca; }
+    .carregando { display: flex; justify-content: center; padding: 40px 0; }
+    .giro { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--lt-line-2); border-top-color: var(--acc); animation: giro .8s linear infinite; }
+    @keyframes giro { to { transform: rotate(360deg); } }
+
+    /* música */
+    .musica { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 28px; padding: 24px; }
+    .toca { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+    .disco { --tam: min(320px, 100%); width: var(--tam); aspect-ratio: 1; border-radius: 50%; position: relative; }
+    .disco .vinil { position: absolute; inset: 0; border-radius: 50%; animation: gira 1.8s linear infinite; animation-play-state: paused; }
+    .disco.tocando .vinil { animation-play-state: running; }
+    @keyframes gira { to { transform: rotate(360deg); } }
+    .disco .selo { position: absolute; inset: 30%; border-radius: 50%; overflow: hidden; background: #222 center / cover no-repeat; }
+    .disco .furo { position: absolute; left: 50%; top: 50%; width: 2.2%; height: 2.2%; transform: translate(-50%, -50%); border-radius: 50%; background: var(--lt-bg); }
+    .player { width: 100%; display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+    .play { width: 46px; height: 46px; border-radius: 50%; padding: 0; }
+    .play svg { width: 20px; height: 20px; }
+    .barra { position: relative; height: 6px; border-radius: 99px; background: var(--lt-surface-2); cursor: pointer; }
+    .barra > div { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: var(--acc); }
+    .tempo { display: flex; justify-content: space-between; font: 12px var(--lt-mono); color: var(--lt-faint); margin-top: 6px; }
+
+    .ficha h2 { margin: 0 0 4px; font-size: 28px; line-height: 1.15; letter-spacing: -.01em; word-break: break-word; }
+    .autor { display: flex; align-items: center; gap: 8px; color: var(--lt-muted); font-weight: 550; }
+    .autor img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: var(--lt-surface-2); }
+    .autor a { color: inherit; }
+    .dados { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 14px 0; font-size: 13px; color: var(--lt-faint); }
+    .dados b { color: var(--lt-ink); font-weight: 600; }
+    .estilo { font-size: 13.5px; color: var(--lt-muted); line-height: 1.5; margin: 0 0 18px; max-height: 4.5em; overflow: hidden; }
+    .estilo.aberto { max-height: none; }
+    .grupo-t { margin: 18px 0 8px; font-size: 12px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--lt-faint); }
+    .fmts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+    .fmt { position: relative; text-align: left; border: 1px solid var(--lt-line-2); background: var(--lt-surface); border-radius: 12px; padding: 10px 12px; cursor: pointer;
+      display: flex; flex-direction: column; gap: 2px; transition: border-color var(--lt-dur-fast), transform var(--lt-dur-fast) var(--lt-ease-out); }
+    .fmt:hover:not(:disabled) { border-color: color-mix(in srgb, var(--acc) 60%, transparent); transform: translateY(-1px); }
+    .fmt:disabled { opacity: .45; cursor: default; }
+    .fmt b { font-size: 14px; }
+    .fmt span { font-size: 12px; color: var(--lt-faint); }
+    .fmt.recomendado { border-color: color-mix(in srgb, var(--acc) 55%, transparent); background: color-mix(in srgb, var(--acc) 9%, transparent); }
+    .fmt.ocupado { opacity: .6; pointer-events: none; }
+    .sem-audio { margin: 4px 0 6px; padding: 12px 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.5;
+      background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.32); }
+    .sem-audio p { margin: 6px 0 0; color: var(--lt-muted); }
+    .sem-audio ol { margin: 4px 0 0; padding-left: 20px; color: var(--lt-muted); }
+    .sem-audio li { margin: 2px 0; }
+    .sem-audio.ok { background: rgba(74, 222, 128, 0.08); border-color: rgba(74, 222, 128, 0.32); display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+    .soltar-arq { display: block; margin-top: 10px; padding: 10px; border: 1.5px dashed var(--lt-line-2); border-radius: 10px; text-align: center; font-size: 13px; color: var(--lt-muted); cursor: pointer; }
+    .soltar-arq:hover, .soltar-arq.sobre { border-color: var(--acc); color: var(--lt-ink); }
+    .tudo { margin-top: 18px; padding: 14px; border-radius: 14px; border: 1px dashed var(--lt-line-2); }
+    .checks { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 12px; font-size: 13.5px; }
+    .checks label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+    .checks input { accent-color: var(--acc); }
+    .nota { font-size: 12.5px; color: var(--lt-faint); line-height: 1.5; margin: 10px 0 0; }
+
+    /* letra */
+    .letra { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 20px; padding: 22px 24px; }
+    .letra h3 { margin: 0 0 12px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--lt-faint); }
+    .encarte { max-height: 520px; overflow: auto; padding-right: 8px; scroll-behavior: smooth; }
+    .encarte .ln { margin: 0; padding: 3px 8px; border-radius: 8px; line-height: 1.55; color: var(--lt-muted); cursor: default; transition: color var(--lt-dur), background var(--lt-dur); }
+    .encarte .ln[data-t] { cursor: pointer; }
+    .encarte .ln[data-t]:hover { background: var(--lt-surface); }
+    .encarte .ln.agora { color: var(--lt-ink); background: color-mix(in srgb, var(--acc) 12%, transparent); }
+    .encarte .ln.chute { font-style: italic; }
+    .encarte .sec { margin: 14px 0 4px; padding-left: 8px; font-size: 11.5px; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; color: var(--lt-faint); }
+    .sinc { display: flex; flex-direction: column; gap: 12px; }
+    .modos { display: grid; gap: 8px; }
+    .modo { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--lt-line-2); cursor: pointer; font-size: 13.5px; line-height: 1.45; }
+    .modo input { margin-top: 3px; accent-color: var(--acc); }
+    .modo b { display: block; }
+    .modo span { color: var(--lt-faint); font-size: 12.5px; }
+    .progresso { height: 8px; border-radius: 99px; background: var(--lt-surface-2); overflow: hidden; }
+    .progresso > div { height: 100%; width: 0; background: var(--acc); transition: width .4s var(--lt-ease-out); }
+    .selo-ok { font-size: 13px; color: var(--lt-muted); line-height: 1.5; }
+    .selo-ok b { color: var(--acc); }
+
+    /* listas */
+    .lista-topo { display: flex; gap: 18px; align-items: center; padding: 20px 22px; flex-wrap: wrap; }
+    .lista-topo img { width: 84px; height: 84px; border-radius: 12px; object-fit: cover; background: var(--lt-surface-2); }
+    .lista-topo.perfil img { border-radius: 50%; }
+    .lista-topo h2 { margin: 0; font-size: 24px; word-break: break-word; }
+    .lista-topo .grow { flex: 1 1 220px; min-width: 0; }
+    .faixas { display: flex; flex-direction: column; padding: 6px; }
+    .faixa { display: grid; grid-template-columns: auto 48px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 8px 10px; border-radius: 12px; cursor: pointer; }
+    .faixa:hover { background: var(--lt-surface); }
+    .faixa input { accent-color: var(--acc); width: 17px; height: 17px; }
+    .faixa img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--lt-surface-2); }
+    .faixa .t { min-width: 0; }
+    .faixa .t b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .faixa .t span { display: block; font-size: 12.5px; color: var(--lt-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .faixa .dur { font: 12.5px var(--lt-mono); color: var(--lt-faint); }
+    .lote-barra { position: sticky; bottom: 12px; z-index: 5; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 12px 14px; }
+    .lote-barra .checks { margin: 0; flex: 1 1 340px; }
+    .playlists { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 22px 18px; }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 60;
+      padding: 10px 16px; border-radius: 12px; background: #1b1d22; border: 1px solid var(--lt-line-2); font-size: 14px; max-width: calc(100vw - 32px);
+      transition: opacity var(--lt-dur), transform var(--lt-dur) var(--lt-ease-out); }
+    .toast.on { opacity: 1; transform: translate(-50%, 0); }
+    .toast.erro { border-color: rgba(248,113,113,.5); color: #fecaca; }
+
+    @media (max-width: 900px) {
+      body.lt-body { padding: 72px 16px 48px; }
+      .musica, .letra { grid-template-columns: minmax(0, 1fr); padding: 18px 16px; }
+      .ficha h2 { font-size: 23px; }
+      .faixa { grid-template-columns: auto 40px minmax(0, 1fr) auto auto; gap: 8px; padding: 8px 6px; }
+      .faixa img { width: 40px; height: 40px; }
+      .faixa .dur { font-size: 11.5px; }
+    }
+  </style>
+  <link rel="stylesheet" href="/static/localtools/modos/tema-disco.css">
+</head>
+<body class="lt-body tema-disco">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+
+  <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+  <header class="lt-head">
+    <span class="lt-key lg" style="--hue: var(--lt-cat-downloads)"><img src="/static/localtools/apps/sunosaver.webp" alt="" width="76" height="76"></span>
+    <h1>SunoSaver</h1>
+    <p>Cole o link de uma música do <b>Suno</b> (inclusive o de compartilhamento), de uma playlist ou de um perfil e baixe
+      <b>áudio, vídeo, capa, letra e legenda sincronizada</b>. Sem login, sem gastar créditos e sem mexer no limite da sua conta.</p>
+  </header>
+
+  <main class="wrap">
+    <form class="card busca" id="busca" autocomplete="off">
+      <label class="sr" for="link">Link do Suno</label>
+      <textarea id="link" rows="1" spellcheck="false" placeholder="suno.com/s/…, suno.com/song/…, suno.com/playlist/… ou @perfil (um ou vários)"></textarea>
+      <button type="button" class="btn ghost" id="colar" title="Colar da área de transferência">
+        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200,32H163.74a47.92,47.92,0,0,0-71.48,0H56A16,16,0,0,0,40,48V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V48A16,16,0,0,0,200,32Zm-72,0a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Zm72,184H56V48H82.75A47.93,47.93,0,0,0,80,64v8a8,8,0,0,0,8,8h80a8,8,0,0,0,8-8V64a47.93,47.93,0,0,0-2.75-16H200Z"/></svg>
+        Colar
+      </button>
+      <button type="submit" class="btn" id="buscar">Buscar</button>
+    </form>
+    <p class="dica">No Suno: <b>⋯ → Compartilhar → Copiar link</b>. Vários links de uma vez (um por linha) viram um lote.</p>
+    <div class="aviso" id="aviso" hidden></div>
+    <div class="carregando" id="carregando" hidden><div class="giro" role="status" aria-label="Carregando"></div></div>
+    <div id="saida"></div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <audio id="audio" preload="none"></audio>
+
+  <script>
+  (() => {
+    const $ = (s, el = document) => el.querySelector(s);
+    const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const mmss = (s) => { s = Math.max(0, Math.round(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+    const audio = $('#audio');
+    const saida = $('#saida');
+    const ICO = {
+      play: '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z"/></svg>',
+      pause: '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,48V208a16,16,0,0,1-16,16H160a16,16,0,0,1-16-16V48a16,16,0,0,1,16-16h40A16,16,0,0,1,216,48ZM96,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V48A16,16,0,0,0,96,32Z"/></svg>',
+      down: '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V32a8,8,0,0,0-16,0v92.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"/></svg>',
+    };
+    // Formatos: o primeiro é o recomendado (o áudio exatamente como o Suno publicou).
+    const FORMATOS = [
+      { id: 'm4a', nome: 'Áudio original', sub: 'M4A · sem recodificar', rec: true },
+      { id: 'mp3', nome: 'MP3', sub: '320 kbps · capa e letra' },
+      { id: 'wav', nome: 'WAV', sub: '16 bits · para editar' },
+      { id: 'flac', nome: 'FLAC', sub: 'sem perda · para editar' },
+      { id: 'mp4', nome: 'Vídeo', sub: 'MP4 do Suno' },
+      { id: 'capa', nome: 'Capa', sub: 'JPEG' },
+      { id: 'letra', nome: 'Letra', sub: 'TXT', letra: true },
+      { id: 'info', nome: 'Metadados', sub: 'JSON' },
+    ];
+    const SINC = [
+      { id: 'lrc', nome: 'LRC', sub: 'letra sincronizada' },
+      { id: 'lrcp', fmt: 'lrc', nome: 'LRC palavra a palavra', sub: 'karaokê', palavras: true },
+      { id: 'srt', nome: 'SRT', sub: 'legenda' },
+      { id: 'vtt', nome: 'VTT', sub: 'legenda web' },
+    ];
+    const LOTE_PADRAO = ['m4a', 'capa', 'letra'];
+
+    let atual = null;        // música aberta
+    let lista = null;        // playlist/perfil/lote aberto
+    let linhasSinc = null;   // letra sincronizada da música aberta
+    let poll = null;
+
+    // ---------- avisos ----------
+    let toastT;
+    function toast(msg, erro = false) {
+      const t = $('#toast'); t.textContent = msg; t.classList.toggle('erro', erro); t.classList.add('on');
+      clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), erro ? 6000 : 3200);
+    }
+    const aviso = (msg) => { const a = $('#aviso'); a.textContent = msg || ''; a.hidden = !msg; };
+    const carregando = (on) => { $('#carregando').hidden = !on; };
+
+    async function api(url, opts) {
+      const r = await fetch(url, opts);
+      const d = await r.json().catch(() => ({ success: false, error: 'Resposta inválida do servidor.' }));
+      if (!d.success) throw new Error(d.error || 'Falhou.');
+      return d;
+    }
+    const post = (url, corpo) => api(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo || {}) });
+
+    // Baixa pelo fetch para mostrar o erro do servidor em vez de salvar um .txt com ele.
+    async function baixar(url, nomePadrao, opts) {
+      const r = await fetch(url, opts);
+      if (!r.ok) throw new Error((await r.text()) || 'Falhou.');
+      const blob = await r.blob();
+      const cd = r.headers.get('Content-Disposition') || '';
+      const m = cd.match(/filename\*=UTF-8''([^;]+)/i) || cd.match(/filename="?([^";]+)"?/i);
+      const nome = m ? decodeURIComponent(m[1]) : nomePadrao;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+      return nome;
+    }
+
+    // ---------- busca ----------
+    const campo = $('#link');
+    const ajustar = () => { campo.style.height = '44px'; campo.style.height = Math.min(160, campo.scrollHeight) + 'px'; };
+    campo.addEventListener('input', ajustar);
+    campo.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#busca').requestSubmit(); } });
+    $('#colar').addEventListener('click', async () => {
+      try { campo.value = (await navigator.clipboard.readText()).trim(); ajustar(); if (campo.value) $('#busca').requestSubmit(); }
+      catch { campo.focus(); toast('Não consegui ler a área de transferência: cole com Ctrl+V.', true); }
+    });
+    $('#busca').addEventListener('submit', (e) => { e.preventDefault(); buscar(campo.value); });
+
+    const separarLinks = (t) => t.split(/[\s,]+/).map((x) => x.trim()).filter(Boolean);
+
+    async function buscar(texto) {
+      const links = [...new Set(separarLinks(texto))];
+      if (!links.length) { campo.focus(); return; }
+      aviso(''); parar(); saida.innerHTML = ''; carregando(true);
+      try {
+        if (links.length === 1) {
+          const d = await post('/sunosaver/resolver', { link: links[0] });
+          if (d.tipo === 'musica') { lista = null; d.musica.link_original = links[0]; mostrarMusica(d.musica); }
+          else { lista = { ...d, selecionadas: new Set() }; mostrarLista(); }
+        } else {
+          await montarLote(links);
+        }
+      } catch (err) { aviso(err.message); }
+      finally { carregando(false); }
+    }
+
+    async function montarLote(links) {
+      lista = { tipo: 'lote', nome: `Lote de ${links.length} links`, musicas: [], total: 0, mais: false, selecionadas: new Set(), falhas: [] };
+      for (const l of links) {
+        try {
+          const d = await post('/sunosaver/resolver', { link: l });
+          const novas = d.tipo === 'musica' ? [d.musica] : d.musicas;
+          for (const m of novas) if (!lista.musicas.some((x) => x.id === m.id)) lista.musicas.push(m);
+        } catch (err) { lista.falhas.push(`${l}: ${err.message}`); }
+      }
+      lista.total = lista.musicas.length;
+      lista.musicas.forEach((m) => lista.selecionadas.add(m.id));
+      if (lista.falhas.length) aviso(`Não deu para ler ${lista.falhas.length} link(s): ` + lista.falhas.join(' · '));
+      mostrarLista();
+    }
+
+    // ---------- player ----------
+    function tocar(m, disco) {
+      const fonte = m.video || (m.local ? `/sunosaver/previa/${m.id}?v=${Date.now()}` : '');
+      if (!fonte) { toast('Sem prévia: o áudio desta música ainda não está disponível.', true); return; }
+      if (audio.dataset.id !== m.id) { audio.src = fonte; audio.dataset.id = m.id; }
+      audio.paused ? audio.play().catch(() => toast('Não consegui tocar a prévia.', true)) : audio.pause();
+    }
+    function parar() { audio.pause(); audio.removeAttribute('src'); audio.dataset.id = ''; audio.load(); }
+    function syncPlayer() {
+      const tocando = !audio.paused && !audio.ended;
+      document.querySelectorAll('.disco').forEach((d) => d.classList.toggle('tocando', tocando && d.dataset.id === audio.dataset.id));
+      document.querySelectorAll('[data-play]').forEach((b) => { b.innerHTML = tocando && b.dataset.play === audio.dataset.id ? ICO.pause : ICO.play;
+        b.setAttribute('aria-label', tocando && b.dataset.play === audio.dataset.id ? 'Pausar' : 'Tocar prévia'); });
+    }
+    ['play', 'pause', 'ended'].forEach((ev) => audio.addEventListener(ev, syncPlayer));
+    audio.addEventListener('timeupdate', () => {
+      const barra = $('#barra > div'); if (!barra || !atual || audio.dataset.id !== atual.id) return;
+      const dur = audio.duration || atual.duracao || 1;
+      barra.style.width = (100 * audio.currentTime / dur) + '%';
+      $('#tAgora').textContent = mmss(audio.currentTime);
+      destacarLinha(audio.currentTime);
+    });
+
+    // ---------- música ----------
+    function disco(m, tamanho) {
+      // Vinil desenhado em SVG: sulcos finos + reflexo parado; o selo é a capa.
+      const sulcos = Array.from({ length: 22 }, (_, i) => `<circle cx="50" cy="50" r="${31 + i * 0.85}" fill="none" stroke="rgba(255,255,255,${i % 3 ? 0.035 : 0.07})" stroke-width="0.25"/>`).join('');
+      return `<div class="disco" data-id="${esc(m.id)}" style="${tamanho ? `--tam:${tamanho}` : ''}">
+        <svg class="vinil" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" fill="#0d0d0f"/>${sulcos}
+          <path d="M50 0 A50 50 0 0 1 93 25 L50 50Z" fill="rgba(255,255,255,0.045)"/><path d="M50 100 A50 50 0 0 1 7 75 L50 50Z" fill="rgba(255,255,255,0.03)"/></svg>
+        <div class="selo vinil" style="background-image:url('${esc(m.capa)}')"></div><div class="furo"></div></div>`;
+    }
+
+    function mostrarMusica(m, voltar) {
+      atual = m; linhasSinc = null; clearInterval(poll);
+      const semLetra = !m.letra || m.instrumental;
+      saida.innerHTML = `
+        ${voltar ? `<div><button class="btn ghost sm" id="voltar">← Voltar para ${esc(lista.nome)}</button></div>` : ''}
+        <section class="card musica" aria-label="Música">
+          <div class="toca">
+            ${disco(m)}
+            <div class="player">
+              <button class="btn play" data-play="${esc(m.id)}" aria-label="Tocar prévia">${ICO.play}</button>
+              <div><div class="barra" id="barra" role="slider" aria-label="Posição" tabindex="0"><div></div></div>
+                <div class="tempo"><span id="tAgora">0:00</span><span>${mmss(m.duracao)}</span></div></div>
+            </div>
+          </div>
+          <div class="ficha">
+            <h2>${esc(m.titulo)}</h2>
+            <div class="autor">${m.avatar ? `<img src="${esc(m.avatar)}" alt="">` : ''}<a href="https://suno.com/@${esc(m.handle)}" target="_blank" rel="noopener">${esc(m.autor)}</a></div>
+            <div class="dados"><span>Duração <b>${mmss(m.duracao)}</b></span>${m.modelo ? `<span>Modelo <b>${esc(m.modelo)}</b></span>` : ''}
+              ${m.criado ? `<span>Criada em <b>${esc(m.criado.split('-').reverse().join('/'))}</b></span>` : ''}<span><b>${(m.plays || 0).toLocaleString('pt-BR')}</b> plays</span>
+              <a href="${esc(m.link)}" target="_blank" rel="noopener" class="faint">Abrir no Suno ↗</a></div>
+            ${m.estilo ? `<p class="estilo" id="estilo" title="Clique para ver tudo">${esc(m.estilo)}</p>` : ''}
+            ${m.local && !m.video ? `<div class="sem-audio ok" role="note"><b>Áudio pronto.</b><span class="muted">Usando o arquivo que chegou em Downloads.</span>
+              <button class="btn ghost sm" id="trocarArquivo" type="button">Trocar o arquivo</button></div>` : ''}
+            ${!m.video && !m.local ? `<div class="sem-audio" role="note">
+              <b>${m.publico ? 'O Suno ainda não gerou o áudio aberto desta música.' : 'Música privada: o áudio vem pelo usesuno.'}</b>
+              ${m.publico ? '<p>Abra a música no Suno uma vez (o vídeo dela é gerado na primeira exibição) e busque de novo aqui.</p>' : `
+              <p>Clique no botão: o link vai copiado e o usesuno abre numa aba. Lá, cole (<kbd>Ctrl</kbd>+<kbd>V</kbd>) e clique em baixar. O Verto pega o arquivo em Downloads sozinho e libera tudo aqui.</p>
+              <div class="row" style="margin-top:10px"><button class="btn" id="viaUsesuno" type="button">${ICO.down} Baixar pelo usesuno</button>
+                <span class="muted" id="esperaArquivo" style="font-size:13px"></span></div>`}
+              <label class="soltar-arq" id="soltarArq"><span>ou solte aqui o arquivo desta música (áudio ou o ZIP do usesuno)</span><input type="file" id="arqMusica" accept="audio/*,.m4a,.opus,.flac,.zip" hidden></label>
+            </div>` : ''}
+            <div class="grupo-t">Baixar</div>
+            <div class="fmts">${FORMATOS.map((f) => `<button class="fmt${f.rec ? ' recomendado' : ''}" data-fmt="${f.id}" ${(f.letra && semLetra) || (f.id === 'mp4' && !m.video) || (!m.video && !m.local && ['m4a', 'mp3', 'wav', 'flac'].includes(f.id)) ? 'disabled' : ''}>
+              <b>${f.nome}</b><span>${f.id === 'm4a' && !m.video ? 'M4A · do arquivo baixado' : f.sub}</span></button>`).join('')}</div>
+            <div class="tudo">
+              <div class="row" style="justify-content:space-between"><b>Baixar tudo em ZIP</b><button class="btn sm" id="zipUm">${ICO.down} ZIP</button></div>
+              <div class="checks" id="checksUm">${FORMATOS.map((f) => { const audio = ['m4a', 'mp3', 'wav', 'flac', 'mp4'].includes(f.id); const off = (f.letra && semLetra) || (f.id === 'mp4' && !m.video) || (audio && !m.video && !m.local);
+                return `<label><input type="checkbox" value="${f.id}" ${!off && (['m4a', 'mp4', 'capa', 'letra'].includes(f.id) || (!m.video && !m.local && f.id === 'info')) ? 'checked' : ''} ${off ? 'disabled' : ''}> ${f.nome}</label>`; }).join('')}
+                <label><input type="checkbox" value="lrc" id="zipLrc" disabled> LRC + SRT</label></div>
+            </div>
+            <div class="row" style="margin-top:12px"><button class="btn ghost sm" id="abrirEstudio" type="button" ${m.video || m.local ? '' : 'disabled'}>Abrir no Áudio Studio</button></div>
+            <p class="nota">${m.video ? 'O áudio sai do vídeo que o próprio Suno publica (AAC ~190 kbps), copiado sem recodificar: o <b>Áudio original</b> é o melhor que dá sem login.' : 'O áudio sai do arquivo que você baixou.'}
+              MP3, WAV e FLAC são conversões dele (WAV/FLAC não ganham qualidade, só ficam prontos para editar).</p>
+          </div>
+        </section>
+        ${semLetra ? '' : `<section class="card letra" aria-label="Letra">
+          <div><h3>Letra</h3><div class="encarte" id="encarte">${encarte(m.letra)}</div></div>
+          <div class="sinc" id="sinc"></div>
+        </section>`}`;
+
+      $('#voltar')?.addEventListener('click', () => { parar(); mostrarLista(); });
+      $('#estilo')?.addEventListener('click', (e) => e.currentTarget.classList.toggle('aberto'));
+      $('[data-play]', saida).addEventListener('click', () => tocar(m));
+      const barra = $('#barra');
+      const pular = (x) => { if (audio.dataset.id !== m.id) tocar(m); const r = barra.getBoundingClientRect(); audio.currentTime = Math.max(0, Math.min(1, (x - r.left) / r.width)) * (audio.duration || m.duracao); };
+      barra.addEventListener('click', (e) => pular(e.clientX));
+      barra.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') audio.currentTime += 5; if (e.key === 'ArrowLeft') audio.currentTime -= 5; });
+      saida.querySelectorAll('.fmt[data-fmt]').forEach((b) => b.addEventListener('click', () => baixarFormato(b, m.id, b.dataset.fmt)));
+      $('#zipUm').addEventListener('click', async (e) => {
+        const fmts = [...saida.querySelectorAll('#checksUm input:checked')].map((i) => i.value);
+        if (fmts.includes('lrc')) fmts.push('srt');
+        await zip(e.currentTarget, [m.id], fmts, `${m.autor} - ${m.titulo}`);
+      });
+      syncPlayer();
+      if (!semLetra) { if (m.sincronizada) carregarSinc(); else painelSinc(); }
+      ligarArquivo(m);
+      $('#abrirEstudio')?.addEventListener('click', async (e) => {
+        const b = e.currentTarget; b.disabled = true; b.textContent = 'Abrindo…';
+        try { const d = await post(`/audiostudio/do-suno/${m.id}`); location.href = `/audiostudio?projeto=${d.projeto}`; }
+        catch (err) { toast(err.message, true); b.disabled = false; b.textContent = 'Abrir no Áudio Studio'; }
+      });
+    }
+
+    // ---------- música privada: arquivo baixado pelo usesuno ----------
+    // O Verto só abre o site e pega o arquivo que chegou em Downloads; não opera o site nem mexe na cifra.
+    const USESUNO = 'https://usesuno.com/pt-br/tools/downloader/';
+    let espera = null;
+    function pararEspera() { if (espera) { clearInterval(espera.timer); clearTimeout(espera.limite); espera = null; } }
+    function arquivoPronto(m2) {
+      pararEspera();
+      toast('Arquivo recebido: tudo liberado.');
+      m2.link_original = atual?.link_original;
+      mostrarMusica(m2, !!lista);
+    }
+    async function enviarArquivo(m, f, rotulo) {
+      if (!f) return;
+      if (rotulo) rotulo.textContent = 'Enviando…';
+      const fd = new FormData(); fd.append('file', f);
+      try { const d = await api(`/sunosaver/arquivo/${m.id}`, { method: 'POST', body: fd }); arquivoPronto(d.musica); }
+      catch (err) { toast(err.message, true); if (rotulo) rotulo.textContent = 'ou solte aqui o arquivo desta música (áudio ou o ZIP do usesuno)'; }
+    }
+    function ligarArquivo(m) {
+      pararEspera();
+      $('#viaUsesuno')?.addEventListener('click', async () => {
+        const link = m.link_original || m.link;
+        try { await navigator.clipboard.writeText(link); } catch { /* sem permissão: o link aparece ao lado para copiar */ }
+        window.open(USESUNO, '_blank', 'noopener');
+        const desde = Date.now() / 1000;
+        $('#esperaArquivo').innerHTML = `Link copiado. Esperando o arquivo em Downloads… <span class="mono" style="user-select:all">${esc(link)}</span>`;
+        espera = {
+          timer: setInterval(async () => {
+            if (!atual || atual.id !== m.id) { pararEspera(); return; }
+            try { const d = await api(`/sunosaver/procurar/${m.id}?desde=${desde}`); if (d.achado) arquivoPronto(d.musica); }
+            catch { /* tenta de novo no próximo tique */ }
+          }, 2000),
+          limite: setTimeout(() => { pararEspera(); const el = $('#esperaArquivo'); if (el) el.textContent = 'Parei de esperar. Clique de novo ou solte o arquivo aqui.'; }, 15 * 60 * 1000),
+        };
+      });
+      const zona = $('#soltarArq');
+      if (zona) {
+        const rotulo = zona.querySelector('span');
+        $('#arqMusica').addEventListener('change', (e) => enviarArquivo(m, e.target.files[0], rotulo));
+        ['dragenter', 'dragover'].forEach((ev) => zona.addEventListener(ev, (e) => { e.preventDefault(); zona.classList.add('sobre'); }));
+        ['dragleave', 'drop'].forEach((ev) => zona.addEventListener(ev, () => zona.classList.remove('sobre')));
+        zona.addEventListener('drop', (e) => { e.preventDefault(); enviarArquivo(m, e.dataTransfer.files[0], rotulo); });
+      }
+      $('#trocarArquivo')?.addEventListener('click', () => {
+        const i = document.createElement('input'); i.type = 'file'; i.accept = 'audio/*,.m4a,.opus,.flac,.zip';
+        i.onchange = () => enviarArquivo(m, i.files[0]);
+        i.click();
+      });
+    }
+
+    function encarte(letra, linhas) {
+      if (linhas) {
+        let sec = null;
+        return linhas.map((l, i) => {
+          const cab = l.secao && l.secao !== sec ? `<div class="sec">${esc(l.secao)}</div>` : '';
+          sec = l.secao;
+          return `${cab}<p class="ln${l.ouvida ? '' : ' chute'}" data-i="${i}" data-t="${l.ini}" title="${mmss(l.ini)}${l.ouvida ? '' : ' · tempo estimado'}">${esc(l.texto)}</p>`;
+        }).join('');
+      }
+      return letra.split('\n').map((l) => {
+        const s = l.trim(); if (!s) return '';
+        const cab = s.match(/^\[(.*)\]$/);
+        return cab ? `<div class="sec">${esc(cab[1])}</div>` : `<p class="ln">${esc(s)}</p>`;
+      }).join('');
+    }
+
+    async function baixarFormato(botao, id, fmt, palavras) {
+      botao.classList.add('ocupado'); const nomeAntes = botao.querySelector('span')?.textContent;
+      if (botao.querySelector('span')) botao.querySelector('span').textContent = 'Preparando…';
+      try { const nome = await baixar(`/sunosaver/baixar/${id}/${fmt}${palavras ? '?palavras=1' : ''}`, `suno.${fmt}`); toast(`Baixado: ${nome}`); }
+      catch (err) { toast(err.message, true); }
+      finally { botao.classList.remove('ocupado'); if (nomeAntes && botao.querySelector('span')) botao.querySelector('span').textContent = nomeAntes; }
+    }
+
+    async function zip(botao, ids, formatos, nome) {
+      if (!ids.length) { toast('Escolha pelo menos uma música.', true); return; }
+      if (!formatos.length) { toast('Escolha pelo menos um formato.', true); return; }
+      const antes = botao.innerHTML; botao.disabled = true; botao.textContent = ids.length > 1 ? `Montando ${ids.length} músicas…` : 'Montando…';
+      try {
+        const n = await baixar('/sunosaver/zip', 'suno.zip', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids, formatos, nome }) });
+        toast(`Baixado: ${n}`);
+      } catch (err) { toast(err.message, true); }
+      finally { botao.disabled = false; botao.innerHTML = antes; }
+    }
+
+    // ---------- letra sincronizada ----------
+    function painelSinc(estado) {
+      const caixa = $('#sinc'); if (!caixa || !atual) return;
+      const rodando = estado && estado.estado === 'rodando' && estado.id === atual.id;
+      const outra = estado && estado.estado === 'rodando' && estado.id !== atual.id;
+      caixa.innerHTML = `<h3>Letra sincronizada</h3>
+        <p class="selo-ok">Gera <b>LRC</b>, <b>SRT</b> e <b>VTT</b> aqui no seu PC: a letra exata vem do Suno e o tempo de cada linha sai do reconhecimento da voz.</p>
+        ${rodando ? `<div><div class="row" style="justify-content:space-between"><span>${esc(estado.etapa)}…</span><span class="mono faint">${Math.round(100 * estado.progresso)}%</span></div>
+            <div class="progresso" style="margin-top:8px"><div style="width:${100 * estado.progresso}%"></div></div></div>
+            <button class="btn ghost sm" id="cancelarSinc">Cancelar</button>` : `
+          <div class="modos" role="radiogroup" aria-label="Precisão">
+            <label class="modo"><input type="radio" name="modoSinc" value="rapido" checked><div><b>Rápido</b><span>Cerca de 1 min. Acerta 90% ou mais das palavras na maioria das músicas.</span></div></label>
+            <label class="modo"><input type="radio" name="modoSinc" value="preciso"><div><b>Preciso</b><span>Separa a voz antes (Demucs), para músicas com muito instrumento. 4 a 5 min e ~1,5 GB de RAM.</span></div></label>
+          </div>
+          <button class="btn" id="iniciarSinc" ${outra ? 'disabled' : ''}>Sincronizar letra</button>
+          ${outra ? '<p class="nota">Outra música está sendo sincronizada agora. Uma por vez, para não pesar no PC.</p>' : ''}
+          ${estado && estado.estado === 'erro' && estado.id === atual.id ? `<p class="nota" style="color:#fecaca">${esc(estado.erro)}</p>` : ''}`}`;
+      $('#iniciarSinc')?.addEventListener('click', async () => {
+        const modo = caixa.querySelector('input[name=modoSinc]:checked').value;
+        try { const d = await post(`/sunosaver/letra/${atual.id}`, { modo }); painelSinc(d.estado); acompanhar(); }
+        catch (err) { toast(err.message, true); }
+      });
+      $('#cancelarSinc')?.addEventListener('click', async () => { await post('/sunosaver/letra/cancelar'); });
+    }
+
+    function acompanhar() {
+      clearInterval(poll);
+      const id = atual.id;
+      poll = setInterval(async () => {
+        if (!atual || atual.id !== id) { clearInterval(poll); return; }
+        try {
+          const { estado } = await api(`/sunosaver/letra/${id}`);
+          if (estado.estado === 'rodando') { painelSinc(estado); return; }
+          clearInterval(poll);
+          if (estado.pronta && estado.id === id && estado.estado === 'pronto') { toast('Letra sincronizada.'); carregarSinc(); }
+          else painelSinc(estado);
+        } catch { /* tenta de novo no próximo tique */ }
+      }, 1500);
+    }
+
+    async function carregarSinc() {
+      try {
+        const d = await api(`/sunosaver/letra/${atual.id}/linhas`);
+        linhasSinc = d.linhas;
+        $('#encarte').innerHTML = encarte(atual.letra, d.linhas);
+        $('#encarte').querySelectorAll('.ln[data-t]').forEach((p) => p.addEventListener('click', () => {
+          if (audio.dataset.id !== atual.id) tocar(atual); audio.currentTime = +p.dataset.t; if (audio.paused) audio.play();
+        }));
+        const z = $('#zipLrc'); if (z) { z.disabled = false; z.checked = true; }
+        const caixa = $('#sinc');
+        caixa.innerHTML = `<h3>Letra sincronizada</h3>
+          <p class="selo-ok"><b>Pronta.</b> ${d.cobertura}% das palavras foram ouvidas e conferidas; as outras têm o tempo estimado (em itálico na letra).
+            ${d.modo === 'rapido' ? 'Feita no modo rápido.' : 'Feita com a voz separada.'} Toque a música para ver a linha atual; clique numa linha para pular até ela.</p>
+          ${d.aviso ? `<p class="nota">${esc(d.aviso)}</p>` : ''}
+          <div class="fmts">${SINC.map((f) => `<button class="fmt" data-sinc="${f.id}"><b>${f.nome}</b><span>${f.sub}</span></button>`).join('')}</div>
+          <button class="btn ghost sm" id="refazer">${d.modo === 'rapido' ? 'Refazer no modo preciso' : 'Refazer'}</button>`;
+        caixa.querySelectorAll('[data-sinc]').forEach((b) => { const f = SINC.find((x) => x.id === b.dataset.sinc);
+          b.addEventListener('click', () => baixarFormato(b, atual.id, f.fmt || f.id, f.palavras)); });
+        $('#refazer').addEventListener('click', () => { painelSinc(); if (d.modo === 'rapido') { const r = $('#sinc input[value=preciso]'); if (r) r.checked = true; } });
+      } catch (err) { painelSinc(); }
+    }
+
+    let linhaAtual = -1;
+    function destacarLinha(t) {
+      if (!linhasSinc) return;
+      let i = -1;
+      for (let k = 0; k < linhasSinc.length; k++) { if (linhasSinc[k].ini <= t + 0.15) i = k; else break; }
+      if (i === linhaAtual) return;
+      linhaAtual = i;
+      const enc = $('#encarte'); if (!enc) return;
+      enc.querySelectorAll('.ln.agora').forEach((p) => p.classList.remove('agora'));
+      const p = enc.querySelector(`.ln[data-i="${i}"]`);
+      if (p) { p.classList.add('agora'); enc.scrollTop = p.offsetTop - enc.offsetTop - enc.clientHeight / 3; }
+    }
+
+    // ---------- playlist, perfil e lote ----------
+    function mostrarLista() {
+      atual = null; linhasSinc = null; clearInterval(poll);
+      const L = lista;
+      const titulo = L.tipo === 'perfil' ? `@${esc(L.handle)}` : L.tipo === 'playlist' ? 'Playlist' : 'Lote';
+      const imagem = L.tipo === 'perfil' ? L.avatar : L.capa || (L.musicas[0] && L.musicas[0].capa);
+      saida.innerHTML = `
+        <section class="card">
+          <div class="lista-topo ${L.tipo}">
+            ${imagem ? `<img src="${esc(imagem)}" alt="">` : ''}
+            <div class="grow"><div class="faint">${titulo}${L.autor ? ` · ${esc(L.autor)}` : ''}</div><h2>${esc(L.nome)}</h2>
+              <div class="muted" style="font-size:13.5px;margin-top:4px">${L.total} música(s)${L.tipo === 'perfil' ? ' públicas' : ''} · ${L.musicas.length} carregada(s)</div></div>
+            <div class="row"><button class="btn ghost sm" id="todas">Marcar todas</button><button class="btn ghost sm" id="nenhuma">Desmarcar</button></div>
+          </div>
+          ${L.playlists && L.playlists.length ? `<div class="playlists">${L.playlists.map((p) => `<button class="btn ghost sm" data-pl="${esc(p.id)}">${esc(p.nome)} <span class="faint">${p.total ?? ''}</span></button>`).join('')}</div>` : ''}
+          <div class="faixas" id="faixas">${L.musicas.map(faixa).join('')}</div>
+          ${L.mais ? '<div style="padding:0 16px 16px"><button class="btn ghost" id="mais">Carregar mais</button></div>' : ''}
+        </section>
+        <div class="card lote-barra">
+          <div class="checks" id="checksLote">${FORMATOS.map((f) => `<label><input type="checkbox" value="${f.id}" ${LOTE_PADRAO.includes(f.id) ? 'checked' : ''}> ${f.nome}</label>`).join('')}</div>
+          <button class="btn" id="zipLote">${ICO.down} Baixar <span id="nSel">${L.selecionadas.size}</span> em ZIP</button>
+        </div>`;
+      const marcar = () => { $('#nSel').textContent = L.selecionadas.size; };
+      $('#faixas').addEventListener('change', (e) => { if (e.target.matches('input')) { e.target.checked ? L.selecionadas.add(e.target.value) : L.selecionadas.delete(e.target.value); marcar(); } });
+      $('#faixas').addEventListener('click', (e) => {
+        const f = e.target.closest('.faixa'); if (!f || e.target.matches('input')) return;
+        const btn = e.target.closest('[data-play]');
+        const m = L.musicas.find((x) => x.id === f.dataset.id);
+        if (btn) { tocar(m); return; }
+        parar(); abrirMusica(m.id);
+      });
+      $('#faixas').addEventListener('keydown', (e) => { const f = e.target.closest('.faixa'); if (f && e.key === 'Enter' && e.target === f) { parar(); abrirMusica(f.dataset.id); } });
+      $('#todas').addEventListener('click', () => { L.musicas.forEach((m) => L.selecionadas.add(m.id)); saida.querySelectorAll('.faixa input').forEach((i) => i.checked = true); marcar(); });
+      $('#nenhuma').addEventListener('click', () => { L.selecionadas.clear(); saida.querySelectorAll('.faixa input').forEach((i) => i.checked = false); marcar(); });
+      $('#mais')?.addEventListener('click', carregarMais);
+      saida.querySelectorAll('[data-pl]').forEach((b) => b.addEventListener('click', () => { campo.value = `https://suno.com/playlist/${b.dataset.pl}`; ajustar(); buscar(campo.value); }));
+      $('#zipLote').addEventListener('click', (e) => zip(e.currentTarget, [...L.selecionadas], [...saida.querySelectorAll('#checksLote input:checked')].map((i) => i.value), L.nome));
+      syncPlayer();
+    }
+
+    function faixa(m) {
+      return `<div class="faixa" data-id="${esc(m.id)}" tabindex="0" role="button" aria-label="Abrir ${esc(m.titulo)}">
+        <input type="checkbox" value="${esc(m.id)}" ${lista.selecionadas.has(m.id) ? 'checked' : ''} aria-label="Selecionar ${esc(m.titulo)}">
+        <img src="${esc(m.capa)}" alt="" loading="lazy">
+        <div class="t"><b>${esc(m.titulo)}</b><span>${esc(m.autor)}${m.estilo_curto ? ' · ' + esc(m.estilo_curto) : ''}</span></div>
+        <span class="dur">${mmss(m.duracao)}</span>
+        <button class="btn ghost sm play" style="width:36px;height:36px" data-play="${esc(m.id)}" aria-label="Tocar prévia">${ICO.play}</button>
+      </div>`;
+    }
+
+    async function carregarMais() {
+      const b = $('#mais'); b.disabled = true; b.textContent = 'Carregando…';
+      try {
+        const d = await api(`/sunosaver/lista?tipo=${lista.tipo}&id=${encodeURIComponent(lista.id)}&pagina=${lista.pagina + 1}`);
+        const novas = d.musicas.filter((m) => !lista.musicas.some((x) => x.id === m.id));
+        lista.musicas.push(...novas); lista.pagina = d.pagina; lista.mais = d.mais && novas.length > 0;
+        mostrarLista();
+      } catch (err) { toast(err.message, true); b.disabled = false; b.textContent = 'Carregar mais'; }
+    }
+
+    async function abrirMusica(id) {
+      carregando(true);
+      try { const d = await api(`/sunosaver/musica/${id}`); mostrarMusica(d.musica, true); window.scrollTo({ top: 0 }); }
+      catch (err) { toast(err.message, true); }
+      finally { carregando(false); }
+    }
+
+    // Um link na URL da página (?link=...) já busca sozinho.
+    const inicial = new URLSearchParams(location.search).get('link');
+    if (inicial) { campo.value = inicial; ajustar(); buscar(inicial); } else campo.focus();
+  })();
+  </script>
+</body>
+</html>

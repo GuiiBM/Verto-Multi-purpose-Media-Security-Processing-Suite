@@ -40,3 +40,13 @@ Automacoes/dados/
 
 # Social Preview: tokens das redes sociais (dão acesso às contas!), mídias temporárias e cloudflared baixado
 SocialPreview/dados/
+
+# SunoSaver: letras sincronizadas feitas na máquina
+SunoSaver/dados/
+
+# Vetorizar 4K: imagens enviadas e resultados
+Vetorizar/dados/
+
+# Áudio Studio: projetos, arquivos importados, fila e exportações
+AudioStudio/dados/
+AudioStudio/modelos/

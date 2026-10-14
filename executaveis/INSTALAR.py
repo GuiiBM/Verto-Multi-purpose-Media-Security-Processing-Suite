@@ -203,7 +203,9 @@ def main():
         # conforme o espaço em disco.
         "pyyaml",
         "einops",
-        "diffusers"
+        "diffusers",
+        # Vetorizar 4K: vetorização colorida em curvas (Rust, rápido)
+        "vtracer"
     ]
     
     total_etapas = len(packages) + 5  # pacotes + FFmpeg + LibreOffice + runtime JS (Deno) + WhatsSaver + modelos Vetor3D

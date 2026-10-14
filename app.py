@@ -42,7 +42,7 @@ from AIGuard.aiguard_templates import (
     AIGUARD_HUB_HTML, AIGUARD_DETECT_HTML, AIGUARD_HUMANIZE_HTML, AIGUARD_PLAGIARISM_HTML,
 )
 from SmartStudio.smartstudio_templates import (
-    SMARTSTUDIO_HUB_HTML, SMARTSTUDIO_STUDIO_HTML, SMARTSTUDIO_EDITOR_HTML,
+    SMARTSTUDIO_HUB_HTML, SMARTSTUDIO_STUDIO_HTML,
 )
 from SubtitleLab.subtitlelab_templates import (
     SUBTITLELAB_HUB_HTML, SUBTITLELAB_EDITOR_HTML, SUBTITLELAB_BURN_HTML,
@@ -59,6 +59,11 @@ from InstaSaver.instasaver_templates import INSTASAVER_HTML
 from InstaSaver import instasaver_engine
 from VscoSaver.vscosaver_templates import VSCOSAVER_HTML
 from VscoSaver import vscosaver_engine
+from SunoSaver.sunosaver_templates import SUNOSAVER_HTML
+from SunoSaver import sunosaver_engine, sunosaver_letra
+from AudioStudio.audiostudio_templates import AUDIOSTUDIO_HTML
+from AudioStudio import audiostudio_engine, as_projeto as as_proj, as_midia as as_mid, as_fila as as_fil
+from AudioStudio import as_efeitos as as_ef, as_receitas as as_rec, as_analise as as_an, as_render as as_ren
 from WhatsSaver.whatssaver_templates import WHATSSAVER_HTML
 from WhatsSaver import whatssaver_engine
 from Conversor.conversor_templates import CONVERSOR_HTML
@@ -71,6 +76,8 @@ from Automacoes.automacoes_templates import AUTOMACOES_HTML, AUTOMACOES_ORGANIZA
 from Automacoes import automacoes_engine
 from Vetor3D.vetor3d_templates import VETOR3D_HTML
 from Vetor3D import vetor3d_engine
+from Vetorizar.vetorizar_templates import VETORIZAR_HTML
+from Vetorizar import vetorizar_engine
 from SocialPreview.social_templates import SOCIAL_HTML
 from SocialPreview import publicador as social_pub, redes as social_redes, midia as social_midia
 
@@ -594,18 +601,18 @@ MENU_HTML = """
       <div class="segundos" aria-hidden="true"><div class="barra"><i id="secfill"></i></div><span class="sec" id="sec">00</span></div>
       <div class="date" id="date">Segunda-feira, 1 de janeiro</div>
     </div>
-    <div class="tagline"><span class="dot"></span><span class="tag-extra">Menu de aplicativos · </span>34 ferramentas · tudo neste computador<span class="dot"></span></div>
+    <div class="tagline"><span class="dot"></span><span class="tag-extra">Menu de aplicativos · </span>37 ferramentas · tudo neste computador<span class="dot"></span></div>
     <label class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input type="search" id="search" placeholder="Buscar app ou o que você quer fazer…" autocomplete="off" spellcheck="false" aria-label="Buscar app ou função">
       <kbd>/</kbd>
     </label>
     <nav class="grupos" id="grupos" aria-label="Grupos de apps (a cor de cada um)">
-      <button type="button" class="grupo" data-cat="downloads" style="--hue: var(--lt-cat-downloads)" aria-pressed="false"><span class="gdot"></span>Downloads<span class="gn">6</span></button>
+      <button type="button" class="grupo" data-cat="downloads" style="--hue: var(--lt-cat-downloads)" aria-pressed="false"><span class="gdot"></span>Downloads<span class="gn">7</span></button>
       <button type="button" class="grupo" data-cat="imagem" style="--hue: var(--lt-cat-imagem)" aria-pressed="false"><span class="gdot"></span>Imagem e vídeo<span class="gn">7</span></button>
-      <button type="button" class="grupo" data-cat="audio" style="--hue: var(--lt-cat-audio)" aria-pressed="false"><span class="gdot"></span>Áudio e legendas<span class="gn">4</span></button>
+      <button type="button" class="grupo" data-cat="audio" style="--hue: var(--lt-cat-audio)" aria-pressed="false"><span class="gdot"></span>Áudio e legendas<span class="gn">5</span></button>
       <button type="button" class="grupo" data-cat="documentos" style="--hue: var(--lt-cat-documentos)" aria-pressed="false"><span class="gdot"></span>Documentos<span class="gn">2</span></button>
-      <button type="button" class="grupo" data-cat="conversao" style="--hue: var(--lt-cat-conversao)" aria-pressed="false"><span class="gdot"></span>Conversão<span class="gn">4</span></button>
+      <button type="button" class="grupo" data-cat="conversao" style="--hue: var(--lt-cat-conversao)" aria-pressed="false"><span class="gdot"></span>Conversão<span class="gn">5</span></button>
       <button type="button" class="grupo" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade)" aria-pressed="false"><span class="gdot"></span>Privacidade<span class="gn">3</span></button>
       <button type="button" class="grupo" data-cat="texto" style="--hue: var(--lt-cat-texto)" aria-pressed="false"><span class="gdot"></span>Texto<span class="gn">3</span></button>
       <button type="button" class="grupo" data-cat="dev" style="--hue: var(--lt-cat-dev)" aria-pressed="false"><span class="gdot"></span>Dev e utilitários<span class="gn">4</span></button>
@@ -629,123 +636,135 @@ MENU_HTML = """
       <div class="app-icon"><img src="/static/localtools/apps/whatssaver.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">WhatsSaver</div>
     </a>
-    <a href="/automacoes" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 4" title="Automações · Downloads">
+    <a href="/sunosaver" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 4" title="SunoSaver · Downloads">
+      <div class="app-icon"><img src="/static/localtools/apps/sunosaver.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">SunoSaver</div>
+    </a>
+    <a href="/automacoes" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 5" title="Automações · Downloads">
       <div class="app-icon"><img src="/static/localtools/apps/automacoes.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Automações</div>
     </a>
-    <a href="/purpleflix" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 5" title="PurpleFlix · Downloads">
+    <a href="/purpleflix" class="app" data-cat="downloads" style="--hue: var(--lt-cat-downloads); --i: 6" title="PurpleFlix · Downloads">
       <div class="app-icon"><img src="/static/localtools/apps/purpleflix.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">PurpleFlix</div>
     </a>
-    <a href="/efeitos" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 6" title="Efeitos · Imagem e vídeo">
+    <a href="/efeitos" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 7" title="Efeitos · Imagem e vídeo">
       <div class="app-icon"><img src="/static/localtools/apps/efeitos.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Efeitos</div>
     </a>
-    <a href="/automacoes/editor" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 7" title="Editor de Vídeo · Imagem e vídeo">
+    <a href="/automacoes/editor" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 8" title="Editor de Vídeo · Imagem e vídeo">
       <div class="app-icon"><img src="/static/localtools/apps/editor.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Editor de Vídeo</div>
     </a>
-    <a href="/imagestudio" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 8" title="Image Studio · Imagem e vídeo">
+    <a href="/imagestudio" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 9" title="Image Studio · Imagem e vídeo">
       <div class="app-icon"><img src="/static/localtools/apps/imagestudio.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Image Studio</div>
     </a>
-    <a href="/transparent" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 9" title="Transparência · Imagem e vídeo">
+    <a href="/transparent" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 10" title="Transparência · Imagem e vídeo">
       <div class="app-icon"><img src="/static/localtools/apps/transparent.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Transparência</div>
     </a>
-    <a href="/matchaeffect" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 10" title="Matcha Effect · Imagem e vídeo">
+    <a href="/matchaeffect" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 11" title="Matcha Effect · Imagem e vídeo">
       <div class="app-icon"><img src="/static/localtools/apps/matchaeffect.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Matcha Effect</div>
     </a>
-    <a href="/captureocr" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 11" title="Capture & OCR · Imagem e vídeo">
+    <a href="/captureocr" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 12" title="Capture & OCR · Imagem e vídeo">
       <div class="app-icon"><img src="/static/localtools/apps/captureocr.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Capture & OCR</div>
     </a>
-    <a href="/social" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 12" title="Social Preview · Imagem e vídeo">
+    <a href="/social" class="app" data-cat="imagem" style="--hue: var(--lt-cat-imagem); --i: 13" title="Social Preview · Imagem e vídeo">
       <div class="app-icon"><img src="/static/localtools/apps/social.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Social Preview</div>
     </a>
-    <a href="/transcribe" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 13" title="Transcrever · Áudio e legendas">
+    <a href="/transcribe" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 14" title="Transcrever · Áudio e legendas">
       <div class="app-icon"><img src="/static/localtools/apps/transcribe.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Transcrever</div>
     </a>
-    <a href="/isolate" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 14" title="Isolador de Voz · Áudio e legendas">
+    <a href="/isolate" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 15" title="Isolador de Voz · Áudio e legendas">
       <div class="app-icon"><img src="/static/localtools/apps/isolate.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Isolador de Voz</div>
     </a>
-    <a href="/smartstudio" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 15" title="Smart Studio · Áudio e legendas">
+    <a href="/smartstudio" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 16" title="Smart Studio · Áudio e legendas">
       <div class="app-icon"><img src="/static/localtools/apps/smartstudio.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Smart Studio</div>
     </a>
-    <a href="/subtitlelab" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 16" title="Subtitle Lab · Áudio e legendas">
+    <a href="/audiostudio" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 17" title="Áudio Studio · Áudio e legendas">
+      <div class="app-icon"><img src="/static/localtools/apps/audiostudio.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Áudio Studio</div>
+    </a>
+    <a href="/subtitlelab" class="app" data-cat="audio" style="--hue: var(--lt-cat-audio); --i: 18" title="Subtitle Lab · Áudio e legendas">
       <div class="app-icon"><img src="/static/localtools/apps/subtitlelab.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Subtitle Lab</div>
     </a>
-    <a href="/pdfs" class="app" data-cat="documentos" style="--hue: var(--lt-cat-documentos); --i: 17" title="PDFs · Documentos">
+    <a href="/pdfs" class="app" data-cat="documentos" style="--hue: var(--lt-cat-documentos); --i: 19" title="PDFs · Documentos">
       <div class="app-icon"><img src="/static/localtools/apps/pdfs.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">PDFs</div>
     </a>
-    <a href="/office" class="app" data-cat="documentos" style="--hue: var(--lt-cat-documentos); --i: 18" title="Office · Documentos">
+    <a href="/office" class="app" data-cat="documentos" style="--hue: var(--lt-cat-documentos); --i: 20" title="Office · Documentos">
       <div class="app-icon"><img src="/static/localtools/apps/office.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Office</div>
     </a>
-    <a href="/files" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 19" title="Arquivos · Conversão">
+    <a href="/files" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 21" title="Arquivos · Conversão">
       <div class="app-icon"><img src="/static/localtools/apps/files.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Arquivos</div>
     </a>
-    <a href="/conversor" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 20" title="Conversor · Conversão">
+    <a href="/conversor" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 22" title="Conversor · Conversão">
       <div class="app-icon"><img src="/static/localtools/apps/conversor.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Conversor</div>
     </a>
-    <a href="/compress" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 21" title="Compressor · Conversão">
+    <a href="/compress" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 23" title="Compressor · Conversão">
       <div class="app-icon"><img src="/static/localtools/apps/compress.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Compressor</div>
     </a>
-    <a href="/vetor3d" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 22" title="Vetor3D · Conversão">
+    <a href="/vetor3d" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 24" title="Vetor3D · Conversão">
       <div class="app-icon"><img src="/static/localtools/apps/vetor3d.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Vetor3D</div>
     </a>
-    <a href="/ghost" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 23" title="Ghost Tool · Privacidade">
+    <a href="/vetorizar" class="app" data-cat="conversao" style="--hue: var(--lt-cat-conversao); --i: 25" title="Vetorizar 4K · Conversão">
+      <div class="app-icon"><img src="/static/localtools/apps/vetorizar.webp" alt="" width="76" height="76" decoding="async"></div>
+      <div class="app-name">Vetorizar 4K</div>
+    </a>
+    <a href="/ghost" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 26" title="Ghost Tool · Privacidade">
       <div class="app-icon"><img src="/static/localtools/apps/ghost.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Ghost Tool</div>
     </a>
-    <a href="/stealth" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 24" title="Stealth · Privacidade">
+    <a href="/stealth" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 27" title="Stealth · Privacidade">
       <div class="app-icon"><img src="/static/localtools/apps/stealth.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Stealth</div>
     </a>
-    <a href="/censor" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 25" title="Censor · Privacidade">
+    <a href="/censor" class="app" data-cat="privacidade" style="--hue: var(--lt-cat-privacidade); --i: 28" title="Censor · Privacidade">
       <div class="app-icon"><img src="/static/localtools/apps/censor.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Censor</div>
     </a>
-    <a href="/textclean" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 26" title="Text Clean & Diff · Texto">
+    <a href="/textclean" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 29" title="Text Clean & Diff · Texto">
       <div class="app-icon"><img src="/static/localtools/apps/textclean.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Text Clean & Diff</div>
     </a>
-    <a href="/aiguard" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 27" title="AI Guard & Diff · Texto">
+    <a href="/aiguard" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 30" title="AI Guard & Diff · Texto">
       <div class="app-icon"><img src="/static/localtools/apps/aiguard.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">AI Guard & Diff</div>
     </a>
-    <a href="/clean" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 28" title="Clean Reader · Texto">
+    <a href="/clean" class="app" data-cat="texto" style="--hue: var(--lt-cat-texto); --i: 31" title="Clean Reader · Texto">
       <div class="app-icon"><img src="/static/localtools/apps/clean.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Clean Reader</div>
     </a>
-    <a href="/devdata" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 29" title="Dev/Data · Dev e utilitários">
+    <a href="/devdata" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 32" title="Dev/Data · Dev e utilitários">
       <div class="app-icon"><img src="/static/localtools/apps/devdata.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Dev/Data</div>
     </a>
-    <a href="/qrcode" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 30" title="QR Code · Dev e utilitários">
+    <a href="/qrcode" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 33" title="QR Code · Dev e utilitários">
       <div class="app-icon"><img src="/static/localtools/apps/qrcode.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">QR Code</div>
     </a>
-    <a href="/encurtador" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 31" title="Encurtador · Dev e utilitários">
+    <a href="/encurtador" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 34" title="Encurtador · Dev e utilitários">
       <div class="app-icon"><img src="/static/localtools/apps/encurtador.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Encurtador</div>
     </a>
-    <a href="/tempo" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 32" title="Tempo · Dev e utilitários">
+    <a href="/tempo" class="app" data-cat="dev" style="--hue: var(--lt-cat-dev); --i: 35" title="Tempo · Dev e utilitários">
       <div class="app-icon"><img src="/static/localtools/apps/tempo.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Tempo</div>
     </a>
-    <a href="/instructions" class="app" data-cat="ajuda" style="--hue: var(--lt-cat-ajuda); --i: 33" title="Instruções · Ajuda">
+    <a href="/instructions" class="app" data-cat="ajuda" style="--hue: var(--lt-cat-ajuda); --i: 36" title="Instruções · Ajuda">
       <div class="app-icon"><img src="/static/localtools/apps/instructions.webp" alt="" width="76" height="76" decoding="async"></div>
       <div class="app-name">Instruções</div>
     </a>
@@ -2845,6 +2864,83 @@ def vetor3d_download(token):
     inline = request.args.get('inline') == '1'
     return send_file(path, as_attachment=not inline, download_name=os.path.basename(path))
 
+# --- Vetorizar 4K: imagem (pixel art, logo, traço, foto) -> vetor limpo e PNG 4K/8K ---
+# Detecta o tipo, traça (grade exata da pixel art, vtracer, potrace do Conversor),
+# mede a fidelidade e exporta SVG/PDF/AI/EPS/DXF/PNG/WebP. Projetos em Vetorizar/dados/.
+
+def _vetorizar(fn):
+    try:
+        return jsonify({'success': True, **fn()})
+    except vetorizar_engine.VetorizarError as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro inesperado: {e}'})
+
+@app.route("/vetorizar", strict_slashes=False)
+def vetorizar():
+    return render_template_string(VETORIZAR_HTML())
+
+@app.route("/vetorizar/projetos", methods=["GET"], strict_slashes=False)
+def vetorizar_projetos():
+    return _vetorizar(lambda: {'projetos': vetorizar_engine.listar()})
+
+@app.route("/vetorizar/enviar", methods=["POST"], strict_slashes=False)
+def vetorizar_enviar():
+    return _vetorizar(lambda: {'projeto': vetorizar_engine.enviar(request.files.get('file'))})
+
+@app.route("/vetorizar/projeto/<pid>", methods=["GET", "PATCH", "DELETE"], strict_slashes=False)
+def vetorizar_projeto(pid):
+    if request.method == 'DELETE':
+        return _vetorizar(lambda: {'removido': vetorizar_engine.remover(pid)})
+    if request.method == 'PATCH':
+        nome = (request.get_json(silent=True) or {}).get('nome')
+        return _vetorizar(lambda: {'projeto': vetorizar_engine.renomear(pid, nome)})
+    return _vetorizar(lambda: {'projeto': vetorizar_engine.projeto(pid)})
+
+@app.route("/vetorizar/projeto/<pid>/processar", methods=["POST"], strict_slashes=False)
+def vetorizar_processar(pid):
+    dados = request.get_json(silent=True) or {}
+    return _vetorizar(lambda: {'projeto': vetorizar_engine.processar(pid, dados.get('opcoes') or {}, bool(dados.get('auto')))})
+
+@app.route("/vetorizar/projeto/<pid>/original", methods=["GET"], strict_slashes=False)
+def vetorizar_original(pid):
+    try:
+        dados, mime = vetorizar_engine.original_bytes(pid)
+    except vetorizar_engine.VetorizarError as e:
+        return Response(str(e), status=404, mimetype='text/plain')
+    return Response(dados, mimetype=mime, headers={'Cache-Control': 'private, max-age=86400'})
+
+@app.route("/vetorizar/projeto/<pid>/svg", methods=["GET"], strict_slashes=False)
+def vetorizar_svg(pid):
+    try:
+        texto = vetorizar_engine.svg(pid, contorno=bool(request.args.get('contorno')))
+    except vetorizar_engine.VetorizarError as e:
+        return Response(str(e), status=404, mimetype='text/plain')
+    return Response(texto, mimetype='image/svg+xml', headers={'Cache-Control': 'private, max-age=86400'})
+
+@app.route("/vetorizar/projeto/<pid>/exportar/<formato>", methods=["GET"], strict_slashes=False)
+def vetorizar_exportar(pid, formato):
+    try:
+        dados, nome, mime = vetorizar_engine.exportar_bytes(pid, formato, request.args.get('tamanho', '4k'),
+                                                             request.args.get('fundo'))
+    except vetorizar_engine.VetorizarError as e:
+        return Response(str(e), status=400, mimetype='text/plain')
+    except Exception as e:
+        return Response(f'Falha ao exportar: {e}', status=500, mimetype='text/plain')
+    return send_file(io.BytesIO(dados), mimetype=mime, as_attachment=True, download_name=nome)
+
+@app.route("/vetorizar/zip", methods=["POST"], strict_slashes=False)
+def vetorizar_zip():
+    import re
+    d = request.get_json(silent=True) or {}
+    ids = [i for i in (d.get('ids') or []) if isinstance(i, str)]
+    formatos = [f for f in (d.get('formatos') or []) if f in vetorizar_engine.FORMATOS]
+    if not ids or not formatos:
+        return Response('Escolha as imagens e os formatos.', status=400, mimetype='text/plain')
+    dados = vetorizar_engine.exportar_zip(ids, formatos, d.get('tamanho', '4k'), d.get('fundo'))
+    nome = re.sub(r'[\\/:*?"<>|]', '', d.get('nome') or 'Vetorizar 4K').strip() or 'Vetorizar 4K'
+    return send_file(io.BytesIO(dados), mimetype='application/zip', as_attachment=True, download_name=f'{nome}.zip')
+
 # --- Dev/Data: ferramentas de formatação, dados mock, conversão e encode/decode ---
 # Todas processadas 100% no navegador (JS) - sem rotas de upload/processamento no backend.
 
@@ -2941,7 +3037,7 @@ def aiguard_humanize():
 def aiguard_plagiarism():
     return render_template_string(AIGUARD_PLAGIARISM_HTML())
 
-# --- Smart Studio: gravador, teleprompter e editor de corte/waveform ---
+# --- Smart Studio: gravador e teleprompter (a edição é no Áudio Studio) ---
 # Câmera, microfone e todo o tratamento de áudio (Web Audio API) rodam no navegador.
 
 @app.route("/smartstudio", strict_slashes=False)
@@ -2954,7 +3050,9 @@ def smartstudio_studio():
 
 @app.route("/smartstudio/editor", strict_slashes=False)
 def smartstudio_editor():
-    return render_template_string(SMARTSTUDIO_EDITOR_HTML())
+    # o editor do Smart Studio foi substituído pelo Áudio Studio (decisão de 2026-10-12)
+    from flask import redirect
+    return redirect('/audiostudio', code=302)
 
 # --- Subtitle Lab: transcrição/timeline e burn-in de legendas (SRT/VTT) ---
 # Timeline, sincronizador de delay e burn-in rodam 100% no navegador; a
@@ -3284,6 +3382,375 @@ def vscosaver_zip():
     name = _instasaver_filename(payload.get('name'), 'vsco') + '.zip'
     return _avisar_organizador(send_file(spool, mimetype='application/zip', as_attachment=True,
                                          download_name=name), name)
+
+# --- SunoSaver: cola um link do Suno (música, compartilhamento, playlist ou perfil)
+# e baixa áudio, vídeo, capa, letra e letra sincronizada, sem login. O áudio sai
+# do vídeo público que o Suno publica (cópia sem recodificar); nada usa créditos
+# nem o limite de downloads da conta. A letra sincronizada é feita aqui
+# (Demucs + faster-whisper), uma por vez e com teto de memória.
+
+def _sunosaver(fn):
+    try:
+        return jsonify({'success': True, **fn()})
+    except (sunosaver_engine.SunoSaverError, sunosaver_letra.LetraError) as e:
+        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro inesperado: {e}'})
+
+@app.route("/sunosaver", strict_slashes=False)
+def sunosaver():
+    return render_template_string(SUNOSAVER_HTML())
+
+@app.route("/sunosaver/resolver", methods=["POST"], strict_slashes=False)
+def sunosaver_resolver():
+    link = (request.get_json(silent=True) or {}).get('link', '')
+    def feito():
+        r = sunosaver_engine.resolver(link)
+        if r['tipo'] == 'musica':
+            r['musica']['sincronizada'] = sunosaver_letra.pronta(r['musica']['id'])
+        return r
+    return _sunosaver(feito)
+
+@app.route("/sunosaver/lista", methods=["GET"], strict_slashes=False)
+def sunosaver_lista():
+    tipo, ident = request.args.get('tipo'), request.args.get('id', '')
+    pagina = max(1, request.args.get('pagina', 1, type=int))
+    if tipo == 'playlist':
+        return _sunosaver(lambda: sunosaver_engine.playlist(ident, pagina))
+    return _sunosaver(lambda: sunosaver_engine.perfil(ident, pagina))
+
+@app.route("/sunosaver/musica/<clip_id>", methods=["GET"], strict_slashes=False)
+def sunosaver_musica(clip_id):
+    def feito():
+        m = sunosaver_engine.musica(clip_id)
+        m['sincronizada'] = sunosaver_letra.pronta(clip_id)
+        return {'musica': m}
+    return _sunosaver(feito)
+
+@app.route("/sunosaver/baixar/<clip_id>/<formato>", methods=["GET"], strict_slashes=False)
+def sunosaver_baixar(clip_id, formato):
+    try:
+        m = sunosaver_engine.musica(clip_id)
+        caminho, nome, mime = sunosaver_engine.gerar(m, formato, bool(request.args.get('palavras')))
+    except sunosaver_engine.SunoSaverError as e:
+        return Response(str(e), status=400, mimetype='text/plain')
+    except Exception as e:
+        return Response(f'Falha ao montar o arquivo: {e}', status=502, mimetype='text/plain')
+    return send_file(caminho, mimetype=mime, as_attachment=True, download_name=nome, max_age=0)
+
+@app.route("/sunosaver/zip", methods=["POST"], strict_slashes=False)
+def sunosaver_zip():
+    import re
+    import tempfile
+    payload = request.get_json(silent=True) or {}
+    ids = [i for i in (payload.get('ids') or [])[:200] if isinstance(i, str)]
+    formatos = [f for f in (payload.get('formatos') or []) if f in sunosaver_engine.FORMATOS]
+    if not ids or not formatos:
+        return jsonify({'success': False, 'error': 'Escolha as músicas e os formatos.'}), 400
+    sozinha = len(ids) == 1
+    spool = tempfile.SpooledTemporaryFile(max_size=64 * 1024 * 1024)
+    falhas, usados = [], set()
+    with zipfile.ZipFile(spool, 'w', zipfile.ZIP_STORED) as zf:
+        for clip_id in ids:
+            try:
+                m = sunosaver_engine.musica(clip_id)
+            except sunosaver_engine.SunoSaverError as e:
+                falhas.append(f'{clip_id}: {e}')
+                continue
+            pasta = sunosaver_engine.nome_base(m)
+            while pasta in usados:
+                pasta += ' (2)'
+            usados.add(pasta)
+            for f in formatos:
+                if f in sunosaver_engine.SINCRONIZADOS and not sunosaver_letra.pronta(clip_id):
+                    continue   # só entra a letra sincronizada que já foi feita
+                if f in ('letra', 'lrc', 'srt', 'vtt') and (not m['letra'] or m['instrumental']):
+                    continue
+                try:
+                    caminho, nome, _ = sunosaver_engine.gerar(m, f, bool(payload.get('palavras')))
+                    zf.write(caminho, nome if sozinha else f'{pasta}/{nome}')
+                except sunosaver_engine.SunoSaverError as e:
+                    falhas.append(f"{m['titulo']} ({f}): {e}")
+        if falhas:
+            zf.writestr('LEIA - o que faltou.txt', '\n'.join(falhas) + '\n')
+    spool.seek(0)
+    nome = re.sub(r'[\\/:*?"<>|]', '', payload.get('nome') or 'Suno').strip() or 'Suno'
+    return send_file(spool, mimetype='application/zip', as_attachment=True, download_name=f'{nome}.zip')
+
+@app.route("/sunosaver/letra/<clip_id>", methods=["GET", "POST"], strict_slashes=False)
+def sunosaver_letra_rota(clip_id):
+    if request.method == 'GET':
+        return _sunosaver(lambda: {'estado': sunosaver_letra.estado(clip_id)})
+    modo = (request.get_json(silent=True) or {}).get('modo', 'rapido')
+    def feito():
+        m = sunosaver_engine.musica(clip_id)
+        audio = sunosaver_engine.fonte_audio(m)
+        return {'estado': sunosaver_letra.iniciar(m, audio, 'preciso' if modo == 'preciso' else 'rapido')}
+    return _sunosaver(feito)
+
+@app.route("/sunosaver/procurar/<clip_id>", methods=["GET"], strict_slashes=False)
+def sunosaver_procurar(clip_id):
+    """O cartão pergunta a cada 2 s se o arquivo desta música já chegou em Downloads."""
+    def feito():
+        m = sunosaver_engine.musica(clip_id)
+        achado = sunosaver_engine.procurar_em_downloads(m, request.args.get('desde', 0, type=float))
+        return {'achado': bool(achado), 'musica': {**sunosaver_engine.musica(clip_id), 'sincronizada': sunosaver_letra.pronta(clip_id)}}
+    return _sunosaver(feito)
+
+@app.route("/sunosaver/previa/<clip_id>", methods=["GET"], strict_slashes=False)
+def sunosaver_previa(clip_id):
+    """Prévia de música privada: o próprio arquivo baixado (o M4A com capa embutida não toca no navegador)."""
+    import re
+    if not re.fullmatch(r'[0-9a-f-]{36}', clip_id or ''):
+        return Response('Id inválido.', status=400, mimetype='text/plain')
+    achado = sunosaver_engine.previa_local(clip_id)
+    if not achado:
+        return Response('Sem arquivo.', status=404, mimetype='text/plain')
+    return send_file(achado[0], mimetype=achado[1], conditional=True, max_age=0)
+
+@app.route("/sunosaver/arquivo/<clip_id>", methods=["POST"], strict_slashes=False)
+def sunosaver_arquivo(clip_id):
+    """O mesmo, soltando o arquivo na página."""
+    import tempfile
+    arq = request.files.get('file')
+    def feito():
+        if arq is None:
+            raise sunosaver_engine.SunoSaverError('Nenhum arquivo enviado.')
+        m = sunosaver_engine.musica(clip_id)
+        with tempfile.TemporaryDirectory() as tmp:
+            caminho = os.path.join(tmp, 'arquivo' + os.path.splitext(arq.filename or '')[1].lower())
+            arq.save(caminho)
+            sunosaver_engine.receber_arquivo(m, caminho, arq.filename or 'audio')
+        return {'musica': {**sunosaver_engine.musica(clip_id), 'sincronizada': sunosaver_letra.pronta(clip_id)}}
+    return _sunosaver(feito)
+
+@app.route("/sunosaver/letra/<clip_id>/linhas", methods=["GET"], strict_slashes=False)
+def sunosaver_letra_linhas(clip_id):
+    s = sunosaver_letra.carregar(clip_id)
+    if not s:
+        return jsonify({'success': False, 'error': 'Ainda não sincronizada.'})
+    return jsonify({'success': True, 'linhas': s['linhas'], 'cobertura': s.get('cobertura'),
+                    'modo': s.get('modo'), 'aviso': s.get('aviso')})
+
+@app.route("/sunosaver/letra/cancelar", methods=["POST"], strict_slashes=False)
+def sunosaver_letra_cancelar():
+    return _sunosaver(lambda: {'estado': sunosaver_letra.cancelar()})
+
+# --- Áudio Studio: editor de áudio multipista offline, com sugestões de corte,
+# receitas automáticas e modo fila (blocos de 10 min) para áudios longos.
+# A fila só liga na primeira chamada (com o recarregador do Flask, o import
+# acontece em dois processos e a fila rodaria em dobro).
+
+def _as(fn, status_erro=200):
+    audiostudio_engine.iniciar()
+    try:
+        return jsonify({'success': True, **fn()})
+    except as_proj.Conflito as e:
+        return jsonify({'success': False, 'error': str(e), 'conflito': True}), 409
+    except (as_proj.ProjetoError, as_mid.MidiaError, as_fil.FilaError, as_ren.RenderError, ValueError) as e:
+        return jsonify({'success': False, 'error': str(e)}), status_erro
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Erro inesperado: {e}'}), status_erro
+
+@app.route("/audiostudio", strict_slashes=False)
+def audiostudio():
+    audiostudio_engine.iniciar()
+    return render_template_string(AUDIOSTUDIO_HTML())
+
+@app.route("/audiostudio/catalogo", methods=["GET"], strict_slashes=False)
+def audiostudio_catalogo():
+    return _as(lambda: {'efeitos': as_ef.catalogo(), 'receitas': as_rec.lista(), 'categorias': as_an.NOMES,
+                        'rnnoise': os.path.exists(as_ef.MODELO_RNNOISE)})
+
+@app.route("/audiostudio/projetos", methods=["GET", "POST"], strict_slashes=False)
+def audiostudio_projetos():
+    if request.method == 'POST':
+        nome = (request.get_json(silent=True) or {}).get('nome')
+        return _as(lambda: {'projeto': as_proj.criar(nome or 'Projeto sem nome')})
+    return _as(lambda: {'projetos': as_proj.listar()})
+
+@app.route("/audiostudio/projeto/<pid>", methods=["GET", "PUT", "DELETE"], strict_slashes=False)
+def audiostudio_projeto(pid):
+    if request.method == 'DELETE':
+        return _as(lambda: {'removido': as_proj.apagar(pid)})
+    if request.method == 'PUT':
+        return _as(lambda: as_proj.salvar(pid, request.get_json(silent=True) or {}))
+    return _as(lambda: {'projeto': {**as_proj.publico(pid), 'capa': audiostudio_engine.tem_capa(pid)}})
+
+@app.route("/audiostudio/projeto/<pid>/importar", methods=["POST"], strict_slashes=False)
+def audiostudio_importar(pid):
+    arqs = request.files.getlist('file')
+    return _as(lambda: {'importados': audiostudio_engine.importar_uploads(
+        pid, arqs, request.form.get('pista') or None, request.form.get('nova') == '1', request.form.get('tipo', 'voz'))})
+
+@app.route("/audiostudio/projeto/<pid>/capa", methods=["POST", "GET"], strict_slashes=False)
+def audiostudio_capa(pid):
+    if request.method == 'GET':
+        try:
+            return send_file(os.path.join(as_proj.pasta(pid), 'capa.jpg'), mimetype='image/jpeg', max_age=0)
+        except Exception:
+            return Response('Sem capa.', status=404, mimetype='text/plain')
+    return _as(lambda: {'capa': audiostudio_engine.salvar_capa(pid, request.files.get('file'))})
+
+@app.route("/audiostudio/projeto/<pid>/fonte/<fid>/picos", methods=["GET"], strict_slashes=False)
+def audiostudio_picos(pid, fid):
+    try:
+        dados = as_mid.picos_bytes(as_proj.pasta_fonte(pid, fid), request.args.get('nivel', 0, type=int))
+    except as_proj.ProjetoError as e:
+        return Response(str(e), status=404, mimetype='text/plain')
+    return Response(dados, mimetype='application/octet-stream', headers={'Cache-Control': 'no-store'})
+
+@app.route("/audiostudio/projeto/<pid>/fonte/<fid>/janela", methods=["GET"], strict_slashes=False)
+def audiostudio_janela(pid, fid):
+    try:
+        dados = as_mid.janela_wav(as_proj.pasta_fonte(pid, fid), max(0.0, request.args.get('ini', 0, type=float)),
+                                  max(0.05, min(60.0, request.args.get('dur', 20, type=float))))
+    except (as_proj.ProjetoError, as_mid.MidiaError) as e:
+        return Response(str(e), status=404, mimetype='text/plain')
+    return Response(dados, mimetype='audio/wav', headers={'Cache-Control': 'private, max-age=3600'})
+
+@app.route("/audiostudio/projeto/<pid>/fonte/<fid>/espectro", methods=["GET"], strict_slashes=False)
+def audiostudio_espectro(pid, fid):
+    try:
+        dados = as_mid.espectro_png(as_proj.pasta_fonte(pid, fid), request.args.get('ini', 0, type=float),
+                                    request.args.get('dur', 10, type=float), request.args.get('w', 1200, type=int),
+                                    request.args.get('h', 200, type=int))
+    except (as_proj.ProjetoError, as_mid.MidiaError) as e:
+        return Response(str(e), status=404, mimetype='text/plain')
+    return Response(dados, mimetype='image/png', headers={'Cache-Control': 'private, max-age=3600'})
+
+@app.route("/audiostudio/projeto/<pid>/transcricao", methods=["GET"], strict_slashes=False)
+def audiostudio_transcricao(pid):
+    return _as(lambda: {'fontes': audiostudio_engine.transcricao_projeto(pid)})
+
+@app.route("/audiostudio/projeto/<pid>/transcricao.<fmt>", methods=["GET"], strict_slashes=False)
+def audiostudio_transcricao_arquivo(pid, fmt):
+    if fmt not in ('txt', 'srt', 'vtt'):
+        return Response('Formato inválido.', status=400, mimetype='text/plain')
+    try:
+        texto = audiostudio_engine.transcricao_texto(pid, fmt)
+        nome = as_mid.nome_seguro(as_proj.ler(pid)['nome'])
+    except as_proj.ProjetoError as e:
+        return Response(str(e), status=400, mimetype='text/plain')
+    return send_file(io.BytesIO(texto.encode('utf-8')), mimetype='text/plain; charset=utf-8', as_attachment=True,
+                     download_name=f'{nome}.{fmt}')
+
+def _as_fontes_alvo(pid, d):
+    proj = as_proj.ler(pid)
+    todas = []
+    for p in proj['pistas']:
+        for c in p['clipes']:
+            if c['fonte'] not in todas:
+                todas.append(c['fonte'])
+    alvo = [d['fonte']] if d.get('fonte') else todas
+    if not alvo:
+        raise as_proj.ProjetoError('Importe um áudio primeiro.')
+    return alvo
+
+@app.route("/audiostudio/projeto/<pid>/transcrever", methods=["POST"], strict_slashes=False)
+def audiostudio_transcrever(pid):
+    d = request.get_json(silent=True) or {}
+    def feito():
+        ts = [as_fil.adicionar('transcrever', pid, {'fonte': f, 'modelo': d.get('modelo') if d.get('modelo') in ('base', 'small') else 'base'},
+                               'Transcrever') for f in _as_fontes_alvo(pid, d)]
+        return {'tarefas': ts}
+    return _as(feito)
+
+@app.route("/audiostudio/projeto/<pid>/analisar", methods=["POST"], strict_slashes=False)
+def audiostudio_analisar(pid):
+    d = request.get_json(silent=True) or {}
+    def feito():
+        ts = []
+        for f in _as_fontes_alvo(pid, d):
+            if d.get('transcrever') and not os.path.exists(as_proj.caminho_transcricao(pid, f)):
+                ts.append(as_fil.adicionar('transcrever', pid, {'fonte': f, 'modelo': d.get('modelo') if d.get('modelo') in ('base', 'small') else 'base'},
+                                           'Transcrever'))
+            args = {'fonte': f, 'musica': d.get('musica'), 'pausa_min': d.get('pausa_min', 0.9), 'pausa_manter': d.get('pausa_manter', 0.45)}
+            ts.append(as_fil.adicionar('analisar', pid, args, 'Analisar', unica=False))
+        return {'tarefas': ts}
+    return _as(feito)
+
+@app.route("/audiostudio/projeto/<pid>/sugestoes", methods=["GET"], strict_slashes=False)
+def audiostudio_sugestoes(pid):
+    return _as(lambda: as_an.ler(pid))
+
+@app.route("/audiostudio/projeto/<pid>/receita", methods=["POST"], strict_slashes=False)
+def audiostudio_receita(pid):
+    d = request.get_json(silent=True) or {}
+    return _as(lambda: {'tarefas': as_rec.enfileirar(pid, d.get('receita'), d.get('modelo') or 'base')})
+
+@app.route("/audiostudio/projeto/<pid>/separar", methods=["POST"], strict_slashes=False)
+def audiostudio_separar(pid):
+    d = request.get_json(silent=True) or {}
+    parte = 'no_vocals' if d.get('parte') == 'no_vocals' else 'vocals'
+    def feito():
+        as_proj.pasta_fonte(pid, d.get('fonte'))
+        return {'tarefa': as_fil.adicionar('separar', pid, {'fonte': d['fonte'], 'parte': parte},
+                                           'Tirar a voz (IA)' if parte == 'no_vocals' else 'Isolar a voz (IA)')}
+    return _as(feito)
+
+@app.route("/audiostudio/projeto/<pid>/exportar", methods=["POST"], strict_slashes=False)
+def audiostudio_exportar(pid):
+    d = request.get_json(silent=True) or {}
+    op = {k: d.get(k) for k in ('formato', 'sr', 'bits', 'kbps', 'canais', 'regioes', 'so_regioes') if d.get(k) not in (None, '')}
+    if op.get('formato') not in as_ren.FORMATOS:
+        op['formato'] = 'wav'
+    return _as(lambda: {'tarefa': as_fil.adicionar('exportar', pid, op, f'Exportar ({op["formato"].upper()})', unica=False)})
+
+@app.route("/audiostudio/projeto/<pid>/medir", methods=["POST"], strict_slashes=False)
+def audiostudio_medir(pid):
+    return _as(lambda: {'tarefa': as_fil.adicionar('medir', pid, {}, 'Medir loudness')})
+
+@app.route("/audiostudio/projeto/<pid>/previa", methods=["GET"], strict_slashes=False)
+def audiostudio_previa(pid):
+    try:
+        dados, ini = as_ren.previa_fiel(pid, request.args.get('t', 0, type=float), request.args.get('dur', 10, type=float))
+    except Exception as e:
+        return Response(str(e), status=400, mimetype='text/plain')
+    return Response(dados, mimetype='audio/wav', headers={'X-Inicio': f'{ini:.3f}', 'Cache-Control': 'no-store'})
+
+@app.route("/audiostudio/projeto/<pid>/baixar/<path:arquivo>", methods=["GET"], strict_slashes=False)
+def audiostudio_baixar(pid, arquivo):
+    try:
+        caminho, nome = audiostudio_engine.caminho_exportado(pid, arquivo)
+    except as_proj.ProjetoError as e:
+        return Response(str(e), status=404, mimetype='text/plain')
+    return send_file(caminho, as_attachment=True, download_name=nome)
+
+@app.route("/audiostudio/fila", methods=["GET"], strict_slashes=False)
+def audiostudio_fila():
+    return _as(lambda: {'tarefas': audiostudio_engine.fila()})
+
+@app.route("/audiostudio/fila/<tid>/<acao>", methods=["POST"], strict_slashes=False)
+def audiostudio_fila_acao(tid, acao):
+    if acao not in ('pausar', 'retomar', 'cancelar', 'subir', 'descer', 'remover'):
+        return jsonify({'success': False, 'error': 'Ação inválida.'}), 400
+    return _as(lambda: {'tarefas': as_fil.acao(tid, acao)})
+
+@app.route("/audiostudio/fila/limpar", methods=["POST"], strict_slashes=False)
+def audiostudio_fila_limpar():
+    return _as(lambda: {'tarefas': as_fil.limpar_prontas()})
+
+@app.route("/audiostudio/lote", methods=["POST"], strict_slashes=False)
+def audiostudio_lote():
+    arqs = request.files.getlist('file')
+    exp = {k: request.form.get(k) for k in ('formato', 'kbps', 'sr', 'canais')}
+    return _as(lambda: {'projetos': audiostudio_engine.lote(arqs, request.form.get('receita'), exp)})
+
+@app.route("/audiostudio/novo-com-arquivo", methods=["POST"], strict_slashes=False)
+def audiostudio_novo_arquivo():
+    arq = request.files.get('file')
+    return _as(lambda: {'projeto': audiostudio_engine.novo_com_arquivo(arq, request.form.get('nome'),
+                                                                       marcadores=request.form.get('marcadores'))})
+
+@app.route("/audiostudio/do-suno/<clip_id>", methods=["POST"], strict_slashes=False)
+def audiostudio_do_suno(clip_id):
+    def feito():
+        try:
+            return {'projeto': audiostudio_engine.novo_do_suno(clip_id)}
+        except sunosaver_engine.SunoSaverError as e:
+            raise as_proj.ProjetoError(str(e))
+    return _as(feito)
 
 # --- WhatsSaver: conecta ao WhatsApp (como o WhatsApp Web) e mostra, por conversa,
 # todas as fotos e vídeos - inclusive os enviados como arquivo - direto dos

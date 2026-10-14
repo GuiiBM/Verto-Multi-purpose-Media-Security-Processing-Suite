@@ -276,6 +276,21 @@
             note: 'Não precisa de login: o VSCO é público. O app usa o pacote <strong>curl_cffi</strong> (já está no requirements.txt) porque o VSCO bloqueia requisições que não parecem vir de um navegador, e o <strong>FFmpeg</strong> para montar os vídeos. Se aparecer “O VSCO limitou as requisições”, espere um ou dois minutos antes de buscar de novo.',
           },
           {
+            id: 'sunosaver', icon: '💿', name: 'SunoSaver', subtitle: 'Músicas do Suno: áudio, vídeo, capa, letra e legenda', url: '/sunosaver',
+            badges: ['internet'],
+            keywords: 'suno suno.ai ia musica cancao song baixar download salvar mp3 m4a wav flac mp4 capa letra lyrics lrc srt vtt karaoke legenda sincronizada compartilhamento playlist perfil lote',
+            desc: 'Cole o link de uma música do Suno (inclusive o de compartilhamento suno.com/s/…), de uma playlist ou de um perfil e baixe áudio, vídeo, capa, letra e metadados, sem login, sem gastar créditos e sem mexer no limite de downloads da conta.',
+            features: [
+              { icon: '🔗', title: 'Qualquer Link', desc: 'Música (suno.com/song/…), compartilhamento (suno.com/s/…), hook, playlist, perfil (suno.com/@nome ou @nome) ou vários links de uma vez, um por linha, que viram um lote.' },
+              { icon: '🎧', title: 'Áudio Original', kw: 'm4a aac qualidade', desc: 'O áudio sai do vídeo que o próprio Suno publica (AAC ~190 kbps), copiado sem recodificar. Também em MP3 320 kbps, WAV e FLAC, com capa, título, autor, estilo e letra embutidos.' },
+              { icon: '🎬', title: 'Vídeo, Capa e Letra', desc: 'O MP4 do Suno, a capa em JPEG, a letra em TXT e todos os dados da música em JSON.' },
+              { icon: '🎤', title: 'Letra Sincronizada', kw: 'lrc srt vtt karaoke legenda tempo', desc: 'Gera LRC (por linha ou palavra a palavra), SRT e VTT no seu PC: a letra exata vem do Suno e o tempo sai do reconhecimento da voz (faster-whisper; no modo preciso, o Demucs separa a voz antes), uma música por vez e com limite de memória. A letra acende a linha atual enquanto toca.' },
+              { icon: '📦', title: 'ZIP e Lote', desc: 'Marque as músicas de uma playlist, perfil ou lote e os formatos e baixe tudo num ZIP, uma pasta por música.' },
+              { icon: '💿', title: 'Prévia', desc: 'Toque a música antes de baixar; a capa gira como um vinil enquanto toca.' },
+            ],
+            note: 'Não precisa de login: o app só lê o que o Suno já deixa público para quem abre o link. Músicas privadas não aparecem. O áudio que o Suno guarda cifrado não é usado; o app usa o vídeo público, por isso uma música sem vídeo ainda não tem áudio (abrir a música no Suno uma vez costuma gerar o vídeo). As músicas são dos autores: os termos do Suno dizem o que cada plano pode fazer com elas.',
+          },
+          {
             id: 'whatssaver', icon: '💬', name: 'WhatsSaver', subtitle: 'Fotos e vídeos das conversas do WhatsApp', url: '/whatssaver',
             badges: ['internet', 'whatsapp'],
             keywords: 'whatsapp zap wpp conversa chat contato grupo foto video midia arquivo documento baixar download salvar backup exportar galeria heic',
@@ -363,8 +378,24 @@
               { icon: '📜', title: 'Teleprompter Inteligente', url: '/smartstudio/studio', desc: 'Roteiro editável sobre a câmera, com rolagem automática por velocidade, ajuste do tamanho da fonte e espelhamento para vidros de teleprompter.' },
               { icon: '🎚️', title: 'Filtros e Efeitos em Tempo Real', url: '/smartstudio/studio', desc: 'Redução de ruído, compressor, equalizador de 3 bandas (graves/médios/agudos) e ganho automático (AGC) via Web Audio API, aplicados antes de gravar.' },
               { icon: '🚩', title: 'Marcadores de Áudio', url: '/smartstudio/studio', desc: 'Insira marcadores durante a gravação, renomeie-os e exporte a lista com os tempos em .txt para guiar a edição.' },
-              { icon: '🌊', title: 'Corte & Edição Rápida', url: '/smartstudio/editor', desc: 'Forma de onda para selecionar, recortar ou remover trechos, cortar silêncios automaticamente e juntar gravações antes de exportar em WAV.' },
+              { icon: '🎚️', title: 'Editar no Áudio Studio', url: '/audiostudio', desc: 'Depois de gravar, o botão "Editar no Áudio Studio" abre a gravação num projeto novo, com os marcadores feitos durante a gravação.' },
             ],
+          },
+          {
+            id: 'audiostudio', icon: '🎚️', name: 'Áudio Studio', subtitle: 'Editor de áudio com sugestões de corte e receitas', url: '/audiostudio',
+            badges: [],
+            keywords: 'editor audio editar cortar corte recortar aparar juntar multipista pista podcast entrevista aula palestra audiobook musica reels tiktok silencio pausa vicio vicios linguagem hesitacao repeticao respiracao ruido chiado zumbido eq equalizador compressor limitador loudness lufs normalizar volume fade ducking karaoke tirar voz isolar voz demucs transcricao texto legenda srt vtt mp3 wav flac exportar lote fila longo horas',
+            desc: 'Editor de áudio multipista e offline, no estilo do Clideo e do Descript: corte livre com fade automático em cada emenda, sugestões de onde cortar, edição pelo texto, efeitos com prévia ao vivo, receitas que fazem a edição inteira e modo fila para áudios com mais de 1 hora.',
+            features: [
+              { icon: '✂️', title: 'Edição Livre', kw: 'cortar dividir mover aparar fade ripple desfazer', desc: 'Várias pistas (voz, música, efeitos) com volume, pan, mudo e solo; dividir (S), apagar com ou sem fechar o buraco, mover, aparar, duplicar, colar, fades, envelope de volume desenhado, marcadores e regiões. Toda emenda ganha um fade de 5 ms, então nunca estala. Desfazer ilimitado e salvamento automático.' },
+              { icon: '💡', title: 'Sugestões de Corte', kw: 'silencio pausa vicio hesitacao repeticao respiracao estouro', desc: 'Pausas longas (encurta, não some), começo e fim sem som, vícios de linguagem ("hã", "ahn", "éé"), muletas ("tipo", "né"), palavra repetida, frase refeita, respirações altas (abaixa 15 dB), estouro e volume irregular. Cada uma com "ouvir como está", "ouvir como fica", aceitar e recusar; ou aceite todas as recomendadas de uma vez.' },
+              { icon: '📝', title: 'Edição pelo Texto', kw: 'transcricao descript palavras legenda', desc: 'A transcrição (faster-whisper, na sua máquina) aparece ao lado; selecione palavras e apague: o áudio delas sai junto. Exporta TXT, SRT e VTT já no tempo da edição.' },
+              { icon: '🎛️', title: 'Efeitos', kw: 'ruido eq compressor limitador deesser gate velocidade tom reverb eco mono loudness ducking', desc: 'Redução de ruído (3 níveis), EQ e equalizações prontas (voz, rádio, telefone, tirar zumbido 50/60 Hz), compressor, limitador, gate, de-esser, cliques, estouro, nivelar a fala, velocidade e tom sem distorcer, reverb, eco, mono e largura. Loudness por alvo (−14, −16, −18, −20, −23 LUFS) e ducking da música sob a voz. "Prévia fiel" renderiza 10 s com tudo.' },
+              { icon: '🪄', title: 'Receitas', kw: 'automatico podcast celular aula audiobook acx reels karaoke', desc: 'Podcast, Gravação de celular, Aula, Audiobook (ACX, com relatório de RMS, pico e ruído), Música para Status/Reels/TikTok (melhor trecho de 15/30/60 s, achado pelo refrão), Karaokê e Isolar voz (Demucs). Também em lote, em vários arquivos de uma vez.' },
+              { icon: '⏳', title: 'Modo Fila', kw: 'longo horas fila blocos pausar retomar', desc: 'Preparar, transcrever, analisar, separar voz e exportar andam numa fila, em blocos de 10 min, com tempo estimado, pausar, retomar, cancelar e reordenar; se o Verto fechar, continua do bloco em que parou. Áudios de horas abrem e tocam enquanto o resto processa.' },
+              { icon: '📤', title: 'Exportar', kw: 'wav flac mp3 m4a ogg opus capa tags regioes', desc: 'WAV, FLAC, MP3, M4A, OGG e Opus (taxa, bits, qualidade, mono/estéreo), com título, artista, álbum e capa; cada região num arquivo separado.' },
+            ],
+            note: 'Tudo roda nesta máquina. O som toca por janelas de 20 s decodificadas na hora, e a onda vem de picos calculados uma vez; assim, arquivos de horas não pesam no navegador. Transcrição e separação de voz rodam um por vez, com limite de memória. Importa tudo que o FFmpeg lê, inclusive vídeo (só o áudio é guardado). Os projetos ficam em <strong>AudioStudio/dados/</strong>.',
           },
           {
             id: 'subtitlelab', icon: '📝', name: 'Subtitle Lab', subtitle: 'Gerador e editor de legendas SRT/VTT', url: '/subtitlelab',
@@ -603,6 +634,23 @@
         id: 'privacidade', icon: '🛡️', name: 'Privacidade & Segurança', short: 'Privacidade',
         desc: 'Remova metadados, esconda arquivos e censure dados sensíveis',
         apps: [
+          {
+            id: 'vetorizar', icon: '✒️', name: 'Vetorizar 4K', subtitle: 'Imagem vira vetor limpo e PNG em 4K ou 8K', url: '/vetorizar',
+            badges: [],
+            keywords: 'vetorizar vetor vetorial vectorizer trace bitmap svg pdf ai eps dxf pixel art pixelizada pixelada logo logotipo upscale 4k 8k alta resolucao ampliar nitido serrilhado jpeg desenho escaneado traco foto poster paleta cores marca fundo transparente',
+            desc: 'Envie pixel art, um logo pequeno e serrilhado, um desenho escaneado ou uma foto: o app reconhece o tipo, vetoriza no melhor ajuste, mostra a fidelidade e exporta o vetor (SVG, PDF, AI, EPS, DXF) e a imagem em 4K, 8K ou no tamanho que você quiser.',
+            features: [
+              { icon: '🔎', title: 'Tipo Automático', kw: 'detectar reconhecer', desc: 'Reconhece pixel art (inclusive ampliada e com JPEG por cima, achando o tamanho real de cada "pixel"), logo ou ilustração, desenho a traço e foto. Dá para trocar o tipo na mão.' },
+              { icon: '🟥', title: 'Pixel Art Exata ou Suave', kw: 'pixel quadrado retro jogo sprite', desc: 'Exato: cada pixel vira quadrado e pixels vizinhos da mesma cor viram um polígono só, sem curva nenhuma (fidelidade 100% numa pixel art limpa). Suave: diagonais e degraus viram curvas, como um desenho.' },
+              { icon: '🎨', title: 'Paleta Editável', kw: 'cor cores marca trocar juntar apagar', desc: 'Veja as cores encontradas com a porcentagem de cada uma; troque, junte duas ou apague uma. Trave as cores da marca para elas saírem exatas.' },
+              { icon: '🧼', title: 'Limpeza', kw: 'jpeg ruido serrilhado borda', desc: 'Tira o ruído do JPEG sem borrar as bordas, some com o serrilhado e com os filetes de cor que aparecem entre duas cores.' },
+              { icon: '🪄', title: 'Modo Automático', kw: 'melhor ajuste fidelidade', desc: 'Testa várias combinações e fica com a de melhor fidelidade e menos nós. A fidelidade compara o vetor com a imagem (estrutura e cor).' },
+              { icon: '🖼️', title: 'Fundo', kw: 'transparente remover fundo ia', desc: 'Mantenha, tire só a cor do fundo que encosta na borda (o branco de dentro do desenho fica) ou tire o fundo com IA (rembg, na sua máquina).' },
+              { icon: '🔍', title: 'Comparar', kw: 'zoom antes depois contorno nos', desc: 'Divisória arrastável entre original e vetor, zoom nítido até 6400%, vista só do vetor, só do original ou dos contornos.' },
+              { icon: '📤', title: 'Exportar', kw: 'svg pdf ai eps dxf png webp 4k 8k zip lote', desc: 'SVG, PDF, AI, EPS, DXF (corte e CNC), PNG e WebP em 4K, 4K DCI, 5K, 8K ou tamanho livre, com fundo transparente ou de cor, e a paleta (.gpl e .txt). Várias imagens de uma vez em ZIP.' },
+            ],
+            note: 'Tudo roda nesta máquina. A vetorização colorida usa o <strong>vtracer</strong> (já está no requirements.txt) e o desenho a traço usa o potrace do Conversor. "Tirar o fundo com IA" usa o rembg num processo separado, com limite de memória. As imagens e os resultados ficam em <strong>Vetorizar/dados/</strong> até você apagar na lista.',
+          },
           {
             id: 'ghost', icon: '👻', name: 'Ghost Tool', subtitle: 'Removedor de metadados', url: '/ghost',
             badges: ['downloads'],
@@ -895,12 +943,12 @@
 
     // Mesmo ícone e mesma cor de grupo do menu inicial.
     const ICONE_APP = {
-      verto: 'youtube-logo', instasaver: 'camera', vscosaver: 'aperture', whatssaver: 'chat-circle-dots',
+      verto: 'youtube-logo', instasaver: 'camera', vscosaver: 'aperture', whatssaver: 'chat-circle-dots', sunosaver: 'vinyl-record',
       automacoes: 'lightning', purpleflix: 'film-reel', transcribe: 'microphone', isolate: 'waveform',
-      smartstudio: 'microphone-stage', subtitlelab: 'closed-captioning', imagestudio: 'paint-brush',
+      smartstudio: 'microphone-stage', audiostudio: 'faders', subtitlelab: 'closed-captioning', imagestudio: 'paint-brush',
       transparent: 'eraser', matchaeffect: 'leaf', editor: 'scissors', efeitos: 'magic-wand', captureocr: 'scan',
       social: 'device-mobile', pdfs: 'file-pdf', office: 'file-doc', files: 'folders', conversor: 'arrows-clockwise',
-      compress: 'arrows-in', ghost: 'ghost', stealth: 'fingerprint', censor: 'eye-slash', textclean: 'git-diff',
+      compress: 'arrows-in', vetor3d: 'cube', vetorizar: 'bezier-curve', ghost: 'ghost', stealth: 'fingerprint', censor: 'eye-slash', textclean: 'git-diff',
       aiguard: 'detective', clean: 'book-open', devdata: 'brackets-curly', qrcode: 'qr-code',
       encurtador: 'link-simple', tempo: 'clock',
     };

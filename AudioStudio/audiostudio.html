@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Áudio Studio</title>
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" type="image/svg+xml" href="/static/localtools/verto.svg">
+  <link rel="stylesheet" href="/static/localtools/base.css">
+  <link rel="stylesheet" href="/static/localtools/app.css">
+  <link rel="stylesheet" href="/static/localtools/audiostudio/estudio.css">
+  <link rel="stylesheet" href="/static/localtools/modos/tema-ilha.css">
+</head>
+<body class="lt-body tema-ilha">
+  <a class="lt-back" href="/" title="Voltar ao menu" aria-label="Voltar ao menu">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+
+  <!-- ===================== início: projetos ===================== -->
+  <section id="inicio" class="inicio">
+    <div class="topo"><a class="lt-brand" href="/"><span>LOCALTOOLS</span></a></div>
+    <header class="lt-head">
+      <span class="lt-key lg" style="--hue: var(--lt-cat-audio)"><img src="/static/localtools/apps/audiostudio.webp" alt="" width="76" height="76"></span>
+      <h1>Áudio Studio</h1>
+      <p>Editor de áudio <b>multipista e offline</b>: corte livre, <b>sugestões de onde cortar</b> (pausas, vícios, frases refeitas, respirações),
+        edição pelo texto, efeitos e <b>receitas automáticas</b>. Áudios com mais de 1 hora entram no <b>modo fila</b>, em blocos de 10 minutos.</p>
+    </header>
+    <div class="inicio-grade">
+      <label class="card soltar-grande" id="soltarInicio" tabindex="0">
+        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M240,136v64a16,16,0,0,1-16,16H32a16,16,0,0,1-16-16V136a16,16,0,0,1,16-16H80a8,8,0,0,1,0,16H32v64H224V136H176a8,8,0,0,1,0-16h48A16,16,0,0,1,240,136ZM85.66,77.66,120,43.31V128a8,8,0,0,0,16,0V43.31l34.34,34.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,77.66ZM200,168a12,12,0,1,0-12,12A12,12,0,0,0,200,168Z"/></svg>
+        <b>Solte um áudio ou vídeo para começar</b>
+        <span>MP3, WAV, M4A, FLAC, OGG, Opus, MP4, MKV… tudo que o FFmpeg lê. Vários arquivos viram pistas.</span>
+        <input type="file" id="arqInicio" accept="audio/*,video/*,.mkv,.opus,.flac,.m4a,.webm" multiple hidden>
+      </label>
+      <section class="card">
+        <div class="card-h"><h2>Projetos</h2><button class="btn ghost sm" id="novoVazio" type="button">Projeto vazio</button></div>
+        <div class="card-b"><div id="listaProjetos" class="lista-projetos"><p class="faint">Carregando…</p></div></div>
+      </section>
+      <section class="card">
+        <div class="card-h"><h2>Receita em lote</h2></div>
+        <div class="card-b">
+          <p class="nota" style="margin-top:0">A mesma receita em vários arquivos, sem abrir o editor: cada um vira um projeto e sai exportado.</p>
+          <div class="campo"><label for="loteReceita">Receita</label><select id="loteReceita"></select></div>
+          <div class="grade2">
+            <div class="campo"><label for="loteFormato">Formato</label><select id="loteFormato"><option value="mp3">MP3</option><option value="wav">WAV</option><option value="flac">FLAC</option><option value="m4a">M4A</option><option value="opus">Opus</option><option value="ogg">OGG</option></select></div>
+            <div class="campo"><label for="loteKbps">Qualidade</label><select id="loteKbps"><option value="">Padrão</option><option value="64">64 kbps</option><option value="128">128 kbps</option><option value="192">192 kbps</option><option value="320">320 kbps</option></select></div>
+          </div>
+          <label class="btn ghost full" for="loteArquivos">Escolher arquivos e começar</label>
+          <input type="file" id="loteArquivos" accept="audio/*,video/*" multiple hidden>
+          <p class="nota" id="loteNota"></p>
+        </div>
+      </section>
+      <section class="card" id="filaInicioCard" hidden>
+        <div class="card-h"><h2>Fila</h2><button class="btn ghost sm" id="filaInicioLimpar" type="button">Limpar prontas</button></div>
+        <div class="card-b"><div id="filaInicio" class="fila"></div></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ===================== editor ===================== -->
+  <section id="editor" class="editor" hidden>
+    <div class="barra-topo">
+      <button class="btn ghost sm" id="voltarProjetos" type="button" title="Projetos">
+        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
+        Projetos
+      </button>
+      <img class="mini-icone" src="/static/localtools/apps/audiostudio.webp" alt="" width="30" height="30">
+      <input id="nomeProjeto" class="nome-projeto" aria-label="Nome do projeto" spellcheck="false">
+      <span id="salvo" class="salvo faint">Salvo</span>
+      <div class="espaco"></div>
+      <div class="menu-imp">
+        <button class="btn ghost sm" id="btnImportar" type="button" aria-haspopup="true" aria-expanded="false">+ Importar</button>
+        <div class="pop" id="popImportar" hidden>
+          <button type="button" data-imp="fim">No fim da pista selecionada</button>
+          <button type="button" data-imp="voz">Em pista nova (voz)</button>
+          <button type="button" data-imp="musica">Em pista nova (música)</button>
+          <button type="button" data-imp="efeito">Em pista nova (efeitos)</button>
+        </div>
+        <input type="file" id="arqImportar" accept="audio/*,video/*,.mkv,.opus,.flac,.m4a,.webm" multiple hidden>
+      </div>
+      <button class="btn ghost sm icone" id="desfazer" type="button" title="Desfazer (Ctrl+Z)" aria-label="Desfazer">↶</button>
+      <button class="btn ghost sm icone" id="refazer" type="button" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer">↷</button>
+      <button class="btn ghost sm icone" id="ajuda" type="button" title="Atalhos" aria-label="Atalhos">?</button>
+    </div>
+
+    <div class="aviso-longo" id="avisoLongo" hidden></div>
+
+    <div class="transporte">
+      <div class="grupo-t">
+        <button class="btn ghost icone" id="tInicio" type="button" title="Início (Home)" aria-label="Ir para o início">⏮</button>
+        <button class="btn play" id="tPlay" type="button" title="Tocar/pausar (Espaço)" aria-label="Tocar">
+          <svg class="i-play" viewBox="0 0 256 256" fill="currentColor"><path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z"/></svg>
+          <svg class="i-pausa" viewBox="0 0 256 256" fill="currentColor"><path d="M216,48V208a16,16,0,0,1-16,16H160a16,16,0,0,1-16-16V48a16,16,0,0,1,16-16h40A16,16,0,0,1,216,48ZM96,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V48A16,16,0,0,0,96,32Z"/></svg>
+        </button>
+        <button class="btn ghost icone" id="tFim" type="button" title="Fim (End)" aria-label="Ir para o fim">⏭</button>
+        <div class="relogio mono"><span id="tAgora">00:00.000</span><small id="tTotal">/ 00:00</small></div>
+      </div>
+      <div class="grupo-t">
+        <div class="seg" id="ferramenta" role="group" aria-label="Ferramenta">
+          <button type="button" data-v="selecionar" aria-pressed="true" title="Selecionar e mover (V)">Selecionar</button>
+          <button type="button" data-v="navalha" title="Cortar onde clicar (C)">Navalha</button>
+          <button type="button" data-v="envelope" title="Desenhar o volume (E)">Volume</button>
+        </div>
+        <label class="chk" title="Ao apagar um trecho, o que vem depois anda para trás"><input type="checkbox" id="optRipple" checked> Fechar buraco</label>
+        <label class="chk" title="Encaixa em bordas, marcadores, batidas e palavras"><input type="checkbox" id="optIma" checked> Imã</label>
+        <label class="chk" title="A tela acompanha a agulha"><input type="checkbox" id="optSeguir" checked> Seguir</label>
+        <label class="chk" title="Ouvir sem os efeitos do master"><input type="checkbox" id="optBypass"> Sem efeitos</label>
+      </div>
+      <div class="grupo-t zoom">
+        <button class="btn ghost icone" id="zMenos" type="button" aria-label="Diminuir zoom">−</button>
+        <input type="range" id="zoom" min="0" max="1000" value="300" aria-label="Zoom">
+        <button class="btn ghost icone" id="zMais" type="button" aria-label="Aumentar zoom">+</button>
+        <button class="btn ghost sm" id="zCaber" type="button">Caber</button>
+      </div>
+    </div>
+
+    <div class="area">
+      <div class="linha-tempo card" id="linhaTempo">
+        <div class="cabecas" id="cabecas"></div>
+        <div class="tela-wrap" id="telaWrap" tabindex="0" aria-label="Linha do tempo. Espaço toca, S divide, Delete apaga, M marca, R cria região.">
+          <canvas id="tela"></canvas>
+          <div class="vazio-editor" id="vazioEditor" hidden>Solte aqui um áudio ou vídeo, ou use <b>+ Importar</b>.</div>
+        </div>
+        <input type="range" id="rolagem" class="rolagem" min="0" max="1000" value="0" aria-label="Rolar a linha do tempo">
+        <div class="inspetor" id="inspetor" hidden></div>
+      </div>
+
+      <aside class="painel card" id="painel">
+        <div class="abas" role="tablist">
+          <button role="tab" type="button" data-aba="sugestoes" aria-selected="true">Sugestões</button>
+          <button role="tab" type="button" data-aba="receitas">Receitas</button>
+          <button role="tab" type="button" data-aba="texto">Texto</button>
+          <button role="tab" type="button" data-aba="efeitos">Efeitos</button>
+          <button role="tab" type="button" data-aba="exportar">Exportar</button>
+          <button role="tab" type="button" data-aba="fila">Fila <span class="contador" id="contFila" hidden></span></button>
+        </div>
+        <div class="aba" id="aba-sugestoes"></div>
+        <div class="aba" id="aba-receitas" hidden></div>
+        <div class="aba" id="aba-texto" hidden></div>
+        <div class="aba" id="aba-efeitos" hidden></div>
+        <div class="aba" id="aba-exportar" hidden></div>
+        <div class="aba" id="aba-fila" hidden></div>
+      </aside>
+    </div>
+  </section>
+
+  <dialog id="dlgAtalhos" class="dlg">
+    <h3>Atalhos</h3>
+    <table class="atalhos">
+      <tr><td><kbd>Espaço</kbd></td><td>Tocar / pausar</td></tr>
+      <tr><td><kbd>S</kbd></td><td>Dividir na agulha (ou nas bordas da seleção)</td></tr>
+      <tr><td><kbd>Delete</kbd></td><td>Apagar o clipe ou o trecho selecionado</td></tr>
+      <tr><td><kbd>T</kbd></td><td>Ficar só com o trecho selecionado</td></tr>
+      <tr><td><kbd>M</kbd> / <kbd>R</kbd></td><td>Marcador na agulha / região da seleção</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Desfazer / refazer</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>V</kbd> / <kbd>D</kbd></td><td>Copiar / colar na agulha / duplicar clipe</td></tr>
+      <tr><td><kbd>V</kbd> <kbd>C</kbd> <kbd>E</kbd></td><td>Selecionar / Navalha / Volume</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+roda</td><td>Zoom no ponto do mouse</td></tr>
+      <tr><td>Roda</td><td>Rolar no tempo</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd> / <kbd>←</kbd> <kbd>→</kbd></td><td>Início / fim / andar 1 s (Shift: 10 s)</td></tr>
+      <tr><td><kbd>L</kbd></td><td>Repetir a seleção em laço</td></tr>
+    </table>
+    <form method="dialog"><button class="btn">Fechar</button></form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/static/localtools/audiostudio/estudio.js"></script>
+</body>
+</html>

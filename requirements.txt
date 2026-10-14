@@ -48,3 +48,4 @@ svgelements
 transformers
 einops
 diffusers
+vtracer

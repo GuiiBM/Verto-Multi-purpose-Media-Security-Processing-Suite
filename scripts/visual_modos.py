@@ -32,7 +32,7 @@ ICONES = {
     '/matchaeffect/ai/video/remove': 'film-slate', '/matchaeffect/add': 'plus-circle', '/matchaeffect/remove': 'minus-circle',
     '/matchaeffect/video/add': 'video', '/matchaeffect/video/remove': 'video-camera-slash',
     '/office/convert': 'arrows-left-right', '/office/repair': 'first-aid-kit',
-    '/smartstudio/studio': 'microphone-stage', '/smartstudio/editor': 'waveform',
+    '/smartstudio/studio': 'microphone-stage',
     '/subtitlelab/editor': 'closed-captioning', '/subtitlelab/burn': 'fire',
     '/textclean/diff': 'git-diff', '/textclean/sanitize': 'broom', '/textclean/stats': 'chart-bar',
 }
