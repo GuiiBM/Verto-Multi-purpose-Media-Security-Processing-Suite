@@ -1602,14 +1602,25 @@
     const feitos = S.tarefas.filter((x) => x.projeto === S.proj.id && x.tipo === 'exportar' && x.estado === 'pronta' && x.resultado).reverse();
     el.innerHTML = `
       <div class="grade2">
-        <div class="campo"><label for="exFormato">Formato</label><select id="exFormato">${['wav', 'flac', 'mp3', 'm4a', 'ogg', 'opus'].map((f) => `<option value="${f}"${(pad.formato || 'wav') === f ? ' selected' : ''}>${f.toUpperCase()}</option>`).join('')}</select></div>
+        <div class="campo"><label for="exFormato">Formato</label><select id="exFormato">${['wav', 'flac', 'mp3', 'm4a', 'ogg', 'opus', 'mp4'].map((f) => `<option value="${f}"${(pad.formato || 'wav') === f ? ' selected' : ''}>${f === 'mp4' ? 'MP4 (vídeo com o áudio novo)' : f.toUpperCase()}</option>`).join('')}</select></div>
         <div class="campo"><label for="exSr">Taxa</label><select id="exSr">${[22050, 32000, 44100, 48000, 96000].map((v) => `<option value="${v}"${(pad.sr || 48000) === v ? ' selected' : ''}>${v / 1000} kHz</option>`).join('')}</select></div>
         <div class="campo" id="exBitsC"><label for="exBits">Bits</label><select id="exBits"><option value="16">16 bits</option><option value="24" selected>24 bits</option><option value="32">32 bits float</option></select></div>
         <div class="campo" id="exKbpsC"><label for="exKbps">Qualidade</label><select id="exKbps">${[64, 96, 128, 160, 192, 256, 320].map((v) => `<option value="${v}"${(pad.kbps || 192) === v ? ' selected' : ''}>${v} kbps</option>`).join('')}</select></div>
         <div class="campo"><label for="exCanais">Canais</label><select id="exCanais"><option value="2">Estéreo</option><option value="1"${pad.canais === 1 ? ' selected' : ''}>Mono</option></select></div>
       </div>
-      <label class="chk"><input type="checkbox" id="exRegioes" ${S.proj.regioes.length ? '' : 'disabled'}> Cada região num arquivo (${S.proj.regioes.length})</label>
-      <label class="chk" style="margin-left:14px"><input type="checkbox" id="exSoRegioes" ${S.proj.regioes.length ? '' : 'disabled'}> só as regiões</label>
+      <div id="exVideoC" hidden>
+        <h3>Vídeo</h3>
+        ${S.proj.video ? `<div class="linha" style="justify-content:space-between;font-size:12.5px"><span>${esc(S.proj.video.nome)} <span class="faint">${fmtCurto(S.proj.video.duracao)} · ${(S.proj.video.bytes / 1048576).toFixed(1)} MB</span></span><label class="btn ghost xs" for="exVideo">Trocar</label></div>`
+          : `<div class="linha"><label class="btn xs" for="exVideo">Enviar o vídeo (MP4)</label><span class="faint" style="font-size:12px">o vídeo de onde veio este áudio</span></div>`}
+        <input type="file" id="exVideo" accept="video/*,.mkv,.mov,.mp4,.webm" hidden>
+        <div class="grade2" style="margin-top:8px">
+          <div class="campo"><label for="exSync">Sincronizar</label><select id="exSync"><option value="auto">Automático (pelo som do vídeo)</option><option value="manual">Atraso manual</option></select></div>
+          <div class="campo" id="exAtrasoC" hidden><label for="exAtraso">Atraso do áudio (s)</label><input type="number" id="exAtraso" step="0.01" value="0"></div>
+        </div>
+        <p class="nota">O som original do vídeo sai e a mixagem entra no lugar. A imagem é copiada sem perda; o arquivo tem a duração do vídeo. Cortes no meio da linha do tempo adiantam o áudio dali em diante.</p>
+      </div>
+      <div id="exRegioesC"><label class="chk"><input type="checkbox" id="exRegioes" ${S.proj.regioes.length ? '' : 'disabled'}> Cada região num arquivo (${S.proj.regioes.length})</label>
+      <label class="chk" style="margin-left:14px"><input type="checkbox" id="exSoRegioes" ${S.proj.regioes.length ? '' : 'disabled'}> só as regiões</label></div>
       <h3>Informações do arquivo</h3>
       <div class="grade2">
         ${[['titulo', 'Título'], ['artista', 'Artista'], ['album', 'Álbum'], ['ano', 'Ano'], ['genero', 'Gênero'], ['comentario', 'Comentário']].map(([k, n]) => `<input type="text" data-tag="${k}" placeholder="${n}" value="${esc(t[k] || '')}" aria-label="${n}">`).join('')}
@@ -1618,7 +1629,7 @@
         ${S.proj.capa ? `<img src="${API}/projeto/${S.proj.id}/capa?v=${Date.now()}" alt="Capa" width="40" height="40" style="border-radius:6px;object-fit:cover">` : ''}<span class="faint" style="font-size:12px">entra no MP3, M4A e FLAC</span></div>
       <button class="btn full" id="btnExportar" style="margin-top:12px">Exportar</button>
       <p class="nota">A exportação roda na fila (em blocos de 10 min nos áudios longos) e o arquivo aparece aqui.</p>
-      ${feitos.length ? `<h3>Prontos</h3>${feitos.map((x) => `<div class="linha" style="justify-content:space-between;font-size:12.5px;padding:4px 0"><span>${esc(x.resultado.nome)} <span class="faint">${(x.resultado.bytes / 1048576).toFixed(1)} MB</span></span><a class="btn xs" href="${API}/projeto/${S.proj.id}/baixar/${encodeURIComponent(x.resultado.arquivo)}">Baixar</a></div>`).join('')}` : ''}
+      ${feitos.length ? `<h3>Prontos</h3>${feitos.map((x) => `<div class="linha" style="justify-content:space-between;font-size:12.5px;padding:4px 0"><span>${esc(x.resultado.nome)} <span class="faint">${(x.resultado.bytes / 1048576).toFixed(1)} MB${x.resultado.atraso != null ? ` · áudio ${x.resultado.atraso >= 0 ? '+' : ''}${x.resultado.atraso.toFixed(2)} s` : ''}</span></span><a class="btn xs" href="${API}/projeto/${S.proj.id}/baixar/${encodeURIComponent(x.resultado.arquivo)}">Baixar</a></div>`).join('')}` : ''}
       <h3>Outros</h3>
       <div class="linha"><a class="btn ghost xs" href="${API}/projeto/${S.proj.id}/transcricao.srt">Legenda SRT</a><a class="btn ghost xs" href="${API}/projeto/${S.proj.id}/transcricao.vtt">VTT</a><a class="btn ghost xs" href="${API}/projeto/${S.proj.id}/transcricao.txt">Texto</a><button class="btn ghost xs" id="exProjeto">Projeto (.json)</button></div>`;
     ajustarCamposExport();
@@ -1626,10 +1637,20 @@
   function ajustarCamposExport() {
     const f = $('#exFormato')?.value; if (!f) return;
     $('#exBitsC').hidden = !['wav', 'flac'].includes(f); $('#exKbpsC').hidden = ['wav', 'flac'].includes(f);
-    if (f === 'flac') $$('#exBits option[value="32"]').forEach((o) => { o.disabled = true; });
+    $$('#exBits option[value="32"]').forEach((o) => { o.disabled = f === 'flac'; });
+    // taxas que o formato aceita (MP3, AAC e Vorbis vão até 48 kHz; o Opus é sempre 48 kHz)
+    const sel = $('#exSr'); const max = ['wav', 'flac'].includes(f) ? 96000 : 48000;
+    $$('#exSr option').forEach((o) => { o.disabled = +o.value > max || (f === 'opus' && +o.value !== 48000); });
+    if (sel.selectedOptions[0]?.disabled) sel.value = '48000';
+    $('#exVideoC').hidden = f !== 'mp4'; $('#exRegioesC').hidden = f === 'mp4';
+    $('#exAtrasoC').hidden = $('#exSync').value !== 'manual';
   }
   $('#aba-exportar').addEventListener('change', async (e) => {
-    if (e.target.id === 'exFormato') ajustarCamposExport();
+    if (e.target.id === 'exFormato' || e.target.id === 'exSync') ajustarCamposExport();
+    if (e.target.id === 'exVideo' && e.target.files[0]) {
+      const fd = new FormData(); fd.append('file', e.target.files[0]); toast('Enviando o vídeo…');
+      try { const d = await api(`${API}/projeto/${S.proj.id}/video`, { method: 'POST', body: fd }); S.proj.video = d.video; desenharExportar(); $('#exFormato').value = 'mp4'; ajustarCamposExport(); toast('Vídeo guardado.'); } catch (err) { toast(err.message, true); }
+    }
     if (e.target.dataset.tag) { S.proj.tags = S.proj.tags || {}; S.proj.tags[e.target.dataset.tag] = e.target.value.slice(0, 200); confirmar(); }
     if (e.target.id === 'exCapa' && e.target.files[0]) {
       const fd = new FormData(); fd.append('file', e.target.files[0]);
@@ -1641,6 +1662,10 @@
       await salvar();
       const op = { formato: $('#exFormato').value, sr: +$('#exSr').value, bits: $('#exBits').value, kbps: +$('#exKbps').value, canais: +$('#exCanais').value,
         regioes: $('#exRegioes').checked, so_regioes: $('#exSoRegioes').checked && $('#exRegioes').checked };
+      if (op.formato === 'mp4') {
+        if (!S.proj.video) { toast('Envie o vídeo primeiro.', true); return; }
+        op.sync = $('#exSync').value === 'manual' ? String(+$('#exAtraso').value || 0) : 'auto';
+      }
       try { await json(`${API}/projeto/${S.proj.id}/exportar`, op); toast('Exportando na fila…'); Fila.atualizar(); } catch (err) { toast(err.message, true); }
     } else if (e.target.id === 'exProjeto') {
       const blob = new Blob([JSON.stringify(JSON.parse(instantaneo()), null, 1)], { type: 'application/json' });
@@ -1691,7 +1716,7 @@
           if (est && est !== t.estado && t.estado === 'pronta') {
             recarregar = true;
             if (t.tipo === 'receita') toast(`Receita aplicada: ${t.resultado?.cortado ? `${t.resultado.cortado} s cortados` : 'pronto'}. Ctrl+Z desfaz.`);
-            if (t.tipo === 'exportar') toast(`Pronto: ${t.resultado?.nome}. Baixe na aba Exportar ou Fila.`);
+            if (t.tipo === 'exportar') toast(`Pronto: ${t.resultado?.nome}${t.resultado?.atraso ? ` (áudio sincronizado ${t.resultado.atraso > 0 ? '+' : ''}${t.resultado.atraso.toFixed(2)} s)` : ''}. Baixe na aba Exportar ou Fila.`);
             if (t.tipo === 'analisar') toast(`Análise pronta: ${t.resultado?.sugestoes ?? 0} sugestão(ões).`);
           }
           if (est && est !== t.estado && t.estado === 'erro') toast(`${t.titulo}: ${t.erro}`, true);

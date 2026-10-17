@@ -202,3 +202,46 @@ def espectro_png(pasta, ini, dur, largura=1200, altura=200):
 
 def nome_seguro(nome, padrao='audio'):
     return re.sub(r'[\\/:*?"<>|\x00-\x1f]', '', str(nome or '')).strip()[:120] or padrao
+
+
+# --------------------------------------------------------------- vídeo ---
+# O vídeo do projeto (para exportar MP4 com o áudio novo) fica em
+# <projeto>/video.mkv: a imagem e a trilha de áudio original sem recodificar
+# (.mkv aceita qualquer codec); a trilha original serve de referência para
+# sincronizar o áudio editado.
+
+def guardar_video(origem, pasta_proj, nome):
+    """Guarda o vídeo do projeto. -> info"""
+    info = ffprobe(origem)
+    if not info['video']:
+        raise MidiaError('Esse arquivo não tem vídeo.')
+    destino = os.path.join(pasta_proj, 'video.mkv')
+    tmp = destino + '.tmp.mkv'
+    p = subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', origem, '-map', '0:v:0', '-map', '0:a:0?',
+                        '-c', 'copy', '-sn', '-dn', tmp], capture_output=True, text=True, timeout=3600)
+    if p.returncode != 0:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise MidiaError('Não consegui guardar esse vídeo.')
+    os.replace(tmp, destino)
+    v = {'nome': nome, 'duracao': info['duracao'], 'bytes': os.path.getsize(destino),
+         'guardado': time.strftime('%Y-%m-%d %H:%M')}
+    with open(os.path.join(pasta_proj, 'video.json'), 'w', encoding='utf-8') as f:
+        json.dump(v, f, ensure_ascii=False)
+    return v
+
+
+def ler_video(pasta_proj):
+    try:
+        with open(os.path.join(pasta_proj, 'video.json'), encoding='utf-8') as f:
+            v = json.load(f)
+    except (OSError, ValueError):
+        return None
+    return v if os.path.exists(os.path.join(pasta_proj, 'video.mkv')) else None
+
+
+def apagar_video(pasta_proj):
+    for n in ('video.mkv', 'video.json'):
+        c = os.path.join(pasta_proj, n)
+        if os.path.exists(c):
+            os.remove(c)

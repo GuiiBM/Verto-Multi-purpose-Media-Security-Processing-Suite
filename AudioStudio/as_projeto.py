@@ -103,6 +103,7 @@ def _fontes(pid):
 def publico(pid):
     proj = ler(pid)
     proj['fontes'] = _fontes(pid)
+    proj['video'] = M.ler_video(pasta(pid))
     proj['tarefas'] = [t for t in F.listar(pid) if t['estado'] not in ('pronta', 'cancelada')]
     return proj
 
@@ -215,6 +216,12 @@ def importar(pid, origem, nome, pista_id=None, nova=False, tipo='voz', posicao=N
     except M.MidiaError:
         shutil.rmtree(pf, ignore_errors=True)
         raise
+    if info['video'] and not M.ler_video(pasta(pid)):
+        # o primeiro vídeo importado vira o vídeo do projeto (exportar MP4 com o áudio novo)
+        try:
+            M.guardar_video(origem, pasta(pid), os.path.basename(nome))
+        except M.MidiaError:
+            pass
     proj = ler(pid)
     pista = None
     if not nova:

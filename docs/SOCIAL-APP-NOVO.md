@@ -1,7 +1,12 @@
-# Social Preview: versão web por assinatura (planejada)
+# PostFlow: a versão web por assinatura do Social Preview
 
-> Plano, não implementação. Nada aqui foi feito ainda: este documento registra o que o
-> usuário decidiu (2026-10-08) para quando o app novo for criado.
+> **Criado em 2026-10-14** em `/opt/lampp/htdocs/PostFlow`, repositório privado
+> `GuiiBM/PostFlow`. É um **derivado independente**: pasta, repositório, instalação
+> (Docker) e backend próprios (`postflow/nucleo/`, cópia do `SocialPreview/` feita em
+> 2026-10-14). **O Social Preview do Verto não foi alterado** e continua com o próprio
+> backend em `SocialPreview/`. Correções de regra de API passam de um para o outro à mão.
+> Este documento era o plano (decisões de 2026-10-08); o que mudou na criação está
+> marcado abaixo. Como rodar e testar: `PostFlow/README.md`.
 
 ## Decisões em aberto
 
@@ -9,19 +14,19 @@ Resumo para bater o olho; os detalhes estão nas seções indicadas.
 
 | # | Decisão | O que já se sabe | Onde |
 |---|---|---|---|
-| 1 | **Nome final** | provisório: Social Preview | — |
-| 2 | **Valor base B** | o usuário vai informar depois de calcular o custo da operação; a fórmula já está decidida (anual = 13 × B; mensal = anual ÷ 12 ÷ 0,9, para a economia ser 10% exata) e B, o 13 e os 10% são editáveis no menu do administrador | 3.4 |
-| 3 | **Provedor de pagamento** | precisa ter cobrança recorrente, webhooks, ambiente de testes e aceitar Pix e cartão (boleto talvez); candidatos: Stripe, Mercado Pago, Asaas, Pagar.me, Efí; comparar taxas e Pix recorrente | 3.4 |
-| 4 | **Como a nota fiscal é emitida** | tem que ser automática a cada pagamento; pelo próprio provedor de pagamento ou por um emissor de NFS-e com API; depende de como o negócio for registrado | 3.4 |
+| 1 | ~~Nome final~~ | **resolvido: PostFlow** (2026-10-14) | — |
+| 2 | **Valor base B** | calculadora pronta em Administração → Preços do PostFlow (custos, taxas do Asaas, imposto, margem e assinantes esperados → B mínimo); o usuário vai informar depois de calcular o custo da operação; a fórmula já está decidida (anual = 13 × B; mensal = anual ÷ 12 ÷ 0,9, para a economia ser 10% exata) e B, o 13 e os 10% são editáveis no menu do administrador | 3.4 |
+| 3 | ~~Provedor de pagamento~~ | **resolvido: Asaas**, conta de produção em CPF já existe (2026-10-14); falta uma conta sandbox para testar o ciclo; há também um modo simulado. Antes: precisa ter cobrança recorrente, webhooks, ambiente de testes e aceitar Pix e cartão (boleto talvez); candidatos: Stripe, Mercado Pago, Asaas, Pagar.me, Efí; comparar taxas e Pix recorrente | 3.4 |
+| 4 | ~~Como a nota fiscal é emitida~~ | **pelo próprio Asaas, quando houver CNPJ** (2026-10-14): a conta é CPF e NFS-e exige CNPJ, então a nota automática fica desligada e o site não promete nota; com CNPJ, basta o código do serviço municipal. Antes: tem que ser automática a cada pagamento; pelo próprio provedor de pagamento ou por um emissor de NFS-e com API; depende de como o negócio for registrado | 3.4 |
 | 5 | **Números dos limites** | a regra está decidida (limites tirados das cotas dos provedores, com teto diário por pessoa); os números saem depois de escolher servidor, provedor de pagamento e emissor | 3.4 |
-| 6 | **Hospedagem do servidor** e domínio | VPS ou nuvem, pelo menor custo que aguente o ffmpeg | 3.7 |
-| 7 | **Como o backend é compartilhado** | pacote comum instalado nos dois, ou repositório comum com o Verto importando de lá | 3.1 |
+| 6 | **Hospedagem do servidor** e domínio | **Docker** (2026-10-14): roda em qualquer máquina, começando por esta (porta 5050); servidor e domínio decididos depois | 3.7 |
+| 7 | ~~Como o backend é compartilhado~~ | **resolvido: não é compartilhado** (2026-10-14). Primeiro foi feito um pacote pip `SocialCore`; o usuário pediu o Verto intocado e o PostFlow com backend próprio, então o Verto voltou ao estado original e o PostFlow ficou com uma cópia em `postflow/nucleo/`. Antes: pacote comum instalado nos dois, ou repositório comum com o Verto importando de lá | 3.1 |
 | 8 | **Apps de desenvolvedor das redes** | hoje cada pessoa usa o próprio app e cola os próprios tokens; login de um clique para o público exigiria App Review da Meta, auditoria do TikTok, verificação do Google, acesso padrão do Pinterest e créditos da API da X | — |
 
 ## Decisões já tomadas
 
-1. **Duas versões, o mesmo backend.** O pacote `SocialPreview/` continua sendo o
-   backend das duas: uma correção numa regra de API vale para o Verto e para o app novo.
+1. ~~Duas versões, o mesmo backend.~~ **Mudou em 2026-10-14: backends separados.** O
+   Verto mantém o `SocialPreview/`; o PostFlow tem o próprio `postflow/nucleo/`. Texto original: uma correção numa regra de API vale para o Verto e para o app novo.
    O que muda de verdade é o **front**.
 2. **A versão do Verto fica.** O Social Preview atual, em `/social`, continua no Verto,
    em uso e evoluindo, porque é extremamente útil. Os dois só passam a ser sistemas
@@ -65,7 +70,7 @@ Resumo para bater o olho; os detalhes estão nas seções indicadas.
     depois da exclusão), dizendo o que aconteceu e por quê.
 14. **Nota fiscal automática** a cada pagamento confirmado, sem ação manual (como emitir
     fica em aberto).
-15. **E-mails por código próprio, pelo Gmail pessoal**, para gastar o mínimo. Nada de
+15. **E-mails por código próprio, por um Gmail próprio do app** (`app.postflow@gmail.com`, 2026-10-14), para gastar o mínimo. Nada de
     serviço pago de e-mail.
 16. **Custo mínimo** é critério de todas as escolhas da plataforma (servidor, e-mail,
     serviços externos).

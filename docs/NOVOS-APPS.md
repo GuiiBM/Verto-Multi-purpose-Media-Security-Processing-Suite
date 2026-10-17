@@ -74,6 +74,15 @@
 >   música de fundo).
 > - Redução de ruído "Forte" usa FFT reforçada; o RNNoise (`arnndn`) entra sozinho se o
 >   modelo for posto em `AudioStudio/modelos/rnnoise.rnnn` (não baixado).
+> - **Exportar MP4 (vídeo com o áudio novo)** (2026-10-17): o primeiro vídeo importado é
+>   guardado em `<projeto>/video.mkv` (imagem + áudio original, sem recodificar); para
+>   projetos antigos, a aba Exportar pede o MP4. A exportação troca o som do vídeo pela
+>   mixagem, copia a imagem (H.264 só se o codec não couber em MP4) e sincroniza sozinha
+>   por correlação dos ataques de energia (10 ms, ±30 s). Medido: o áudio extraído para o
+>   `.mka` ao importar fica 46,5 ms atrasado (perde o ajuste de início do AAC); o
+>   automático corrige (resíduo 3,5 ms). Vídeo de 4 min 53 s: 13 s para exportar.
+> - MP3/M4A/OGG só aceitam até 48 kHz (MP3 a 96 kHz dava "Nothing was written"): o
+>   servidor usa a taxa válida mais próxima e a tela desabilita as que não servem.
 
 ### 1.1 Objetivo
 Editor de áudio completo e offline: edição livre multipista, **sugestões de onde cortar**

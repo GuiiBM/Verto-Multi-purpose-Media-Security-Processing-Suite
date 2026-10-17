@@ -205,5 +205,18 @@ def salvar_capa(pid, arquivo):
     return True
 
 
+def salvar_video(pid, arquivo):
+    """O vídeo do projeto (o MP4 original), para exportar com o áudio editado."""
+    if arquivo is None:
+        raise ProjetoError('Escolha o arquivo de vídeo.')
+    nome = os.path.basename(arquivo.filename or 'video.mp4')
+    with tempfile.TemporaryDirectory() as tmp:
+        caminho = os.path.join(tmp, re.sub(r'[^\w.\- ]', '_', nome) or 'video')
+        arquivo.save(caminho)
+        if os.path.getsize(caminho) > MAX_UPLOAD:
+            raise ProjetoError('Arquivo grande demais (máximo 4 GB).')
+        return M.guardar_video(caminho, P.pasta(pid), nome)
+
+
 def tem_capa(pid):
     return os.path.exists(os.path.join(P.pasta(pid), 'capa.jpg'))

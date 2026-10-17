@@ -20,6 +20,7 @@ import zipfile
 
 import numpy as np
 
+from AudioStudio import as_fila as F
 from AudioStudio import as_midia as M
 from AudioStudio import as_efeitos as E
 from AudioStudio import as_edicao as ED
@@ -33,7 +34,19 @@ JUNTAR_GAP = 3.0
 FORMATOS = {
     'wav': ('wav', 'audio/wav'), 'flac': ('flac', 'audio/flac'), 'mp3': ('mp3', 'audio/mpeg'),
     'ogg': ('ogg', 'audio/ogg'), 'opus': ('opus', 'audio/ogg'), 'm4a': ('m4a', 'audio/mp4'),
+    'mp4': ('mp4', 'video/mp4'),
 }
+# taxas que cada codificador aceita (MP3 e Vorbis vão só até 48 kHz; o Opus é sempre 48 kHz)
+TAXAS = {
+    'mp3': (8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000),
+    'ogg': (8000, 11025, 16000, 22050, 32000, 44100, 48000),
+    'm4a': (8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000),
+    'mp4': (22050, 32000, 44100, 48000),
+    'opus': (48000,),
+}
+SYNC_JANELA = 120.0        # segundos comparados para achar o atraso
+SYNC_MAX = 30.0            # atraso máximo procurado (para os dois lados)
+SYNC_SR = 4000
 
 
 class RenderError(Exception):
@@ -274,9 +287,26 @@ def mixdown(pid, ctx, faixa=None, nome_saida='mix.flac'):
 
 # ------------------------------------------------------------ exportar ---
 
+def _taxa(f, sr):
+    """A taxa pedida, ou a mais próxima que o formato aceita (MP3 a 96 kHz não existe)."""
+    sr = int(sr or 48000)
+    ok = TAXAS.get(f)
+    if not ok or sr in ok:
+        return sr
+    return min(ok, key=lambda v: (abs(v - sr), -v))
+
+
+def _erro_ffmpeg(stderr):
+    """A linha que explica o erro (a última costuma ser só \"Nothing was written...\")."""
+    linhas = [l.strip() for l in (stderr or '').splitlines() if l.strip()]
+    genericas = ('Nothing was written', 'Error while filtering', 'Conversion failed', 'Error while opening encoder')
+    uteis = [l for l in linhas if not any(g in l for g in genericas)]
+    return re.sub(r'^\[[^\]]+ @ 0x[0-9a-f]+\]\s*', '', (uteis or linhas or ['erro'])[0])
+
+
 def _codec(op):
     f = op.get('formato', 'wav')
-    sr = str(int(op.get('sr') or 48000))
+    sr = str(_taxa(f, op.get('sr')))
     canais = '1' if str(op.get('canais')) == '1' else '2'
     base = ['-ar', sr, '-ac', canais]
     if f == 'wav':
@@ -322,13 +352,121 @@ def _codificar(mix, destino, op, proj, pid, ss=None, to=None):
     args += _codec(op) + _tags(proj) + [destino]
     p = subprocess.run(args, capture_output=True, text=True, timeout=7200)
     if p.returncode != 0:
-        raise RenderError('O FFmpeg não conseguiu gerar o arquivo: ' + (p.stderr.strip().splitlines() or ['erro'])[-1])
+        if os.path.exists(destino):
+            os.remove(destino)
+        raise RenderError('O FFmpeg não conseguiu gerar o arquivo: ' + _erro_ffmpeg(p.stderr))
+
+
+# --------------------------------------------------------- vídeo (MP4) ---
+
+def _audio_mono(caminho, ini, dur, mapa='0:a:0'):
+    p = subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-ss', f'{ini:.3f}', '-t', f'{dur:.3f}', '-i', caminho,
+                        '-map', mapa, '-ac', '1', '-ar', str(SYNC_SR), '-f', 'f32le', '-'], capture_output=True, timeout=600)
+    if p.returncode != 0:
+        return np.zeros(0, np.float32)
+    return np.frombuffer(p.stdout, np.float32)
+
+
+def _envelope(x):
+    """Energia em janelas de 10 ms, centrada: compara bem mesmo com EQ, ruído ou loudness diferentes."""
+    h = SYNC_SR // 100
+    n = len(x) // h
+    if n < 10:
+        return np.zeros(0)
+    e = np.sqrt((x[:n * h].reshape(n, h) ** 2).mean(1) + 1e-12)
+    e = np.log(e)
+    e = np.diff(e, prepend=e[0])                       # ataques (o que marca o tempo)
+    return (e - e.mean()) / (e.std() + 1e-9)
+
+
+def achar_atraso(video, mix):
+    """Atraso (s) a aplicar no áudio novo para casar com o áudio original do vídeo.
+    Positivo = o áudio novo entra depois. -> (atraso, confiança 0..1) ou (None, 0)"""
+    ref = _envelope(_audio_mono(video, 0, SYNC_JANELA + SYNC_MAX))
+    nov = _envelope(_audio_mono(mix, 0, SYNC_JANELA + SYNC_MAX))
+    if len(ref) < 300 or len(nov) < 300:
+        return None, 0.0
+    n = 1
+    while n < len(ref) + len(nov):
+        n *= 2
+    corr = np.fft.irfft(np.fft.rfft(ref, n) * np.conj(np.fft.rfft(nov, n)), n)
+    lim = int(SYNC_MAX * 100)
+    lags = np.concatenate([np.arange(0, lim + 1), np.arange(-lim, 0)])
+    vals = np.concatenate([corr[:lim + 1], corr[-lim:]])
+    # normaliza pela sobreposição de cada atraso
+    sobre = np.minimum(len(ref), len(nov)) - np.abs(lags)
+    vals = vals / np.maximum(sobre, 1)
+    i = int(np.argmax(vals))
+    pico = vals[i]
+    resto = np.delete(vals, slice(max(0, i - 20), i + 21))
+    conf = float(max(0.0, min(1.0, (pico - resto.mean()) / (resto.std() * 8 + 1e-9)))) if len(resto) else 0.0
+    return float(lags[i]) / 100.0, conf
+
+
+def _video_compativel_mp4(video):
+    p = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name',
+                        '-of', 'csv=p=0', video], capture_output=True, text=True, timeout=60)
+    return p.stdout.strip() in ('h264', 'hevc', 'av1', 'mpeg4', 'vp9')
+
+
+def exportar_video(pid, op, ctx):
+    """Tarefa da fila: o vídeo do projeto sem o áudio original, com a mixagem no lugar. -> MP4"""
+    v = M.ler_video(P.pasta(pid))
+    if not v:
+        raise RenderError('Este projeto não tem vídeo. Envie o MP4 original na aba Exportar.')
+    video = os.path.join(P.pasta(pid), 'video.mkv')
+    mix, proj = mixdown(pid, ctx)
+    pasta_exp = os.path.join(P.pasta(pid), 'exportados')
+    os.makedirs(pasta_exp, exist_ok=True)
+    destino = os.path.join(pasta_exp, f'{time.strftime("%Y%m%d-%H%M%S")}__{M.nome_seguro(proj["nome"], "video")}.mp4')
+    sync = op.get('sync', 'auto')
+    atraso, conf = 0.0, None
+    if sync == 'auto':
+        ctx.etapa('Sincronizando com o áudio do vídeo', 0.985)
+        achado, conf = achar_atraso(video, mix)
+        atraso = achado if achado is not None and conf >= 0.15 else 0.0
+    else:
+        try:
+            atraso = max(-3600.0, min(3600.0, float(sync)))
+        except (TypeError, ValueError):
+            atraso = 0.0
+    if atraso > 0:
+        filtro = f'[1:a]adelay={int(round(atraso * 1000))}:all=1,apad[a]'
+    elif atraso < 0:
+        filtro = f'[1:a]atrim=start={-atraso:.3f},asetpts=PTS-STARTPTS,apad[a]'
+    else:
+        filtro = '[1:a]apad[a]'
+    kbps = int(op.get('kbps') or 256)
+    audio = ['-c:a', 'aac', '-b:a', f'{kbps}k', '-ar', str(_taxa('mp4', op.get('sr'))),
+             '-ac', '1' if str(op.get('canais')) == '1' else '2']
+    dur = float(v['duracao'])
+    # a imagem vai copiada (sem perda e rápido); se o codec não cabe em MP4, recodifica em H.264
+    modos = [('Gravando o vídeo', ['-c:v', 'copy'])] if _video_compativel_mp4(video) else []
+    modos.append(('Gravando o vídeo (recodificando a imagem)',
+                  ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p']))
+    for i, (etapa, cv) in enumerate(modos):
+        args = ['-i', video, '-i', mix, '-filter_complex', filtro, '-map', '0:v:0', '-map', '[a]', *cv, *audio,
+                '-t', f'{dur:.3f}', '-movflags', '+faststart', *_tags(proj), destino]
+        try:
+            _ffmpeg(ctx, args, dur, etapa, 0.985, 0.999)
+            break
+        except F.FilaError as e:
+            if os.path.exists(destino):
+                os.remove(destino)
+            if i == len(modos) - 1:
+                raise RenderError(f'O FFmpeg não conseguiu gerar o vídeo: {e}')
+    shutil.rmtree(os.path.join(P.pasta(pid), 'render'), ignore_errors=True)
+    return {'arquivo': os.path.basename(destino), 'nome': os.path.basename(destino).split('__', 1)[1],
+            'bytes': os.path.getsize(destino), 'atraso': round(float(atraso), 3),
+            'confianca': None if conf is None else round(conf, 2)}
 
 
 def exportar(pid, op, ctx):
     """Tarefa da fila. -> {'arquivo', 'bytes'} (um arquivo ou um ZIP com as regiões)."""
-    mix, proj = mixdown(pid, ctx)
     fmt = op.get('formato', 'wav')
+    if fmt == 'mp4':
+        return exportar_video(pid, op, ctx)
+    mix, proj = mixdown(pid, ctx)
     if fmt not in FORMATOS:
         raise RenderError('Formato desconhecido.')
     ext = FORMATOS[fmt][0]

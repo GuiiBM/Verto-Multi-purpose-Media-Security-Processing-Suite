@@ -3692,10 +3692,16 @@ def audiostudio_separar(pid):
 @app.route("/audiostudio/projeto/<pid>/exportar", methods=["POST"], strict_slashes=False)
 def audiostudio_exportar(pid):
     d = request.get_json(silent=True) or {}
-    op = {k: d.get(k) for k in ('formato', 'sr', 'bits', 'kbps', 'canais', 'regioes', 'so_regioes') if d.get(k) not in (None, '')}
+    op = {k: d.get(k) for k in ('formato', 'sr', 'bits', 'kbps', 'canais', 'regioes', 'so_regioes', 'sync') if d.get(k) not in (None, '')}
     if op.get('formato') not in as_ren.FORMATOS:
         op['formato'] = 'wav'
     return _as(lambda: {'tarefa': as_fil.adicionar('exportar', pid, op, f'Exportar ({op["formato"].upper()})', unica=False)})
+
+@app.route("/audiostudio/projeto/<pid>/video", methods=["POST", "DELETE"], strict_slashes=False)
+def audiostudio_video(pid):
+    if request.method == 'DELETE':
+        return _as(lambda: {'video': as_mid.apagar_video(as_proj.pasta(pid))})
+    return _as(lambda: {'video': audiostudio_engine.salvar_video(pid, request.files.get('file'))})
 
 @app.route("/audiostudio/projeto/<pid>/medir", methods=["POST"], strict_slashes=False)
 def audiostudio_medir(pid):
